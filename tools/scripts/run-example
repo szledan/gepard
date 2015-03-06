@@ -1,0 +1,10 @@
+#!/bin/bash
+EXAMPLEDIR=$1
+EXAMPLE=${EXAMPLEDIR##*/}
+. ./tools/scripts/set-env
+
+# TODO: checking the existing EXAMPLE bin
+
+export LD_LIBRARY_PATH=$LIBDIR
+./$OUTDIR/$EXAMPLEDIR/$EXAMPLE
+

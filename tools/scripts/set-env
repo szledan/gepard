@@ -1,0 +1,7 @@
+#!/bin/bash
+export SRCDIR=src
+export OUTDIR=build
+export INCDIR=include
+export LIBDIR=libgepard
+
+export GCC_GLOBAL_FLAGS=" -Wall -Wpedantic "

@@ -1,0 +1,6 @@
+#!/bin/bash
+. ./tools/scripts/set-env
+
+mkdir -p $OUTDIR/ $LIBDIR/ $INCDIR/
+g++ $GCC_GLOBAL_FLAGS -fPIC -shared $SRCDIR/gepard.cpp -o $LIBDIR/libgepard.so && \
+cp $SRCDIR/gepard.h $INCDIR/
