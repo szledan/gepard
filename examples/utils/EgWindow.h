@@ -9,7 +9,7 @@
  *    list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *    and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -27,13 +27,46 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#include "gepard.h"
-#include "EgWindow.h"
+#ifndef eg_window_h
+#define eg_window_h
 
-int main()
-{
-    example::EgWindow w;
-    w.create();
+#include "EgConfig.h"
 
-    return 0;
-}
+#include <EGL/egl.h>
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <X11/Xutil.h>
+
+namespace example {
+
+class EgWindow {
+public:
+    EgWindow ()
+        : m_width(400)
+        , m_height(400)
+    {
+    }
+    EgWindow (eg_uint32_t width, eg_uint32_t height)
+        : m_width(width)
+        , m_height(height)
+    {
+    }
+
+    eg_uint32_t width() const { return m_width; }
+    eg_uint32_t height() const { return m_height; }
+    EGLDisplay eglDisplay() const { return m_eglDisplay; }
+    EGLSurface eglSurface() const { return m_eglSurface; }
+
+    void create();
+
+private:
+
+    eg_uint32_t m_width;
+    eg_uint32_t m_height;
+    EGLDisplay m_eglDisplay;
+    EGLSurface m_eglSurface;
+};
+
+} // namespace example
+
+#endif // EgWindow_h

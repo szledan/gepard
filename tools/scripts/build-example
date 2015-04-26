@@ -2,10 +2,10 @@
 EXAMPLEDIR=$1
 EXAMPLE=${EXAMPLEDIR##*/}
 . ./tools/scripts/set-env
+EXAMPLE_UTILS_DIR=examples/utils/
 
 # TODO: checking the existing of libgepard.so and geprd.h
 ./tools/scripts/build-gepard
 
 mkdir -p $OUTDIR/$EXAMPLEDIR
-g++ $GCC_GLOBAL_FLAGS -o $OUTDIR/$EXAMPLEDIR/$EXAMPLE $EXAMPLEDIR/$EXAMPLE.cpp -I$INCDIR -L$LIBDIR -lgepard
-
+g++ $GCC_GLOBAL_FLAGS -o $OUTDIR/$EXAMPLEDIR/$EXAMPLE $EXAMPLE_UTILS_DIR/*.cpp $EXAMPLEDIR/$EXAMPLE.cpp -I$INCDIR -I$EXAMPLE_UTILS_DIR -L$LIBDIR -lgepard -lEGL -lX11

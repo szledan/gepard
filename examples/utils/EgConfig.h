@@ -9,7 +9,7 @@
  *    list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *    and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -27,13 +27,32 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#include "gepard.h"
-#include "EgWindow.h"
+#ifndef EgConfig_h
+#define EgConfig_h
 
-int main()
-{
-    example::EgWindow w;
-    w.create();
+#include "stdint.h"
+#include "stdio.h"
+#include "stdlib.h"
 
-    return 0;
-}
+namespace example {
+
+#define ASSERT0(condition, message) \
+    if (!(condition)) {\
+        printf("ERROR: " message "\n"); \
+        exit(-1); \
+    }
+
+#define ASSERT1(condition, message, value) \
+    if (!(condition)) { \
+        printf("ERROR: " message "\n", value); \
+        exit(-1); \
+    }
+
+#define PROGRAM_STR(...)  #__VA_ARGS__
+#define PROGRAM(...) PROGRAM_STR(__VA_ARGS__)
+
+typedef uint32_t eg_uint32_t;
+
+} // namespace example
+
+#endif // EgConfig_h

@@ -4,4 +4,4 @@ export OUTDIR=build
 export INCDIR=include
 export LIBDIR=libgepard
 
-export GCC_GLOBAL_FLAGS=" -Wall -Wpedantic "
+export GCC_GLOBAL_FLAGS=" -std=c++11 -Wall -pedantic "
