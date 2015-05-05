@@ -26,38 +26,24 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#ifndef gepard_h
-#define gepard_h
+#include "gepard.h"
+#include <iostream>
+//
 
-#include "config.h"
+//GLuint createTexture(unsigned int width, unsigned int height, GLint format);
+//void compileShaderProg(GLuint* result, const char* name, const GLchar *vertexShaderSource, const GLchar *fragmentShaderSource);
+//GLuint createFrameBuffer(GLuint texture);
 
-#include "gepard-defs.h"
-#include "gepard-path.h"
-#include "gepard-surface.h"
-#include "gepard-texture.h"
-#include "gepard-utils.h"
-#include <string>
+int main()
+{
+    // FIXME: memory leak !!!
+     gepard::XGepardSurface XSurface(600, 600);
 
-namespace gepard {
+     gepard::Gepard g(&XSurface);
 
-class Gepard {
-public:
-    Gepard(GepardSurface* surface)
-        : _surface(surface)
-    {
-        // We don't use depth: glEnable(GL_DEPTH_TEST);
-        // Note: Depth test is > by default (instead of >=), so the red
-        // triangle overlaps with the green which is not our intention.
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glClearColor(0, 0, 0, 0);
-    }
+     g.fillPath();
 
-    void fillPath();
-private:
-    GepardSurface* _surface;
-};
-
-} // namespace gepard
-
-#endif // gepard_h
+     int a;
+     std::cin >> a;
+     return 0;
+}

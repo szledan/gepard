@@ -26,38 +26,50 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#ifndef gepard_h
-#define gepard_h
-
-#include "config.h"
-
-#include "gepard-defs.h"
-#include "gepard-path.h"
-#include "gepard-surface.h"
 #include "gepard-texture.h"
-#include "gepard-utils.h"
-#include <string>
 
 namespace gepard {
 
-class Gepard {
-public:
-    Gepard(GepardSurface* surface)
-        : _surface(surface)
-    {
-        // We don't use depth: glEnable(GL_DEPTH_TEST);
-        // Note: Depth test is > by default (instead of >=), so the red
-        // triangle overlaps with the green which is not our intention.
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glClearColor(0, 0, 0, 0);
+Texture* Texture::create(int width, int height, GLint format)
+{
+    GLuint texture;
+    // Create a texture object.
+    glGenTextures(1, &texture);
+    if (!texture) {
+        printf("Cannot create a texture(%dx%d)\n", width, height);
+        return NULL;
     }
 
-    void fillPath();
-private:
-    GepardSurface* _surface;
-};
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // No mipmaps are used.
+    //   glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+    //   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    // Allocate memory for the texture.
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    return new Texture(texture);
+}
+
+Texture::~Texture()
+{
+    if (_fbo)
+        glDeleteFramebuffers(1, &_fbo);
+    if (_texture)
+        glDeleteTextures(1, &_texture);
+}
+
+void Texture::bindFbo()
+{
+    if (!_fbo)
+        glGenFramebuffers(1, &_fbo);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture, 0);
+}
 
 } // namespace gepard
-
-#endif // gepard_h

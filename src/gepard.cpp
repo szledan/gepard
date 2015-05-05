@@ -1,5 +1,4 @@
-/* Copyright (C) 2015, Kristof Kosztyo
- * Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,4 +29,165 @@
 #include "gepard.h"
 
 namespace gepard {
+
+//#include "shader.c"
+void compileShaderProg(GLuint* result, const char* name, const GLchar *vertexShaderSource, const GLchar *fragmentShaderSource)
+{
+    GLuint shaderProgram = 0;
+    GLuint vertexShader = 0;
+    GLuint fragmentShader = 0;
+    GLint intValue;
+    GLchar *log = NULL;
+    GLsizei length;
+
+    if (*result)
+        return;
+
+    // Shader programs are zero terminated
+    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
+
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &intValue);
+    if (intValue != GL_TRUE) {
+        glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &intValue);
+        log = (GLchar*)malloc(intValue);
+        glGetShaderInfoLog(vertexShader, intValue, &length, log);
+        printf("Vertex shader compilation failed with: %s\n", log);
+        goto error;
+    }
+
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &intValue);
+    if (intValue != GL_TRUE) {
+        glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &intValue);
+        log = (GLchar*)malloc(intValue);
+        glGetShaderInfoLog(fragmentShader, intValue, &length, log);
+        printf("Fragment shader compilation failed with: %s\n", log);
+        goto error;
+    }
+
+    shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &intValue);
+    if (intValue != GL_TRUE) {
+        GLchar *log;
+        GLsizei length = -13;
+        glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &intValue);
+        log = (GLchar*)malloc(intValue);
+        glGetProgramInfoLog(fragmentShader, intValue, &length, log);
+        printf("Shader program link failed with: %s\n", log);
+        goto error;
+    }
+
+    // According to the specification, the shaders are kept
+    // around until the program object is freed (reference counted).
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    *result = shaderProgram;
+    return;
+
+error:
+    printf("Warning: Shader program cannot be compiled!\n");
+    if (log)
+        free(log);
+    if (vertexShader)
+        glDeleteShader(vertexShader);
+    if (fragmentShader)
+        glDeleteShader(fragmentShader);
+    if (shaderProgram)
+        glDeleteProgram(shaderProgram);
+}
+
+//#include "fbo.c"
+GLuint createFrameBuffer(GLuint texture)
+{
+    GLuint frameBufferObject;
+
+    // Create a framebuffer object.
+    glGenFramebuffers(1, &frameBufferObject);
+    if (glGetError() != GL_NO_ERROR) {
+        printf("Cannot allocate a frame buffer object\n");
+        return 0;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    return frameBufferObject;
+}
+
+// triangle.c
+
+const GLchar* simpleVertexShader = PROGRAM(
+
+    attribute vec2 a_position;
+    attribute vec4 a_color;
+
+    varying vec4 v_color;
+
+    void main(void)
+    {
+        v_color = a_color;
+        gl_Position = vec4(a_position, 1.0, 1.0);
+    }
+);
+
+const GLchar* simpleFragmentShader = PROGRAM(
+    precision mediump float;
+
+    varying vec4 v_color;
+
+    void main(void)
+    {
+        gl_FragColor = v_color;
+    }
+);
+
+void Gepard::fillPath(void)
+{
+    static GLuint simpleShader = 0;
+    GLint intValue;
+    static GLubyte indicies[] = { 0, 1, 2, 3, 4, 5 };
+    static GLfloat allAttributes[] = {
+        -1, -1,               // position_1
+        1.0, 0.0, 0.0, 0.3,     // color_1
+        -0.3, 1,               // position_2
+        0.0, 1.0, 0.0, 0.3,     // color_2
+        0.4, -1,               // position_3
+        0.0, 0.0, 1.0, 0.3,     // color_3
+        -0.4, -1,               // position_4
+        1.0, 0.0, 0.0, 0.3,     // color_4
+        0.3,  1,                // position_5
+        0.0, 1.0, 0.0, 0.3,     // color_5
+        1, -1,                  // position_6
+        0.0, 0.0, 1.0, 0.3,     // color_6
+    };
+
+    compileShaderProg(&simpleShader, "SimpleShader", simpleVertexShader, simpleFragmentShader);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(simpleShader);
+
+    /* Triangle 1 and 2 */
+    intValue = glGetAttribLocation(simpleShader, "a_position");
+    glEnableVertexAttribArray(intValue);
+    glVertexAttribPointer(intValue, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), allAttributes);
+
+    intValue = glGetAttribLocation(simpleShader, "a_color");
+    glEnableVertexAttribArray(intValue);
+    glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), allAttributes + 2);
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indicies);
+    eglSwapBuffers(_surface->eglDisplay(), _surface->eglSurface());
+}
+
+
 } // namespace gepard

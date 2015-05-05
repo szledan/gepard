@@ -26,38 +26,7 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#ifndef gepard_h
-#define gepard_h
-
-#include "config.h"
-
-#include "gepard-defs.h"
 #include "gepard-path.h"
-#include "gepard-surface.h"
-#include "gepard-texture.h"
-#include "gepard-utils.h"
-#include <string>
 
 namespace gepard {
-
-class Gepard {
-public:
-    Gepard(GepardSurface* surface)
-        : _surface(surface)
-    {
-        // We don't use depth: glEnable(GL_DEPTH_TEST);
-        // Note: Depth test is > by default (instead of >=), so the red
-        // triangle overlaps with the green which is not our intention.
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glClearColor(0, 0, 0, 0);
-    }
-
-    void fillPath();
-private:
-    GepardSurface* _surface;
-};
-
 } // namespace gepard
-
-#endif // gepard_h

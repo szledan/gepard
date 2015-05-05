@@ -5,6 +5,6 @@ EXAMPLE=${EXAMPLEDIR##*/}
 
 # TODO: checking the existing EXAMPLE bin
 
-export LD_LIBRARY_PATH=$LIBDIR
+export LD_LIBRARY_PATH="$LIBDIR:/usr/lib/nvidia-346"
 ./$OUTDIR/$EXAMPLEDIR/$EXAMPLE
 

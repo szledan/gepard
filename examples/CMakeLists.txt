@@ -8,4 +8,5 @@ include_directories(${CMAKE_BINARY_DIR}/include/)
 # TODO: remove:
 include_directories(${CMAKE_SOURCE_DIR}/src/)
 
+build_example("draw_path")
 #build_example("triangle" "")

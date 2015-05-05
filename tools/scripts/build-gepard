@@ -2,5 +2,5 @@
 . ./tools/scripts/set-env
 
 mkdir -p $OUTDIR/ $LIBDIR/ $INCDIR/
-g++ $GCC_GLOBAL_FLAGS -fPIC -shared $SRCDIR/gepard.cpp -o $LIBDIR/libgepard.so && \
+g++ $GCC_GLOBAL_FLAGS -fPIC -shared $SRCDIR/*.cpp -I$SRCDIR -o $LIBDIR/libgepard.so -L/usr/lib/nvidia-346 -lGLESv2 -lEGL -lX11 -L/usr/lib/nvidia-346 && \
 cp $SRCDIR/gepard.h $INCDIR/

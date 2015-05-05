@@ -26,38 +26,56 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#ifndef gepard_h
-#define gepard_h
+#ifndef gepard_defs_h
+#define gepard_defs_h
 
-#include "config.h"
+#include <assert.h>
+#include <iostream>
+#include <math.h>
+#include <memory.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "gepard-defs.h"
-#include "gepard-path.h"
-#include "gepard-surface.h"
-#include "gepard-texture.h"
-#include "gepard-utils.h"
-#include <string>
+#include <EGL/egl.h>
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <X11/Xutil.h>
 
-namespace gepard {
+#define GL_GLEXT_PROTOTYPES 1
 
-class Gepard {
-public:
-    Gepard(GepardSurface* surface)
-        : _surface(surface)
-    {
-        // We don't use depth: glEnable(GL_DEPTH_TEST);
-        // Note: Depth test is > by default (instead of >=), so the red
-        // triangle overlaps with the green which is not our intention.
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glClearColor(0, 0, 0, 0);
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+//#include <dlfcn.h>
+
+#define ASSERT0(condition, message) \
+    if (!(condition)) {\
+        printf("ERROR: " message "\n"); \
+        exit(-1); \
     }
 
-    void fillPath();
-private:
-    GepardSurface* _surface;
-};
+#define ASSERT1(condition, message, value) \
+    if (!(condition)) { \
+        printf("ERROR: " message "\n", value); \
+        exit(-1); \
+    }
 
+#define PROGRAM_STR(...)  #__VA_ARGS__
+#define PROGRAM(...) PROGRAM_STR(__VA_ARGS__)
+
+#ifdef ASSERT
+#undef ASSERT
+#endif
+#define ASSERT(...) assert(__VA_ARGS__);
+
+#define ERR_MSG_EMPTY_STRING "Empty string!"
+
+#ifdef LOG_ERR
+#undef LOG_ERR
+#endif
+#define LOG_ERR(MSG_TYPE) std::cerr << MSG_TYPE << std::endl;
+
+namespace gepard {
 } // namespace gepard
 
-#endif // gepard_h
+#endif // gepard_defs_h
