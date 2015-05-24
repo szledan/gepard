@@ -37,7 +37,7 @@ void Gepard::moveTo(float x, float y)
 
 void Gepard::closePath()
 {
-    // FIXME: Unimplemented
+    _path->pathData().addCloseSubpath();
 }
 
 void Gepard::lineTo(float x, float y)

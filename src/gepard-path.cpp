@@ -181,15 +181,28 @@ void PathData::addLineToElement(FloatPoint to)
         return;
 
     _lastElement->_next = static_cast<PathElement*>(new (_region.alloc(sizeof(LineToElement))) LineToElement(to));
+    _lastElement = _lastElement->_next;
+}
+
+void PathData::addCloseSubpath()
+{
+    if (!_lastElement || _lastElement->isMoveTo())
+        return;
+
+    _lastElement->_next = static_cast<PathElement*>(new (_region.alloc(sizeof(CloseSubpathElement))) CloseSubpathElement(_lastMoveToElement->_to));
+    _lastElement = _lastElement->_next;
 }
 
 void PathData::dump()
 {
     PathElement* element = _firstElement;
 
+    std::cout << "firstElement: " << _firstElement << std::endl;
+    std::cout << "lastElement: " << _lastElement << std::endl;
+    std::cout << "lastMoveToElement: " << _lastMoveToElement << std::endl;
     std::cout << "PathData:";
     while (element) {
-        std::cout << " " << *element;
+        std::cout << " " << *element << "[" << element << "]";
         element = element->_next;
     }
     std::cout << std::endl;
@@ -197,6 +210,9 @@ void PathData::dump()
 
 void Path::fillPath()
 {
+    if (_pathData._lastElement->_type != PathElementTypes::CloseSubpath)
+        _pathData.addCloseSubpath();
+
     _pathData.dump();
 #if 0 // unused
     static GLuint simpleShader = 0;

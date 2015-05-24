@@ -82,6 +82,15 @@ struct LineToElement : public PathElement {
     }
 };
 
+struct CloseSubpathElement : public PathElement {
+    CloseSubpathElement(FloatPoint to) : PathElement(PathElementTypes::CloseSubpath, to) {}
+
+    virtual std::ostream& output(std::ostream& os) const
+    {
+        return os << "Z(" << _to << ")";
+    }
+};
+
 struct PathData {
     PathData()
         : _firstElement(nullptr)
@@ -91,6 +100,7 @@ struct PathData {
 
     void addMoveToElement(FloatPoint);
     void addLineToElement(FloatPoint);
+    void addCloseSubpath();
     void dump();
 
     Region _region;

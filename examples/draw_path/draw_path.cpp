@@ -35,10 +35,10 @@
 
 int main()
 {
-    // FIXME: memory leak !!!
-    //gepard::XGepardSurface XSurface(600, 600);
+//    // FIXME: memory leak !!!
+//    gepard::XGepardSurface XSurface(600, 600);
 
-    //gepard::Gepard g(&XSurface);
+//    gepard::Gepard g(&XSurface);
     gepard::Gepard g(0);
 
     g.beginPath();
@@ -47,7 +47,7 @@ int main()
     g.lineTo(10, 12);
     g.fill();
 
-    int a;
-    std::cin >> a;
-    return 0;
+//    int a;
+//    std::cin >> a;
+//    return 0;
 }
