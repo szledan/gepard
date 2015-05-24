@@ -32,104 +32,10 @@
 #include "config.h"
 
 #include "gepard-surface.h"
+#include "gepard-types.h"
 
 namespace gepard {
 
-typedef float Float;
-
-struct FloatSize {
-    Float _width;
-    Float _heigth;
-
-    Float squaredMagnitude() { return _width * _width + _heigth * _heigth; }
-    Float magnitude() { return sqrt(squaredMagnitude()); }
-
-    FloatSize& operator+=(const FloatSize& rhs)
-    {
-        this->_width += rhs._width;
-        this->_heigth += rhs._heigth;
-        return *this;
-    }
-    FloatSize& operator-=(const FloatSize& rhs)
-    {
-        this->_width -= rhs._width;
-        this->_heigth -= rhs._heigth;
-        return *this;
-    }
-    FloatSize& operator*=(const FloatSize& rhs)
-    {
-        this->_width *= rhs._width;
-        this->_heigth *= rhs._heigth;
-        return *this;
-    }
-    FloatSize& operator/=(const FloatSize& rhs)
-    {
-        ASSERT(rhs._width && rhs._heigth);
-
-        this->_width /= rhs._width;
-        this->_heigth /= rhs._heigth;
-        return *this;
-    }
-    friend FloatSize operator+(FloatSize lhs, const FloatSize& rhs) { return lhs += rhs; }
-    friend FloatSize operator-(FloatSize lhs, const FloatSize& rhs) { return lhs -= rhs; }
-    friend FloatSize operator*(FloatSize lhs, const FloatSize& rhs) { return lhs *= rhs; }
-    friend FloatSize operator/(FloatSize lhs, const FloatSize& rhs) { return lhs /= rhs; }
-};
-
-struct FloatPoint {
-    FloatPoint() : _x(0), _y(0) {}
-    FloatPoint(float x, float y) : _x(x), _y(y) {}
-
-    Float _x;
-    Float _y;
-};
-
-inline std::ostream& operator<<(std::ostream& os, const FloatPoint& p)
-{
-    return os << p._x << "," << p._y;
-}
-
-inline bool operator==(const FloatPoint& a, const FloatPoint& b)
-{
-    return a._x == b._x && a._y == b._y;
-}
-
-#define REGION_BLOCK_SIZE (2048 - (int)sizeof(void*))
-
-class Region {
-public:
-    Region()
-    {
-        _first = new RegionElement();
-        _last = _first;
-        _fill = 0;
-    }
-    ~Region()
-    {
-        while (_first) {
-            _last = _first;
-            _first = _first->_next;
-            delete _last;
-        }
-    }
-
-    void* alloc(int size);
-
-private:
-    struct RegionElement {
-        RegionElement* _next;
-        uint8_t _value[REGION_BLOCK_SIZE];
-
-        RegionElement()
-            : _next(nullptr)
-        {
-        }
-    };
-
-    RegionElement *_first;
-    RegionElement *_last;
-    int _fill;
-};
 
 typedef enum PathElementTypes {
     Undefined = 0,

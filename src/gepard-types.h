@@ -26,59 +26,72 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#ifndef gepard_h
-#define gepard_h
+#ifndef gepard_types_h
+#define gepard_types_h
 
 #include "config.h"
 
-#include "gepard-defs.h"
-#include "gepard-path.h"
-#include "gepard-surface.h"
-#include "gepard-texture.h"
-#include "gepard-types.h"
-#include "gepard-utils.h"
-#include <string>
-
 namespace gepard {
 
-class Gepard {
+/* Region */
+
+#define REGION_BLOCK_SIZE (2048 - (int)sizeof(void*))
+
+class Region {
 public:
-    Gepard(GepardSurface* surface)
-        : _surface(surface)
-        , _path(0)
+    Region()
     {
-        // We don't use depth: glEnable(GL_DEPTH_TEST);
-        // Note: Depth test is > by default (instead of >=), so the red
-        // triangle overlaps with the green which is not our intention.
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glClearColor(0, 0, 0, 0);
+        _first = new RegionElement();
+        _last = _first;
+        _fill = 0;
+    }
+    ~Region()
+    {
+        while (_first) {
+            _last = _first;
+            _first = _first->_next;
+            delete _last;
+        }
     }
 
-    // 5. Building paths (W3-2DContext-2015)
-    void moveTo(float x, float y);
-    void closePath();
-    void lineTo(float x, float y);
-    void quadraticCurveTo(float cpx, float cpy, float x, float y);
-    void bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y);
-    void arcTo(float x1, float y1, float x2, float y2, float radius);
-    void arc(float x, float y, float radius, float startAngle, float endAngle, bool anticlockwise = true);
-    void rect(float x, float y, float w, float h);
-
-    // 10. Drawing paths to the canvas (W3-2DContext-2015)
-    void beginPath();
-    void fill();
-    void stroke();
-    void drawFocusIfNeeded(/* Element& */);
-    void clip();
-    void isPointInPath(const float x, const float y);
-
+    void* alloc(int size);
 
 private:
-    GepardSurface* _surface;
-    Path* _path;
+    struct RegionElement {
+        RegionElement* _next;
+        uint8_t _value[REGION_BLOCK_SIZE];
+
+        RegionElement()
+            : _next(nullptr)
+        {
+        }
+    };
+
+    RegionElement *_first;
+    RegionElement *_last;
+    int _fill;
 };
+
+/* FloatPoint */
+
+struct FloatPoint {
+    FloatPoint() : _x(0), _y(0) {}
+    FloatPoint(float x, float y) : _x(x), _y(y) {}
+
+    float _x;
+    float _y;
+};
+
+inline std::ostream& operator<<(std::ostream& os, const FloatPoint& p)
+{
+    return os << p._x << "," << p._y;
+}
+
+inline bool operator==(const FloatPoint& a, const FloatPoint& b)
+{
+    return a._x == b._x && a._y == b._y;
+}
 
 } // namespace gepard
 
-#endif // gepard_h
+#endif // gepard_types_h

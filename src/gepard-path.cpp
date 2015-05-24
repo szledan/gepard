@@ -152,20 +152,6 @@ std::ostream& operator<<(std::ostream& os, const PathElement& ps)
     return ps.output(os);
 }
 
-void* Region::alloc(int size)
-{
-    if (_fill + size > REGION_BLOCK_SIZE) {
-        _last->_next = new RegionElement();
-        _last = _last->_next;
-        _fill = 0;
-    }
-
-    void* ptr = _last->_value + _fill;
-    _fill += size;
-
-    return ptr;
-}
-
 void PathData::addMoveToElement(FloatPoint to)
 {
     if (_lastElement && _lastElement->isMoveTo()) {
