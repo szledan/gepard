@@ -147,11 +147,6 @@ const GLchar* simpleFragmentShader = PROGRAM(
     }
 );
 
-std::ostream& operator<<(std::ostream& os, const FloatPoint& fp)
-{
-    return os << fp._x << "," << fp._y;
-}
-
 std::ostream& operator<<(std::ostream& os, const PathElement& ps)
 {
     return ps.output(os);
@@ -173,8 +168,8 @@ void* Region::alloc(int size)
 
 void PathData::addMoveToElement(FloatPoint to)
 {
-    if (_lastElement && _lastElement->_type == PathElementTypes::MoveTo) {
-        static_cast<MoveToElement*>(_lastElement)->_to = to;
+    if (_lastElement && _lastElement->isMoveTo()) {
+        _lastElement->_to = to;
         return;
     }
 
@@ -187,16 +182,28 @@ void PathData::addMoveToElement(FloatPoint to)
         _lastElement->_next = currentElement;
         _lastElement = _lastElement->_next;
     }
+
     _lastMoveToElement = _lastElement;
+}
+
+void PathData::addLineToElement(FloatPoint to)
+{
+    if (!_lastElement)
+        addMoveToElement(to);
+
+    if (!_lastElement->isMoveTo() && _lastElement->_to == to)
+        return;
+
+    _lastElement->_next = static_cast<PathElement*>(new (_region.alloc(sizeof(LineToElement))) LineToElement(to));
 }
 
 void PathData::dump()
 {
     PathElement* element = _firstElement;
 
-    std::cout << "PathData: ";
+    std::cout << "PathData:";
     while (element) {
-        std::cout << *element;
+        std::cout << " " << *element;
         element = element->_next;
     }
     std::cout << std::endl;

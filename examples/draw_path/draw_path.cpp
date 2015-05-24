@@ -43,7 +43,8 @@ int main()
 
     g.beginPath();
     g.moveTo(10, 10);
-    g.moveTo(10, 12);
+    g.moveTo(10, 11);
+    g.lineTo(10, 12);
     g.fill();
 
     int a;

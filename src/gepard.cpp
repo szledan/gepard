@@ -40,9 +40,9 @@ void Gepard::closePath()
     // FIXME: Unimplemented
 }
 
-void Gepard::lineTo(float x ATTR_UNUSED, float y ATTR_UNUSED)
+void Gepard::lineTo(float x, float y)
 {
-    // FIXME: Unimplemented
+    _path->pathData().addLineToElement(FloatPoint(x, y));
 }
 
 void Gepard::quadraticCurveTo(float cpx ATTR_UNUSED, float cpy ATTR_UNUSED, float x ATTR_UNUSED, float y ATTR_UNUSED)

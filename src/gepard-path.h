@@ -84,7 +84,15 @@ struct FloatPoint {
     Float _y;
 };
 
-std::ostream& operator<<(std::ostream& os, const FloatPoint& fp);
+inline std::ostream& operator<<(std::ostream& os, const FloatPoint& p)
+{
+    return os << p._x << "," << p._y;
+}
+
+inline bool operator==(const FloatPoint& a, const FloatPoint& b)
+{
+    return a._x == b._x && a._y == b._y;
+}
 
 #define REGION_BLOCK_SIZE (2048 - (int)sizeof(void*))
 
@@ -134,27 +142,38 @@ typedef enum PathElementTypes {
 } PathElementType;
 
 struct PathElement {
-    PathElement() : _next(nullptr), _type(PathElementTypes::Undefined) {};
-    PathElement(PathElementType type) : _next(nullptr), _type(type) {};
+    PathElement() : _next(nullptr), _type(PathElementTypes::Undefined) {}
+    PathElement(PathElementType type) : _next(nullptr), _type(type) {}
+    PathElement(PathElementType type, FloatPoint to)
+        : _next(nullptr)
+        , _type(type)
+        , _to(to)
+    {}
 
+    bool isMoveTo() const { return _type == PathElementTypes::MoveTo; }
     virtual std::ostream& output(std::ostream& os) const = 0;
 
     PathElement* _next;
     PathElementType _type;
+    FloatPoint _to;
 };
 
 struct MoveToElement : public PathElement {
-    MoveToElement(FloatPoint to)
-        : PathElement(PathElementTypes::MoveTo)
-        , _to(to)
-    {}
+    MoveToElement(FloatPoint to) : PathElement(PathElementTypes::MoveTo, to) {}
 
     virtual std::ostream& output(std::ostream& os) const
     {
         return os << "M(" << _to << ")";
     }
+};
 
-    FloatPoint _to;
+struct LineToElement : public PathElement {
+    LineToElement(FloatPoint to) : PathElement(PathElementTypes::LineTo, to) {}
+
+    virtual std::ostream& output(std::ostream& os) const
+    {
+        return os << "L(" << _to << ")";
+    }
 };
 
 struct PathData {
@@ -165,6 +184,7 @@ struct PathData {
     {}
 
     void addMoveToElement(FloatPoint);
+    void addLineToElement(FloatPoint);
     void dump();
 
     Region _region;
