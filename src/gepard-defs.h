@@ -75,6 +75,8 @@
 #endif
 #define LOG_ERR(MSG_TYPE) std::cerr << MSG_TYPE << std::endl;
 
+#define ATTR_UNUSED __attribute__((unused))
+
 namespace gepard {
 } // namespace gepard
 

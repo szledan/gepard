@@ -28,7 +28,6 @@
 
 #include "gepard.h"
 #include <iostream>
-//
 
 //GLuint createTexture(unsigned int width, unsigned int height, GLint format);
 //void compileShaderProg(GLuint* result, const char* name, const GLchar *vertexShaderSource, const GLchar *fragmentShaderSource);
@@ -37,13 +36,17 @@
 int main()
 {
     // FIXME: memory leak !!!
-     gepard::XGepardSurface XSurface(600, 600);
+    //gepard::XGepardSurface XSurface(600, 600);
 
-     gepard::Gepard g(&XSurface);
+    //gepard::Gepard g(&XSurface);
+    gepard::Gepard g(0);
 
-     g.fillPath();
+    g.beginPath();
+    g.moveTo(10, 10);
+    g.moveTo(10, 12);
+    g.fill();
 
-     int a;
-     std::cin >> a;
-     return 0;
+    int a;
+    std::cin >> a;
+    return 0;
 }

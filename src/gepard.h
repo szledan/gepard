@@ -44,6 +44,7 @@ class Gepard {
 public:
     Gepard(GepardSurface* surface)
         : _surface(surface)
+        , _path(0)
     {
         // We don't use depth: glEnable(GL_DEPTH_TEST);
         // Note: Depth test is > by default (instead of >=), so the red
@@ -53,9 +54,28 @@ public:
         glClearColor(0, 0, 0, 0);
     }
 
-    void fillPath();
+    // 5. Building paths (W3-2DContext-2015)
+    void moveTo(float x, float y);
+    void closePath();
+    void lineTo(float x, float y);
+    void quadraticCurveTo(float cpx, float cpy, float x, float y);
+    void bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y);
+    void arcTo(float x1, float y1, float x2, float y2, float radius);
+    void arc(float x, float y, float radius, float startAngle, float endAngle, bool anticlockwise = true);
+    void rect(float x, float y, float w, float h);
+
+    // 10. Drawing paths to the canvas (W3-2DContext-2015)
+    void beginPath();
+    void fill();
+    void stroke();
+    void drawFocusIfNeeded(/* Element& */);
+    void clip();
+    void isPointInPath(const float x, const float y);
+
+
 private:
     GepardSurface* _surface;
+    Path* _path;
 };
 
 } // namespace gepard

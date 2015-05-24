@@ -30,164 +30,77 @@
 
 namespace gepard {
 
-//#include "shader.c"
-void compileShaderProg(GLuint* result, const char* name, const GLchar *vertexShaderSource, const GLchar *fragmentShaderSource)
+void Gepard::moveTo(float x, float y)
 {
-    GLuint shaderProgram = 0;
-    GLuint vertexShader = 0;
-    GLuint fragmentShader = 0;
-    GLint intValue;
-    GLchar *log = NULL;
-    GLsizei length;
-
-    if (*result)
-        return;
-
-    // Shader programs are zero terminated
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &intValue);
-    if (intValue != GL_TRUE) {
-        glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &intValue);
-        log = (GLchar*)malloc(intValue);
-        glGetShaderInfoLog(vertexShader, intValue, &length, log);
-        printf("Vertex shader compilation failed with: %s\n", log);
-        goto error;
-    }
-
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &intValue);
-    if (intValue != GL_TRUE) {
-        glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &intValue);
-        log = (GLchar*)malloc(intValue);
-        glGetShaderInfoLog(fragmentShader, intValue, &length, log);
-        printf("Fragment shader compilation failed with: %s\n", log);
-        goto error;
-    }
-
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &intValue);
-    if (intValue != GL_TRUE) {
-        GLchar *log;
-        GLsizei length = -13;
-        glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &intValue);
-        log = (GLchar*)malloc(intValue);
-        glGetProgramInfoLog(fragmentShader, intValue, &length, log);
-        printf("Shader program link failed with: %s\n", log);
-        goto error;
-    }
-
-    // According to the specification, the shaders are kept
-    // around until the program object is freed (reference counted).
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    *result = shaderProgram;
-    return;
-
-error:
-    printf("Warning: Shader program cannot be compiled!\n");
-    if (log)
-        free(log);
-    if (vertexShader)
-        glDeleteShader(vertexShader);
-    if (fragmentShader)
-        glDeleteShader(fragmentShader);
-    if (shaderProgram)
-        glDeleteProgram(shaderProgram);
+    _path->pathData().addMoveToElement(FloatPoint(x, y));
 }
 
-//#include "fbo.c"
-GLuint createFrameBuffer(GLuint texture)
+void Gepard::closePath()
 {
-    GLuint frameBufferObject;
-
-    // Create a framebuffer object.
-    glGenFramebuffers(1, &frameBufferObject);
-    if (glGetError() != GL_NO_ERROR) {
-        printf("Cannot allocate a frame buffer object\n");
-        return 0;
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    return frameBufferObject;
+    // FIXME: Unimplemented
 }
 
-// triangle.c
-
-const GLchar* simpleVertexShader = PROGRAM(
-
-    attribute vec2 a_position;
-    attribute vec4 a_color;
-
-    varying vec4 v_color;
-
-    void main(void)
-    {
-        v_color = a_color;
-        gl_Position = vec4(a_position, 1.0, 1.0);
-    }
-);
-
-const GLchar* simpleFragmentShader = PROGRAM(
-    precision mediump float;
-
-    varying vec4 v_color;
-
-    void main(void)
-    {
-        gl_FragColor = v_color;
-    }
-);
-
-void Gepard::fillPath(void)
+void Gepard::lineTo(float x ATTR_UNUSED, float y ATTR_UNUSED)
 {
-    static GLuint simpleShader = 0;
-    GLint intValue;
-    static GLubyte indicies[] = { 0, 1, 2, 3, 4, 5 };
-    static GLfloat allAttributes[] = {
-        -1, -1,               // position_1
-        1.0, 0.0, 0.0, 0.3,     // color_1
-        -0.3, 1,               // position_2
-        0.0, 1.0, 0.0, 0.3,     // color_2
-        0.4, -1,               // position_3
-        0.0, 0.0, 1.0, 0.3,     // color_3
-        -0.4, -1,               // position_4
-        1.0, 0.0, 0.0, 0.3,     // color_4
-        0.3,  1,                // position_5
-        0.0, 1.0, 0.0, 0.3,     // color_5
-        1, -1,                  // position_6
-        0.0, 0.0, 1.0, 0.3,     // color_6
-    };
-
-    compileShaderProg(&simpleShader, "SimpleShader", simpleVertexShader, simpleFragmentShader);
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(simpleShader);
-
-    /* Triangle 1 and 2 */
-    intValue = glGetAttribLocation(simpleShader, "a_position");
-    glEnableVertexAttribArray(intValue);
-    glVertexAttribPointer(intValue, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), allAttributes);
-
-    intValue = glGetAttribLocation(simpleShader, "a_color");
-    glEnableVertexAttribArray(intValue);
-    glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), allAttributes + 2);
-
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indicies);
-    eglSwapBuffers(_surface->eglDisplay(), _surface->eglSurface());
+    // FIXME: Unimplemented
 }
 
+void Gepard::quadraticCurveTo(float cpx ATTR_UNUSED, float cpy ATTR_UNUSED, float x ATTR_UNUSED, float y ATTR_UNUSED)
+{
+    // FIXME: Unimplemented
+}
+
+void Gepard::bezierCurveTo(float cp1x ATTR_UNUSED, float cp1y ATTR_UNUSED, float cp2x ATTR_UNUSED, float cp2y ATTR_UNUSED, float x ATTR_UNUSED, float y ATTR_UNUSED)
+{
+    // FIXME: Unimplemented
+}
+
+void Gepard::arcTo(float x1 ATTR_UNUSED, float y1 ATTR_UNUSED, float x2 ATTR_UNUSED, float y2 ATTR_UNUSED, float radius ATTR_UNUSED)
+{
+    // FIXME: Unimplemented
+}
+
+void Gepard::arc(float x ATTR_UNUSED, float y ATTR_UNUSED, float radius ATTR_UNUSED, float startAngle ATTR_UNUSED, float endAngle ATTR_UNUSED, bool anticlockwise ATTR_UNUSED)
+{
+    // FIXME: Unimplemented
+}
+
+void Gepard::rect(float x ATTR_UNUSED, float y ATTR_UNUSED, float w ATTR_UNUSED, float h ATTR_UNUSED)
+{
+    // FIXME: Unimplemented
+}
+
+void Gepard::beginPath()
+{
+    if (!_path)
+        _path = new Path(_surface);
+}
+
+void Gepard::fill()
+{
+    ASSERT(_path);
+
+    _path->fillPath();
+}
+
+void Gepard::stroke()
+{
+   // FIXME: Unimplemented
+}
+
+void Gepard::drawFocusIfNeeded(/* Element& */)
+{
+    // FIXME: Unimplemented
+}
+
+void Gepard::clip()
+{
+    // FIXME: Unimplemented
+}
+
+void Gepard::isPointInPath(const float x ATTR_UNUSED, const float y ATTR_UNUSED)
+{
+    // FIXME: Unimplemented
+}
 
 } // namespace gepard

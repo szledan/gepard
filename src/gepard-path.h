@@ -31,6 +31,8 @@
 
 #include "config.h"
 
+#include "gepard-surface.h"
+
 namespace gepard {
 
 typedef float Float;
@@ -75,8 +77,50 @@ struct FloatSize {
 };
 
 struct FloatPoint {
+    FloatPoint() : _x(0), _y(0) {}
+    FloatPoint(float x, float y) : _x(x), _y(y) {}
+
     Float _x;
     Float _y;
+};
+
+std::ostream& operator<<(std::ostream& os, const FloatPoint& fp);
+
+#define REGION_BLOCK_SIZE (2048 - (int)sizeof(void*))
+
+class Region {
+public:
+    Region()
+    {
+        _first = new RegionElement();
+        _last = _first;
+        _fill = 0;
+    }
+    ~Region()
+    {
+        while (_first) {
+            _last = _first;
+            _first = _first->_next;
+            delete _last;
+        }
+    }
+
+    void* alloc(int size);
+
+private:
+    struct RegionElement {
+        RegionElement* _next;
+        uint8_t _value[REGION_BLOCK_SIZE];
+
+        RegionElement()
+            : _next(nullptr)
+        {
+        }
+    };
+
+    RegionElement *_first;
+    RegionElement *_last;
+    int _fill;
 };
 
 typedef enum PathElementTypes {
@@ -93,6 +137,8 @@ struct PathElement {
     PathElement() : _next(nullptr), _type(PathElementTypes::Undefined) {};
     PathElement(PathElementType type) : _next(nullptr), _type(type) {};
 
+    virtual std::ostream& output(std::ostream& os) const = 0;
+
     PathElement* _next;
     PathElementType _type;
 };
@@ -101,21 +147,44 @@ struct MoveToElement : public PathElement {
     MoveToElement(FloatPoint to)
         : PathElement(PathElementTypes::MoveTo)
         , _to(to)
+    {}
+
+    virtual std::ostream& output(std::ostream& os) const
     {
-    };
+        return os << "M(" << _to << ")";
+    }
 
     FloatPoint _to;
 };
 
-class PathData {
-public:
-private:
+struct PathData {
+    PathData()
+        : _firstElement(nullptr)
+        , _lastElement(nullptr)
+        , _lastMoveToElement(nullptr)
+    {}
+
+    void addMoveToElement(FloatPoint);
+    void dump();
+
+    Region _region;
+    PathElement* _firstElement;
+    PathElement* _lastElement;
+    PathElement* _lastMoveToElement;
 };
 
 class Path {
 public:
+    Path(const GepardSurface* surface)
+        : _surface(surface)
+    {}
+
+    PathData& pathData() { return _pathData; }
+    void fillPath();
+
 private:
-    PathData m_pathData;
+    PathData _pathData;
+    const GepardSurface* _surface;
 };
 
 class Tessalator {
