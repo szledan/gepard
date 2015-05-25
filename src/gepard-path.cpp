@@ -186,8 +186,11 @@ void PathData::addLineToElement(FloatPoint to)
 
 void PathData::addCloseSubpath()
 {
-    if (!_lastElement || _lastElement->isMoveTo())
+    if (!_lastElement)
         return;
+    if (_lastElement->isMoveTo()) {
+        addLineToElement(_lastElement->_to);
+    }
 
     _lastElement->_next = static_cast<PathElement*>(new (_region.alloc(sizeof(CloseSubpathElement))) CloseSubpathElement(_lastMoveToElement->_to));
     _lastElement = _lastElement->_next;

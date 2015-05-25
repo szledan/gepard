@@ -67,8 +67,8 @@ private:
         }
     };
 
-    RegionElement *_first;
-    RegionElement *_last;
+    RegionElement* _first;
+    RegionElement* _last;
     int _fill;
 };
 

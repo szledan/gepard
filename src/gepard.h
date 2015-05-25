@@ -54,6 +54,11 @@ public:
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glClearColor(0, 0, 0, 0);
     }
+    ~Gepard()
+    {
+        // FIXME: delete _surface;
+        delete _path;
+    }
 
     // 5. Building paths (W3-2DContext-2015)
     void moveTo(float x, float y);
@@ -72,6 +77,9 @@ public:
     void drawFocusIfNeeded(/* Element& */);
     void clip();
     void isPointInPath(const float x, const float y);
+
+    // Extras
+    Path* path() const { return _path; }
 
 
 private:
