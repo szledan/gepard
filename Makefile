@@ -13,6 +13,9 @@ build_dir:
 	mkdir -p build/
 	cd build/ && cmake ../
 
+test:
+	cd build/ && ./bin/unit
+
 clean:
 	cd build && make clean
 
