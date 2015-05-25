@@ -26,6 +26,9 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
+#ifndef gepard_unit_test_h
+#define gepard_unit_test_h
+
 #include <iostream>
 
 int globalPASS = 0;
@@ -53,3 +56,5 @@ int testcaseIndex = 0;
 
 #define EQ(A, B) (A == B)
 #define NEQ(A, B) (A != B)
+
+#endif // gepard_unit_test_h
