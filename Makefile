@@ -5,6 +5,10 @@ all: build_dir
 gepard:
 	cd build/ && make gepard
 
+cppcheck:
+	cppcheck src
+	cppcheck examples
+
 build_dir:
 	mkdir -p build/
 	cd build/ && cmake ../
