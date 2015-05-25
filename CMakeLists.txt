@@ -20,3 +20,4 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIB_OUTPUT_DIR})
 
 add_subdirectory(src)
 add_subdirectory(examples)
+add_subdirectory(tests/unit)
