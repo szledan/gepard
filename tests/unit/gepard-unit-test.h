@@ -26,6 +26,9 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
+#ifndef gepard_unit_test_h
+#define gepard_unit_test_h
+
 #include <iostream>
 
 int globalPASS = 0;
@@ -38,6 +41,18 @@ int testcaseIndex = 0;
         FUNCTION; \
         std::cout << #FUNCTION << " STOP" << std::endl; \
     } while (0)
+
+#define FINALIZER() do { \
+        int globalAll = globalPASS + globalFAIL; \
+        if (globalAll > 0) \
+            std::cout << std::endl \
+                << "  === Finished. ===" << std::endl \
+                << "   Passed: " << globalPASS << " (" << globalPASS / ((float)globalAll) * 100 << "%)" << std::endl \
+                << "   Failed: " << globalFAIL << " (" << globalFAIL / ((float)globalAll) * 100 << "%)" << std::endl \
+                << "   Total cases: " << globalAll << std::endl << std::endl; \
+    } while (0)
+
+#define EXIT_CODE() (globalFAIL ? 1 : 0)
 
 #define TEST(OP, M) do { \
         std::cout << testcaseIndex++ << ". testcase..."; \
@@ -53,3 +68,5 @@ int testcaseIndex = 0;
 
 #define EQ(A, B) (A == B)
 #define NEQ(A, B) (A != B)
+
+#endif // gepard_unit_test_h
