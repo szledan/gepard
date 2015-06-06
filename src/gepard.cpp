@@ -45,14 +45,14 @@ void Gepard::lineTo(float x, float y)
     _path->pathData().addLineToElement(FloatPoint(x, y));
 }
 
-void Gepard::quadraticCurveTo(float cpx ATTR_UNUSED, float cpy ATTR_UNUSED, float x ATTR_UNUSED, float y ATTR_UNUSED)
+void Gepard::quadraticCurveTo(float cpx, float cpy, float x, float y)
 {
-    // FIXME: Unimplemented
+    _path->pathData().addQuadaraticCurveToElement(FloatPoint(cpx, cpy), FloatPoint(x, y));
 }
 
-void Gepard::bezierCurveTo(float cp1x ATTR_UNUSED, float cp1y ATTR_UNUSED, float cp2x ATTR_UNUSED, float cp2y ATTR_UNUSED, float x ATTR_UNUSED, float y ATTR_UNUSED)
+void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
 {
-    // FIXME: Unimplemented
+    _path->pathData().addBezierCurveToElement(FloatPoint(cp1x, cp1y), FloatPoint(cp2x, cp2y), FloatPoint(x, y));
 }
 
 void Gepard::arcTo(float x1 ATTR_UNUSED, float y1 ATTR_UNUSED, float x2 ATTR_UNUSED, float y2 ATTR_UNUSED, float radius ATTR_UNUSED)

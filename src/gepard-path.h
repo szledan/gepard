@@ -42,7 +42,7 @@ typedef enum PathElementTypes {
     MoveTo,
     LineTo,
     QuadraticCurve,
-    CubicCurve,
+    BezierCurve,
     Arc,
     CloseSubpath,
 } PathElementType;
@@ -54,10 +54,15 @@ struct PathElement {
         : _next(nullptr)
         , _type(type)
         , _to(to)
-    {}
+    {
+    }
 
     bool isMoveTo() const { return _type == PathElementTypes::MoveTo; }
-    virtual std::ostream& output(std::ostream& os) const = 0;
+    virtual std::ostream& output(std::ostream& os) const
+    {
+        return os << _to;
+    }
+
 
     PathElement* _next;
     PathElementType _type;
@@ -67,28 +72,51 @@ struct PathElement {
 struct MoveToElement : public PathElement {
     MoveToElement(FloatPoint to) : PathElement(PathElementTypes::MoveTo, to) {}
 
-    virtual std::ostream& output(std::ostream& os) const
-    {
-        return os << "M(" << _to << ")";
-    }
+    std::ostream& output(std::ostream& os) const { return PathElement::output(os << "M"); }
 };
 
 struct LineToElement : public PathElement {
     LineToElement(FloatPoint to) : PathElement(PathElementTypes::LineTo, to) {}
 
-    virtual std::ostream& output(std::ostream& os) const
-    {
-        return os << "L(" << _to << ")";
-    }
+    std::ostream& output(std::ostream& os) const { return PathElement::output(os << "L"); }
 };
 
 struct CloseSubpathElement : public PathElement {
     CloseSubpathElement(FloatPoint to) : PathElement(PathElementTypes::CloseSubpath, to) {}
 
-    virtual std::ostream& output(std::ostream& os) const
+    std::ostream& output(std::ostream& os) const { return PathElement::output(os << "Z"); }
+};
+
+struct QuadraticCurveToElement : public PathElement {
+    QuadraticCurveToElement(FloatPoint control, FloatPoint to)
+        : PathElement(PathElementTypes::QuadraticCurve, to)
+        , _control(control)
     {
-        return os << "Z(" << _to << ")";
     }
+
+    std::ostream& output(std::ostream& os) const
+    {
+        return PathElement::output(os << "Q" << _control << " ");
+    }
+
+    FloatPoint _control;
+};
+
+struct BezierCurveToElement : public PathElement {
+    BezierCurveToElement(FloatPoint control1, FloatPoint control2, FloatPoint to)
+        : PathElement(PathElementTypes::BezierCurve, to)
+        , _control1(control1)
+        , _control2(control2)
+    {
+    }
+
+    std::ostream& output(std::ostream& os) const
+    {
+        return PathElement::output(os << "C" << _control1 << " " << _control2 << " ");
+    }
+
+    FloatPoint _control1;
+    FloatPoint _control2;
 };
 
 struct PathData {
@@ -96,10 +124,13 @@ struct PathData {
         : _firstElement(nullptr)
         , _lastElement(nullptr)
         , _lastMoveToElement(nullptr)
-    {}
+    {
+    }
 
     void addMoveToElement(FloatPoint);
     void addLineToElement(FloatPoint);
+    void addQuadaraticCurveToElement(FloatPoint, FloatPoint);
+    void addBezierCurveToElement(FloatPoint, FloatPoint, FloatPoint);
     void addCloseSubpath();
     void dump();
 
@@ -113,7 +144,8 @@ class Path {
 public:
     Path(const GepardSurface* surface)
         : _surface(surface)
-    {}
+    {
+    }
 
     PathData& pathData() { return _pathData; }
     void fillPath();

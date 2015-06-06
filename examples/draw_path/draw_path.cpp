@@ -45,6 +45,8 @@ int main()
     g.moveTo(10, 10);
     g.moveTo(10, 11);
     g.lineTo(10, 12);
+    g.quadraticCurveTo(10, 13, 10, 14);
+    g.bezierCurveTo(10, 15, 10, 16, 10, 17);
     g.fill();
 
 //    int a;

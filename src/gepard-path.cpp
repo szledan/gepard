@@ -184,6 +184,24 @@ void PathData::addLineToElement(FloatPoint to)
     _lastElement = _lastElement->_next;
 }
 
+void PathData::addQuadaraticCurveToElement(FloatPoint control, FloatPoint to)
+{
+    if (!_lastElement)
+        addMoveToElement(to);
+
+    _lastElement->_next = static_cast<PathElement*>(new (_region.alloc(sizeof(QuadraticCurveToElement))) QuadraticCurveToElement(control, to));
+    _lastElement = _lastElement->_next;
+}
+
+void PathData::addBezierCurveToElement(FloatPoint control1, FloatPoint control2, FloatPoint to)
+{
+    if (!_lastElement)
+        addMoveToElement(to);
+
+    _lastElement->_next = static_cast<PathElement*>(new (_region.alloc(sizeof(BezierCurveToElement))) BezierCurveToElement(control1, control2, to));
+    _lastElement = _lastElement->_next;
+}
+
 void PathData::addCloseSubpath()
 {
     if (!_lastElement)
@@ -205,7 +223,7 @@ void PathData::dump()
     std::cout << "lastMoveToElement: " << _lastMoveToElement << std::endl;
     std::cout << "PathData:";
     while (element) {
-        std::cout << " " << *element << "[" << element << "]";
+        std::cout << " " << *element;
         element = element->_next;
     }
     std::cout << std::endl;
