@@ -33,9 +33,12 @@
 
 #include "gepard-surface.h"
 #include "gepard-types.h"
+#include <list>
+#include <map>
+#include <math.h>
+#include <memory>
 
 namespace gepard {
-
 
 typedef enum PathElementTypes {
     Undefined = 0,
@@ -62,7 +65,6 @@ struct PathElement {
     {
         return os << _to;
     }
-
 
     PathElement* _next;
     PathElementType _type;
@@ -120,7 +122,7 @@ struct BezierCurveToElement : public PathElement {
 };
 
 struct ArcElement : public PathElement {
-    ArcElement(FloatPoint center, FloatPoint radius, float startAngle, float endAngle, bool antiClockwise = true)
+    ArcElement(FloatPoint center, FloatPoint radius, Float startAngle, Float endAngle, bool antiClockwise = true)
         : PathElement(PathElementTypes::Arc, FloatPoint (cos(endAngle) * radius._x, sin(endAngle) * radius._y))
         , _center(center)
         , _radius(radius)
@@ -139,8 +141,8 @@ struct ArcElement : public PathElement {
 
     FloatPoint _center;
     FloatPoint _radius;
-    float _startAngle;
-    float _endAngle;
+    Float _startAngle;
+    Float _endAngle;
     bool _antiClockwise;
 };
 
@@ -156,7 +158,7 @@ struct PathData {
     void addLineToElement(FloatPoint);
     void addQuadaraticCurveToElement(FloatPoint, FloatPoint);
     void addBezierCurveToElement(FloatPoint, FloatPoint, FloatPoint);
-    void addArcElement(FloatPoint, FloatPoint, float, float, bool = true);
+    void addArcElement(FloatPoint, FloatPoint, Float, Float, bool = true);
     void addCloseSubpath();
     void dump();
 
@@ -165,6 +167,8 @@ struct PathData {
     PathElement* _lastElement;
     PathElement* _lastMoveToElement;
 };
+
+/* Path */
 
 class Path {
 public:
@@ -181,9 +185,138 @@ private:
     const GepardSurface* _surface;
 };
 
-class Tessalator {
+/* Point */
+
+union Point {
+    Point () : real() {}
+    Point (FloatPoint f) : real(f) {}
+    Point (IntPoint i) : ceiled(i) {}
+
+    FloatPoint real;
+    IntPoint ceiled;
+};
+
+/* Segment */
+
+struct Segment {
+    enum {
+        Equal = 0,
+        Positive = 1,
+        Negative = -1,
+    };
+
+    float realTopY() const { return _from.real._y; }
+    float realBottomY() const { return _to.real._y; }
+
+    Segment(FloatPoint from, FloatPoint to)
+        : _from(from)
+        , _to(to)
+    {
+        // Set slope.
+        _slope = INFINITY;
+        if (from._x != to._x)
+            _slope = (from._y - to._y) / (from._x - to._x);
+
+        // Set direction.
+        _direction = Positive;
+        if (from._y == to._y) {
+            _direction = Equal;
+        } else if (from._y > to._y) {
+            _from = to;
+            _to = from;
+            _direction = Negative;
+        };
+    }
+
+    Point _from;
+    Point _to;
+    float _slope;
+    int _direction;
+};
+
+inline std::ostream& operator<<(std::ostream& os, const Segment& s)
+{
+    return os << s._from.real << "-" << s._to.real;
+}
+
+inline bool operator<(const Segment& lhs, const Segment& rhs)
+{
+    assert(lhs._from.real <= lhs._to.real && rhs._from.real <= rhs._to.real);
+
+    if (lhs._from.real < rhs._from.real)
+        return true;
+
+    if (lhs._from.real == rhs._from.real) {
+        if (fabs(lhs._slope) > fabs(rhs._slope))
+            return true;
+    }
+
+    return false;
+}
+
+/* SegmentApproximator */
+
+typedef std::list<Segment> SegmentList;
+typedef std::map<float, SegmentList*> SegmentTree;
+
+class SegmentApproximator {
 public:
+    SegmentApproximator(float epsilon = 1)
+        : _epsilon(epsilon)
+    {
+    }
+    ~SegmentApproximator()
+    {
+        for (SegmentTree::iterator it = _segments.begin(); it != _segments.end(); it++)
+        {
+            delete it->second;
+        }
+    }
+
+    void insertSegment(Segment segment);
+    void insertSegment(FloatPoint from, FloatPoint to) { insertSegment(Segment(from, to)); }
+    void insertQuadCurve(FloatPoint from, FloatPoint control, FloatPoint to);
+    void insertBezierCurve(FloatPoint from, FloatPoint control1, FloatPoint control2, FloatPoint to);
+    void insertArc(FloatPoint center, FloatPoint radius, float startAngle, float endAngle, bool antiClockwise);
+
+    SegmentList* segments();
+
 private:
+    SegmentTree _segments;
+    float _epsilon;
+};
+
+/* Trapezoid */
+
+struct Trapezoid {
+    Float _top;
+    Float _topLeft;
+    Float _topRight;
+
+    Float _bottom;
+    Float _bottomLeft;
+    Float _bottomRight;
+};
+
+/* TrapezoidList */
+struct TrapezoidList {
+    uint32_t numerOfTrapezoids;
+    Trapezoid* trapezoid;
+};
+
+/* TrapezoidTessallator */
+
+class TrapezoidTessallator {
+public:
+    TrapezoidTessallator(Path* path)
+        : _path(path)
+    {
+    }
+
+    TrapezoidList trapezoidList();
+
+private:
+    Path* _path;
 };
 
 } // namespace gepard

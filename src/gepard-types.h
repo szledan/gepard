@@ -33,6 +33,8 @@
 
 namespace gepard {
 
+typedef float Float;
+
 /* Region */
 
 #define REGION_BLOCK_SIZE (2048 - (int)sizeof(void*))
@@ -76,10 +78,10 @@ private:
 
 struct FloatPoint {
     FloatPoint() : _x(0), _y(0) {}
-    FloatPoint(float x, float y) : _x(x), _y(y) {}
+    FloatPoint(Float x, Float y) : _x(x), _y(y) {}
 
-    float _x;
-    float _y;
+    Float _x;
+    Float _y;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const FloatPoint& p)
@@ -88,6 +90,34 @@ inline std::ostream& operator<<(std::ostream& os, const FloatPoint& p)
 }
 
 inline bool operator==(const FloatPoint& a, const FloatPoint& b)
+{
+    return a._x == b._x && a._y == b._y;
+}
+
+inline bool operator<(const FloatPoint& lhs, const FloatPoint& rhs)
+{
+    return (lhs._y < rhs._y) || (lhs._y == rhs._y && lhs._x < rhs._x);
+}
+
+inline bool operator>(const FloatPoint& lhs, const FloatPoint& rhs) { return rhs < lhs; }
+inline bool operator<=(const FloatPoint& lhs, const FloatPoint& rhs) { return !(lhs > rhs); }
+
+/* IntPoint */
+
+struct IntPoint {
+    IntPoint() : _x(0), _y(0) {}
+    IntPoint(int x, int y) : _x(x), _y(y) {}
+
+    int _x;
+    int _y;
+};
+
+inline std::ostream& operator<<(std::ostream& os, const IntPoint& p)
+{
+    return os << p._x << "," << p._y;
+}
+
+inline bool operator==(const IntPoint& a, const IntPoint& b)
 {
     return a._x == b._x && a._y == b._y;
 }

@@ -27,6 +27,10 @@
  */
 
 #include "gepard-path.h"
+#include <list>
+#include <map>
+#include <math.h>
+#include <memory>
 
 namespace gepard {
 
@@ -202,7 +206,7 @@ void PathData::addBezierCurveToElement(FloatPoint control1, FloatPoint control2,
     _lastElement = _lastElement->_next;
 }
 
-void PathData::addArcElement(FloatPoint center, FloatPoint radius, float startAngle, float endAngle, bool antiClockwise)
+void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAngle, Float endAngle, bool antiClockwise)
 {
     if (!_lastElement)
         addMoveToElement(center);
@@ -244,6 +248,9 @@ void Path::fillPath()
         _pathData.addCloseSubpath();
 
     _pathData.dump();
+    TrapezoidTessallator tt(this);
+    tt.trapezoidList();
+
 #if 0 // unused
     static GLuint simpleShader = 0;
     GLint intValue;
@@ -280,6 +287,150 @@ void Path::fillPath()
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indicies);
     eglSwapBuffers(_surface->eglDisplay(), _surface->eglSurface());
 #endif
+}
+
+/* SegmentApproximator */
+
+void SegmentApproximator::insertSegment(Segment segment)
+{
+    // FIXME: use DLOG macro:
+    std::cout << "insertSegment " << segment;
+    if (segment._direction == Segment::Equal) {
+        // FIXME: use DLOG macro:
+        std::cout << " (dropped)" << std::endl;
+        return;
+    }
+    // FIXME: use DLOG macro:
+    std::cout << " (inserted)" << std::endl;
+
+    float topY = segment.realTopY();
+    float bottomY = segment.realBottomY();
+
+    if (_segments.find(topY) == _segments.end())
+    {
+        _segments.emplace(topY, new SegmentList()).first->second->push_front(segment);
+        // TODO: log: std::cout << *(_segments[topY].begin()) << std::endl;
+    } else {
+        _segments[topY]->push_front(segment);
+    }
+
+    if (_segments.find(bottomY) == _segments.end())
+    {
+        _segments.emplace(bottomY, new SegmentList());
+    }
+}
+
+void SegmentApproximator::insertQuadCurve(FloatPoint from, FloatPoint control, FloatPoint to)
+{
+    // FIXME: Wrong approximation!
+    insertSegment(Segment(from, control));
+    insertSegment(Segment(control, to));
+}
+
+void SegmentApproximator::insertBezierCurve(FloatPoint from, FloatPoint control1, FloatPoint control2, FloatPoint to)
+{
+    // FIXME: Wrong approximation!
+    insertSegment(Segment(from, control1));
+    insertSegment(Segment(control1, control2));
+    insertSegment(Segment(control2, to));
+}
+
+void SegmentApproximator::insertArc(FloatPoint center, FloatPoint radius, float startAngle, float endAngle, bool antiClockwise)
+{
+    // TODO: Missing approximation!
+}
+
+static void splitUnorderedSegments(SegmentList* baseList, SegmentList* newList)
+{
+    if (!baseList)
+        return;
+    ASSERT(newList);
+
+    for (SegmentList::iterator segment = baseList->begin(); segment != baseList->end(); segment++) {
+        std::cout << *segment << std::endl;
+    }
+}
+
+SegmentList* SegmentApproximator::segments()
+{
+    // 1. Split segments with all y lines.
+    for (SegmentTree::iterator currentSegments = _segments.begin(); currentSegments != _segments.end(); currentSegments++)
+    {
+        SegmentTree::iterator newSegments = currentSegments;
+        if (newSegments != _segments.end())
+            splitUnorderedSegments(currentSegments->second, (newSegments++)->second);
+    }
+
+    // 2. Find all intersection points.
+    // TODO: not implemented.
+
+    // 3. Split segments with all y lines and sorting.
+    // TODO: not implemented.
+
+    // 4. Return independent segments.
+    return nullptr;
+}
+
+/* TrapezoidTessallator */
+
+TrapezoidList TrapezoidTessallator::trapezoidList()
+{
+    PathElement* element = _path->pathData()._firstElement;
+    FloatPoint from;
+    FloatPoint lastMoveTo;
+    SegmentApproximator segments;
+
+    ASSERT(element->_type == PathElementTypes::MoveTo);
+
+    // Insert path elements.
+    while (element) {
+        FloatPoint to = element->_to;
+        switch (element->_type) {
+        case PathElementTypes::MoveTo: {
+            lastMoveTo = to;
+            break;
+        }
+        case PathElementTypes::LineTo: {
+            segments.insertSegment(from, to);
+            break;
+        }
+        case PathElementTypes::CloseSubpath: {
+            segments.insertSegment(from, to);
+            break;
+        }
+        case PathElementTypes::QuadraticCurve: {
+            // FIXME: Implement real curve, it's only a test solution.
+            QuadraticCurveToElement* qe = reinterpret_cast<QuadraticCurveToElement*>(element);
+            segments.insertQuadCurve(from, qe->_control, to);
+            break;
+        }
+        case PathElementTypes::BezierCurve: {
+            // FIXME: Implement real curve, it's only a test solution.
+            BezierCurveToElement* be = reinterpret_cast<BezierCurveToElement*>(element);
+            segments.insertBezierCurve(from, be->_control1, be->_control2, to);
+            break;
+        }
+        case PathElementTypes::Arc: {
+            // FIXME: Not implemented!
+            break;
+        }
+        default:
+            // unreachable
+            break;
+        }
+
+        from = to;
+        element = element->_next;
+    }
+
+    if (element)
+        segments.insertSegment(lastMoveTo, element->_to);
+
+    segments.segments();
+
+    // TODO: Generate trapezoids.
+    TrapezoidList trapezoidList;
+    return trapezoidList;
 }
 
 } // namespace gepard
