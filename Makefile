@@ -9,6 +9,10 @@ cppcheck:
 	cppcheck src
 	cppcheck examples
 
+cppcheck-all:
+	cppcheck --enable=all src
+	cppcheck --enable=all examples
+
 build_dir:
 	mkdir -p build/
 	cd build/ && cmake ../
