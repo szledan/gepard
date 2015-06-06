@@ -119,6 +119,31 @@ struct BezierCurveToElement : public PathElement {
     FloatPoint _control2;
 };
 
+struct ArcElement : public PathElement {
+    ArcElement(FloatPoint center, FloatPoint radius, float startAngle, float endAngle, bool antiClockwise = true)
+        : PathElement(PathElementTypes::Arc, FloatPoint (cos(endAngle) * radius._x, sin(endAngle) * radius._y))
+        , _center(center)
+        , _radius(radius)
+        , _startAngle(startAngle)
+        , _endAngle(endAngle)
+        , _antiClockwise(antiClockwise)
+    {
+    }
+
+    std::ostream& output(std::ostream& os) const
+    {
+        // FIXME: generate SVG representation
+        os << "A";
+        return PathElement::output(os);
+    }
+
+    FloatPoint _center;
+    FloatPoint _radius;
+    float _startAngle;
+    float _endAngle;
+    bool _antiClockwise;
+};
+
 struct PathData {
     PathData()
         : _firstElement(nullptr)
@@ -131,6 +156,7 @@ struct PathData {
     void addLineToElement(FloatPoint);
     void addQuadaraticCurveToElement(FloatPoint, FloatPoint);
     void addBezierCurveToElement(FloatPoint, FloatPoint, FloatPoint);
+    void addArcElement(FloatPoint, FloatPoint, float, float, bool = true);
     void addCloseSubpath();
     void dump();
 

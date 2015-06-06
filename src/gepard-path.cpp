@@ -202,6 +202,15 @@ void PathData::addBezierCurveToElement(FloatPoint control1, FloatPoint control2,
     _lastElement = _lastElement->_next;
 }
 
+void PathData::addArcElement(FloatPoint center, FloatPoint radius, float startAngle, float endAngle, bool antiClockwise)
+{
+    if (!_lastElement)
+        addMoveToElement(center);
+
+    _lastElement->_next = static_cast<PathElement*>(new (_region.alloc(sizeof(ArcElement))) ArcElement(center, radius, startAngle, endAngle, antiClockwise));
+    _lastElement = _lastElement->_next;
+}
+
 void PathData::addCloseSubpath()
 {
     if (!_lastElement)

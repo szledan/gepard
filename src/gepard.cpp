@@ -60,9 +60,9 @@ void Gepard::arcTo(float x1 ATTR_UNUSED, float y1 ATTR_UNUSED, float x2 ATTR_UNU
     // FIXME: Unimplemented
 }
 
-void Gepard::arc(float x ATTR_UNUSED, float y ATTR_UNUSED, float radius ATTR_UNUSED, float startAngle ATTR_UNUSED, float endAngle ATTR_UNUSED, bool anticlockwise ATTR_UNUSED)
+void Gepard::arc(float x, float y, float radius, float startAngle, float endAngle, bool anticlockwise)
 {
-    // FIXME: Unimplemented
+    _path->pathData().addArcElement(FloatPoint(x, y), FloatPoint(radius, radius), startAngle, endAngle, anticlockwise);
 }
 
 void Gepard::rect(float x ATTR_UNUSED, float y ATTR_UNUSED, float w ATTR_UNUSED, float h ATTR_UNUSED)
