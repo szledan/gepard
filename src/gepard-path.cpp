@@ -340,25 +340,32 @@ void SegmentApproximator::insertArc(FloatPoint center, FloatPoint radius, float 
     // TODO: Missing approximation!
 }
 
-static void splitUnorderedSegments(SegmentList* baseList, SegmentList* newList)
+static void splitUnorderedSegments(SegmentList* baseList, SegmentTree::iterator newSegements)
 {
     if (!baseList)
         return;
+    SegmentList* newList = newSegements->second;
+    Float splitY = newSegements->first;
     ASSERT(newList);
 
+    std::cout << splitY << std::endl;
     for (SegmentList::iterator segment = baseList->begin(); segment != baseList->end(); segment++) {
+        // FIXME: use DLOG macro:
         std::cout << *segment << std::endl;
+        if (segment->isOnSegment(splitY)) {
+            newList->push_front(segment->splitSegment(splitY));
+        }
     }
 }
 
 SegmentList* SegmentApproximator::segments()
 {
     // 1. Split segments with all y lines.
-    for (SegmentTree::iterator currentSegments = _segments.begin(); currentSegments != _segments.end(); currentSegments++)
-    {
+    for (SegmentTree::iterator currentSegments = _segments.begin(); currentSegments != _segments.end(); currentSegments++) {
         SegmentTree::iterator newSegments = currentSegments;
+        newSegments++;
         if (newSegments != _segments.end())
-            splitUnorderedSegments(currentSegments->second, (newSegments++)->second);
+            splitUnorderedSegments(currentSegments->second, newSegments);
     }
 
     // 2. Find all intersection points.
@@ -387,6 +394,7 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
         FloatPoint to = element->_to;
         switch (element->_type) {
         case PathElementTypes::MoveTo: {
+            // FIXME: missing closeSubPath.
             lastMoveTo = to;
             break;
         }

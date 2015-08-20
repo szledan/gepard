@@ -208,14 +208,21 @@ struct Segment {
     float realTopY() const { return _from.real._y; }
     float realBottomY() const { return _to.real._y; }
 
+    Segment()
+        : _from(Point())
+        , _to(Point())
+        , _slope(INFINITY)
+        , _direction(Equal)
+    {}
     Segment(FloatPoint from, FloatPoint to)
         : _from(from)
         , _to(to)
     {
         // Set slope.
+        // FIXME: something wrong.
         _slope = INFINITY;
-        if (from._x != to._x)
-            _slope = (from._y - to._y) / (from._x - to._x);
+        if (from._y != to._y)
+            _slope = (from._x - to._x) / (from._y - to._y);
 
         // Set direction.
         _direction = Positive;
@@ -226,6 +233,18 @@ struct Segment {
             _to = from;
             _direction = Negative;
         };
+    }
+
+    bool isOnSegment(Float y) const { return y < _to.real._y && y > _from.real._y; }
+    Segment splitSegment(Float y)
+    {
+        ASSERT(y > _from.real._y && y < _to.real._y);
+
+        FloatPoint newPoint = FloatPoint(_slope * (y - _to.real._y) + _to.real._x, y);
+        FloatPoint to = _to.real;
+        _to = newPoint;
+
+        return Segment(newPoint, to);
     }
 
     Point _from;
@@ -257,7 +276,7 @@ inline bool operator<(const Segment& lhs, const Segment& rhs)
 /* SegmentApproximator */
 
 typedef std::list<Segment> SegmentList;
-typedef std::map<float, SegmentList*> SegmentTree;
+typedef std::map<Float, SegmentList*> SegmentTree;
 
 class SegmentApproximator {
 public:

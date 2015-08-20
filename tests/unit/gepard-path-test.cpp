@@ -85,18 +85,18 @@ void test_approxximator()
 {
     gepard::Gepard g(0);
     g.beginPath();
-    g.moveTo(0, 0);
-    g.lineTo(0, 10);
-    g.lineTo(3, 10);
-    g.lineTo(3, 7);
-    g.lineTo(7, 7);
-    g.lineTo(7, 10);
-    g.lineTo(10, 10);
-    g.lineTo(10, 0);
-    g.moveTo(3, 3);
-    g.lineTo(3, 6);
-    g.lineTo(7, 6);
-    g.lineTo(7, 3);
+    g.moveTo(1, 0);
+    g.lineTo(0, 5);
+    g.lineTo(1, 5);
+    g.lineTo(1.2, 4);
+    g.lineTo(2.8, 4);
+    g.lineTo(3, 5);
+    g.lineTo(4, 5);
+    g.lineTo(3, 0);
+    g.moveTo(1.6, 2);
+    g.lineTo(1.4, 3);
+    g.lineTo(2.6, 3);
+    g.lineTo(2.4, 2);
     g.closePath();
 
     g.fill();
