@@ -94,9 +94,17 @@ void test_approxximator()
     g.lineTo(4, 5);
     g.lineTo(3, 0);
     g.moveTo(1.6, 2);
-    g.lineTo(1.4, 3);
     g.lineTo(2.6, 3);
+    g.lineTo(1.4, 3);
     g.lineTo(2.4, 2);
+    g.moveTo(11.6, 2);
+    g.lineTo(12.6, 3);
+    g.lineTo(11.4, 3);
+    g.lineTo(12.4, 2);
+    g.moveTo(21.6, 2);
+    g.lineTo(22.6, 3);
+    g.lineTo(21.4, 3);
+    g.lineTo(22.4, 2);
     g.closePath();
 
     g.fill();

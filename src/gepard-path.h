@@ -192,6 +192,11 @@ union Point {
     Point (FloatPoint f) : real(f) {}
     Point (IntPoint i) : ceiled(i) {}
 
+    Float x() const { return real._x; }
+    Float y() const { return real._y; }
+    int intX() const { return ceiled._x; }
+    int intY() const { return ceiled._y; }
+
     FloatPoint real;
     IntPoint ceiled;
 };
@@ -200,56 +205,73 @@ union Point {
 
 struct Segment {
     enum {
-        Equal = 0,
-        Positive = 1,
         Negative = -1,
+        EqualOrNonExist = 0,
+        Positive = 1,
     };
 
-    float realTopY() const { return _from.real._y; }
-    float realBottomY() const { return _to.real._y; }
+    Float topY() const { return _from.y(); }
+    Float bottomY() const { return _to.y(); }
 
     Segment()
         : _from(Point())
         , _to(Point())
-        , _slope(INFINITY)
-        , _direction(Equal)
+        , _slopeInv(NAN)
+        , _direction(EqualOrNonExist)
     {}
     Segment(FloatPoint from, FloatPoint to)
         : _from(from)
         , _to(to)
     {
-        // Set slope.
-        // FIXME: something wrong.
-        _slope = INFINITY;
-        if (from._y != to._y)
-            _slope = (from._x - to._x) / (from._y - to._y);
+        Float denom = _to.y() - _from.y();
+        if (denom) {
+            if (from._y > to._y) {
+                _from = to;
+                _to = from;
+                _direction = Negative;
+                denom *= -1;
+            } else
+                _direction = Positive;
 
-        // Set direction.
-        _direction = Positive;
-        if (from._y == to._y) {
-            _direction = Equal;
-        } else if (from._y > to._y) {
-            _from = to;
-            _to = from;
-            _direction = Negative;
-        };
+            _slopeInv = (_to.x() - _from.x()) / (denom);
+        } else {
+            _direction = EqualOrNonExist;
+            _slopeInv = INFINITY;
+        }
     }
 
-    bool isOnSegment(Float y) const { return y < _to.real._y && y > _from.real._y; }
+    // FIXME: find a good function name:
+    Float factor() const { return _slopeInv * _from.y() - _from.x(); }
+    bool isOnSegment(Float y) const { return y < _to.y() && y > _from.y(); }
     Segment splitSegment(Float y)
     {
-        ASSERT(y > _from.real._y && y < _to.real._y);
+        ASSERT(y > _from.y() && y < _to.y());
 
-        FloatPoint newPoint = FloatPoint(_slope * (y - _to.real._y) + _to.real._x, y);
+        Float x = _slopeInv * (y - _from.y()) + _from.x();
+        FloatPoint newPoint = FloatPoint(x, y);
         FloatPoint to = _to.real;
-        _to = newPoint;
+        _to.real = newPoint;
 
         return Segment(newPoint, to);
+    }
+    Float computeIntersectionY(Segment* segment) const
+    {
+        Float y = NAN;
+        if (this == segment)
+            return y;
+        if (_from.x() != segment->_from.x() && _to.x() != segment->_to.x()) {
+            Float denom = (_slopeInv - segment->_slopeInv);
+            if (denom)
+                y = (this->factor() - segment->factor()) / denom;
+            if (y <= _from.y() || y >= _to.y())
+                y = INFINITY;
+        }
+        return y;
     }
 
     Point _from;
     Point _to;
-    float _slope;
+    Float _slopeInv;
     int _direction;
 };
 
@@ -266,7 +288,7 @@ inline bool operator<(const Segment& lhs, const Segment& rhs)
         return true;
 
     if (lhs._from.real == rhs._from.real) {
-        if (fabs(lhs._slope) > fabs(rhs._slope))
+        if (fabs(lhs._slopeInv) > fabs(rhs._slopeInv))
             return true;
     }
 
@@ -276,7 +298,7 @@ inline bool operator<(const Segment& lhs, const Segment& rhs)
 /* SegmentApproximator */
 
 typedef std::list<Segment> SegmentList;
-typedef std::map<Float, SegmentList*> SegmentTree;
+typedef std::map<const Float, SegmentList*> SegmentTree;
 
 class SegmentApproximator {
 public:
@@ -300,6 +322,8 @@ public:
 
     SegmentList* segments();
 
+    inline void splitSegments();
+    void printSegements();
 private:
     SegmentTree _segments;
     float _epsilon;

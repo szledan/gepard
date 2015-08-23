@@ -293,18 +293,11 @@ void Path::fillPath()
 
 void SegmentApproximator::insertSegment(Segment segment)
 {
-    // FIXME: use DLOG macro:
-    std::cout << "insertSegment " << segment;
-    if (segment._direction == Segment::Equal) {
-        // FIXME: use DLOG macro:
-        std::cout << " (dropped)" << std::endl;
+    if (segment._direction == Segment::EqualOrNonExist)
         return;
-    }
-    // FIXME: use DLOG macro:
-    std::cout << " (inserted)" << std::endl;
 
-    float topY = segment.realTopY();
-    float bottomY = segment.realBottomY();
+    Float topY = segment.topY();
+    Float bottomY = segment.bottomY();
 
     if (_segments.find(topY) == _segments.end())
     {
@@ -340,20 +333,32 @@ void SegmentApproximator::insertArc(FloatPoint center, FloatPoint radius, float 
     // TODO: Missing approximation!
 }
 
-static void splitUnorderedSegments(SegmentList* baseList, SegmentTree::iterator newSegements)
+void SegmentApproximator::printSegements()
 {
-    if (!baseList)
-        return;
-    SegmentList* newList = newSegements->second;
-    Float splitY = newSegements->first;
-    ASSERT(newList);
+    for (auto& currentSegments : _segments) {
+        std::cout << currentSegments.first << ": ";
+        SegmentList currentList = *(currentSegments.second);
+        for (auto segment : currentList)
+            std::cout << segment << " ";
+        std::cout << std::endl;
+    }
+}
 
-    std::cout << splitY << std::endl;
-    for (SegmentList::iterator segment = baseList->begin(); segment != baseList->end(); segment++) {
-        // FIXME: use DLOG macro:
-        std::cout << *segment << std::endl;
-        if (segment->isOnSegment(splitY)) {
-            newList->push_front(segment->splitSegment(splitY));
+inline void SegmentApproximator::splitSegments()
+{
+    for (SegmentTree::iterator currentSegments = _segments.begin(); currentSegments != _segments.end(); currentSegments++) {
+        SegmentTree::iterator newSegments = currentSegments;
+        newSegments++;
+        if (newSegments != _segments.end()) {
+            SegmentList*  currentList = currentSegments->second;
+            SegmentList* newList = newSegments->second;
+            Float splitY = newSegments->first;
+            ASSERT(currentList && newList);
+
+            for (auto& segment : *currentList) {
+                if (segment.isOnSegment(splitY))
+                    newList->push_front(segment.splitSegment(splitY));
+            }
         }
     }
 }
@@ -361,21 +366,36 @@ static void splitUnorderedSegments(SegmentList* baseList, SegmentTree::iterator 
 SegmentList* SegmentApproximator::segments()
 {
     // 1. Split segments with all y lines.
-    for (SegmentTree::iterator currentSegments = _segments.begin(); currentSegments != _segments.end(); currentSegments++) {
-        SegmentTree::iterator newSegments = currentSegments;
-        newSegments++;
-        if (newSegments != _segments.end())
-            splitUnorderedSegments(currentSegments->second, newSegments);
-    }
+    splitSegments();
 
     // 2. Find all intersection points.
-    // TODO: not implemented.
+    for (auto& currentSegments : _segments) {
+        SegmentList* currentList = currentSegments.second;
+        SegmentList::iterator currentSegment = currentList->begin();
+        for (SegmentList::iterator segment = currentSegment; currentSegment != currentList->end(); segment++) {
+            if (segment != currentList->end()) {
+                Float y = currentSegment->computeIntersectionY(&(*segment));
+                if (y != NAN && y != INFINITY)
+                    _segments.emplace(y, new SegmentList());
+            } else {
+                segment = ++currentSegment;
+            }
+        }
+    }
 
-    // 3. Split segments with all y lines and sorting.
-    // TODO: not implemented.
+    // 3. Split segments with all y lines.
+    splitSegments();
 
-    // 4. Return independent segments.
-    return nullptr;
+    // 4. Merge and sort all segment list.
+    SegmentList* segments = new SegmentList();
+    for (SegmentTree::iterator currentSegments = _segments.begin(); currentSegments != _segments.end(); currentSegments++) {
+        SegmentList* currentList = currentSegments->second;
+        currentList->sort();
+        segments->merge(*currentList);
+    }
+
+    // 5. Return independent segments.
+    return segments;
 }
 
 /* TrapezoidTessallator */
@@ -383,39 +403,47 @@ SegmentList* SegmentApproximator::segments()
 TrapezoidList TrapezoidTessallator::trapezoidList()
 {
     PathElement* element = _path->pathData()._firstElement;
-    FloatPoint from;
-    FloatPoint lastMoveTo;
-    SegmentApproximator segments;
+
+    if (!element)
+        return TrapezoidList();
 
     ASSERT(element->_type == PathElementTypes::MoveTo);
 
-    // Insert path elements.
-    while (element) {
-        FloatPoint to = element->_to;
+    SegmentApproximator segmentApproximator;
+    FloatPoint from;
+    FloatPoint to = element->_to;
+    FloatPoint lastMoveTo = to;
+
+    // 1. Insert path elements.
+    do {
+        from = to;
+        element = element->_next;
+        to = element->_to;
         switch (element->_type) {
         case PathElementTypes::MoveTo: {
-            // FIXME: missing closeSubPath.
+            segmentApproximator.insertSegment(from, lastMoveTo);
             lastMoveTo = to;
             break;
         }
         case PathElementTypes::LineTo: {
-            segments.insertSegment(from, to);
+            segmentApproximator.insertSegment(from, to);
             break;
         }
         case PathElementTypes::CloseSubpath: {
-            segments.insertSegment(from, to);
+            segmentApproximator.insertSegment(from, lastMoveTo);
+            lastMoveTo = to;
             break;
         }
         case PathElementTypes::QuadraticCurve: {
             // FIXME: Implement real curve, it's only a test solution.
             QuadraticCurveToElement* qe = reinterpret_cast<QuadraticCurveToElement*>(element);
-            segments.insertQuadCurve(from, qe->_control, to);
+            segmentApproximator.insertQuadCurve(from, qe->_control, to);
             break;
         }
         case PathElementTypes::BezierCurve: {
             // FIXME: Implement real curve, it's only a test solution.
             BezierCurveToElement* be = reinterpret_cast<BezierCurveToElement*>(element);
-            segments.insertBezierCurve(from, be->_control1, be->_control2, to);
+            segmentApproximator.insertBezierCurve(from, be->_control1, be->_control2, to);
             break;
         }
         case PathElementTypes::Arc: {
@@ -426,17 +454,20 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
             // unreachable
             break;
         }
+    } while (element->_next);
 
-        from = to;
-        element = element->_next;
-    }
+    segmentApproximator.insertSegment(lastMoveTo, element->_to);
 
-    if (element)
-        segments.insertSegment(lastMoveTo, element->_to);
+    // 2. Use approximator to generate the list of segments.
+    std::cout << "SegmentList: ";
+    SegmentList* currentList = segmentApproximator.segments();
+    for (auto segment : *currentList)
+        std::cout << segment << " ";
+    std::cout << std::endl;
+    if (currentList)
+        delete currentList;
 
-    segments.segments();
-
-    // TODO: Generate trapezoids.
+    // TODO: 3. Generate trapezoids.
     TrapezoidList trapezoidList;
     return trapezoidList;
 }
