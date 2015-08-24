@@ -2,7 +2,7 @@
 all: build_dir
 	cd build/ && make
 
-gepard:
+gepard: build_dir
 	cd build/ && make gepard
 
 cppcheck:
@@ -17,7 +17,7 @@ build_dir:
 	mkdir -p build/
 	cd build/ && cmake ../
 
-test:
+run-test:
 	cd build/ && ./bin/unit
 
 clean:
