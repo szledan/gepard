@@ -185,22 +185,6 @@ private:
     const GepardSurface* _surface;
 };
 
-/* Point */
-
-union Point {
-    Point () : real() {}
-    Point (FloatPoint f) : real(f) {}
-    Point (IntPoint i) : ceiled(i) {}
-
-    Float x() const { return real._x; }
-    Float y() const { return real._y; }
-    int intX() const { return ceiled._x; }
-    int intY() const { return ceiled._y; }
-
-    FloatPoint real;
-    IntPoint ceiled;
-};
-
 /* Segment */
 
 struct Segment {
@@ -210,12 +194,12 @@ struct Segment {
         Positive = 1,
     };
 
-    Float topY() const { return _from.y(); }
-    Float bottomY() const { return _to.y(); }
+    Float topY() const { return _from._y; }
+    Float bottomY() const { return _to._y; }
 
     Segment()
-        : _from(Point())
-        , _to(Point())
+        : _from(FloatPoint())
+        , _to(FloatPoint())
         , _slopeInv(NAN)
         , _direction(EqualOrNonExist)
     {}
@@ -223,7 +207,7 @@ struct Segment {
         : _from(from)
         , _to(to)
     {
-        Float denom = _to.y() - _from.y();
+        Float denom = _to._y - _from._y;
         if (denom) {
             if (from._y > to._y) {
                 _from = to;
@@ -233,7 +217,7 @@ struct Segment {
             } else
                 _direction = Positive;
 
-            _slopeInv = (_to.x() - _from.x()) / (denom);
+            _slopeInv = (_to._x - _from._x) / (denom);
         } else {
             _direction = EqualOrNonExist;
             _slopeInv = INFINITY;
@@ -241,16 +225,16 @@ struct Segment {
     }
 
     // FIXME: find a good function name:
-    Float factor() const { return _slopeInv * _from.y() - _from.x(); }
-    bool isOnSegment(Float y) const { return y < _to.y() && y > _from.y(); }
+    Float factor() const { return _slopeInv * _from._y - _from._x; }
+    bool isOnSegment(Float y) const { return y < _to._y && y > _from._y; }
     Segment splitSegment(Float y)
     {
-        ASSERT(y > _from.y() && y < _to.y());
+        ASSERT(y > _from._y && y < _to._y);
 
-        Float x = _slopeInv * (y - _from.y()) + _from.x();
+        Float x = _slopeInv * (y - _from._y) + _from._x;
         FloatPoint newPoint = FloatPoint(x, y);
-        FloatPoint to = _to.real;
-        _to.real = newPoint;
+        FloatPoint to = _to;
+        _to = newPoint;
 
         return Segment(newPoint, to);
     }
@@ -259,35 +243,35 @@ struct Segment {
         Float y = NAN;
         if (this == segment)
             return y;
-        if (_from.x() != segment->_from.x() && _to.x() != segment->_to.x()) {
+        if (_from._x != segment->_from._x && _to._x != segment->_to._x) {
             Float denom = (_slopeInv - segment->_slopeInv);
             if (denom)
                 y = (this->factor() - segment->factor()) / denom;
-            if (y <= _from.y() || y >= _to.y())
+            if (y <= _from._y || y >= _to._y)
                 y = INFINITY;
         }
         return y;
     }
 
-    Point _from;
-    Point _to;
+    FloatPoint _from;
+    FloatPoint _to;
     Float _slopeInv;
     int _direction;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Segment& s)
 {
-    return os << s._from.real << "-" << s._to.real;
+    return os << s._from << "-" << s._to;
 }
 
 inline bool operator<(const Segment& lhs, const Segment& rhs)
 {
-    assert(lhs._from.real <= lhs._to.real && rhs._from.real <= rhs._to.real);
+    assert(lhs._from <= lhs._to && rhs._from <= rhs._to);
 
-    if (lhs._from.real < rhs._from.real)
+    if (lhs._from < rhs._from)
         return true;
 
-    if (lhs._from.real == rhs._from.real) {
+    if (lhs._from == rhs._from) {
         if (fabs(lhs._slopeInv) > fabs(rhs._slopeInv))
             return true;
     }
