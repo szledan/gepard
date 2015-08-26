@@ -1,27 +1,56 @@
+.PHONY: all
+all: release
 
-all: build_dir
-	cd build/ && make
+.PHONY: release
+release: build_dir.release
+	cd build/release/ && cmake -DCMAKE_BUILD_TYPE=Release ../../ && make
 
-gepard: build_dir
-	cd build/ && make gepard
+.PHONY: debug
+debug: build_dir.debug
+	cd build/debug/ && cmake -DCMAKE_BUILD_TYPE=Debug ../../ && make
 
+.PHONY: gepard
+gepard: build_dir.release
+	cd build/release/ && cmake -DCMAKE_BUILD_TAPE=Release ../../ && make gepard
+
+.PHONY: gepard.debug
+gepard.debug: build_dir.debug
+	cd build/debug/ && cmake -DCMAKE_BUILD_TYPE=Debug ../../ && make gepard
+
+.PHONY: cppcheck
 cppcheck:
 	cppcheck src
 	cppcheck examples
 
+.PHONY: cppcheck-all
 cppcheck-all:
 	cppcheck --enable=all src
 	cppcheck --enable=all examples
 
-build_dir:
-	mkdir -p build/
-	cd build/ && cmake ../
+.PHONY: build_dir.release
+build_dir.release:
+	mkdir -p build/release/
 
-run-test:
-	cd build/ && ./bin/unit
+.PHONY: build_dir.debug
+build_dir.debug:
+	mkdir -p build/debug/
 
-clean:
-	cd build && make clean
+.PHONY: run-test
+run-test: release
+	cd build/release/ && ./bin/unit
 
+.PHONY: run-test.debug
+run-test.debug: debug
+	cd build/debug/ && ./bin/unit
+
+.PHONY: clean
+release.clean:
+	cd build/release/ && make clean
+
+.PHONY: clean.debug
+debug.clean:
+	cd build/debug/ && make clean
+
+.PHONY: distclean
 distclean:
 	rm -rf build/
