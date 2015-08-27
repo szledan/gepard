@@ -1,0 +1,6 @@
+include(OptionMacros)
+
+ADD_OPTION (USE_GLESv2 "Use GLES 2.0" ON)
+ADD_OPTION (USE_VULKAN "Use Vulkan" OFF)
+
+PROCESS_OPTIONS()

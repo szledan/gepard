@@ -3,19 +3,19 @@ all: release
 
 .PHONY: release
 release: build_dir.release
-	cd build/release/ && cmake -DCMAKE_BUILD_TYPE=Release ../../ && make
+	cd build/release/ && cmake -DCMAKE_BUILD_TYPE=Release $(OPTIONS) ../../ && make
 
 .PHONY: debug
 debug: build_dir.debug
-	cd build/debug/ && cmake -DCMAKE_BUILD_TYPE=Debug ../../ && make
+	cd build/debug/ && cmake -DCMAKE_BUILD_TYPE=Debug $(OPTIONS) ../../ && make
 
 .PHONY: gepard
 gepard: build_dir.release
-	cd build/release/ && cmake -DCMAKE_BUILD_TAPE=Release ../../ && make gepard
+	cd build/release/ && cmake -DCMAKE_BUILD_TAPE=Release $(OPTIONS) ../../ && make gepard
 
 .PHONY: gepard.debug
 gepard.debug: build_dir.debug
-	cd build/debug/ && cmake -DCMAKE_BUILD_TYPE=Debug ../../ && make gepard
+	cd build/debug/ && cmake -DCMAKE_BUILD_TYPE=Debug $(OPTIONS) ../../ && make gepard
 
 .PHONY: cppcheck
 cppcheck:
