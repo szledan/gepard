@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 2.8.10)
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/deps)
 project(gepard C CXX)
 set(PROJECT_VERSION 1)
 
 include(OptionList)
+include(Dependencies)
 
 set(EXTRA_FLAGS "-Wall -pedantic -std=c++11")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_FLAGS}")
