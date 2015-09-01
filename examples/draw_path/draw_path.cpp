@@ -29,27 +29,37 @@
 #include "gepard.h"
 #include <iostream>
 
-//GLuint createTexture(unsigned int width, unsigned int height, GLint format);
-//void compileShaderProg(GLuint* result, const char* name, const GLchar *vertexShaderSource, const GLchar *fragmentShaderSource);
-//GLuint createFrameBuffer(GLuint texture);
-
 int main()
 {
-//    // FIXME: memory leak !!!
-//    gepard::XGepardSurface XSurface(600, 600);
+    gepard::XGepardSurface XSurface(600, 600);
 
-//    gepard::Gepard g(&XSurface);
-    gepard::Gepard g(0);
-
+    gepard::Gepard g(&XSurface);
     g.beginPath();
-    g.moveTo(10, 10);
-    g.moveTo(10, 11);
-    g.lineTo(10, 12);
-    g.quadraticCurveTo(10, 13, 10, 14);
-    g.bezierCurveTo(10, 15, 10, 16, 10, 17);
+    g.moveTo(10, 0);
+    g.lineTo(0, 50);
+    g.lineTo(10, 50);
+    g.lineTo(12, 40);
+    g.lineTo(28, 40);
+    g.lineTo(30, 50);
+    g.lineTo(40, 50);
+    g.lineTo(30, 0);
+    g.moveTo(16, 20);
+    g.lineTo(26, 30);
+    g.lineTo(14, 30);
+    g.lineTo(24, 20);
+    g.moveTo(46, 20);
+    g.lineTo(56, 30);
+    g.lineTo(44, 30);
+    g.lineTo(54, 20);
+    g.moveTo(66, 20);
+    g.lineTo(76, 30);
+    g.lineTo(64, 30);
+    g.lineTo(74, 20);
+    g.closePath();
+
     g.fill();
 
-//    int a;
-//    std::cin >> a;
-//    return 0;
+    int a;
+    std::cin >> a;
+    return 0;
 }

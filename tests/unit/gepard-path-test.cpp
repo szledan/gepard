@@ -83,7 +83,9 @@ void test_closeSubpath()
 
 void test_approxximator()
 {
-    gepard::Gepard g(0);
+    gepard::XGepardSurface XSurface(600, 600);
+
+    gepard::Gepard g(&XSurface);
     g.beginPath();
     g.moveTo(1, 0);
     g.lineTo(0, 5);
@@ -107,7 +109,7 @@ void test_approxximator()
     g.lineTo(22.4, 2);
     g.closePath();
 
-    g.fill();
+    // FIXME: testing!
 }
 
 int main()

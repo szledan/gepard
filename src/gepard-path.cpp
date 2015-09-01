@@ -27,6 +27,7 @@
  */
 
 #include "gepard-path.h"
+
 #include <list>
 #include <map>
 #include <math.h>
@@ -248,45 +249,94 @@ void Path::fillPath()
         _pathData.addCloseSubpath();
 
     _pathData.dump();
-    TrapezoidTessallator tt(this);
-    tt.trapezoidList();
+    TrapezoidTessallator tt(this, TrapezoidTessallator::EvenOdd);
+    TrapezoidList trapezoidList = tt.trapezoidList();
 
-#if 0 // unused
+    // OpenGL ES 2.0 spec.
+    // FIXME: use global constants and global buffers
+    int bufferSize = 1000;
+    GLfloat* attributes = reinterpret_cast<GLfloat*>(malloc(bufferSize * sizeof(GLfloat)));
+    GLushort* indices = reinterpret_cast<GLushort*>(malloc(bufferSize * sizeof(GLushort)));
+    // FIXME: generate in local the indices buffer:
+    //glGenBuffers(1, &indices);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize * sizeof(GLushort), indices, GL_STATIC_DRAW);
+
+    GLushort* currentQuad = indices;
+
+    int index = 0;
+    int attributeIndex = 0;
+    constexpr float scale = 80;
+    std::cout << "Trapezoids (" << trapezoidList.size() << "): ";
+    for (auto trapezoid : trapezoidList) {
+        std::cout << trapezoid << " ";
+        // FIXME: generate in local the indices buffer:
+        currentQuad[0] = index;
+        currentQuad[1] = index + 1;
+        currentQuad[2] = index + 2;
+        currentQuad[3] = index + 1;
+        currentQuad[4] = index + 2;
+        currentQuad[5] = index + 3;
+        currentQuad += 6;
+        index += 4;
+
+        attributes[attributeIndex++] = trapezoid._bottomLeft / scale;
+        attributes[attributeIndex++] = trapezoid._bottom / scale;
+        // FIXME: use color shader:
+        attributes[attributeIndex++] = 0.0;
+        attributes[attributeIndex++] = 0.0;
+        attributes[attributeIndex++] = 1.0;
+        attributes[attributeIndex++] = 0.9;
+        attributes[attributeIndex++] = trapezoid._bottomRight / scale;
+        attributes[attributeIndex++] = trapezoid._bottom / scale;
+        attributes[attributeIndex++] = 0.0;
+        attributes[attributeIndex++] = 0.0;
+        attributes[attributeIndex++] = 1.0;
+        attributes[attributeIndex++] = 0.9;
+        attributes[attributeIndex++] = trapezoid._topLeft / scale;
+        attributes[attributeIndex++] = trapezoid._top / scale;
+        attributes[attributeIndex++] = 0.0;
+        attributes[attributeIndex++] = 0.0;
+        attributes[attributeIndex++] = 1.0;
+        attributes[attributeIndex++] = 0.9;
+        attributes[attributeIndex++] = trapezoid._topRight / scale;
+        attributes[attributeIndex++] = trapezoid._top / scale;
+        attributes[attributeIndex++] = 0.0;
+        attributes[attributeIndex++] = 0.0;
+        attributes[attributeIndex++] = 1.0;
+        attributes[attributeIndex++] = 0.9;
+    }
+    std::cout << std::endl;
+
+    // Draw path.
+    const int trapezoidCount = trapezoidList.size();
     static GLuint simpleShader = 0;
     GLint intValue;
-    static GLubyte indicies[] = { 0, 1, 2, 3, 4, 5 };
-    static GLfloat allAttributes[] = {
-        -1, -1,               // position_1
-        1.0, 0.0, 0.0, 0.3,     // color_1
-        -0.3, 1,               // position_2
-        0.0, 1.0, 0.0, 0.3,     // color_2
-        0.4, -1,               // position_3
-        0.0, 0.0, 1.0, 0.3,     // color_3
-        -0.4, -1,               // position_4
-        1.0, 0.0, 0.0, 0.3,     // color_4
-        0.3,  1,                // position_5
-        0.0, 1.0, 0.0, 0.3,     // color_5
-        1, -1,                  // position_6
-        0.0, 0.0, 1.0, 0.3,     // color_6
-    };
 
+    // Compile shader programs.
     compileShaderProg(&simpleShader, "SimpleShader", simpleVertexShader, simpleFragmentShader);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(simpleShader);
 
-    /* Triangle 1 and 2 */
+    // Set attribute buffers.
     intValue = glGetAttribLocation(simpleShader, "a_position");
     glEnableVertexAttribArray(intValue);
-    glVertexAttribPointer(intValue, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), allAttributes);
+    glVertexAttribPointer(intValue, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), attributes);
 
     intValue = glGetAttribLocation(simpleShader, "a_color");
     glEnableVertexAttribArray(intValue);
-    glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), allAttributes + 2);
+    glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), attributes + 2);
 
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indicies);
+    // Call the drawing command.
+    // FIXME: Generate local the indices buffer, and use that:
+    glDrawElements(GL_TRIANGLES, 6 * trapezoidCount, GL_UNSIGNED_SHORT, indices);
+
     eglSwapBuffers(_surface->eglDisplay(), _surface->eglSurface());
-#endif
+
+    // FIXME: use global constants and global buffers
+    free(attributes);
+    free(indices);
 }
 
 /* SegmentApproximator */
@@ -459,16 +509,37 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
     segmentApproximator.insertSegment(lastMoveTo, element->_to);
 
     // 2. Use approximator to generate the list of segments.
-    std::cout << "SegmentList: ";
-    SegmentList* currentList = segmentApproximator.segments();
-    for (auto segment : *currentList)
-        std::cout << segment << " ";
-    std::cout << std::endl;
-    if (currentList)
-        delete currentList;
+    SegmentList* segmentList = segmentApproximator.segments();
 
-    // TODO: 3. Generate trapezoids.
+    // 3. Generate trapezoids.
     TrapezoidList trapezoidList;
+    Trapezoid trapezoid;
+    bool fill = false;
+    for (auto segment : *segmentList) {
+        if (!fill) {
+            trapezoid._bottom = ceil(segment._from._y * precisionOfFloat) / precisionOfFloat;
+            trapezoid._top = ceil(segment._to._y * precisionOfFloat) / precisionOfFloat;
+            trapezoid._bottomLeft = ceil(segment._from._x * precisionOfFloat) / precisionOfFloat;
+            trapezoid._topLeft = ceil(segment._to._x * precisionOfFloat) / precisionOfFloat;
+
+            if (fillRule() == EvenOdd)
+                fill = !fill;
+        } else {
+            if (fillRule() == EvenOdd) {
+                fill = !fill;
+                trapezoid._bottomRight = ceil(segment._from._x * precisionOfFloat) / precisionOfFloat;
+                trapezoid._topRight = ceil(segment._to._x * precisionOfFloat) / precisionOfFloat;
+                if (trapezoid._bottom != trapezoid._top)
+                    trapezoidList.push_front(trapezoid);
+            }
+        }
+        std::cout << segment << " ";
+    }
+    std::cout << std::endl;
+
+    if (segmentList)
+        delete segmentList;
+
     return trapezoidList;
 }
 

@@ -33,7 +33,14 @@
 
 namespace gepard {
 
-typedef float Float;
+// FIXME: #ifdef double-precision:
+typedef double Float;
+// FIXME: use standard:
+constexpr double precisionOfFloat = 1000 * 1000 * 1000;
+//#else
+//typedef float Float;
+//constexpr float precisionOfFloat = 100 * 1000;
+//#endif
 
 /* Region */
 

@@ -261,28 +261,22 @@ struct Segment {
 
 inline std::ostream& operator<<(std::ostream& os, const Segment& s)
 {
-    return os << s._from << "-" << s._to;
+    return os << s._from << "," << s._to;
 }
 
 inline bool operator<(const Segment& lhs, const Segment& rhs)
 {
     assert(lhs._from <= lhs._to && rhs._from <= rhs._to);
 
-    if (lhs._from < rhs._from)
-        return true;
-
-    if (lhs._from == rhs._from) {
-        if (fabs(lhs._slopeInv) > fabs(rhs._slopeInv))
-            return true;
-    }
-
-    return false;
+    return (lhs._from < rhs._from) || (lhs._from == rhs._from && lhs._to < rhs._to);
 }
 
-/* SegmentApproximator */
+/* SegmentList, SegmentTree */
 
 typedef std::list<Segment> SegmentList;
 typedef std::map<const Float, SegmentList*> SegmentTree;
+
+/* SegmentApproximator */
 
 class SegmentApproximator {
 public:
@@ -316,34 +310,44 @@ private:
 /* Trapezoid */
 
 struct Trapezoid {
-    Float _top;
-    Float _topLeft;
-    Float _topRight;
-
     Float _bottom;
     Float _bottomLeft;
     Float _bottomRight;
+    Float _top;
+    Float _topLeft;
+    Float _topRight;
 };
 
+inline std::ostream& operator<<(std::ostream& os, const Trapezoid& t)
+{
+    return os << t._bottom << "," << t._bottomLeft << "," << t._bottomRight << ","<< t._top << "," << t._topLeft << "," << t._topRight;
+}
+
 /* TrapezoidList */
-struct TrapezoidList {
-    uint32_t numerOfTrapezoids;
-    Trapezoid* trapezoid;
-};
+
+typedef std::list<Trapezoid> TrapezoidList;
 
 /* TrapezoidTessallator */
 
 class TrapezoidTessallator {
 public:
-    TrapezoidTessallator(Path* path)
+    enum FillRule {
+        EvenOdd,
+        NonZero,
+    };
+
+    TrapezoidTessallator(Path* path, FillRule fillRule = NonZero)
         : _path(path)
+        , _fillRule(fillRule)
     {
     }
 
+    FillRule fillRule() const { return _fillRule; }
     TrapezoidList trapezoidList();
 
 private:
     Path* _path;
+    FillRule _fillRule;
 };
 
 } // namespace gepard
