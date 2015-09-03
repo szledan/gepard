@@ -249,7 +249,7 @@ void Path::fillPath()
         _pathData.addCloseSubpath();
 
     _pathData.dump();
-    TrapezoidTessallator tt(this, TrapezoidTessallator::EvenOdd);
+    TrapezoidTessallator tt(this);
     TrapezoidList trapezoidList = tt.trapezoidList();
 
     // OpenGL ES 2.0 spec.
@@ -283,26 +283,26 @@ void Path::fillPath()
         attributes[attributeIndex++] = trapezoid._bottomLeft / scale;
         attributes[attributeIndex++] = trapezoid._bottom / scale;
         // FIXME: use color shader:
-        attributes[attributeIndex++] = 0.0;
-        attributes[attributeIndex++] = 0.0;
+        attributes[attributeIndex++] = 1.0;
+        attributes[attributeIndex++] = 0.3;
         attributes[attributeIndex++] = 1.0;
         attributes[attributeIndex++] = 0.9;
         attributes[attributeIndex++] = trapezoid._bottomRight / scale;
         attributes[attributeIndex++] = trapezoid._bottom / scale;
         attributes[attributeIndex++] = 0.0;
-        attributes[attributeIndex++] = 0.0;
+        attributes[attributeIndex++] = 0.3;
         attributes[attributeIndex++] = 1.0;
         attributes[attributeIndex++] = 0.9;
         attributes[attributeIndex++] = trapezoid._topLeft / scale;
         attributes[attributeIndex++] = trapezoid._top / scale;
         attributes[attributeIndex++] = 0.0;
-        attributes[attributeIndex++] = 0.0;
+        attributes[attributeIndex++] = 0.3;
         attributes[attributeIndex++] = 1.0;
         attributes[attributeIndex++] = 0.9;
         attributes[attributeIndex++] = trapezoid._topRight / scale;
         attributes[attributeIndex++] = trapezoid._top / scale;
         attributes[attributeIndex++] = 0.0;
-        attributes[attributeIndex++] = 0.0;
+        attributes[attributeIndex++] = 0.3;
         attributes[attributeIndex++] = 1.0;
         attributes[attributeIndex++] = 0.9;
     }
@@ -514,24 +514,30 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
     // 3. Generate trapezoids.
     TrapezoidList trapezoidList;
     Trapezoid trapezoid;
-    bool fill = false;
+    int fill = 0;
+    bool isInFill = false;
+    std::cout << "Segments: ";
+    // FIXME: ASSERTs for wrong segments.
     for (auto segment : *segmentList) {
-        if (!fill) {
-            trapezoid._bottom = ceil(segment._from._y * precisionOfFloat) / precisionOfFloat;
-            trapezoid._top = ceil(segment._to._y * precisionOfFloat) / precisionOfFloat;
-            trapezoid._bottomLeft = ceil(segment._from._x * precisionOfFloat) / precisionOfFloat;
-            trapezoid._topLeft = ceil(segment._to._x * precisionOfFloat) / precisionOfFloat;
+        if (fillRule() == EvenOdd)
+            fill = !fill;
+        else
+            fill += segment._direction;
 
-            if (fillRule() == EvenOdd)
-                fill = !fill;
-        } else {
-            if (fillRule() == EvenOdd) {
-                fill = !fill;
-                trapezoid._bottomRight = ceil(segment._from._x * precisionOfFloat) / precisionOfFloat;
-                trapezoid._topRight = ceil(segment._to._x * precisionOfFloat) / precisionOfFloat;
-                if (trapezoid._bottom != trapezoid._top)
-                    trapezoidList.push_front(trapezoid);
+        if (fill) {
+            if (!isInFill) {
+                trapezoid._bottom = ceil(segment._from._y * precisionOfFloat) / precisionOfFloat;
+                trapezoid._top = ceil(segment._to._y * precisionOfFloat) / precisionOfFloat;
+                trapezoid._bottomLeft = ceil(segment._from._x * precisionOfFloat) / precisionOfFloat;
+                trapezoid._topLeft = ceil(segment._to._x * precisionOfFloat) / precisionOfFloat;
+                isInFill = true;
             }
+        } else {
+            trapezoid._bottomRight = ceil(segment._from._x * precisionOfFloat) / precisionOfFloat;
+            trapezoid._topRight = ceil(segment._to._x * precisionOfFloat) / precisionOfFloat;
+            if (trapezoid._bottom != trapezoid._top)
+                trapezoidList.push_front(trapezoid);
+            isInFill = false;
         }
         std::cout << segment << " ";
     }

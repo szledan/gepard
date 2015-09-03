@@ -32,8 +32,8 @@
 int main()
 {
     gepard::XGepardSurface XSurface(600, 600);
-
     gepard::Gepard g(&XSurface);
+
     g.beginPath();
     g.moveTo(10, 0);
     g.lineTo(0, 50);
@@ -47,14 +47,10 @@ int main()
     g.lineTo(26, 30);
     g.lineTo(14, 30);
     g.lineTo(24, 20);
-    g.moveTo(46, 20);
-    g.lineTo(56, 30);
-    g.lineTo(44, 30);
-    g.lineTo(54, 20);
-    g.moveTo(66, 20);
-    g.lineTo(76, 30);
-    g.lineTo(64, 30);
-    g.lineTo(74, 20);
+    g.moveTo(18, 10);
+    g.lineTo(22, 10);
+    g.lineTo(16, 20);
+    g.lineTo(24, 20);
     g.closePath();
 
     g.fill();

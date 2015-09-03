@@ -232,9 +232,14 @@ struct Segment {
         ASSERT(y > _from._y && y < _to._y);
 
         Float x = _slopeInv * (y - _from._y) + _from._x;
-        FloatPoint newPoint = FloatPoint(x, y);
         FloatPoint to = _to;
-        _to = newPoint;
+        _to = FloatPoint(x, y);
+        FloatPoint newPoint = _to;
+
+        if (_direction == Negative) {
+            newPoint = to;
+            to = _to;
+        }
 
         return Segment(newPoint, to);
     }
@@ -261,7 +266,7 @@ struct Segment {
 
 inline std::ostream& operator<<(std::ostream& os, const Segment& s)
 {
-    return os << s._from << "," << s._to;
+    return os << s._from << ((s._direction < 0) ? ">" : ((s._direction > 0) ? "<" : "=")) << s._to;
 }
 
 inline bool operator<(const Segment& lhs, const Segment& rhs)
