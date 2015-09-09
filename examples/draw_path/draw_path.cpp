@@ -31,31 +31,49 @@
 
 int main()
 {
-    gepard::XGepardSurface XSurface(600, 600);
-    gepard::Gepard g(&XSurface);
+    gepard::XGepardSurface xSurface(600, 600);
+    gepard::Gepard gepardContext(&xSurface);
 
-    g.beginPath();
-    g.moveTo(10, 0);
-    g.lineTo(0, 50);
-    g.lineTo(10, 50);
-    g.lineTo(12, 40);
-    g.lineTo(28, 40);
-    g.lineTo(30, 50);
-    g.lineTo(40, 50);
-    g.lineTo(30, 0);
-    g.moveTo(16, 20);
-    g.lineTo(26, 30);
-    g.lineTo(14, 30);
-    g.lineTo(24, 20);
-    g.moveTo(18, 10);
-    g.lineTo(22, 10);
-    g.lineTo(16, 20);
-    g.lineTo(24, 20);
-    g.closePath();
+    gepardContext.beginPath();
+    gepardContext.moveTo(10, 0);
+    gepardContext.lineTo(0, 50);
+    gepardContext.lineTo(10, 50);
+    gepardContext.lineTo(12, 40);
+    gepardContext.lineTo(28, 40);
+    gepardContext.lineTo(30, 50);
+    gepardContext.lineTo(40, 50);
+    gepardContext.lineTo(30, 0);
+    gepardContext.lineTo(20, 0);
+    gepardContext.lineTo(20, 5);
+    gepardContext.lineTo(20, 0);
+    gepardContext.moveTo(16, 20);
+    gepardContext.lineTo(26, 30);
+    gepardContext.lineTo(14, 30);
+    gepardContext.lineTo(24, 20);
+    gepardContext.moveTo(18, 10);
+    gepardContext.lineTo(22, 10);
+    gepardContext.lineTo(16, 20);
+    gepardContext.lineTo(24, 20);
+    gepardContext.closePath();
 
-    g.fill();
-
+    gepardContext.fill();
     int a;
     std::cin >> a;
+
+    XEvent xEvent;
+    bool exit = true;
+    while (!exit) {
+        while (XPending(xSurface.display())) {
+            XNextEvent(xSurface.display(), &xEvent);
+            if (xEvent.type == KeyPress && xEvent.xkey.keycode == 27) {
+                exit = true;
+            }
+
+        }
+        if (!exit) {
+            gepardContext.fill();
+        }
+    }
+
     return 0;
 }

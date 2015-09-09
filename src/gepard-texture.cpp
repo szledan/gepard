@@ -32,7 +32,7 @@ namespace gepard {
 
 Texture* Texture::create(int width, int height, GLint format)
 {
-    GLuint texture;
+    GLuint texture = 0;
     // Create a texture object.
     glGenTextures(1, &texture);
     if (!texture) {

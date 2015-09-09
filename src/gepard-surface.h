@@ -87,14 +87,14 @@ public:
             EGL_NONE,
         };
 
-        EGLDisplay eglDisplay;
-        EGLSurface eglSurface;
-        EGLint numOfConfigs;
-        EGLConfig eglConfig;
+        EGLDisplay eglDisplay = 0;
+        EGLSurface eglSurface = 0;
+        EGLint numOfConfigs = 0;
+        EGLConfig eglConfig = 0;
 
         XSetWindowAttributes windowAttributes;
         XWMHints hints;
-        Window root;
+        Window root = 0;
         //XEvent xEvent;
 
         _display = XOpenDisplay(NULL);
@@ -136,10 +136,12 @@ public:
         XCloseDisplay(_display);
     }
 
+    Display* display() const { return _display; }
+
 private:
     unsigned int _width;
     unsigned int _height;
-    Display *_display;
+    Display* _display;
     Window _window;
     EGLContext _eglContext;
 };

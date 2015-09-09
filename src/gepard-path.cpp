@@ -35,7 +35,7 @@
 
 namespace gepard {
 
-void compileShaderProg(GLuint* result, const char* name, const GLchar *vertexShaderSource, const GLchar *fragmentShaderSource)
+void compileShaderProg(GLuint* result, const GLchar *vertexShaderSource, const GLchar *fragmentShaderSource)
 {
     GLuint shaderProgram = 0;
     GLuint vertexShader = 0;
@@ -112,7 +112,7 @@ error:
 
 GLuint createFrameBuffer(GLuint texture)
 {
-    GLuint frameBufferObject;
+    GLuint frameBufferObject = 0;
 
     // Create a framebuffer object.
     glGenFramebuffers(1, &frameBufferObject);
@@ -314,7 +314,7 @@ void Path::fillPath()
     GLint intValue;
 
     // Compile shader programs.
-    compileShaderProg(&simpleShader, "SimpleShader", simpleVertexShader, simpleFragmentShader);
+    compileShaderProg(&simpleShader, simpleVertexShader, simpleFragmentShader);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(simpleShader);

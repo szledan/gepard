@@ -44,6 +44,7 @@ public:
 private:
     Texture(GLuint texture)
         : _texture(texture)
+        , _fbo(0)
     {
     }
 
