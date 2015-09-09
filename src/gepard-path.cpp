@@ -283,28 +283,28 @@ void Path::fillPath()
         attributes[attributeIndex++] = trapezoid._bottomLeft / scale;
         attributes[attributeIndex++] = trapezoid._bottom / scale;
         // FIXME: use color shader:
-        attributes[attributeIndex++] = 1.0;
+        attributes[attributeIndex++] = 0.0;
         attributes[attributeIndex++] = 0.3;
         attributes[attributeIndex++] = 1.0;
-        attributes[attributeIndex++] = 0.9;
+        attributes[attributeIndex++] = 0.99;
         attributes[attributeIndex++] = trapezoid._bottomRight / scale;
         attributes[attributeIndex++] = trapezoid._bottom / scale;
         attributes[attributeIndex++] = 0.0;
         attributes[attributeIndex++] = 0.3;
         attributes[attributeIndex++] = 1.0;
-        attributes[attributeIndex++] = 0.9;
+        attributes[attributeIndex++] = 0.7;
         attributes[attributeIndex++] = trapezoid._topLeft / scale;
         attributes[attributeIndex++] = trapezoid._top / scale;
         attributes[attributeIndex++] = 0.0;
         attributes[attributeIndex++] = 0.3;
         attributes[attributeIndex++] = 1.0;
-        attributes[attributeIndex++] = 0.9;
+        attributes[attributeIndex++] = 0.7;
         attributes[attributeIndex++] = trapezoid._topRight / scale;
         attributes[attributeIndex++] = trapezoid._top / scale;
         attributes[attributeIndex++] = 0.0;
         attributes[attributeIndex++] = 0.3;
         attributes[attributeIndex++] = 1.0;
-        attributes[attributeIndex++] = 0.9;
+        attributes[attributeIndex++] = 0.7;
     }
     std::cout << std::endl;
 
@@ -363,19 +363,181 @@ void SegmentApproximator::insertSegment(Segment segment)
     }
 }
 
+static inline Float abs(const Float &t) { return (t < 0) ? -t : t; }
+
+static bool quadCurveIsLineSegment(FloatPoint points[])
+{
+    // FIXME: tolerance is a magic number.
+    Float tolerance = 1;
+    Float x0 = points[0]._x;
+    Float y0 = points[0]._y;
+    Float x1 = points[1]._x;
+    Float y1 = points[1]._y;
+    Float x2 = points[2]._x;
+    Float y2 = points[2]._y;
+
+    Float dt = abs((x2 - x0) * (y0 - y1) - (x0 - x1) * (y2 - y0));
+
+    if (dt > tolerance)
+        return false;
+
+    Float minX, minY, maxX, maxY;
+
+    if (x0 < x2) {
+        minX = x0 - tolerance;
+        maxX = x2 + tolerance;
+    } else {
+        minX = x2 - tolerance;
+        maxX = x0 + tolerance;
+    }
+
+    if (y0 < y2) {
+        minY = y0 - tolerance;
+        maxY = y2 + tolerance;
+    } else {
+        minY = y2 - tolerance;
+        maxY = y0 + tolerance;
+    }
+
+    return !(x1 < minX || x1 > maxX || y1 < minY || y1 > maxY);
+}
+
+static void splitQuadraticCurve(FloatPoint points[])
+{
+    FloatPoint a = points[0];
+    FloatPoint b = points[1];
+    FloatPoint c = points[2];
+    FloatPoint ab = (a + b) / 2.0;
+    FloatPoint bc = (b + c) / 2.0;
+    FloatPoint mid = (ab + bc) / 2.0;
+
+    points[0] = a;
+    points[1] = ab;
+    points[2] = mid;
+    points[3] = bc;
+    points[4] = c;
+}
+
 void SegmentApproximator::insertQuadCurve(FloatPoint from, FloatPoint control, FloatPoint to)
 {
-    // FIXME: Wrong approximation!
-    insertSegment(Segment(from, control));
-    insertSegment(Segment(control, to));
+    // De Casteljau algorithm.
+    const int max = 16 * 2 + 1;
+    FloatPoint buffer[max];
+    FloatPoint* points = buffer;
+
+    points[0] = from;
+    points[1] = control;
+    points[2] = to;
+
+    do {
+        if (quadCurveIsLineSegment(points)) {
+            insertSegment(points[0], points[2]);
+            points -= 2;
+            continue;
+        }
+
+        splitQuadraticCurve(points);
+        points += 2;
+
+        if (points >= buffer + max - 3) {
+            // This recursive code path is rarely executed.
+            insertQuadCurve(points[0], points[1], points[2]);
+            points -= 2;
+        }
+    } while (points >= buffer);
+}
+
+static bool curveIsLineSegment(FloatPoint points[])
+{
+    // FIXME: tolerance is a magic number.
+    Float tolerance = 1;
+    Float x0 = points[0]._x;
+    Float y0 = points[0]._y;
+    Float x1 = points[1]._x;
+    Float y1 = points[1]._y;
+    Float x2 = points[2]._x;
+    Float y2 = points[2]._y;
+    Float x3 = points[3]._x;
+    Float y3 = points[3]._y;
+
+    Float dt1 = abs((x3 - x0) * (y0 - y1) - (x0 - x1) * (y3 - y0));
+    Float dt2 = abs((x3 - x0) * (y0 - y2) - (x0 - x2) * (y3 - y0));
+
+    if (dt1 > tolerance || dt2 > tolerance)
+        return false;
+
+    Float minX, minY, maxX, maxY;
+
+    if (x0 < x3) {
+        minX = x0 - tolerance;
+        maxX = x3 + tolerance;
+    } else {
+        minX = x3 - tolerance;
+        maxX = x0 + tolerance;
+    }
+
+    if (y0 < y3) {
+        minY = y0 - tolerance;
+        maxY = y3 + tolerance;
+    } else {
+        minY = y3 - tolerance;
+        maxY = y0 + tolerance;
+    }
+
+    return !(x1 < minX || x1 > maxX || y1 < minY || y1 > maxY
+        || x2 < minX || x2 > maxX || y2 < minY || y2 > maxY);
+}
+
+static void splitCubeCurve(FloatPoint points[])
+{
+    FloatPoint a = points[0];
+    FloatPoint b = points[1];
+    FloatPoint c = points[2];
+    FloatPoint d = points[3];
+    FloatPoint ab = (a + b) / 2.0;
+    FloatPoint bc = (b + c) / 2.0;
+    FloatPoint cd = (c + d) / 2.0;
+    FloatPoint abbc = (ab + bc) / 2.0;
+    FloatPoint bccd = (bc + cd) / 2.0;
+    FloatPoint mid = (abbc + bccd) / 2.0;
+
+    points[0] = a;
+    points[1] = ab;
+    points[2] = abbc;
+    points[3] = mid;
+    points[4] = bccd;
+    points[5] = cd;
+    points[6] = d;
 }
 
 void SegmentApproximator::insertBezierCurve(FloatPoint from, FloatPoint control1, FloatPoint control2, FloatPoint to)
 {
-    // FIXME: Wrong approximation!
-    insertSegment(Segment(from, control1));
-    insertSegment(Segment(control1, control2));
-    insertSegment(Segment(control2, to));
+    // De Casteljau algorithm.
+    const int max = 16 * 3 + 1;
+    FloatPoint buffer[max];
+    FloatPoint* points = buffer;
+
+    points[0] = from;
+    points[1] = control1;
+    points[2] = control2;
+    points[3] = to;
+
+    do {
+        if (curveIsLineSegment(points)) {
+            insertSegment(points[0], points[3]);
+            points -= 3;
+            continue;
+        }
+
+        splitCubeCurve(points);
+        points += 3;
+
+        if (points >= buffer + max - 4) {
+            // This recursive code path is rarely executed.
+            insertBezierCurve(points[0], points[1], points[2], points[3]);
+            points -= 3;
+        }
+    } while (points >= buffer);
 }
 
 void SegmentApproximator::insertArc(FloatPoint center, FloatPoint radius, float startAngle, float endAngle, bool antiClockwise)

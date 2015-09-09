@@ -46,14 +46,9 @@ int main()
     gepardContext.lineTo(20, 0);
     gepardContext.lineTo(20, 5);
     gepardContext.lineTo(20, 0);
-    gepardContext.moveTo(16, 20);
-    gepardContext.lineTo(26, 30);
-    gepardContext.lineTo(14, 30);
-    gepardContext.lineTo(24, 20);
-    gepardContext.moveTo(18, 10);
-    gepardContext.lineTo(22, 10);
-    gepardContext.lineTo(16, 20);
-    gepardContext.lineTo(24, 20);
+    gepardContext.moveTo(10, 20);
+    gepardContext.quadraticCurveTo(20, 10, 30, 20);
+    gepardContext.bezierCurveTo(30, 30, 10, 30, 10, 20);
     gepardContext.closePath();
 
     gepardContext.fill();

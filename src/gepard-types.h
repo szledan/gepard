@@ -109,6 +109,17 @@ inline bool operator<(const FloatPoint& lhs, const FloatPoint& rhs)
 inline bool operator>(const FloatPoint& lhs, const FloatPoint& rhs) { return rhs < lhs; }
 inline bool operator<=(const FloatPoint& lhs, const FloatPoint& rhs) { return !(lhs > rhs); }
 
+inline FloatPoint operator+(const FloatPoint& lhs, const FloatPoint& rhs)
+{
+    return FloatPoint(lhs._x + rhs._x, lhs._y + rhs._y);
+}
+
+inline FloatPoint operator/(const FloatPoint& fp, const Float& f)
+{
+    ASSERT(f);
+    return FloatPoint(fp._x / f, fp._y / f);
+}
+
 /* IntPoint */
 
 struct IntPoint {
