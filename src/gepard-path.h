@@ -346,9 +346,10 @@ public:
         NonZero,
     };
 
-    TrapezoidTessallator(Path* path, FillRule fillRule = NonZero)
+    TrapezoidTessallator(Path* path, FillRule fillRule = NonZero, int antiAliasingLevel = 16)
         : _path(path)
         , _fillRule(fillRule)
+        , _antiAliasingLevel(antiAliasingLevel)
     {}
 
     FillRule fillRule() const { return _fillRule; }
@@ -360,6 +361,7 @@ private:
     FillRule _fillRule;
 
     BoundingBox _boundingBox;
+    int _antiAliasingLevel;
 };
 
 } // namespace gepard

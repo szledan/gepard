@@ -74,14 +74,14 @@ public:
 
             EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
             EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-            EGL_SAMPLE_BUFFERS, 1,
-            EGL_SAMPLES, 4,
+            EGL_SAMPLE_BUFFERS, 0,
+            EGL_SAMPLES, 0,
             EGL_NONE
         };
 
         const EGLint contextAttribs[] = {
             // Identify OpenGL 2 ES context
-            EGL_CONTEXT_CLIENT_VERSION, 3,
+            EGL_CONTEXT_CLIENT_VERSION, 2,
             EGL_NONE,
         };
 

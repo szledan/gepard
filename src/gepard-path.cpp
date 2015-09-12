@@ -264,7 +264,7 @@ void Path::fillPath()
 
     // OpenGL ES 2.0 spec.
     // FIXME: use global constants and global buffers
-    int bufferSize = 1000;
+    int bufferSize = 10000;
     GLfloat* attributes = reinterpret_cast<GLfloat*>(malloc(bufferSize * sizeof(GLfloat)));
     GLushort* indices = reinterpret_cast<GLushort*>(malloc(bufferSize * sizeof(GLushort)));
     // FIXME: generate in local the indices buffer:
@@ -381,10 +381,8 @@ void SegmentApproximator::insertSegment(Segment segment)
 
 static inline Float abs(const Float &t) { return (t < 0) ? -t : t; }
 
-static bool quadCurveIsLineSegment(FloatPoint points[])
+static bool quadCurveIsLineSegment(FloatPoint points[], Float tolerance)
 {
-    // FIXME: tolerance is a magic number.
-    Float tolerance = 1;
     Float x0 = points[0].x;
     Float y0 = points[0].y;
     Float x1 = points[1].x;
@@ -446,7 +444,7 @@ void SegmentApproximator::insertQuadCurve(FloatPoint from, FloatPoint control, F
     points[2] = to;
 
     do {
-        if (quadCurveIsLineSegment(points)) {
+        if (quadCurveIsLineSegment(points, _epsilon)) {
             insertSegment(points[0], points[2]);
             points -= 2;
             continue;
@@ -463,10 +461,8 @@ void SegmentApproximator::insertQuadCurve(FloatPoint from, FloatPoint control, F
     } while (points >= buffer);
 }
 
-static bool curveIsLineSegment(FloatPoint points[])
+static bool curveIsLineSegment(FloatPoint points[], Float tolerance)
 {
-    // FIXME: tolerance is a magic number.
-    Float tolerance = 1;
     Float x0 = points[0].x;
     Float y0 = points[0].y;
     Float x1 = points[1].x;
@@ -539,7 +535,7 @@ void SegmentApproximator::insertBezierCurve(FloatPoint from, FloatPoint control1
     points[3] = to;
 
     do {
-        if (curveIsLineSegment(points)) {
+        if (curveIsLineSegment(points, _epsilon)) {
             insertSegment(points[0], points[3]);
             points -= 3;
             continue;
@@ -640,7 +636,7 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
 
     ASSERT(element->type == PathElementTypes::MoveTo);
 
-    SegmentApproximator segmentApproximator;
+    SegmentApproximator segmentApproximator(1 / ((Float) _antiAliasingLevel));
     FloatPoint from;
     FloatPoint to = element->to;
     FloatPoint lastMoveTo = to;
@@ -666,13 +662,11 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
             break;
         }
         case PathElementTypes::QuadraticCurve: {
-            // FIXME: Implement real curve, it's only a test solution.
             QuadraticCurveToElement* qe = reinterpret_cast<QuadraticCurveToElement*>(element);
             segmentApproximator.insertQuadCurve(from, qe->control, to);
             break;
         }
         case PathElementTypes::BezierCurve: {
-            // FIXME: Implement real curve, it's only a test solution.
             BezierCurveToElement* be = reinterpret_cast<BezierCurveToElement*>(element);
             segmentApproximator.insertBezierCurve(from, be->control1, be->control2, to);
             break;
