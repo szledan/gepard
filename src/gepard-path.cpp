@@ -266,7 +266,10 @@ void Path::fillPath()
 
     int index = 0;
     int attributeIndex = 0;
-    constexpr float scale = 80;
+    Float scaleX = tt.boundingBox()._maxX - tt.boundingBox()._minX;
+    Float scaleY = tt.boundingBox()._maxY - tt.boundingBox()._minY;
+    Float topX = tt.boundingBox()._minX;
+    Float topY = tt.boundingBox()._minY;
     std::cout << "Trapezoids (" << trapezoidList.size() << "): ";
     for (auto trapezoid : trapezoidList) {
         std::cout << trapezoid << " ";
@@ -280,27 +283,27 @@ void Path::fillPath()
         currentQuad += 6;
         index += 4;
 
-        attributes[attributeIndex++] = trapezoid._bottomLeft / scale;
-        attributes[attributeIndex++] = trapezoid._bottom / scale;
+        attributes[attributeIndex++] = trapezoid._bottomLeft / scaleX - topX;
+        attributes[attributeIndex++] = trapezoid._bottom / scaleY - topY;
         // FIXME: use color shader:
         attributes[attributeIndex++] = 0.0;
         attributes[attributeIndex++] = 0.3;
         attributes[attributeIndex++] = 1.0;
         attributes[attributeIndex++] = 0.99;
-        attributes[attributeIndex++] = trapezoid._bottomRight / scale;
-        attributes[attributeIndex++] = trapezoid._bottom / scale;
+        attributes[attributeIndex++] = trapezoid._bottomRight / scaleX - topX;
+        attributes[attributeIndex++] = trapezoid._bottom / scaleY - topY;
         attributes[attributeIndex++] = 0.0;
         attributes[attributeIndex++] = 0.3;
         attributes[attributeIndex++] = 1.0;
         attributes[attributeIndex++] = 0.7;
-        attributes[attributeIndex++] = trapezoid._topLeft / scale;
-        attributes[attributeIndex++] = trapezoid._top / scale;
+        attributes[attributeIndex++] = trapezoid._topLeft / scaleX - topX;
+        attributes[attributeIndex++] = trapezoid._top / scaleY - topY;
         attributes[attributeIndex++] = 0.0;
         attributes[attributeIndex++] = 0.3;
         attributes[attributeIndex++] = 1.0;
         attributes[attributeIndex++] = 0.7;
-        attributes[attributeIndex++] = trapezoid._topRight / scale;
-        attributes[attributeIndex++] = trapezoid._top / scale;
+        attributes[attributeIndex++] = trapezoid._topRight / scaleX - topX;
+        attributes[attributeIndex++] = trapezoid._top / scaleY - topY;
         attributes[attributeIndex++] = 0.0;
         attributes[attributeIndex++] = 0.3;
         attributes[attributeIndex++] = 1.0;
@@ -346,6 +349,11 @@ void SegmentApproximator::insertSegment(Segment segment)
     if (segment._direction == Segment::EqualOrNonExist)
         return;
 
+    // Update bounding-box.
+    _boundingBox.stretch(segment._from);
+    _boundingBox.stretch(segment._to);
+
+    // Insert segment.
     Float topY = segment.topY();
     Float bottomY = segment.bottomY();
 
@@ -540,7 +548,7 @@ void SegmentApproximator::insertBezierCurve(FloatPoint from, FloatPoint control1
     } while (points >= buffer);
 }
 
-void SegmentApproximator::insertArc(FloatPoint center, FloatPoint radius, float startAngle, float endAngle, bool antiClockwise)
+void SegmentApproximator::insertArc(FloatPoint center, FloatPoint radius, Float startAngle, Float endAngle, bool antiClockwise)
 {
     // TODO: Missing approximation!
 }
@@ -678,7 +686,7 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
     Trapezoid trapezoid;
     int fill = 0;
     bool isInFill = false;
-    std::cout << "Segments: ";
+    std::cout << "Segments (" << segmentApproximator.boundingBox() << ") : ";
     // FIXME: ASSERTs for wrong segments.
     for (auto segment : *segmentList) {
         if (fillRule() == EvenOdd)
@@ -688,15 +696,15 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
 
         if (fill) {
             if (!isInFill) {
-                trapezoid._bottom = ceil(segment._from._y * precisionOfFloat) / precisionOfFloat;
-                trapezoid._top = ceil(segment._to._y * precisionOfFloat) / precisionOfFloat;
-                trapezoid._bottomLeft = ceil(segment._from._x * precisionOfFloat) / precisionOfFloat;
-                trapezoid._topLeft = ceil(segment._to._x * precisionOfFloat) / precisionOfFloat;
+                trapezoid._bottom = fixPrecision(segment._from._y);
+                trapezoid._top = fixPrecision(segment._to._y);
+                trapezoid._bottomLeft = fixPrecision(segment._from._x);
+                trapezoid._topLeft = fixPrecision(segment._to._x);
                 isInFill = true;
             }
         } else {
-            trapezoid._bottomRight = ceil(segment._from._x * precisionOfFloat) / precisionOfFloat;
-            trapezoid._topRight = ceil(segment._to._x * precisionOfFloat) / precisionOfFloat;
+            trapezoid._bottomRight = fixPrecision(segment._from._x);
+            trapezoid._topRight = fixPrecision(segment._to._x);
             if (trapezoid._bottom != trapezoid._top)
                 trapezoidList.push_front(trapezoid);
             isInFill = false;
@@ -707,6 +715,11 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
 
     if (segmentList)
         delete segmentList;
+
+    _boundingBox._minX = fixPrecision(segmentApproximator.boundingBox()._minX);
+    _boundingBox._minY = fixPrecision(segmentApproximator.boundingBox()._minY);
+    _boundingBox._maxX = fixPrecision(segmentApproximator.boundingBox()._maxX);
+    _boundingBox._maxY = fixPrecision(segmentApproximator.boundingBox()._maxY);
 
     return trapezoidList;
 }

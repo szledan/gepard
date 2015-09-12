@@ -285,7 +285,7 @@ typedef std::map<const Float, SegmentList*> SegmentTree;
 
 class SegmentApproximator {
 public:
-    SegmentApproximator(float epsilon = 1)
+    SegmentApproximator(Float epsilon = 1)
         : _epsilon(epsilon)
     {
     }
@@ -301,15 +301,18 @@ public:
     void insertSegment(FloatPoint from, FloatPoint to) { insertSegment(Segment(from, to)); }
     void insertQuadCurve(FloatPoint from, FloatPoint control, FloatPoint to);
     void insertBezierCurve(FloatPoint from, FloatPoint control1, FloatPoint control2, FloatPoint to);
-    void insertArc(FloatPoint center, FloatPoint radius, float startAngle, float endAngle, bool antiClockwise);
+    void insertArc(FloatPoint center, FloatPoint radius, Float startAngle, Float endAngle, bool antiClockwise);
 
     SegmentList* segments();
+    BoundingBox boundingBox() const { return _boundingBox; }
 
     inline void splitSegments();
     void printSegements();
 private:
     SegmentTree _segments;
-    float _epsilon;
+    Float _epsilon;
+
+    BoundingBox _boundingBox;
 };
 
 /* Trapezoid */
@@ -349,10 +352,13 @@ public:
 
     FillRule fillRule() const { return _fillRule; }
     TrapezoidList trapezoidList();
+    BoundingBox boundingBox() const { return _boundingBox; }
 
 private:
     Path* _path;
     FillRule _fillRule;
+
+    BoundingBox _boundingBox;
 };
 
 } // namespace gepard

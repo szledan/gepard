@@ -42,6 +42,8 @@ constexpr double precisionOfFloat = 1000 * 1000 * 1000;
 //constexpr float precisionOfFloat = 100 * 1000;
 //#endif
 
+inline Float fixPrecision(Float f) { return ceil(f * precisionOfFloat) / precisionOfFloat; }
+
 /* Region */
 
 #define REGION_BLOCK_SIZE (2048 - (int)sizeof(void*))
@@ -138,6 +140,45 @@ inline std::ostream& operator<<(std::ostream& os, const IntPoint& p)
 inline bool operator==(const IntPoint& a, const IntPoint& b)
 {
     return a._x == b._x && a._y == b._y;
+}
+
+/* BoundingBox */
+
+struct BoundingBox {
+    BoundingBox()
+        : _minX(INFINITY)
+        , _minY(INFINITY)
+        , _maxX(-INFINITY)
+        , _maxY(-INFINITY)
+    {
+    }
+
+    void stretchX(Float x)
+    {
+        if (x < _minX)
+            _minX = x;
+        if (x > _maxX)
+            _maxX = x;
+    }
+    void stretchY(Float y)
+    {
+        if (y < _minY)
+            _minY = y;
+        if (y > _maxY)
+            _maxY = y;
+    }
+    void stretch(FloatPoint p)
+    {
+        stretchX(p._x);
+        stretchY(p._y);
+    }
+
+    Float _minX, _minY, _maxX, _maxY;
+};
+
+inline std::ostream& operator<<(std::ostream& os, const BoundingBox& bb)
+{
+    return os << bb._minX << "," << bb._minY << "," << bb._maxX << "," << bb._maxY;
 }
 
 } // namespace gepard
