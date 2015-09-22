@@ -1,4 +1,5 @@
 /* Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
+ * Copyright (C) 2015, Dániel Bátyai <dbatyai@inf.u-szeged.hu>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +34,7 @@
 #include <iostream>
 #include <math.h>
 #include <memory.h>
+#include <sstream>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,19 +65,83 @@
 #define PROGRAM_STR(...)  #__VA_ARGS__
 #define PROGRAM(...) PROGRAM_STR(__VA_ARGS__)
 
+#define ERR_MSG_EMPTY_STRING "Empty string!"
+
+#define ATTR_UNUSED __attribute__((unused))
+
 #ifdef ASSERT
 #undef ASSERT
 #endif
 #define ASSERT(...) assert(__VA_ARGS__);
 
-#define ERR_MSG_EMPTY_STRING "Empty string!"
-
-#ifdef LOG_ERR
-#undef LOG_ERR
+#ifdef LOG_LEVEL
+#ifndef DISABLE_LOG_COLORS
+#define LOG1_COLOR "\033[94m"
+#define LOG2_COLOR "\033[36m"
+#define LOG3_COLOR "\033[93m"
+#define CLEAR_COLOR "\033[39m"
+#else
+#define LOG1_COLOR ""
+#define LOG2_COLOR ""
+#define LOG3_COLOR ""
+#define CLEAR_COLOR ""
 #endif
-#define LOG_ERR(MSG_TYPE) std::cerr << MSG_TYPE << std::endl;
 
-#define ATTR_UNUSED __attribute__((unused))
+#ifdef LOG1
+#undef LOG1
+#endif
+#define LOG1(MSG) do \
+{ \
+    std::ostringstream os; \
+    os << LOG1_COLOR << MSG << CLEAR_COLOR; \
+    _log(1, os.str()); \
+} while (false)
+
+
+#ifdef LOG2
+#undef LOG2
+#endif
+#define LOG2(MSG) do \
+{ \
+    std::ostringstream os; \
+    os << LOG2_COLOR  << MSG << CLEAR_COLOR; \
+    _log(2, os.str()); \
+} while (false)
+
+
+#ifdef LOG3
+#undef LOG3
+#endif
+#define LOG3(MSG) do \
+{ \
+    std::ostringstream os; \
+    os << LOG3_COLOR  << MSG << CLEAR_COLOR; \
+    _log(3, os.str()); \
+} while (false)
+
+void _log(int level, std::string msg) {
+  const int max_level = LOG_LEVEL;
+  if (level <= max_level) {
+    std::cout << msg << std::endl;
+  }
+}
+
+#else  /* LOG_LEVEL */
+#ifdef LOG1
+#undef LOG1
+#endif
+#ifdef LOG2
+#undef LOG2
+#endif
+#ifdef LOG3
+#undef LOG3
+#endif
+
+#define LOG1(MSG)
+#define LOG2(MSG)
+#define LOG3(MSG)
+
+#endif  /* LOG_LEVEL */
 
 namespace gepard {
 } // namespace gepard
