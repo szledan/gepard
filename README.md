@@ -1,5 +1,5 @@
 
-GEPARD
+GEPARD [![Build Status](https://travis-ci.org/GepardGraphics/gepard.svg?branch=master)](https://travis-ci.org/GepardGraphics/gepard)
 =====
 
 The Gepard aims to be a hardware accelerated 2D
