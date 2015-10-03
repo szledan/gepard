@@ -26,6 +26,7 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
+#include "config.h"
 #include "gepard-texture.h"
 
 namespace gepard {

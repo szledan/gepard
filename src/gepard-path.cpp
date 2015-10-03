@@ -26,6 +26,7 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
+#include "config.h"
 #include "gepard-path.h"
 
 #include <list>
@@ -571,9 +572,9 @@ void SegmentApproximator::printSegements()
 
 inline void SegmentApproximator::splitSegments()
 {
-    for (SegmentTree::iterator currentSegments = _segments.begin(); currentSegments != _segments.end(); currentSegments++) {
+    for (SegmentTree::iterator currentSegments = _segments.begin(); currentSegments != _segments.end(); ++currentSegments) {
         SegmentTree::iterator newSegments = currentSegments;
-        newSegments++;
+        ++newSegments;
         if (newSegments != _segments.end()) {
             SegmentList*  currentList = currentSegments->second;
             SegmentList* newList = newSegments->second;
@@ -598,7 +599,7 @@ SegmentList* SegmentApproximator::segments()
     for (auto& currentSegments : _segments) {
         SegmentList* currentList = currentSegments.second;
         SegmentList::iterator currentSegment = currentList->begin();
-        for (SegmentList::iterator segment = currentSegment; currentSegment != currentList->end(); segment++) {
+        for (SegmentList::iterator segment = currentSegment; currentSegment != currentList->end(); ++segment) {
             if (segment != currentList->end()) {
                 Float y = currentSegment->computeIntersectionY(&(*segment));
                 if (y != NAN && y != INFINITY) {
@@ -615,7 +616,7 @@ SegmentList* SegmentApproximator::segments()
 
     // 4. Merge and sort all segment list.
     SegmentList* segments = new SegmentList();
-    for (SegmentTree::iterator currentSegments = _segments.begin(); currentSegments != _segments.end(); currentSegments++) {
+    for (SegmentTree::iterator currentSegments = _segments.begin(); currentSegments != _segments.end(); ++currentSegments) {
         SegmentList* currentList = currentSegments->second;
         currentList->sort();
         segments->merge(*currentList);
@@ -687,49 +688,48 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
 
     // 2. Use approximator to generate the list of segments.
     SegmentList* segmentList = segmentApproximator.segments();
-
-    // 3. Generate trapezoids.
     TrapezoidList trapezoidList;
-    Trapezoid trapezoid;
-    int fill = 0;
-    bool isInFill = false;
-    std::cout << "Segments (" << segmentApproximator.boundingBox() << ") : ";
-    // FIXME: ASSERTs for wrong segments.
-    for (auto segment : *segmentList) {
-        if (fillRule() == EvenOdd) {
-            fill = !fill;
-        } else {
-            fill += segment.direction;
-        }
-
-        if (fill) {
-            if (!isInFill) {
-                trapezoid.bottom = fixPrecision(segment.from.y);
-                trapezoid.top = fixPrecision(segment.to.y);
-                trapezoid.bottomLeft = fixPrecision(segment.from.x);
-                trapezoid.topLeft = fixPrecision(segment.to.x);
-                isInFill = true;
-            }
-        } else {
-            trapezoid.bottomRight = fixPrecision(segment.from.x);
-            trapezoid.topRight = fixPrecision(segment.to.x);
-            if (trapezoid.bottom != trapezoid.top) {
-                trapezoidList.push_front(trapezoid);
-            }
-            isInFill = false;
-        }
-        std::cout << segment << " ";
-    }
-    std::cout << std::endl;
 
     if (segmentList) {
-        delete segmentList;
-    }
+        // 3. Generate trapezoids.
+        Trapezoid trapezoid;
+        int fill = 0;
+        bool isInFill = false;
+        std::cout << "Segments (" << segmentApproximator.boundingBox() << ") : ";
+        // FIXME: ASSERTs for wrong segments.
+        for (auto segment : *segmentList) {
+            if (fillRule() == EvenOdd) {
+                fill = !fill;
+            } else {
+                fill += segment.direction;
+            }
 
-    _boundingBox.minX = fixPrecision(segmentApproximator.boundingBox().minX);
-    _boundingBox.minY = fixPrecision(segmentApproximator.boundingBox().minY);
-    _boundingBox.maxX = fixPrecision(segmentApproximator.boundingBox().maxX);
-    _boundingBox.maxY = fixPrecision(segmentApproximator.boundingBox().maxY);
+            if (fill) {
+                if (!isInFill) {
+                    trapezoid.bottom = fixPrecision(segment.from.y);
+                    trapezoid.top = fixPrecision(segment.to.y);
+                    trapezoid.bottomLeft = fixPrecision(segment.from.x);
+                    trapezoid.topLeft = fixPrecision(segment.to.x);
+                    isInFill = true;
+                }
+            } else {
+                trapezoid.bottomRight = fixPrecision(segment.from.x);
+                trapezoid.topRight = fixPrecision(segment.to.x);
+                if (trapezoid.bottom != trapezoid.top) {
+                    trapezoidList.push_front(trapezoid);
+                }
+                isInFill = false;
+            }
+            std::cout << segment << " ";
+        }
+        std::cout << std::endl;
+
+        delete segmentList;
+        _boundingBox.minX = fixPrecision(segmentApproximator.boundingBox().minX);
+        _boundingBox.minY = fixPrecision(segmentApproximator.boundingBox().minY);
+        _boundingBox.maxX = fixPrecision(segmentApproximator.boundingBox().maxX);
+        _boundingBox.maxY = fixPrecision(segmentApproximator.boundingBox().maxY);
+    }
 
     return trapezoidList;
 }

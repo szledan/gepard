@@ -292,7 +292,7 @@ public:
     {}
     ~SegmentApproximator()
     {
-        for (SegmentTree::iterator it = _segments.begin(); it != _segments.end(); it++) {
+        for (SegmentTree::iterator it = _segments.begin(); it != _segments.end(); ++it) {
             delete it->second;
         }
     }
