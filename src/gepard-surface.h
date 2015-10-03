@@ -38,22 +38,20 @@ public:
     GepardSurface()
         : _eglDisplay(0)
         , _eglSurface(0)
-    {
-    }
-
+    {}
     GepardSurface(EGLDisplay eglDisplay, EGLSurface eglSurface)
         : _eglDisplay(eglDisplay)
         , _eglSurface(eglSurface)
-    {
-    }
+    {}
+
+    EGLDisplay eglDisplay() const { return _eglDisplay; }
+    EGLSurface eglSurface() const { return _eglSurface; }
 
     void set(EGLDisplay eglDisplay, EGLSurface eglSurface)
     {
         _eglDisplay = eglDisplay;
         _eglSurface = eglSurface;
     }
-    EGLDisplay eglDisplay() const { return _eglDisplay; }
-    EGLSurface eglSurface() const { return _eglSurface; }
 
 private:
     EGLDisplay _eglDisplay;

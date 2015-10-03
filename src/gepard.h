@@ -81,7 +81,6 @@ public:
     // Extras
     Path* path() const { return _path; }
 
-
 private:
     GepardSurface* _surface;
     Path* _path;

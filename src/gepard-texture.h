@@ -39,14 +39,13 @@ public:
     static Texture* create(int width, int height, GLint = GL_RGBA);
 
     void bindFbo();
-    void bindTexture() { glBindTexture(GL_TEXTURE_2D, _texture); }
+    void bindTexture() const { glBindTexture(GL_TEXTURE_2D, _texture); }
 
 private:
     Texture(GLuint texture)
         : _texture(texture)
         , _fbo(0)
-    {
-    }
+    {}
 
     GLuint _texture;
     GLuint _fbo;

@@ -72,8 +72,9 @@ void Gepard::rect(float x ATTR_UNUSED, float y ATTR_UNUSED, float w ATTR_UNUSED,
 
 void Gepard::beginPath()
 {
-    if (!_path)
+    if (!_path) {
         _path = new Path(_surface);
+    }
 }
 
 void Gepard::fill()

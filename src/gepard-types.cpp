@@ -35,12 +35,12 @@ namespace gepard {
 void* Region::alloc(int size)
 {
     if (_fill + size > REGION_BLOCK_SIZE) {
-        _last->_next = new RegionElement();
-        _last = _last->_next;
+        _last->next = new RegionElement();
+        _last = _last->next;
         _fill = 0;
     }
 
-    void* ptr = _last->_value + _fill;
+    void* ptr = _last->value + _fill;
     _fill += size;
 
     return ptr;

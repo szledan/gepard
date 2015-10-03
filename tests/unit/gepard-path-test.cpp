@@ -51,11 +51,11 @@ void test_closeSubpath()
     gepard::Gepard g(0);
     g.beginPath();
     g.closePath();
-    TEST(EQ(g.path()->pathData()._lastElement, nullptr), "");
+    TEST(EQ(g.path()->pathData().lastElement(), nullptr), "");
 
     g.moveTo(0, 0);
     g.closePath();
-    TEST(EQ(g.path()->pathData()._lastElement->_type, gepard::PathElementTypes::CloseSubpath), "");
+    TEST(EQ(g.path()->pathData().lastElement()->type, gepard::PathElementTypes::CloseSubpath), "");
 
     int n = 100;
 
@@ -78,7 +78,7 @@ void test_closeSubpath()
     }
     g.fill();
 
-    TEST(EQ(g.path()->pathData()._lastElement->_type, gepard::PathElementTypes::CloseSubpath), "");
+    TEST(EQ(g.path()->pathData().lastElement()->type, gepard::PathElementTypes::CloseSubpath), "");
 }
 
 void test_approxximator()

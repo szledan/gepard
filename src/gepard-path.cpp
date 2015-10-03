@@ -160,7 +160,7 @@ std::ostream& operator<<(std::ostream& os, const PathElement& ps)
 void PathData::addMoveToElement(FloatPoint to)
 {
     if (_lastElement && _lastElement->isMoveTo()) {
-        _lastElement->_to = to;
+        _lastElement->to = to;
         return;
     }
 
@@ -170,8 +170,8 @@ void PathData::addMoveToElement(FloatPoint to)
         _firstElement = currentElement;
         _lastElement = _firstElement;
     } else {
-        _lastElement->_next = currentElement;
-        _lastElement = _lastElement->_next;
+        _lastElement->next = currentElement;
+        _lastElement = _lastElement->next;
     }
 
     _lastMoveToElement = _lastElement;
@@ -179,53 +179,58 @@ void PathData::addMoveToElement(FloatPoint to)
 
 void PathData::addLineToElement(FloatPoint to)
 {
-    if (!_lastElement)
+    if (!_lastElement) {
         addMoveToElement(to);
+    }
 
-    if (!_lastElement->isMoveTo() && _lastElement->_to == to)
+    if (!_lastElement->isMoveTo() && _lastElement->to == to)
         return;
 
-    _lastElement->_next = static_cast<PathElement*>(new (_region.alloc(sizeof(LineToElement))) LineToElement(to));
-    _lastElement = _lastElement->_next;
+    _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(LineToElement))) LineToElement(to));
+    _lastElement = _lastElement->next;
 }
 
 void PathData::addQuadaraticCurveToElement(FloatPoint control, FloatPoint to)
 {
-    if (!_lastElement)
+    if (!_lastElement) {
         addMoveToElement(to);
+    }
 
-    _lastElement->_next = static_cast<PathElement*>(new (_region.alloc(sizeof(QuadraticCurveToElement))) QuadraticCurveToElement(control, to));
-    _lastElement = _lastElement->_next;
+    _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(QuadraticCurveToElement))) QuadraticCurveToElement(control, to));
+    _lastElement = _lastElement->next;
 }
 
 void PathData::addBezierCurveToElement(FloatPoint control1, FloatPoint control2, FloatPoint to)
 {
-    if (!_lastElement)
+    if (!_lastElement) {
         addMoveToElement(to);
+    }
 
-    _lastElement->_next = static_cast<PathElement*>(new (_region.alloc(sizeof(BezierCurveToElement))) BezierCurveToElement(control1, control2, to));
-    _lastElement = _lastElement->_next;
+    _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(BezierCurveToElement))) BezierCurveToElement(control1, control2, to));
+    _lastElement = _lastElement->next;
 }
 
 void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAngle, Float endAngle, bool antiClockwise)
 {
-    if (!_lastElement)
+    if (!_lastElement) {
         addMoveToElement(center);
+    }
 
-    _lastElement->_next = static_cast<PathElement*>(new (_region.alloc(sizeof(ArcElement))) ArcElement(center, radius, startAngle, endAngle, antiClockwise));
-    _lastElement = _lastElement->_next;
+    _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(ArcElement))) ArcElement(center, radius, startAngle, endAngle, antiClockwise));
+    _lastElement = _lastElement->next;
 }
 
 void PathData::addCloseSubpath()
 {
     if (!_lastElement)
         return;
+
     if (_lastElement->isMoveTo()) {
-        addLineToElement(_lastElement->_to);
+        addLineToElement(_lastElement->to);
     }
 
-    _lastElement->_next = static_cast<PathElement*>(new (_region.alloc(sizeof(CloseSubpathElement))) CloseSubpathElement(_lastMoveToElement->_to));
-    _lastElement = _lastElement->_next;
+    _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(CloseSubpathElement))) CloseSubpathElement(_lastMoveToElement->to));
+    _lastElement = _lastElement->next;
 }
 
 void PathData::dump()
@@ -238,15 +243,16 @@ void PathData::dump()
     std::cout << "PathData:";
     while (element) {
         std::cout << " " << *element;
-        element = element->_next;
+        element = element->next;
     }
     std::cout << std::endl;
 }
 
 void Path::fillPath()
 {
-    if (_pathData._lastElement->_type != PathElementTypes::CloseSubpath)
+    if (_pathData.lastElement()->type != PathElementTypes::CloseSubpath) {
         _pathData.addCloseSubpath();
+    }
 
     _pathData.dump();
     TrapezoidTessallator tt(this);
@@ -266,10 +272,10 @@ void Path::fillPath()
 
     int index = 0;
     int attributeIndex = 0;
-    Float scaleX = tt.boundingBox()._maxX - tt.boundingBox()._minX;
-    Float scaleY = tt.boundingBox()._maxY - tt.boundingBox()._minY;
-    Float topX = tt.boundingBox()._minX;
-    Float topY = tt.boundingBox()._minY;
+    Float scaleX = tt.boundingBox().maxX - tt.boundingBox().minX;
+    Float scaleY = tt.boundingBox().maxY - tt.boundingBox().minY;
+    Float topX = tt.boundingBox().minX;
+    Float topY = tt.boundingBox().minY;
     std::cout << "Trapezoids (" << trapezoidList.size() << "): ";
     for (auto trapezoid : trapezoidList) {
         std::cout << trapezoid << " ";
@@ -283,27 +289,27 @@ void Path::fillPath()
         currentQuad += 6;
         index += 4;
 
-        attributes[attributeIndex++] = trapezoid._bottomLeft / scaleX - topX;
-        attributes[attributeIndex++] = trapezoid._bottom / scaleY - topY;
+        attributes[attributeIndex++] = trapezoid.bottomLeft / scaleX - topX;
+        attributes[attributeIndex++] = trapezoid.bottom / scaleY - topY;
         // FIXME: use color shader:
         attributes[attributeIndex++] = 0.0;
         attributes[attributeIndex++] = 0.3;
         attributes[attributeIndex++] = 1.0;
         attributes[attributeIndex++] = 0.99;
-        attributes[attributeIndex++] = trapezoid._bottomRight / scaleX - topX;
-        attributes[attributeIndex++] = trapezoid._bottom / scaleY - topY;
+        attributes[attributeIndex++] = trapezoid.bottomRight / scaleX - topX;
+        attributes[attributeIndex++] = trapezoid.bottom / scaleY - topY;
         attributes[attributeIndex++] = 0.0;
         attributes[attributeIndex++] = 0.3;
         attributes[attributeIndex++] = 1.0;
         attributes[attributeIndex++] = 0.7;
-        attributes[attributeIndex++] = trapezoid._topLeft / scaleX - topX;
-        attributes[attributeIndex++] = trapezoid._top / scaleY - topY;
+        attributes[attributeIndex++] = trapezoid.topLeft / scaleX - topX;
+        attributes[attributeIndex++] = trapezoid.top / scaleY - topY;
         attributes[attributeIndex++] = 0.0;
         attributes[attributeIndex++] = 0.3;
         attributes[attributeIndex++] = 1.0;
         attributes[attributeIndex++] = 0.7;
-        attributes[attributeIndex++] = trapezoid._topRight / scaleX - topX;
-        attributes[attributeIndex++] = trapezoid._top / scaleY - topY;
+        attributes[attributeIndex++] = trapezoid.topRight / scaleX - topX;
+        attributes[attributeIndex++] = trapezoid.top / scaleY - topY;
         attributes[attributeIndex++] = 0.0;
         attributes[attributeIndex++] = 0.3;
         attributes[attributeIndex++] = 1.0;
@@ -346,27 +352,25 @@ void Path::fillPath()
 
 void SegmentApproximator::insertSegment(Segment segment)
 {
-    if (segment._direction == Segment::EqualOrNonExist)
+    if (segment.direction == Segment::EqualOrNonExist)
         return;
 
     // Update bounding-box.
-    _boundingBox.stretch(segment._from);
-    _boundingBox.stretch(segment._to);
+    _boundingBox.stretch(segment.from);
+    _boundingBox.stretch(segment.to);
 
     // Insert segment.
     Float topY = segment.topY();
     Float bottomY = segment.bottomY();
 
-    if (_segments.find(topY) == _segments.end())
-    {
+    if (_segments.find(topY) == _segments.end()) {
         _segments.emplace(topY, new SegmentList()).first->second->push_front(segment);
         // TODO: log: std::cout << *(_segments[topY].begin()) << std::endl;
     } else {
         _segments[topY]->push_front(segment);
     }
 
-    if (_segments.find(bottomY) == _segments.end())
-    {
+    if (_segments.find(bottomY) == _segments.end()) {
         _segments.emplace(bottomY, new SegmentList());
     }
 }
@@ -377,12 +381,12 @@ static bool quadCurveIsLineSegment(FloatPoint points[])
 {
     // FIXME: tolerance is a magic number.
     Float tolerance = 1;
-    Float x0 = points[0]._x;
-    Float y0 = points[0]._y;
-    Float x1 = points[1]._x;
-    Float y1 = points[1]._y;
-    Float x2 = points[2]._x;
-    Float y2 = points[2]._y;
+    Float x0 = points[0].x;
+    Float y0 = points[0].y;
+    Float x1 = points[1].x;
+    Float y1 = points[1].y;
+    Float x2 = points[2].x;
+    Float y2 = points[2].y;
 
     Float dt = abs((x2 - x0) * (y0 - y1) - (x0 - x1) * (y2 - y0));
 
@@ -459,14 +463,14 @@ static bool curveIsLineSegment(FloatPoint points[])
 {
     // FIXME: tolerance is a magic number.
     Float tolerance = 1;
-    Float x0 = points[0]._x;
-    Float y0 = points[0]._y;
-    Float x1 = points[1]._x;
-    Float y1 = points[1]._y;
-    Float x2 = points[2]._x;
-    Float y2 = points[2]._y;
-    Float x3 = points[3]._x;
-    Float y3 = points[3]._y;
+    Float x0 = points[0].x;
+    Float y0 = points[0].y;
+    Float x1 = points[1].x;
+    Float y1 = points[1].y;
+    Float x2 = points[2].x;
+    Float y2 = points[2].y;
+    Float x3 = points[3].x;
+    Float y3 = points[3].y;
 
     Float dt1 = abs((x3 - x0) * (y0 - y1) - (x0 - x1) * (y3 - y0));
     Float dt2 = abs((x3 - x0) * (y0 - y2) - (x0 - x2) * (y3 - y0));
@@ -558,8 +562,9 @@ void SegmentApproximator::printSegements()
     for (auto& currentSegments : _segments) {
         std::cout << currentSegments.first << ": ";
         SegmentList currentList = *(currentSegments.second);
-        for (auto segment : currentList)
+        for (auto segment : currentList) {
             std::cout << segment << " ";
+        }
         std::cout << std::endl;
     }
 }
@@ -576,8 +581,9 @@ inline void SegmentApproximator::splitSegments()
             ASSERT(currentList && newList);
 
             for (auto& segment : *currentList) {
-                if (segment.isOnSegment(splitY))
+                if (segment.isOnSegment(splitY)) {
                     newList->push_front(segment.splitSegment(splitY));
+                }
             }
         }
     }
@@ -595,8 +601,9 @@ SegmentList* SegmentApproximator::segments()
         for (SegmentList::iterator segment = currentSegment; currentSegment != currentList->end(); segment++) {
             if (segment != currentList->end()) {
                 Float y = currentSegment->computeIntersectionY(&(*segment));
-                if (y != NAN && y != INFINITY)
+                if (y != NAN && y != INFINITY) {
                     _segments.emplace(y, new SegmentList());
+                }
             } else {
                 segment = ++currentSegment;
             }
@@ -622,24 +629,24 @@ SegmentList* SegmentApproximator::segments()
 
 TrapezoidList TrapezoidTessallator::trapezoidList()
 {
-    PathElement* element = _path->pathData()._firstElement;
+    PathElement* element = _path->pathData().firstElement();
 
     if (!element)
         return TrapezoidList();
 
-    ASSERT(element->_type == PathElementTypes::MoveTo);
+    ASSERT(element->type == PathElementTypes::MoveTo);
 
     SegmentApproximator segmentApproximator;
     FloatPoint from;
-    FloatPoint to = element->_to;
+    FloatPoint to = element->to;
     FloatPoint lastMoveTo = to;
 
     // 1. Insert path elements.
     do {
         from = to;
-        element = element->_next;
-        to = element->_to;
-        switch (element->_type) {
+        element = element->next;
+        to = element->to;
+        switch (element->type) {
         case PathElementTypes::MoveTo: {
             segmentApproximator.insertSegment(from, lastMoveTo);
             lastMoveTo = to;
@@ -657,13 +664,13 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
         case PathElementTypes::QuadraticCurve: {
             // FIXME: Implement real curve, it's only a test solution.
             QuadraticCurveToElement* qe = reinterpret_cast<QuadraticCurveToElement*>(element);
-            segmentApproximator.insertQuadCurve(from, qe->_control, to);
+            segmentApproximator.insertQuadCurve(from, qe->control, to);
             break;
         }
         case PathElementTypes::BezierCurve: {
             // FIXME: Implement real curve, it's only a test solution.
             BezierCurveToElement* be = reinterpret_cast<BezierCurveToElement*>(element);
-            segmentApproximator.insertBezierCurve(from, be->_control1, be->_control2, to);
+            segmentApproximator.insertBezierCurve(from, be->control1, be->control2, to);
             break;
         }
         case PathElementTypes::Arc: {
@@ -674,9 +681,9 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
             // unreachable
             break;
         }
-    } while (element->_next);
+    } while (element->next);
 
-    segmentApproximator.insertSegment(lastMoveTo, element->_to);
+    segmentApproximator.insertSegment(lastMoveTo, element->to);
 
     // 2. Use approximator to generate the list of segments.
     SegmentList* segmentList = segmentApproximator.segments();
@@ -689,37 +696,40 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
     std::cout << "Segments (" << segmentApproximator.boundingBox() << ") : ";
     // FIXME: ASSERTs for wrong segments.
     for (auto segment : *segmentList) {
-        if (fillRule() == EvenOdd)
+        if (fillRule() == EvenOdd) {
             fill = !fill;
-        else
-            fill += segment._direction;
+        } else {
+            fill += segment.direction;
+        }
 
         if (fill) {
             if (!isInFill) {
-                trapezoid._bottom = fixPrecision(segment._from._y);
-                trapezoid._top = fixPrecision(segment._to._y);
-                trapezoid._bottomLeft = fixPrecision(segment._from._x);
-                trapezoid._topLeft = fixPrecision(segment._to._x);
+                trapezoid.bottom = fixPrecision(segment.from.y);
+                trapezoid.top = fixPrecision(segment.to.y);
+                trapezoid.bottomLeft = fixPrecision(segment.from.x);
+                trapezoid.topLeft = fixPrecision(segment.to.x);
                 isInFill = true;
             }
         } else {
-            trapezoid._bottomRight = fixPrecision(segment._from._x);
-            trapezoid._topRight = fixPrecision(segment._to._x);
-            if (trapezoid._bottom != trapezoid._top)
+            trapezoid.bottomRight = fixPrecision(segment.from.x);
+            trapezoid.topRight = fixPrecision(segment.to.x);
+            if (trapezoid.bottom != trapezoid.top) {
                 trapezoidList.push_front(trapezoid);
+            }
             isInFill = false;
         }
         std::cout << segment << " ";
     }
     std::cout << std::endl;
 
-    if (segmentList)
+    if (segmentList) {
         delete segmentList;
+    }
 
-    _boundingBox._minX = fixPrecision(segmentApproximator.boundingBox()._minX);
-    _boundingBox._minY = fixPrecision(segmentApproximator.boundingBox()._minY);
-    _boundingBox._maxX = fixPrecision(segmentApproximator.boundingBox()._maxX);
-    _boundingBox._maxY = fixPrecision(segmentApproximator.boundingBox()._maxY);
+    _boundingBox.minX = fixPrecision(segmentApproximator.boundingBox().minX);
+    _boundingBox.minY = fixPrecision(segmentApproximator.boundingBox().minY);
+    _boundingBox.maxX = fixPrecision(segmentApproximator.boundingBox().maxX);
+    _boundingBox.maxY = fixPrecision(segmentApproximator.boundingBox().maxY);
 
     return trapezoidList;
 }

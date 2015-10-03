@@ -60,7 +60,7 @@ public:
     {
         while (_first) {
             _last = _first;
-            _first = _first->_next;
+            _first = _first->next;
             delete _last;
         }
     }
@@ -69,13 +69,10 @@ public:
 
 private:
     struct RegionElement {
-        RegionElement* _next;
-        uint8_t _value[REGION_BLOCK_SIZE];
+        RegionElement() : next(nullptr) {}
 
-        RegionElement()
-            : _next(nullptr)
-        {
-        }
+        RegionElement* next;
+        uint8_t value[REGION_BLOCK_SIZE];
     };
 
     RegionElement* _first;
@@ -86,99 +83,109 @@ private:
 /* FloatPoint */
 
 struct FloatPoint {
-    FloatPoint() : _x(0), _y(0) {}
-    FloatPoint(Float x, Float y) : _x(x), _y(y) {}
+    FloatPoint() : x(0), y(0) {}
+    FloatPoint(Float x, Float y) : x(x), y(y) {}
 
-    Float _x;
-    Float _y;
+    Float x;
+    Float y;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const FloatPoint& p)
 {
-    return os << p._x << "," << p._y;
+    return os << p.x << "," << p.y;
 }
 
 inline bool operator==(const FloatPoint& a, const FloatPoint& b)
 {
-    return a._x == b._x && a._y == b._y;
+    return a.x == b.x && a.y == b.y;
 }
 
 inline bool operator<(const FloatPoint& lhs, const FloatPoint& rhs)
 {
-    return (lhs._y < rhs._y) || (lhs._y == rhs._y && lhs._x < rhs._x);
+    return (lhs.y < rhs.y) || (lhs.y == rhs.y && lhs.x < rhs.x);
 }
 
-inline bool operator>(const FloatPoint& lhs, const FloatPoint& rhs) { return rhs < lhs; }
-inline bool operator<=(const FloatPoint& lhs, const FloatPoint& rhs) { return !(lhs > rhs); }
+inline bool operator>(const FloatPoint& lhs, const FloatPoint& rhs)
+{
+    return rhs < lhs;
+}
+
+inline bool operator<=(const FloatPoint& lhs, const FloatPoint& rhs)
+{
+    return !(lhs > rhs);
+}
 
 inline FloatPoint operator+(const FloatPoint& lhs, const FloatPoint& rhs)
 {
-    return FloatPoint(lhs._x + rhs._x, lhs._y + rhs._y);
+    return FloatPoint(lhs.x + rhs.x, lhs.y + rhs.y);
 }
 
 inline FloatPoint operator/(const FloatPoint& fp, const Float& f)
 {
     ASSERT(f);
-    return FloatPoint(fp._x / f, fp._y / f);
+    return FloatPoint(fp.x / f, fp.y / f);
 }
 
 /* IntPoint */
 
 struct IntPoint {
-    IntPoint() : _x(0), _y(0) {}
-    IntPoint(int x, int y) : _x(x), _y(y) {}
+    IntPoint() : x(0), y(0) {}
+    IntPoint(int x, int y) : x(x), y(y) {}
 
-    int _x;
-    int _y;
+    int x;
+    int y;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const IntPoint& p)
 {
-    return os << p._x << "," << p._y;
+    return os << p.x << "," << p.y;
 }
 
 inline bool operator==(const IntPoint& a, const IntPoint& b)
 {
-    return a._x == b._x && a._y == b._y;
+    return a.x == b.x && a.y == b.y;
 }
 
 /* BoundingBox */
 
 struct BoundingBox {
     BoundingBox()
-        : _minX(INFINITY)
-        , _minY(INFINITY)
-        , _maxX(-INFINITY)
-        , _maxY(-INFINITY)
-    {
-    }
+        : minX(INFINITY)
+        , minY(INFINITY)
+        , maxX(-INFINITY)
+        , maxY(-INFINITY)
+    {}
 
     void stretchX(Float x)
     {
-        if (x < _minX)
-            _minX = x;
-        if (x > _maxX)
-            _maxX = x;
+        if (x < minX) {
+            minX = x;
+        }
+        if (x > maxX) {
+            maxX = x;
+        }
     }
     void stretchY(Float y)
     {
-        if (y < _minY)
-            _minY = y;
-        if (y > _maxY)
-            _maxY = y;
+        if (y < minY) {
+            minY = y;
+        }
+        if (y > maxY) {
+            maxY = y;
+        }
     }
     void stretch(FloatPoint p)
     {
-        stretchX(p._x);
-        stretchY(p._y);
+        stretchX(p.x);
+        stretchY(p.y);
     }
 
-    Float _minX, _minY, _maxX, _maxY;
+    Float minX, minY, maxX, maxY;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const BoundingBox& bb)
 {
-    return os << bb._minX << "," << bb._minY << "," << bb._maxX << "," << bb._maxY;
+    return os << bb.minX << "," << bb.minY << "," << bb.maxX << "," << bb.maxY;
 }
 
 } // namespace gepard
