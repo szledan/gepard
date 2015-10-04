@@ -31,7 +31,7 @@
 
 int main()
 {
-    gepard::XGepardSurface xSurface(600, 600);
+    gepard::XGepardSurface xSurface(512, 512);
     gepard::Gepard gepardContext(&xSurface);
 
     gepardContext.beginPath();

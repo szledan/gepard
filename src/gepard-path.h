@@ -320,17 +320,17 @@ private:
 /* Trapezoid */
 
 struct Trapezoid {
-    Float bottom;
-    Float bottomLeft;
-    Float bottomRight;
-    Float top;
-    Float topLeft;
-    Float topRight;
+    Float bottomY;
+    Float bottomLeftX;
+    Float bottomRightX;
+    Float topY;
+    Float topLeftX;
+    Float topRightX;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Trapezoid& t)
 {
-    return os << t.bottom << "," << t.bottomLeft << "," << t.bottomRight << ","<< t.top << "," << t.topLeft << "," << t.topRight;
+    return os << t.bottomY << "," << t.bottomLeftX << "," << t.bottomRightX << ","<< t.topY << "," << t.topLeftX << "," << t.topRightX;
 }
 
 /* TrapezoidList */
@@ -355,6 +355,7 @@ public:
     FillRule fillRule() const { return _fillRule; }
     TrapezoidList trapezoidList();
     BoundingBox boundingBox() const { return _boundingBox; }
+    int antiAliasingLevel() const { return _antiAliasingLevel; }
 
 private:
     Path* _path;

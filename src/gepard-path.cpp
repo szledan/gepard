@@ -130,28 +130,103 @@ GLuint createFrameBuffer(GLuint texture)
 }
 
 const GLchar* simpleVertexShader = PROGRAM(
+    precision highp float;
+    attribute vec4 a_position;
+    attribute vec4 a_x1x2Cdx1dx2;
 
-    attribute vec2 a_position;
-    attribute vec4 a_color;
-
-    varying vec4 v_color;
-
+    // To reduce the rounding issues of float16 variables,
+    // the numbers are spearated for integer and fractional parts.
+    // On the downside, this doubles the required arguments.
+    varying vec4 v_y1y2;
+    varying vec4 v_x1x2;
+    varying vec2 v_dx1dx2;
     void main(void)
     {
-        v_color = a_color;
-        gl_Position = vec4(a_position, 1.0, 1.0);
+        float y = floor(a_position[2]);
+        v_y1y2[0] = a_position[1] - y;
+        v_y1y2[1] = floor(a_position[3]) - y;
+        v_y1y2[2] = fract(a_position[2]);
+        v_y1y2[3] = fract(a_position[3]);
+
+        float x = floor(a_x1x2Cdx1dx2[0]);
+        v_x1x2[0] = a_position[0] - x;
+        v_x1x2[1] = floor(a_x1x2Cdx1dx2[1]) - x;
+        v_x1x2[2] = fract(a_x1x2Cdx1dx2[0]);
+        v_x1x2[3] = fract(a_x1x2Cdx1dx2[1]);
+
+        v_dx1dx2[0] = a_x1x2Cdx1dx2[2];
+        v_dx1dx2[1] = a_x1x2Cdx1dx2[3];
+
+        gl_Position = vec4(a_position.xy * (2.0 / (512.0)) - 1.0, 0.0, 1.0);
     }
+
+//    attribute vec2 a_position;
+//    attribute vec4 a_color;
+
+//    varying vec4 v_color;
+
+//    void main(void)
+//    {
+//        v_color = a_color;
+//        gl_Position = vec4(a_position, 1.0, 1.0);
+//    }
 );
 
-const GLchar* simpleFragmentShader = PROGRAM(
-    precision mediump float;
+#define ANTIALIAS_LEVEL 16
 
-    varying vec4 v_color;
+const GLchar* simpleFragmentShader = PROGRAM(
+    precision highp float;
+    varying vec4 v_y1y2;
+    varying vec4 v_x1x2;
+    varying vec2 v_dx1dx2;
 
     void main(void)
     {
-        gl_FragColor = v_color;
+        const float step = 1.0 / ANTIALIAS_LEVEL.0;
+        const float rounding = 1.0 / 32.0;
+
+        float y = floor(v_y1y2[0]);
+        float from = max(-y + v_y1y2[2], 0.0);
+        float to = min(v_y1y2[1] - y + v_y1y2[3], 1.0) - from;
+
+        vec2 x1x2 = (y + from) * (v_dx1dx2 * ANTIALIAS_LEVEL.0);
+
+        float x = floor(v_x1x2[0]);
+        x1x2[0] = (-x) + (x1x2[0] + v_x1x2[2]);
+        x1x2[1] = (v_x1x2[1] - x) + (x1x2[1] + v_x1x2[3]);
+
+        // Alpha value to must be > 0.
+        vec4 resultColor = vec4(0.0, 0.3, 1.0, 1.0);
+
+        float sum = (clamp(x1x2[1], 0.0, 1.0) - clamp(x1x2[0], 0.0, 1.0));
+        if (to > 1.0 - rounding) {
+            vec2 last = x1x2 + v_dx1dx2 * (ANTIALIAS_LEVEL.0 - 1.0);
+            sum += (clamp(last[1], 0.0, 1.0) - clamp(last[0], 0.0, 1.0));
+            to -= step;
+        }
+
+        if (sum <= 2.0 - rounding) {
+            x1x2 += v_dx1dx2;
+
+            while (to >= rounding) {
+                sum += (clamp(x1x2[1], 0.0, 1.0) - clamp(x1x2[0], 0.0, 1.0));
+                x1x2 += v_dx1dx2;
+                to -= step;
+            }
+
+            resultColor = vec4(0.0, 0.3, 1.0, sum * (step));
+        }
+
+        gl_FragColor = resultColor;
     }
+//    precision mediump float;
+
+//    varying vec4 v_color;
+
+//    void main(void)
+//    {
+//        gl_FragColor = v_color;
+//    }
 );
 
 std::ostream& operator<<(std::ostream& os, const PathElement& ps)
@@ -250,6 +325,65 @@ void PathData::dump()
     std::cout << std::endl;
 }
 
+static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes, int antiAliasingLevel)
+{
+    GLfloat dx1 = (trapezoid.topLeftX - trapezoid.bottomLeftX) / (trapezoid.topY - trapezoid.bottomY);
+    GLfloat dx2 = (trapezoid.topRightX - trapezoid.bottomRightX) / (trapezoid.topY - trapezoid.bottomY);
+    GLfloat bottomY = (trapezoid.bottomY);
+    GLfloat topY = (trapezoid.topY);
+    // The fraction is stored in a temporary variable.
+    GLfloat temp, x1, x2;
+    GLfloat bottomLeftX, bottomRightX, topLeftX, topRightX;
+
+    temp = -floor(trapezoid.topY) + trapezoid.topY;
+    x1 = trapezoid.topLeftX - temp * dx1;
+    x2 = trapezoid.topRightX - temp * dx2;
+    topLeftX = floor(x1 - fabs(dx1));
+    topRightX = ceil(x2 + fabs(dx2));
+
+    temp = trapezoid.bottomY - floor(trapezoid.bottomY);
+    x1 = trapezoid.bottomLeftX - temp * dx1;
+    x2 = trapezoid.bottomRightX - temp * dx2;
+    bottomLeftX = floor(x1 - fabs(dx1));
+    bottomRightX = ceil(x2 + fabs(dx2));
+
+    dx1 /= antiAliasingLevel;
+    dx2 /= antiAliasingLevel;
+
+    for (int i = 0; i < 4; i++) {
+        // Absolute coordinates are transformed to the [-1,+1] space.
+        switch (i) {
+        case 0:
+            *attributes++ = (bottomLeftX);
+            *attributes++ = (bottomY);
+            break;
+
+        case 1:
+            *attributes++ = (topLeftX);
+            *attributes++ = (topY);
+            break;
+
+        case 2:
+            *attributes++ = (bottomRightX);
+            *attributes++ = (bottomY);
+            break;
+
+        case 3:
+            *attributes++ = (topRightX);
+            *attributes++ = (topY);
+            break;
+        }
+
+        *attributes++ = (trapezoid.bottomY);
+        *attributes++ = (trapezoid.topY);
+
+        *attributes++ = (x1);
+        *attributes++ = (x2);
+        *attributes++ = (dx1);
+        *attributes++ = (dx2);
+    }
+}
+
 void Path::fillPath()
 {
     assert(_pathData.lastElement()->isCloseSubpath());
@@ -275,12 +409,13 @@ void Path::fillPath()
     GLushort* currentQuad = indices;
 
     int index = 0;
-    int attributeIndex = 0;
-    Float scaleX = tt.boundingBox().maxX - tt.boundingBox().minX;
-    Float scaleY = tt.boundingBox().maxY - tt.boundingBox().minY;
-    Float topX = tt.boundingBox().minX;
-    Float topY = tt.boundingBox().minY;
+//    int attributeIndex = 0;
+//    Float scaleX = tt.boundingBox().maxX - tt.boundingBox().minX;
+//    Float scaleY = tt.boundingBox().maxY - tt.boundingBox().minY;
+//    Float topX = tt.boundingBox().minX;
+//    Float topY = tt.boundingBox().minY;
     std::cout << "Trapezoids (" << trapezoidList.size() << "): ";
+    int trapezoidIndex = 0;
     for (auto trapezoid : trapezoidList) {
         std::cout << trapezoid << " ";
         // FIXME: generate in local the indices buffer:
@@ -293,31 +428,33 @@ void Path::fillPath()
         currentQuad += 6;
         index += 4;
 
-        attributes[attributeIndex++] = trapezoid.bottomLeft / scaleX - topX;
-        attributes[attributeIndex++] = trapezoid.bottom / scaleY - topY;
-        // FIXME: use color shader:
-        attributes[attributeIndex++] = 0.0;
-        attributes[attributeIndex++] = 0.3;
-        attributes[attributeIndex++] = 1.0;
-        attributes[attributeIndex++] = 0.99;
-        attributes[attributeIndex++] = trapezoid.bottomRight / scaleX - topX;
-        attributes[attributeIndex++] = trapezoid.bottom / scaleY - topY;
-        attributes[attributeIndex++] = 0.0;
-        attributes[attributeIndex++] = 0.3;
-        attributes[attributeIndex++] = 1.0;
-        attributes[attributeIndex++] = 0.7;
-        attributes[attributeIndex++] = trapezoid.topLeft / scaleX - topX;
-        attributes[attributeIndex++] = trapezoid.top / scaleY - topY;
-        attributes[attributeIndex++] = 0.0;
-        attributes[attributeIndex++] = 0.3;
-        attributes[attributeIndex++] = 1.0;
-        attributes[attributeIndex++] = 0.7;
-        attributes[attributeIndex++] = trapezoid.topRight / scaleX - topX;
-        attributes[attributeIndex++] = trapezoid.top / scaleY - topY;
-        attributes[attributeIndex++] = 0.0;
-        attributes[attributeIndex++] = 0.3;
-        attributes[attributeIndex++] = 1.0;
-        attributes[attributeIndex++] = 0.7;
+        setupAttributes(trapezoid, attributes + trapezoidIndex * 32, tt.antiAliasingLevel());
+        trapezoidIndex++;
+//        attributes[attributeIndex++] = trapezoid.bottomLeftX / scaleX - topX;
+//        attributes[attributeIndex++] = trapezoid.bottomY / scaleY - topY;
+//        // FIXME: use color shader:
+//        attributes[attributeIndex++] = 0.0;
+//        attributes[attributeIndex++] = 0.3;
+//        attributes[attributeIndex++] = 1.0;
+//        attributes[attributeIndex++] = 0.99;
+//        attributes[attributeIndex++] = trapezoid.bottomRightX / scaleX - topX;
+//        attributes[attributeIndex++] = trapezoid.bottomY / scaleY - topY;
+//        attributes[attributeIndex++] = 0.0;
+//        attributes[attributeIndex++] = 0.3;
+//        attributes[attributeIndex++] = 1.0;
+//        attributes[attributeIndex++] = 0.7;
+//        attributes[attributeIndex++] = trapezoid.topLeftX / scaleX - topX;
+//        attributes[attributeIndex++] = trapezoid.topY / scaleY - topY;
+//        attributes[attributeIndex++] = 0.0;
+//        attributes[attributeIndex++] = 0.3;
+//        attributes[attributeIndex++] = 1.0;
+//        attributes[attributeIndex++] = 0.7;
+//        attributes[attributeIndex++] = trapezoid.topRightX / scaleX - topX;
+//        attributes[attributeIndex++] = trapezoid.topY / scaleY - topY;
+//        attributes[attributeIndex++] = 0.0;
+//        attributes[attributeIndex++] = 0.3;
+//        attributes[attributeIndex++] = 1.0;
+//        attributes[attributeIndex++] = 0.7;
     }
     std::cout << std::endl;
 
@@ -331,20 +468,29 @@ void Path::fillPath()
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(simpleShader);
+//    glBlendFunc(GL_ONE, GL_ONE);
+//    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+//    glBlendFunc(GL_ONE, GL_ONE_MINUS_CONSTANT_ALPHA);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    const int strideLength = 8 * sizeof(GLfloat);
+
+//    glVertexAttribPointer(fillPathShader[offset + FillPathShader::aPosition], 4, GL_FLOAT, GL_FALSE, strideLength, attributes);
+//    glVertexAttribPointer(fillPathShader[offset + FillPathShader::ax1x2Cdx1dx2], 4, GL_FLOAT, GL_FALSE, strideLength, attributes + 4);
     // Set attribute buffers.
     intValue = glGetAttribLocation(simpleShader, "a_position");
     glEnableVertexAttribArray(intValue);
-    glVertexAttribPointer(intValue, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), attributes);
+    glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, strideLength, attributes);
 
-    intValue = glGetAttribLocation(simpleShader, "a_color");
+    intValue = glGetAttribLocation(simpleShader, "a_x1x2Cdx1dx2");
     glEnableVertexAttribArray(intValue);
-    glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), attributes + 2);
+    glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, strideLength, attributes + 4);
 
     // Call the drawing command.
     // FIXME: Generate local the indices buffer, and use that:
     glDrawElements(GL_TRIANGLES, 6 * trapezoidCount, GL_UNSIGNED_SHORT, indices);
 
+    printf("glGetError: %d\n", glGetError());
     eglSwapBuffers(_surface->eglDisplay(), _surface->eglSurface());
 
     // FIXME: use global constants and global buffers
@@ -356,6 +502,11 @@ void Path::fillPath()
 
 void SegmentApproximator::insertSegment(Segment segment)
 {
+    segment.from.x /= _epsilon;
+    segment.from.y /= _epsilon;
+    segment.to.x /= _epsilon;
+    segment.to.y /= _epsilon;
+
     if (segment.direction == Segment::EqualOrNonExist)
         return;
 
@@ -687,6 +838,7 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
     SegmentList* segmentList = segmentApproximator.segments();
     TrapezoidList trapezoidList;
 
+    Float denom = ((Float) _antiAliasingLevel) * 0.0f + 1.0f;
     if (segmentList) {
         // 3. Generate trapezoids.
         Trapezoid trapezoid;
@@ -702,16 +854,16 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
 
             if (fill) {
                 if (!isInFill) {
-                    trapezoid.bottom = fixPrecision(segment.from.y);
-                    trapezoid.top = fixPrecision(segment.to.y);
-                    trapezoid.bottomLeft = fixPrecision(segment.from.x);
-                    trapezoid.topLeft = fixPrecision(segment.to.x);
+                    trapezoid.bottomY = floor(fixPrecision(segment.from.y * denom)) / denom;
+                    trapezoid.topY = floor(fixPrecision(segment.to.y * denom)) / denom;
+                    trapezoid.bottomLeftX = (fixPrecision(segment.from.x * denom)) / denom;
+                    trapezoid.topLeftX = (fixPrecision(segment.to.x * denom)) / denom;
                     isInFill = true;
                 }
             } else {
-                trapezoid.bottomRight = fixPrecision(segment.from.x);
-                trapezoid.topRight = fixPrecision(segment.to.x);
-                if (trapezoid.bottom != trapezoid.top) {
+                trapezoid.bottomRightX = (fixPrecision(segment.from.x * denom)) / denom;
+                trapezoid.topRightX = (fixPrecision(segment.to.x * denom)) / denom;
+                if (trapezoid.bottomY != trapezoid.topY) {
                     trapezoidList.push_front(trapezoid);
                 }
                 isInFill = false;
@@ -719,10 +871,10 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
         }
 
         delete segmentList;
-        _boundingBox.minX = fixPrecision(segmentApproximator.boundingBox().minX);
-        _boundingBox.minY = fixPrecision(segmentApproximator.boundingBox().minY);
-        _boundingBox.maxX = fixPrecision(segmentApproximator.boundingBox().maxX);
-        _boundingBox.maxY = fixPrecision(segmentApproximator.boundingBox().maxY);
+        _boundingBox.minX = floor(fixPrecision(segmentApproximator.boundingBox().minX)) / denom;
+        _boundingBox.minY = floor(fixPrecision(segmentApproximator.boundingBox().minY)) / denom;
+        _boundingBox.maxX = floor(fixPrecision(segmentApproximator.boundingBox().maxX)) / denom;
+        _boundingBox.maxY = floor(fixPrecision(segmentApproximator.boundingBox().maxY)) / denom;
     }
 
     return trapezoidList;
