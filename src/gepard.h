@@ -47,12 +47,14 @@ public:
         : _surface(surface)
         , _path(0)
     {
-        // We don't use depth: glEnable(GL_DEPTH_TEST);
-        // Note: Depth test is > by default (instead of >=), so the red
-        // triangle overlaps with the green which is not our intention.
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glClearColor(0, 0, 0, 0);
+        if (surface) {
+            // We don't use depth: glEnable(GL_DEPTH_TEST);
+            // Note: Depth test is > by default (instead of >=), so the red
+            // triangle overlaps with the green which is not our intention.
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glClearColor(0, 0, 0, 0);
+        }
     }
     ~Gepard()
     {

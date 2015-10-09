@@ -30,19 +30,28 @@
 #define gepard_unit_test_h
 
 #include <iostream>
+#include <string>
 
 int globalPASS = 0;
 int globalFAIL = 0;
 int testcaseIndex = 0;
+bool hasFail = false;
+bool logOn = true;
+std::ostringstream failLog;
 
-#define TESTER(FUNCTION) do { \
-        std::cout << #FUNCTION << " START" << std::endl; \
+#define TEST(FUNCTION) do { \
+        std::cout << #FUNCTION << "..."; \
         testcaseIndex = 0; \
+        hasFail = false; \
+        failLog.str(""); \
         FUNCTION; \
-        std::cout << #FUNCTION << " STOP" << std::endl; \
+        if (hasFail) \
+            std::cout << "FAIL" << std::endl << failLog.str(); \
+        else \
+            std::cout << "PASS" << std::endl; \
     } while (0)
 
-#define FINALIZER() do { \
+#define FINALIZE() do { \
         int globalAll = globalPASS + globalFAIL; \
         if (globalAll > 0) \
             std::cout << std::endl \
@@ -54,17 +63,32 @@ int testcaseIndex = 0;
 
 #define EXIT_CODE() (globalFAIL ? 1 : 0)
 
-#define TEST(OP, M) do { \
-        std::cout << testcaseIndex++ << ". testcase..."; \
+#define TESTPREMSG "  " << testcaseIndex++ << ". testcase: " << " FAIL (Line: " << __LINE__ << ") "
+#define HASFAIL (hasFail)
+
+#define TESTCASE(OP, MSG) do { \
         if (OP) { \
-            std::cout << "PASS";\
             globalPASS++; \
         } else { \
-            std::cout << "FAIL" << std::endl << M; \
+            failLog << TESTPREMSG << MSG << std::endl; \
             globalFAIL++; \
+            hasFail = true; \
         } \
-        std::cout << std::endl; \
     } while (0)
+
+bool checkAndLog(bool op, std::ostream& msg)
+{
+    if (!op && logOn) {
+        failLog << dynamic_cast<std::ostringstream&>(msg).str() << std::endl;
+        hasFail = true;
+    }
+    return op;
+}
+
+#define CHECKANDMSG(OP, MSG) checkAndLog(OP, std::ostringstream() << TESTPREMSG << (#OP) << " " << MSG)
+#define NCHECKANDMSG(OP, MSG) !(CHECKANDMSG(!(OP), MSG))
+#define CHECKANDLOG(OP) checkAndLog(OP, std::ostringstream() << TESTPREMSG << #OP)
+#define NCHECKANDLOG(OP) !(CHECKANDLOG(!(OP)))
 
 #define EQ(A, B) (A == B)
 #define NEQ(A, B) (A != B)

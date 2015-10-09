@@ -695,7 +695,6 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
         Trapezoid trapezoid;
         int fill = 0;
         bool isInFill = false;
-        std::cout << "Segments (" << segmentApproximator.boundingBox() << ") : ";
         // FIXME: ASSERTs for wrong segments.
         for (auto segment : *segmentList) {
             if (fillRule() == EvenOdd) {
@@ -720,9 +719,7 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
                 }
                 isInFill = false;
             }
-            std::cout << segment << " ";
         }
-        std::cout << std::endl;
 
         delete segmentList;
         _boundingBox.minX = fixPrecision(segmentApproximator.boundingBox().minX);
