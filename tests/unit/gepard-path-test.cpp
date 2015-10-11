@@ -29,6 +29,7 @@
 #include "gepard.h"
 #include "gepard-unit-test.h"
 
+#include <assert.h>
 #include <iostream>
 
 void test_beginPath01()
@@ -89,8 +90,9 @@ inline static bool arePointsOutside(const gepard::Trapezoid& trpzd, const gepard
         return true;
 
     gepard::Float dY = (trpzd.bottom - trpzd.top);
-    gepard::Float leftSideCrossBottomRight = (trpzd.bottomLeft - trpzd.bottomRight) * dY;
-    gepard::Float rightSideCrossBottomLeft = (trpzd.bottomRight - trpzd.bottomLeft) * dY;
+    assert(dY);
+    gepard::Float dX = (trpzd.bottomLeft - trpzd.bottomRight) ? trpzd.bottomLeft - trpzd.bottomRight : trpzd.bottomLeft - trpzd.topRight;
+    gepard::Float leftSideCrossBottomRight = dX * dY;
 
     gepard::Float leftSideCrossXLeft = (trpzd.bottomLeft - trpzd.topLeft) * (y - trpzd.top) - (xLeft - trpzd.topLeft) * dY;
     gepard::Float rightSideCrossXLeft = (trpzd.bottomRight - trpzd.topRight) * (y - trpzd.top) - (xLeft - trpzd.topRight) * dY;
@@ -102,11 +104,15 @@ inline static bool arePointsOutside(const gepard::Trapezoid& trpzd, const gepard
         return false;
 
     // The xLeft is outside.
-    if (CHECKANDLOG((leftSideCrossBottomRight * leftSideCrossXLeft < 0) || (rightSideCrossBottomLeft * rightSideCrossXLeft < 0)))
+    if (CHECKANDLOG((leftSideCrossBottomRight * leftSideCrossXLeft < 0)
+                    || (-leftSideCrossBottomRight * rightSideCrossXLeft < 0)
+                    || (!dX && leftSideCrossXLeft && rightSideCrossXLeft)))
         return true;
 
     // The xRight is outside.
-    if (CHECKANDLOG((leftSideCrossBottomRight * leftSideCrossXRight < 0) || (rightSideCrossBottomLeft * rightSideCrossXRight < 0)))
+    if (CHECKANDLOG((leftSideCrossBottomRight * leftSideCrossXRight < 0)
+                    || (-leftSideCrossBottomRight * rightSideCrossXRight < 0)
+                    || (!dX && leftSideCrossXRight && rightSideCrossXRight)))
         return true;
 
     return false;
@@ -114,6 +120,7 @@ inline static bool arePointsOutside(const gepard::Trapezoid& trpzd, const gepard
 
 static bool hasIntersectionOrWrongTrapezoids(const gepard::Trapezoid& trpzd1, const gepard::Trapezoid& trpzd2)
 {
+    // Wrong trapezoid.
     if (!((trpzd1.bottom < trpzd1.top)
         && (trpzd2.bottom < trpzd2.top)
         && (trpzd1.bottomLeft <= trpzd1.bottomRight)
@@ -122,6 +129,7 @@ static bool hasIntersectionOrWrongTrapezoids(const gepard::Trapezoid& trpzd1, co
         && (trpzd2.topLeft <= trpzd2.topRight)))
         return true;
 
+    // Test intersection.
     if (trpzd1.bottom >= trpzd2.top || trpzd1.top <= trpzd2.bottom)
         return false;
 
@@ -139,12 +147,71 @@ static bool hasIntersectionOrWrongTrapezoids(const gepard::Trapezoid& trpzd1, co
              && CHECKANDMSG(arePointsOutside(trpzd2, trpzd1.top, trpzd1.topLeft, trpzd1.topRight), "(" << trpzd2 << ";" << trpzd1.top << "," << trpzd1.topLeft << "," << trpzd1.topRight));
 }
 
-static const gepard::Trapezoid trapezoids[1][2] = {
-    { {0, 0, 10, 10, 0, 10}, {0, 10, 20, 10, 10, 20} }
-};
-
 void test_tessallation()
 {
+    // 1. Test the correctness of the 'hasIntersectionOrWrongTrapezoids' function.
+    // The gepard::Trapezoid is {bottomY, bottomLeftX, bottomRightX, topY, topLeftX, topRightX}.
+    gepard::Trapezoid trpzd = {0, 0, 10, 10, 0, 10};
+    // Test of wrong trapezoid catch.
+    {
+        trpzd.top = trpzd.bottom - 5;
+        TESTCASE(hasIntersectionOrWrongTrapezoids(trpzd, trpzd), "Testing of wrong trapezoid catch 1, " << trpzd);
+        trpzd.top = 20;
+        trpzd.bottomLeft = trpzd.bottomRight + 5;
+        TESTCASE(hasIntersectionOrWrongTrapezoids(trpzd, trpzd), "Testing of wrong trapezoid catch 2, " << trpzd);
+        trpzd.bottomLeft = 1;
+        trpzd.topLeft = trpzd.topRight + 5;
+        TESTCASE(hasIntersectionOrWrongTrapezoids(trpzd, trpzd), "Testing of wrong trapezoid catch 3, " << trpzd);
+    }
+    // Testing the hasIntersectionOrWrongTrapezoids function.
+    {
+        trpzd = {0, 0, 10, 10, 0, 10}; // Basic trapezoid.
+        const int numberOfIntersectionTrapezoids = 12;
+        const gepard::Trapezoid intersectionTrpzds[numberOfIntersectionTrapezoids] = {
+            { 1,  1, 11,  9, 10, 11},   //  1. One corner point is inside.
+            { 1,  1, 11,  9,  1, 11},   //  2. Two corner points are inside.
+            { 1,  1,  9,  9,  1, 11},   //  3. Three corner points are inside.
+            { 1,  1,  9,  9,  1,  9},   //  4. Fully inside.
+            { 2, -1, 11, 11, -1, 11},   //  5. No corners are inside but bottom edge is crossing it.
+            {-1, -1, 11,  9, -1, 11},   //  6. No corners are inside but top edge is crossing it.
+            { 2, -1, 11,  9, -1, 11},   //  7. No corners are inside but bottom and top edges are crossing it.
+            {-1,  2, 11, 11,  2, 11},   //  8. No corners are inside but left edge is crossing it.
+            {-1, -1,  9, 11, -1,  9},   //  9. No corners are inside but right edge is crossing it.
+            {-1,  2,  9, 11,  2,  9},   // 10. No corners are inside but left and right edges are crossing it.
+            { 0,  0, 10, 10,  0, 10},   // 11. Same.
+            {-1, -1, 12, 11, 11, 12},   // 12. Diagonal crossing.
+        };
+        for (int i = 1; i < numberOfIntersectionTrapezoids; ++i) {
+            TESTCASE(hasIntersectionOrWrongTrapezoids(trpzd, intersectionTrpzds[i]), i << ". trapezoid test: " << trpzd << " " << intersectionTrpzds[i]);
+            TESTCASE(hasIntersectionOrWrongTrapezoids(intersectionTrpzds[i], trpzd), i << ". trapezoid test: " << intersectionTrpzds[i] << " " << trpzd);
+        }
+        const int numberOfOutsideTrapezoids = 4;
+        const gepard::Trapezoid outsideTrpzds[numberOfOutsideTrapezoids] = {
+            {-1,  0, 10,  0,  0, 10},   //  1. Contact with bottom edge.
+            {10,  0, 10, 11,  0, 10},   //  2. Contact with top edge.
+            { 0, -1,  0, 10, -1,  0},   //  3. Contact with left edge.
+            { 0, 10, 11, 10, 10, 11},   //  4. Contact with right edge.
+        };
+        for (int i = 1; i < numberOfOutsideTrapezoids; ++i) {
+            NTESTCASE(hasIntersectionOrWrongTrapezoids(trpzd, outsideTrpzds[i]), i << ". trapezoid test: " << trpzd << " " << outsideTrpzds[i]);
+            NTESTCASE(hasIntersectionOrWrongTrapezoids(outsideTrpzds[i], trpzd), i << ". trapezoid test: " << outsideTrpzds[i] << " " << trpzd);
+        }
+        // Some extreme cases.
+        trpzd = {0, 5, 5, 10, 0, 10};
+        gepard::Trapezoid testTrpzd = {0, 6, 12, 10, 11, 12};
+        NTESTCASE(hasIntersectionOrWrongTrapezoids(trpzd, testTrpzd), " : " << trpzd << " " << testTrpzd);
+        testTrpzd = {1, 0, 10, 9, 0, 10};
+        TESTCASE(hasIntersectionOrWrongTrapezoids(trpzd, testTrpzd), " : " << trpzd << " " << testTrpzd);
+        trpzd = {0, 5, 5, 10, 10, 10};
+        testTrpzd = {1, 0, 10, 9, 0, 10};
+        TESTCASE(hasIntersectionOrWrongTrapezoids(trpzd, testTrpzd), " : " << trpzd << " " << testTrpzd);
+        testTrpzd = {1, 0, 2, 2, 0, 2};
+        NTESTCASE(hasIntersectionOrWrongTrapezoids(trpzd, testTrpzd), " : " << trpzd << " " << testTrpzd);
+    }
+    if (HASFAIL)
+        return;
+
+    // 2. Test the correctness of the tessallation is generated by the given trapezoidList.
     gepard::Gepard g(nullptr);
     g.beginPath();
     g.moveTo(10, 0);
@@ -159,37 +226,17 @@ void test_tessallation()
     g.lineTo(20, 5);
     g.lineTo(20, 0);
     g.moveTo(10, 20);
-    //g.quadraticCurveTo(20, 10, 30, 20);
-    //g.bezierCurveTo(30, 30, 10, 30, 10, 20);
+    g.quadraticCurveTo(20, 10, 30, 20);
+    g.bezierCurveTo(30, 30, 10, 30, 10, 20);
     g.closePath();
 
-    // Testing the hasIntersection function.
-    gepard::Trapezoid trpzd = {0, 0, 10, 10, 0, 10};
-    trpzd.top = trpzd.bottom - 5;
-    CHECKANDLOG(hasIntersectionOrWrongTrapezoids(trpzd, trpzd));
-    trpzd.top = 20;
-    trpzd.bottomLeft = trpzd.bottomRight + 5;
-    CHECKANDLOG(hasIntersectionOrWrongTrapezoids(trpzd, trpzd));
-    trpzd.bottomLeft = 1;
-    trpzd.topLeft = trpzd.topRight + 5;
-    CHECKANDLOG(hasIntersectionOrWrongTrapezoids(trpzd, trpzd));
-    logOn = false;
-    NCHECKANDLOG(hasIntersectionOrWrongTrapezoids(trapezoids[0][0], trapezoids[0][1]));
-    NCHECKANDLOG(hasIntersectionOrWrongTrapezoids(trapezoids[0][1], trapezoids[0][0]));
-    logOn = true;
-
-    if (HASFAIL)
-        return;
-
-    // Test the correctness of the tessallation is generated by the given trapezoidList.
     bool pass = true;
     gepard::TrapezoidTessallator tt(g.path());
     gepard::TrapezoidList trapezoidList = tt.trapezoidList();
     for (gepard::TrapezoidList::iterator trapezoid = trapezoidList.begin(); pass && trapezoid != trapezoidList.end(); ++trapezoid) {
         gepard::TrapezoidList::iterator testTrapezoid = trapezoid;
         for (++testTrapezoid; pass && testTrapezoid != trapezoidList.end(); ++testTrapezoid) {
-            if (NCHECKANDMSG(hasIntersectionOrWrongTrapezoids(*trapezoid, *testTrapezoid), "There's an intersection between trapezoids: " << *trapezoid << " " << *testTrapezoid))
-                pass = false;
+            pass = CHECKANDMSG(!hasIntersectionOrWrongTrapezoids(*trapezoid, *testTrapezoid), "There's an intersection between trapezoids: " << *trapezoid << " " << *testTrapezoid);
         }
     }
     TESTCASE(pass, "There's an intersection between trapezoids.");
