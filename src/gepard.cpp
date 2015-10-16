@@ -32,26 +32,44 @@ namespace gepard {
 
 void Gepard::moveTo(float x, float y)
 {
+    if (!_path) {
+        beginPath();
+    }
+
     _path->pathData().addMoveToElement(FloatPoint(x, y));
 }
 
 void Gepard::closePath()
 {
-    _path->pathData().addCloseSubpath();
+    if (_path) {
+        _path->pathData().addCloseSubpath();
+    }
 }
 
 void Gepard::lineTo(float x, float y)
 {
-    _path->pathData().addLineToElement(FloatPoint(x, y));
+    if (!_path) {
+        moveTo(x, y);
+    } else {
+        _path->pathData().addLineToElement(FloatPoint(x, y));
+    }
 }
 
 void Gepard::quadraticCurveTo(float cpx, float cpy, float x, float y)
 {
+    if (!_path) {
+        moveTo(cpx, cpy);
+    }
+
     _path->pathData().addQuadaraticCurveToElement(FloatPoint(cpx, cpy), FloatPoint(x, y));
 }
 
 void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
 {
+    if (!_path) {
+        moveTo(cp1x, cp1y);
+    }
+
     _path->pathData().addBezierCurveToElement(FloatPoint(cp1x, cp1y), FloatPoint(cp2x, cp2y), FloatPoint(x, y));
 }
 
@@ -62,6 +80,10 @@ void Gepard::arcTo(float x1 ATTR_UNUSED, float y1 ATTR_UNUSED, float x2 ATTR_UNU
 
 void Gepard::arc(float x, float y, float radius, float startAngle, float endAngle, bool anticlockwise)
 {
+    if (!_path) {
+        moveTo(x, y);
+    }
+
     _path->pathData().addArcElement(FloatPoint(x, y), FloatPoint(radius, radius), startAngle, endAngle, anticlockwise);
 }
 
@@ -74,14 +96,17 @@ void Gepard::beginPath()
 {
     if (!_path) {
         _path = new Path(_surface);
+    } else {
+        // FIXME: reset path! -> make unit-test
     }
 }
 
 void Gepard::fill()
 {
-    ASSERT(_path);
-
-    _path->fillPath();
+    if (_path) {
+        closePath();
+        _path->fillPath();
+    }
 }
 
 void Gepard::stroke()

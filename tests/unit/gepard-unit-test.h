@@ -43,6 +43,10 @@ struct TestContext {
 
 TestContext g_testCtx;
 
+#define INITIALIZE() do { \
+        srand(0); \
+    } while (0)
+
 #define TEST(FUNCTION) do { \
         std::cout << #FUNCTION << "..."; \
         g_testCtx.testcaseIndex = 0; \

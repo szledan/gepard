@@ -29,6 +29,7 @@
 #include "config.h"
 #include "gepard-path.h"
 
+#include <assert.h>
 #include <list>
 #include <map>
 #include <math.h>
@@ -223,7 +224,7 @@ void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAn
 
 void PathData::addCloseSubpath()
 {
-    if (!_lastElement)
+    if (!_lastElement || _lastElement->isCloseSubpath())
         return;
 
     if (_lastElement->isMoveTo()) {
@@ -251,11 +252,13 @@ void PathData::dump()
 
 void Path::fillPath()
 {
-    if (_pathData.lastElement()->type != PathElementTypes::CloseSubpath) {
-        _pathData.addCloseSubpath();
-    }
+    assert(_pathData.lastElement()->isCloseSubpath());
 
     _pathData.dump();
+
+    if (!_surface)
+        return;
+
     TrapezoidTessallator tt(this);
     TrapezoidList trapezoidList = tt.trapezoidList();
 

@@ -32,54 +32,124 @@
 #include <assert.h>
 #include <iostream>
 
-void test_beginPath01()
+enum PathAPIAndMethods {
+    // path API
+    w3c_beginPath,
+    w3c_fill,
+    w3c_stroke,
+    w3c_drawFocusIfNeeded,
+    w3c_clip,
+    w3c_isPointInPath,
+
+    // shared path API methods
+    w3c_closePath,
+    w3c_moveTo,
+    w3c_lineTo,
+    w3c_quadraticCurveTo,
+    w3c_bezierCurveTo,
+    w3c_arcTo,
+    w3c_rect,
+    w3c_arc,
+
+    w3c_numberOfFunctions,
+};
+
+inline int callPathFunction(gepard::Gepard &g, int t, float x = 0, float y = 0)
 {
-    gepard::Gepard g(0);
-    g.beginPath();
-    TESTCASE(NEQ(g.path(), nullptr), "Path was not created");
+    switch (t) {
+    case w3c_beginPath: g.beginPath(); break;
+    case w3c_fill: g.fill(); break;
+    case w3c_stroke: g.stroke(); break;
+    case w3c_drawFocusIfNeeded: g.drawFocusIfNeeded(); break;
+    case w3c_clip: g.clip(); break;
+    case w3c_isPointInPath: g.isPointInPath(x, y); break;
+    case w3c_closePath: g.closePath(); break;
+    case w3c_moveTo: g.moveTo(x, y); break;
+    case w3c_lineTo: g.lineTo(x, y); break;
+    case w3c_quadraticCurveTo: g.quadraticCurveTo(y, x, x, y); break;
+    case w3c_bezierCurveTo: g.bezierCurveTo(x + y, y, x, y + x, x, y); break;
+// FIXME: Not implemented
+//    case w3c_arcTo: g.arcTo(x, y, x, y, x); break;
+//    case w3c_rect: g.rect(y, x, x, y); break;
+//    case w3c_arc: g.arc(x, y, x, y, x, true); break;
+    default:
+        g.lineTo(x, y);
+        break;
+    }
+    return t;
 }
 
-//bool test_beginPath02()
-//{
-//    bool result = true;
-//    gepard::Gepard g(0);
-//    g.beginPath();
-//    g.moveTo(0, 0);
-//    g.beginPath();
-//    return result;
-//}
+inline static int callPathFunctionRand(gepard::Gepard &g, int from = 0, int to = 7, float x = NAN, float y = NAN)
+{
+    return callPathFunction(g, rand() % (to - from) + from, x, y);
+}
+
+void test_beginPath()
+{
+    {
+        gepard::Gepard g(0);
+        TESTCASE(EQ(g.path(), nullptr), "Path was created");
+    }
+
+    {
+        gepard::Gepard g(0);
+        g.beginPath();
+
+        for (int type = w3c_beginPath; type < w3c_numberOfFunctions; ++type) {
+            gepard::Gepard gi(0);
+            callPathFunction(gi, type);
+            if (type == w3c_beginPath || type >w3c_closePath) {
+                TESTCASE(NEQ(g.path(), nullptr), "Path was not created");
+            } else {
+                TESTCASE(EQ(gi.path(), nullptr), "Path was created, where type is " << type);
+            }
+        }
+    }
+
+}
+
+void test_moveTo()
+{
+    for (int type = w3c_moveTo; type < w3c_numberOfFunctions; ++type) {
+        gepard::Gepard g(0);
+        callPathFunction(g, type);
+        TESTCASE(g.path()->pathData().firstElement()->isMoveTo(), "The type of first element isn't a 'MoveTo'. Type is:" << type);
+    }
+
+    for (int type = w3c_moveTo; type < w3c_numberOfFunctions; ++type) {
+        gepard::Gepard g(0);
+        g.beginPath();
+        callPathFunction(g, type);
+        TESTCASE(g.path()->pathData().firstElement()->isMoveTo(), "The type of first element isn't a 'MoveTo'. Type is:" << type);
+    }
+}
 
 void test_closeSubpath()
 {
-    gepard::Gepard g(0);
-    g.beginPath();
-    g.closePath();
-    TESTCASE(EQ(g.path()->pathData().lastElement(), nullptr), "Empty path contains something.");
-
-    g.moveTo(0, 0);
-    g.closePath();
-    TESTCASE(EQ(g.path()->pathData().lastElement()->type, gepard::PathElementTypes::CloseSubpath), "The last element isn't a 'CloseSubpath'.");
-
-    int n = 100;
-
-    g.moveTo(0, 0);
-    for (int i = 0; i < n; ++i) {
-        switch (i % 10) {
-        case 0:
-            g.moveTo(i, n);
-            break;
-        case 1:
-            g.lineTo(i, n);
-            break;
-        case 2:
-            g.closePath();
-            break;
-        default:
-            g.lineTo(i, n);
-            break;
-        }
+    {
+        gepard::Gepard g(0);
+        g.beginPath();
+        g.closePath();
+        TESTCASE(EQ(g.path()->pathData().lastElement(), nullptr), "Empty path contains something.");
     }
-    g.fill();
+
+    {
+        gepard::Gepard g(0);
+        g.beginPath();
+        g.moveTo(0, 0);
+        g.closePath();
+        TESTCASE(EQ(g.path()->pathData().lastElement()->type, gepard::PathElementTypes::CloseSubpath), "The last element isn't a 'CloseSubpath'.");
+    }
+}
+
+void test_path()
+{
+    gepard::Gepard g(0);
+
+    for (int i = w3c_beginPath; i < 100; ++i) {
+        // Testing all W3C CanvasPath functions randomly.
+        callPathFunctionRand(g, w3c_beginPath, w3c_numberOfFunctions);
+    }
 
     TESTCASE(EQ(g.path()->pathData().lastElement()->type, gepard::PathElementTypes::CloseSubpath), "The last element isn't a 'CloseSubpath'.");
 }
@@ -244,9 +314,11 @@ void test_tessallation()
 
 int main()
 {
-    TEST(test_beginPath01());
-//    TEST(test_beginPath02());
-//    TEST(test_closeSubpath());
+    INITIALIZE();
+
+    TEST(test_beginPath());
+    TEST(test_moveTo());
+    TEST(test_closeSubpath());
     TEST(test_tessallation());
 
     FINALIZE();

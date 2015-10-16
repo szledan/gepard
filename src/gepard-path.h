@@ -60,6 +60,7 @@ struct PathElement {
     {}
 
     bool isMoveTo() const { return this->type == PathElementTypes::MoveTo; }
+    bool isCloseSubpath() const { return this->type == PathElementTypes::CloseSubpath; }
     virtual std::ostream& output(std::ostream& os) const
     {
         return os << this->to;
