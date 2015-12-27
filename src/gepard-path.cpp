@@ -37,7 +37,7 @@
 
 namespace gepard {
 
-void compileShaderProg(GLuint* result, const GLchar *vertexShaderSource, const GLchar *fragmentShaderSource)
+static void compileShaderProg(GLuint* result, const GLchar *vertexShaderSource, const GLchar *fragmentShaderSource)
 {
     GLuint shaderProgram = 0;
     GLuint vertexShader = 0;
@@ -112,7 +112,8 @@ error:
         glDeleteProgram(shaderProgram);
 }
 
-GLuint createFrameBuffer(GLuint texture)
+#if 0
+static GLuint createFrameBuffer(const GLuint texture)
 {
     GLuint frameBufferObject = 0;
 
@@ -128,6 +129,7 @@ GLuint createFrameBuffer(GLuint texture)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     return frameBufferObject;
 }
+#endif
 
 const GLchar* simpleVertexShader = PROGRAM(
     precision highp float;
@@ -220,8 +222,8 @@ static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes, int antiA
 {
     GLfloat dx1 = (trapezoid.topLeftX - trapezoid.bottomLeftX) / (trapezoid.topY - trapezoid.bottomY);
     GLfloat dx2 = (trapezoid.topRightX - trapezoid.bottomRightX) / (trapezoid.topY - trapezoid.bottomY);
-    GLfloat bottomY = floor(trapezoid.bottomY);
-    GLfloat topY = floor(trapezoid.topY);
+    const GLfloat bottomY = floor(trapezoid.bottomY);
+    const GLfloat topY = floor(trapezoid.topY);
     // The fraction is stored in a temporary variable.
     GLfloat temp, x1, x2;
     GLfloat bottomLeftX, bottomRightX, topLeftX, topRightX;
@@ -277,7 +279,7 @@ static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes, int antiA
 
 void Path::fillPath()
 {
-    assert(_pathData.lastElement()->isCloseSubpath());
+    ASSERT(_pathData.lastElement()->isCloseSubpath());
 
     _pathData.dump();
 
@@ -289,7 +291,7 @@ void Path::fillPath()
 
     // OpenGL ES 2.0 spec.
     // TODO: use global constants and global buffers
-    int bufferSize = 10000;
+    const int bufferSize = 10000;
     GLfloat* attributes = reinterpret_cast<GLfloat*>(malloc(bufferSize * sizeof(GLfloat)));
     GLushort* indices = reinterpret_cast<GLushort*>(malloc(bufferSize * sizeof(GLushort)));
     // TODO: generate in local the indices buffer:
@@ -460,10 +462,10 @@ void PathData::dump()
 
 void SegmentApproximator::insertSegment(Segment segment)
 {
-    segment.from.x *= _antiAliasLevel;
-    segment.from.y *= _antiAliasLevel;
-    segment.to.x *= _antiAliasLevel;
-    segment.to.y *= _antiAliasLevel;
+    segment.from.x *= _kAntiAliasLevel;
+    segment.from.y *= _kAntiAliasLevel;
+    segment.to.x *= _kAntiAliasLevel;
+    segment.to.y *= _kAntiAliasLevel;
 
     if (segment.direction == Segment::EqualOrNonExist)
         return;
@@ -473,8 +475,8 @@ void SegmentApproximator::insertSegment(Segment segment)
     _boundingBox.stretch(segment.to);
 
     // Insert segment.
-    Float topY = segment.topY();
-    Float bottomY = segment.bottomY();
+    const Float topY = segment.topY();
+    const Float bottomY = segment.bottomY();
 
     if (_segments.find(topY) == _segments.end()) {
         _segments.emplace(topY, new SegmentList()).first->second->push_front(segment);
@@ -490,49 +492,49 @@ void SegmentApproximator::insertSegment(Segment segment)
 
 static inline Float abs(const Float &t) { return (t < 0) ? -t : t; }
 
-static bool quadCurveIsLineSegment(FloatPoint points[], Float tolerance)
+bool SegmentApproximator::quadCurveIsLineSegment(FloatPoint points[])
 {
-    Float x0 = points[0].x;
-    Float y0 = points[0].y;
-    Float x1 = points[1].x;
-    Float y1 = points[1].y;
-    Float x2 = points[2].x;
-    Float y2 = points[2].y;
+    const Float x0 = points[0].x;
+    const Float y0 = points[0].y;
+    const Float x1 = points[1].x;
+    const Float y1 = points[1].y;
+    const Float x2 = points[2].x;
+    const Float y2 = points[2].y;
 
-    Float dt = abs((x2 - x0) * (y0 - y1) - (x0 - x1) * (y2 - y0));
+    const Float dt = abs((x2 - x0) * (y0 - y1) - (x0 - x1) * (y2 - y0));
 
-    if (dt > tolerance)
+    if (dt > _kTolerance)
         return false;
 
     Float minX, minY, maxX, maxY;
 
     if (x0 < x2) {
-        minX = x0 - tolerance;
-        maxX = x2 + tolerance;
+        minX = x0 - _kTolerance;
+        maxX = x2 + _kTolerance;
     } else {
-        minX = x2 - tolerance;
-        maxX = x0 + tolerance;
+        minX = x2 - _kTolerance;
+        maxX = x0 + _kTolerance;
     }
 
     if (y0 < y2) {
-        minY = y0 - tolerance;
-        maxY = y2 + tolerance;
+        minY = y0 - _kTolerance;
+        maxY = y2 + _kTolerance;
     } else {
-        minY = y2 - tolerance;
-        maxY = y0 + tolerance;
+        minY = y2 - _kTolerance;
+        maxY = y0 + _kTolerance;
     }
 
     return !(x1 < minX || x1 > maxX || y1 < minY || y1 > maxY);
 }
 
-static void splitQuadraticCurve(FloatPoint points[])
+void SegmentApproximator::splitQuadraticCurve(FloatPoint points[])
 {
-    FloatPoint a = points[0];
-    FloatPoint b = points[1];
-    FloatPoint c = points[2];
-    FloatPoint ab = (a + b) / 2.0;
-    FloatPoint bc = (b + c) / 2.0;
-    FloatPoint mid = (ab + bc) / 2.0;
+    const FloatPoint a = points[0];
+    const FloatPoint b = points[1];
+    const FloatPoint c = points[2];
+    const FloatPoint ab = (a + b) / 2.0;
+    const FloatPoint bc = (b + c) / 2.0;
+    const FloatPoint mid = (ab + bc) / 2.0;
 
     points[0] = a;
     points[1] = ab;
@@ -541,7 +543,7 @@ static void splitQuadraticCurve(FloatPoint points[])
     points[4] = c;
 }
 
-void SegmentApproximator::insertQuadCurve(FloatPoint from, FloatPoint control, FloatPoint to)
+void SegmentApproximator::insertQuadCurve(const FloatPoint from, const FloatPoint control, const FloatPoint to)
 {
     // De Casteljau algorithm.
     const int max = 16 * 2 + 1;
@@ -553,7 +555,7 @@ void SegmentApproximator::insertQuadCurve(FloatPoint from, FloatPoint control, F
     points[2] = to;
 
     do {
-        if (quadCurveIsLineSegment(points, 1.0 / (_antiAliasLevel))) {
+        if (quadCurveIsLineSegment(points)) {
             insertSegment(points[0], points[2]);
             points -= 2;
             continue;
@@ -570,57 +572,57 @@ void SegmentApproximator::insertQuadCurve(FloatPoint from, FloatPoint control, F
     } while (points >= buffer);
 }
 
-static bool curveIsLineSegment(FloatPoint points[], Float tolerance)
+bool SegmentApproximator::curveIsLineSegment(FloatPoint points[])
 {
-    Float x0 = points[0].x;
-    Float y0 = points[0].y;
-    Float x1 = points[1].x;
-    Float y1 = points[1].y;
-    Float x2 = points[2].x;
-    Float y2 = points[2].y;
-    Float x3 = points[3].x;
-    Float y3 = points[3].y;
+    const Float x0 = points[0].x;
+    const Float y0 = points[0].y;
+    const Float x1 = points[1].x;
+    const Float y1 = points[1].y;
+    const Float x2 = points[2].x;
+    const Float y2 = points[2].y;
+    const Float x3 = points[3].x;
+    const Float y3 = points[3].y;
 
-    Float dt1 = abs((x3 - x0) * (y0 - y1) - (x0 - x1) * (y3 - y0));
-    Float dt2 = abs((x3 - x0) * (y0 - y2) - (x0 - x2) * (y3 - y0));
+    const Float dt1 = abs((x3 - x0) * (y0 - y1) - (x0 - x1) * (y3 - y0));
+    const Float dt2 = abs((x3 - x0) * (y0 - y2) - (x0 - x2) * (y3 - y0));
 
-    if (dt1 > tolerance || dt2 > tolerance)
+    if (dt1 > _kTolerance || dt2 > _kTolerance)
         return false;
 
     Float minX, minY, maxX, maxY;
 
     if (x0 < x3) {
-        minX = x0 - tolerance;
-        maxX = x3 + tolerance;
+        minX = x0 - _kTolerance;
+        maxX = x3 + _kTolerance;
     } else {
-        minX = x3 - tolerance;
-        maxX = x0 + tolerance;
+        minX = x3 - _kTolerance;
+        maxX = x0 + _kTolerance;
     }
 
     if (y0 < y3) {
-        minY = y0 - tolerance;
-        maxY = y3 + tolerance;
+        minY = y0 - _kTolerance;
+        maxY = y3 + _kTolerance;
     } else {
-        minY = y3 - tolerance;
-        maxY = y0 + tolerance;
+        minY = y3 - _kTolerance;
+        maxY = y0 + _kTolerance;
     }
 
     return !(x1 < minX || x1 > maxX || y1 < minY || y1 > maxY
         || x2 < minX || x2 > maxX || y2 < minY || y2 > maxY);
 }
 
-static void splitCubeCurve(FloatPoint points[])
+void SegmentApproximator::splitCubeCurve(FloatPoint points[])
 {
-    FloatPoint a = points[0];
-    FloatPoint b = points[1];
-    FloatPoint c = points[2];
-    FloatPoint d = points[3];
-    FloatPoint ab = (a + b) / 2.0;
-    FloatPoint bc = (b + c) / 2.0;
-    FloatPoint cd = (c + d) / 2.0;
-    FloatPoint abbc = (ab + bc) / 2.0;
-    FloatPoint bccd = (bc + cd) / 2.0;
-    FloatPoint mid = (abbc + bccd) / 2.0;
+    const FloatPoint a = points[0];
+    const FloatPoint b = points[1];
+    const FloatPoint c = points[2];
+    const FloatPoint d = points[3];
+    const FloatPoint ab = (a + b) / 2.0;
+    const FloatPoint bc = (b + c) / 2.0;
+    const FloatPoint cd = (c + d) / 2.0;
+    const FloatPoint abbc = (ab + bc) / 2.0;
+    const FloatPoint bccd = (bc + cd) / 2.0;
+    const FloatPoint mid = (abbc + bccd) / 2.0;
 
     points[0] = a;
     points[1] = ab;
@@ -631,7 +633,7 @@ static void splitCubeCurve(FloatPoint points[])
     points[6] = d;
 }
 
-void SegmentApproximator::insertBezierCurve(FloatPoint from, FloatPoint control1, FloatPoint control2, FloatPoint to)
+void SegmentApproximator::insertBezierCurve(const FloatPoint from, const FloatPoint control1, const FloatPoint control2, const FloatPoint to)
 {
     // De Casteljau algorithm.
     const int max = 16 * 3 + 1;
@@ -644,7 +646,7 @@ void SegmentApproximator::insertBezierCurve(FloatPoint from, FloatPoint control1
     points[3] = to;
 
     do {
-        if (curveIsLineSegment(points, 1.0 / (_antiAliasLevel))) {
+        if (curveIsLineSegment(points)) {
             insertSegment(points[0], points[3]);
             points -= 3;
             continue;
@@ -661,7 +663,7 @@ void SegmentApproximator::insertBezierCurve(FloatPoint from, FloatPoint control1
     } while (points >= buffer);
 }
 
-void SegmentApproximator::insertArc(FloatPoint center, FloatPoint radius, Float startAngle, Float endAngle, bool antiClockwise)
+void SegmentApproximator::insertArc(const FloatPoint center, const FloatPoint radius, const Float startAngle, const Float endAngle, const bool antiClockwise)
 {
     // TODO: Missing approximation!
 }
@@ -709,7 +711,7 @@ SegmentList* SegmentApproximator::segments()
         SegmentList::iterator currentSegment = currentList->begin();
         for (SegmentList::iterator segment = currentSegment; currentSegment != currentList->end(); ++segment) {
             if (segment != currentList->end()) {
-                Float y = currentSegment->computeIntersectionY(&(*segment));
+                const Float y = currentSegment->computeIntersectionY(&(*segment));
                 if (y != NAN && y != INFINITY) {
                     _segments.emplace(y, new SegmentList());
                 }
@@ -745,7 +747,8 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
 
     ASSERT(element->type == PathElementTypes::MoveTo);
 
-    SegmentApproximator segmentApproximator(_antiAliasingLevel);
+    const Float halfPixelPrecision = 0.5;
+    SegmentApproximator segmentApproximator(_antiAliasingLevel, halfPixelPrecision);
     FloatPoint from;
     FloatPoint to = element->to;
     FloatPoint lastMoveTo = to;

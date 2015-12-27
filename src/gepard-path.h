@@ -288,9 +288,11 @@ typedef std::map<const Float, SegmentList*> SegmentTree;
 
 class SegmentApproximator {
 public:
-    SegmentApproximator(Float antiAliasLevel = 1)
-        : _antiAliasLevel(antiAliasLevel)
-    {}
+    SegmentApproximator(const int antiAliasLevel = 16, const Float factor = 1.0)
+        : _kAntiAliasLevel(antiAliasLevel > 0 ? antiAliasLevel : 16)
+        , _kTolerance((factor > 0.0 ? factor : 1.0 ) / ((Float)_kAntiAliasLevel))
+    {
+    }
     ~SegmentApproximator()
     {
         for (SegmentTree::iterator it = _segments.begin(); it != _segments.end(); ++it) {
@@ -300,9 +302,9 @@ public:
 
     void insertSegment(Segment segment);
     void insertSegment(FloatPoint from, FloatPoint to) { insertSegment(Segment(from, to)); }
-    void insertQuadCurve(FloatPoint from, FloatPoint control, FloatPoint to);
-    void insertBezierCurve(FloatPoint from, FloatPoint control1, FloatPoint control2, FloatPoint to);
-    void insertArc(FloatPoint center, FloatPoint radius, Float startAngle, Float endAngle, bool antiClockwise);
+    void insertQuadCurve(const FloatPoint from, const FloatPoint control, const FloatPoint to);
+    void insertBezierCurve(const FloatPoint from, const FloatPoint control1, const FloatPoint control2, const FloatPoint to);
+    void insertArc(const FloatPoint center, const FloatPoint radius, const Float startAngle, const Float endAngle, const bool antiClockwise);
 
     SegmentList* segments();
     BoundingBox boundingBox() const { return _boundingBox; }
@@ -311,8 +313,14 @@ public:
     void printSegements();
 
 private:
+    bool quadCurveIsLineSegment(FloatPoint[]);
+    void splitQuadraticCurve(FloatPoint[]);
+    bool curveIsLineSegment(FloatPoint[]);
+    void splitCubeCurve(FloatPoint[]);
+
     SegmentTree _segments;
-    Float _antiAliasLevel;
+    const int _kAntiAliasLevel;
+    const Float _kTolerance;
 
     BoundingBox _boundingBox;
 };
