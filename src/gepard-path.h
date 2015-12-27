@@ -288,8 +288,8 @@ typedef std::map<const Float, SegmentList*> SegmentTree;
 
 class SegmentApproximator {
 public:
-    SegmentApproximator(Float epsilon = 1)
-        : _epsilon(epsilon)
+    SegmentApproximator(Float antiAliasLevel = 1)
+        : _antiAliasLevel(antiAliasLevel)
     {}
     ~SegmentApproximator()
     {
@@ -312,7 +312,7 @@ public:
 
 private:
     SegmentTree _segments;
-    Float _epsilon;
+    Float _antiAliasLevel;
 
     BoundingBox _boundingBox;
 };
