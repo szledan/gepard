@@ -131,7 +131,7 @@ struct ArcElement : public PathElement {
 
     std::ostream& output(std::ostream& os) const
     {
-        // FIXME: generate SVG representation
+        // TODO: generate SVG representation
         os << "A";
         return PathElement::output(os);
     }
@@ -223,7 +223,7 @@ struct Segment {
 
     Float topY() const { return this->from.y; }
     Float bottomY() const { return this->to.y; }
-    // FIXME: find a good function name:
+    // TODO: find a good function name:
     Float factor() const { return this->slopeInv * this->from.y - this->from.x; }
     bool isOnSegment(Float y) const { return y < this->to.y && y > this->from.y; }
 
@@ -257,7 +257,7 @@ struct Segment {
             if (y <= this->from.y || y >= this->to.y) {
                 y = INFINITY;
             }
-        } // FIXME: else: y is NaN.
+        } // TODO: else: y is NaN.
         return y;
     }
 
@@ -274,7 +274,7 @@ inline std::ostream& operator<<(std::ostream& os, const Segment& s)
 
 inline bool operator<(const Segment& lhs, const Segment& rhs)
 {
-    assert(lhs.from <= lhs.to && rhs.from <= rhs.to);
+    ASSERT(lhs.from <= lhs.to && rhs.from <= rhs.to);
 
     return (lhs.from < rhs.from) || (lhs.from == rhs.from && lhs.to < rhs.to);
 }

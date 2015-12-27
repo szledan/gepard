@@ -27,9 +27,9 @@
  */
 
 #include "gepard.h"
+#include "config.h"
 #include "gepard-unit-test.h"
 
-#include <assert.h>
 #include <iostream>
 
 enum PathAPIAndMethods {
@@ -68,7 +68,7 @@ inline int callPathFunction(gepard::Gepard &g, int t, float x = 0, float y = 0)
     case w3c_lineTo: g.lineTo(x, y); break;
     case w3c_quadraticCurveTo: g.quadraticCurveTo(y, x, x, y); break;
     case w3c_bezierCurveTo: g.bezierCurveTo(x + y, y, x, y + x, x, y); break;
-// FIXME: Not implemented
+// TODO: Not implemented
 //    case w3c_arcTo: g.arcTo(x, y, x, y, x); break;
 //    case w3c_rect: g.rect(y, x, x, y); break;
 //    case w3c_arc: g.arc(x, y, x, y, x, true); break;
@@ -160,7 +160,7 @@ inline static bool arePointsOutside(const gepard::Trapezoid& trpzd, const gepard
         return true;
 
     gepard::Float dY = (trpzd.bottomY - trpzd.topY);
-    assert(dY);
+    ASSERT(dY);
     gepard::Float dX = (trpzd.bottomLeftX - trpzd.bottomRightX) ? trpzd.bottomLeftX - trpzd.bottomRightX : trpzd.bottomLeftX - trpzd.topRightX;
     gepard::Float leftSideCrossBottomRight = dX * dY;
 

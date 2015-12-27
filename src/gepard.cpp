@@ -75,7 +75,7 @@ void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float
 
 void Gepard::arcTo(float x1 ATTR_UNUSED, float y1 ATTR_UNUSED, float x2 ATTR_UNUSED, float y2 ATTR_UNUSED, float radius ATTR_UNUSED)
 {
-    // FIXME: Unimplemented
+    // TODO: Unimplemented
 }
 
 void Gepard::arc(float x, float y, float radius, float startAngle, float endAngle, bool anticlockwise)
@@ -89,7 +89,7 @@ void Gepard::arc(float x, float y, float radius, float startAngle, float endAngl
 
 void Gepard::rect(float x ATTR_UNUSED, float y ATTR_UNUSED, float w ATTR_UNUSED, float h ATTR_UNUSED)
 {
-    // FIXME: Unimplemented
+    // TODO: Unimplemented
 }
 
 void Gepard::beginPath()
@@ -97,7 +97,7 @@ void Gepard::beginPath()
     if (!_path) {
         _path = new Path(_surface);
     } else {
-        // FIXME: reset path! -> make unit-test
+        // TODO: reset path! -> make unit-test
     }
 }
 
@@ -111,22 +111,22 @@ void Gepard::fill()
 
 void Gepard::stroke()
 {
-   // FIXME: Unimplemented
+   // TODO: Unimplemented
 }
 
 void Gepard::drawFocusIfNeeded(/* Element& */)
 {
-    // FIXME: Unimplemented
+    // TODO: Unimplemented
 }
 
 void Gepard::clip()
 {
-    // FIXME: Unimplemented
+    // TODO: Unimplemented
 }
 
 void Gepard::isPointInPath(const float x ATTR_UNUSED, const float y ATTR_UNUSED)
 {
-    // FIXME: Unimplemented
+    // TODO: Unimplemented
 }
 
 } // namespace gepard

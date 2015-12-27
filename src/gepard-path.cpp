@@ -29,7 +29,6 @@
 #include "config.h"
 #include "gepard-path.h"
 
-#include <assert.h>
 #include <list>
 #include <map>
 #include <math.h>
@@ -306,7 +305,7 @@ void Path::fillPath()
     int trapezoidIndex = 0;
     for (auto trapezoid : trapezoidList) {
         std::cout << trapezoid << " ";
-        // FIXME: generate in local the indices buffer:
+        // TODO: generate in local the indices buffer:
         currentQuad[0] = index;
         currentQuad[1] = index + 1;
         currentQuad[2] = index + 2;
@@ -784,9 +783,10 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
             break;
         }
         case PathElementTypes::Arc: {
-            // FIXME: Not implemented!
+            // TODO: Not implemented!
             break;
         }
+        case PathElementTypes::Undefined:
         default:
             // unreachable
             break;

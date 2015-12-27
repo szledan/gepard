@@ -33,9 +33,9 @@
 
 namespace gepard {
 
-// FIXME: #ifdef double-precision:
+// TODO: #ifdef double-precision:
 typedef double Float;
-// FIXME: use standard:
+// TODO: use standard:
 constexpr double precisionOfFloat = 1000 * 1000 * 1000;
 //#else
 //typedef float Float;
