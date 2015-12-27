@@ -288,8 +288,8 @@ typedef std::map<const Float, SegmentList*> SegmentTree;
 
 class SegmentApproximator {
 public:
-    SegmentApproximator(Float epsilon = 1)
-        : _epsilon(epsilon)
+    SegmentApproximator(Float antiAliasLevel = 1)
+        : _antiAliasLevel(antiAliasLevel)
     {}
     ~SegmentApproximator()
     {
@@ -312,7 +312,7 @@ public:
 
 private:
     SegmentTree _segments;
-    Float _epsilon;
+    Float _antiAliasLevel;
 
     BoundingBox _boundingBox;
 };
@@ -320,17 +320,17 @@ private:
 /* Trapezoid */
 
 struct Trapezoid {
-    Float bottom;
-    Float bottomLeft;
-    Float bottomRight;
-    Float top;
-    Float topLeft;
-    Float topRight;
+    Float bottomY;
+    Float bottomLeftX;
+    Float bottomRightX;
+    Float topY;
+    Float topLeftX;
+    Float topRightX;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Trapezoid& t)
 {
-    return os << t.bottom << "," << t.bottomLeft << "," << t.bottomRight << ","<< t.top << "," << t.topLeft << "," << t.topRight;
+    return os << t.bottomY << "," << t.bottomLeftX << "," << t.bottomRightX << ","<< t.topY << "," << t.topLeftX << "," << t.topRightX;
 }
 
 /* TrapezoidList */
@@ -346,20 +346,23 @@ public:
         NonZero,
     };
 
-    TrapezoidTessallator(Path* path, FillRule fillRule = NonZero)
+    TrapezoidTessallator(Path* path, FillRule fillRule = NonZero, int antiAliasingLevel = 16)
         : _path(path)
         , _fillRule(fillRule)
+        , _antiAliasingLevel(antiAliasingLevel)
     {}
 
     FillRule fillRule() const { return _fillRule; }
     TrapezoidList trapezoidList();
     BoundingBox boundingBox() const { return _boundingBox; }
+    int antiAliasingLevel() const { return _antiAliasingLevel; }
 
 private:
     Path* _path;
     FillRule _fillRule;
 
     BoundingBox _boundingBox;
+    int _antiAliasingLevel;
 };
 
 } // namespace gepard

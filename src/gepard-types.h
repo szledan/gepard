@@ -42,7 +42,7 @@ constexpr double precisionOfFloat = 1000 * 1000 * 1000;
 //constexpr float precisionOfFloat = 100 * 1000;
 //#endif
 
-inline Float fixPrecision(Float f) { return ceil(f * precisionOfFloat) / precisionOfFloat; }
+inline Float fixPrecision(Float f) { return floor(f * precisionOfFloat) / precisionOfFloat; }
 
 /* Region */
 
