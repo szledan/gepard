@@ -48,7 +48,7 @@ static void compileShaderProg(GLuint* result, const GLchar *vertexShaderSource, 
     if (*result)
         return;
 
-    // Shader programs are zero terminated
+    // Shader programs are zero terminated.
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader);
@@ -130,7 +130,139 @@ static GLuint createFrameBuffer(const GLuint texture)
 }
 #endif
 
-const GLchar* simpleVertexShader = PROGRAM(
+#define ANTIALIAS_LEVEL 16
+
+#if 0
+
+const GLchar* fillPathVertexShader = PROGRAM(
+
+    attribute vec2 a_position;
+    attribute vec4 a_color;
+
+    varying vec4 v_color;
+
+    void main(void)
+    {
+        v_color = a_color;
+        gl_Position = vec4(a_position / 128.0, 1.0, 1.0);
+    }
+);
+
+const GLchar* fillPathFragmentShader = PROGRAM(
+    precision mediump float;
+
+    varying vec4 v_color;
+
+    void main(void)
+    {
+        gl_FragColor = v_color;
+    }
+);
+
+void Path::fillPath()
+{
+    assert(_pathData.lastElement()->isCloseSubpath());
+
+    _pathData.dump();
+
+    if (!_surface)
+        return;
+
+    TrapezoidTessallator tt(this);
+    TrapezoidList trapezoidList = tt.trapezoidList();
+
+    // OpenGL ES 2.0 spec.
+    // FIXME: use global constants and global buffers
+    int bufferSize = 65536;
+    GLfloat* attributes = reinterpret_cast<GLfloat*>(malloc(bufferSize * sizeof(GLfloat)));
+    GLushort* indices = reinterpret_cast<GLushort*>(malloc(bufferSize * sizeof(GLushort)));
+    // FIXME: generate in local the indices buffer:
+    //glGenBuffers(1, &indices);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize * sizeof(GLushort), indices, GL_STATIC_DRAW);
+
+    GLushort* currentQuad = indices;
+
+    int index = 0;
+    int attributeIndex = 0;
+    Float scaleX = (tt.boundingBox().maxX - tt.boundingBox().minX) * 0 + 1;
+    Float scaleY = (tt.boundingBox().maxY - tt.boundingBox().minY) * 0 + 1;
+    Float topX = tt.boundingBox().minX;
+    Float topY = tt.boundingBox().minY;
+    std::cout << "Trapezoids (" << trapezoidList.size() << "): ";
+    for (auto trapezoid : trapezoidList) {
+        std::cout << trapezoid << " ";
+        // FIXME: generate in local the indices buffer:
+        currentQuad[0] = index;
+        currentQuad[1] = index + 1;
+        currentQuad[2] = index + 2;
+        currentQuad[3] = index + 1;
+        currentQuad[4] = index + 2;
+        currentQuad[5] = index + 3;
+        currentQuad += 6;
+        index += 4;
+
+        attributes[attributeIndex++] = trapezoid.bottomLeftX / scaleX - topX;
+        attributes[attributeIndex++] = trapezoid.bottomY / scaleY - topY;
+        // FIXME: use color shader:
+        attributes[attributeIndex++] = 0.0;
+        attributes[attributeIndex++] = 0.3;
+        attributes[attributeIndex++] = 1.0;
+        attributes[attributeIndex++] = 0.99;
+        attributes[attributeIndex++] = trapezoid.bottomRightX / scaleX - topX;
+        attributes[attributeIndex++] = trapezoid.bottomY / scaleY - topY;
+        attributes[attributeIndex++] = 0.0;
+        attributes[attributeIndex++] = 0.3;
+        attributes[attributeIndex++] = 1.0;
+        attributes[attributeIndex++] = 0.7;
+        attributes[attributeIndex++] = trapezoid.topLeftX / scaleX - topX;
+        attributes[attributeIndex++] = trapezoid.topY / scaleY - topY;
+        attributes[attributeIndex++] = 0.0;
+        attributes[attributeIndex++] = 0.3;
+        attributes[attributeIndex++] = 1.0;
+        attributes[attributeIndex++] = 0.7;
+        attributes[attributeIndex++] = trapezoid.topRightX / scaleX - topX;
+        attributes[attributeIndex++] = trapezoid.topY / scaleY - topY;
+        attributes[attributeIndex++] = 0.0;
+        attributes[attributeIndex++] = 0.3;
+        attributes[attributeIndex++] = 1.0;
+        attributes[attributeIndex++] = 0.7;
+    }
+    std::cout << std::endl;
+
+    // Draw path.
+    const int trapezoidCount = trapezoidList.size();
+    static GLuint simpleShader = 0;
+    GLint intValue;
+
+    // Compile shader programs.
+    compileShaderProg(&simpleShader, fillPathVertexShader, fillPathFragmentShader);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(simpleShader);
+
+    // Set attribute buffers.
+    intValue = glGetAttribLocation(simpleShader, "a_position");
+    glEnableVertexAttribArray(intValue);
+    glVertexAttribPointer(intValue, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), attributes);
+
+    intValue = glGetAttribLocation(simpleShader, "a_color");
+    glEnableVertexAttribArray(intValue);
+    glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), attributes + 2);
+
+    // Call the drawing command.
+    // FIXME: Generate local the indices buffer, and use that:
+    glDrawElements(GL_TRIANGLES, 6 * trapezoidCount, GL_UNSIGNED_SHORT, indices);
+
+    eglSwapBuffers(_surface->eglDisplay(), _surface->eglSurface());
+
+    // FIXME: use global constants and global buffers
+    free(attributes);
+    free(indices);
+}
+
+#else
+const GLchar* fillPathVertexShader = PROGRAM(
     precision highp float;
     attribute vec4 a_position;
     attribute vec4 a_x1x2Cdx1dx2;
@@ -146,6 +278,8 @@ const GLchar* simpleVertexShader = PROGRAM(
 
     void main(void)
     {
+        // a_position[2] = trapezoid.bottomY    < a_position[1]
+        // a_position[3] = trapezoid.topY       > a_position[1]
         float y = floor(a_position[2]);
         v_y1y2[0] = a_position[1] - y;
         v_y1y2[1] = floor(a_position[3]) - y;
@@ -158,23 +292,21 @@ const GLchar* simpleVertexShader = PROGRAM(
         v_x1x2[2] = fract(a_x1x2Cdx1dx2[0]);
         v_x1x2[3] = fract(a_x1x2Cdx1dx2[1]);
 
+        // slopeLeft
         v_dx1dx2[0] = a_x1x2Cdx1dx2[2];
+        // slopeRight
         v_dx1dx2[1] = a_x1x2Cdx1dx2[3];
 
         gl_Position = vec4((2.0 * a_position.xy / u_viewportSize) - 1.0, 0.0, 1.0);
     }
 );
 
-#define ANTIALIAS_LEVEL 16
-
-const GLchar* simpleFragmentShader = PROGRAM(
+const GLchar* fillPathFragmentShader = PROGRAM(
     precision highp float;
 
     varying vec4 v_y1y2;
     varying vec4 v_x1x2;
     varying vec2 v_dx1dx2;
-
-    uniform vec4 u_color;
 
     void main(void)
     {
@@ -213,35 +345,46 @@ const GLchar* simpleFragmentShader = PROGRAM(
             alpha = sum * (step);
         }
 
-        gl_FragColor = vec4(u_color.rgb, alpha);
+//if (alpha == 0.0)
+//gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+//else
+//if (alpha > 0.0 && alpha <= 1.0 / 256.0)
+//gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+//else
+//if (alpha > 1.0 / 256.0 && alpha <= 240.0 / 256.0)
+//gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+//else
+//        gl_FragColor = vec4(u_color.rgb, alpha);
+        gl_FragColor = vec4(0.0, 0.0, 0.0, alpha);
     }
 );
 
 static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes, int antiAliasingLevel)
 {
-    GLfloat dx1 = (trapezoid.topLeftX - trapezoid.bottomLeftX) / (trapezoid.topY - trapezoid.bottomY);
-    GLfloat dx2 = (trapezoid.topRightX - trapezoid.bottomRightX) / (trapezoid.topY - trapezoid.bottomY);
+    GLfloat slopeLeft = (trapezoid.topLeftX - trapezoid.bottomLeftX) / (trapezoid.topY - trapezoid.bottomY);
+    GLfloat slopeRight = (trapezoid.topRightX - trapezoid.bottomRightX) / (trapezoid.topY - trapezoid.bottomY);
     const GLfloat bottomY = floor(trapezoid.bottomY);
-    const GLfloat topY = floor(trapezoid.topY);
+    const GLfloat topY = ceil(trapezoid.topY);
     // The fraction is stored in a temporary variable.
     GLfloat temp, x1, x2;
     GLfloat bottomLeftX, bottomRightX, topLeftX, topRightX;
 
-    temp = trapezoid.topY - floor(trapezoid.topY);
-    x1 = trapezoid.topLeftX - temp * dx1;
-    x2 = trapezoid.topRightX - temp * dx2;
-    topLeftX = floor(x1 - fabs(dx1));
-    topRightX = ceil(x2 + fabs(dx2));
+    temp = ceil(trapezoid.topY) - (trapezoid.topY);
+    x1 = trapezoid.topLeftX - temp * slopeLeft;
+    x2 = trapezoid.topRightX - temp * slopeRight;
+    topLeftX = floor(x1 - fabs(slopeLeft));
+    topRightX = ceil(x2 + fabs(slopeRight));
 
     temp = trapezoid.bottomY - floor(trapezoid.bottomY);
-    x1 = trapezoid.bottomLeftX - temp * dx1;
-    x2 = trapezoid.bottomRightX - temp * dx2;
-    bottomLeftX = floor(x1 - fabs(dx1));
-    bottomRightX = ceil(x2 + fabs(dx2));
+    x1 = trapezoid.bottomLeftX - temp * slopeLeft;
+    x2 = trapezoid.bottomRightX - temp * slopeRight;
+    bottomLeftX = floor(x1 - fabs(slopeLeft));
+    bottomRightX = ceil(x2 + fabs(slopeRight));
 
-    dx1 /= antiAliasingLevel;
-    dx2 /= antiAliasingLevel;
+    slopeLeft /= ANTIALIAS_LEVEL;
+    slopeRight /= ANTIALIAS_LEVEL;
 
+    ASSERT(topY != bottomY);
     for (int i = 0; i < 4; i++) {
         // Absolute coordinates are transformed to the [-1,+1] space.
         switch (i) {
@@ -271,10 +414,37 @@ static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes, int antiA
 
         *attributes++ = (x1);
         *attributes++ = (x2);
-        *attributes++ = (dx1);
-        *attributes++ = (dx2);
+        *attributes++ = (slopeLeft);
+        *attributes++ = (slopeRight);
     }
 }
+
+const GLchar* copyPathVertexShader = PROGRAM(
+    precision highp float;
+
+    attribute vec4 a_position;
+
+    varying vec2 v_texturePosition;
+
+    void main()
+    {
+        v_texturePosition = a_position.zw;
+        gl_Position = vec4((2.0 * a_position.xy / 512.0) - 1.0, 0.0, 1.0);
+    }
+);
+
+const GLchar* copyPathFragmentShader = PROGRAM(
+    precision highp float;
+
+    uniform sampler2D u_texture;
+    uniform vec4 u_color;
+    varying vec2 v_texturePosition;
+
+    void main()
+    {
+        gl_FragColor = vec4(u_color.rgb, texture2D(u_texture, v_texturePosition).a);
+    }
+);
 
 void Path::fillPath()
 {
@@ -290,21 +460,59 @@ void Path::fillPath()
 
     // OpenGL ES 2.0 spec.
     // TODO: use global constants and global buffers
-    const int bufferSize = 10000;
+    const int bufferSize = 65536;
     GLfloat* attributes = reinterpret_cast<GLfloat*>(malloc(bufferSize * sizeof(GLfloat)));
-    GLushort* indices = reinterpret_cast<GLushort*>(malloc(bufferSize * sizeof(GLushort)));
+    GLushort* indicies = reinterpret_cast<GLushort*>(malloc(bufferSize * sizeof(GLushort)));
     // TODO: generate in local the indices buffer:
     //glGenBuffers(1, &indices);
     //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices);
     //glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize * sizeof(GLushort), indices, GL_STATIC_DRAW);
 
-    GLushort* currentQuad = indices;
+    GLushort* currentQuad = indicies;
+    // Draw path.
+    const int trapezoidCount = trapezoidList.size();
+    static GLuint fillPathShader = 0;
+    GLint intValue;
+    GLuint pathTexture;
+    GLuint fbo;
+
+    glActiveTexture(GL_TEXTURE0);
+    glGenTextures(1, &pathTexture);
+    glBindTexture(GL_TEXTURE_2D, pathTexture);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512.0, 512.0, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pathTexture, 0);
+
+
+    // Compile shader programs.
+    compileShaderProg(&fillPathShader, fillPathVertexShader, fillPathFragmentShader);
+
+    glEnable(GL_BLEND);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glUseProgram(fillPathShader);
+//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+//    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glBlendFunc(GL_ONE, GL_ONE);
+
+    const int strideLength = 8 * sizeof(GLfloat);
+
 
     int index = 0;
     std::cout << "Trapezoids (" << trapezoidList.size() << "): ";
     int trapezoidIndex = 0;
-    for (auto trapezoid : trapezoidList) {
-        std::cout << trapezoid << " ";
+    for (Trapezoid trapezoid : trapezoidList) {
+//        std::cout << trapezoid << " ";
+        ASSERT(trapezoid.bottomY < trapezoid.topY);
+        ASSERT(trapezoid.bottomLeftX <= trapezoid.bottomRightX);
+        ASSERT(trapezoid.topLeftX <= trapezoid.topRightX);
         // TODO: generate in local the indices buffer:
         currentQuad[0] = index;
         currentQuad[1] = index + 1;
@@ -320,46 +528,59 @@ void Path::fillPath()
     }
     std::cout << std::endl;
 
-    // Draw path.
-    const int trapezoidCount = trapezoidList.size();
-    static GLuint simpleShader = 0;
-    GLint intValue;
-
-    // Compile shader programs.
-    compileShaderProg(&simpleShader, simpleVertexShader, simpleFragmentShader);
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(simpleShader);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    const int strideLength = 8 * sizeof(GLfloat);
-
     // Set attribute buffers.
-    intValue = glGetAttribLocation(simpleShader, "a_position");
+    intValue = glGetAttribLocation(fillPathShader, "a_position");
     glEnableVertexAttribArray(intValue);
     glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, strideLength, attributes);
 
-    intValue = glGetAttribLocation(simpleShader, "a_x1x2Cdx1dx2");
+    intValue = glGetAttribLocation(fillPathShader, "a_x1x2Cdx1dx2");
     glEnableVertexAttribArray(intValue);
     glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, strideLength, attributes + 4);
 
-    intValue = glGetUniformLocation(simpleShader, "u_viewportSize");
+    intValue = glGetUniformLocation(fillPathShader, "u_viewportSize");
     glUniform2f(intValue, 512.0f, 512.0f);
-
-    intValue = glGetUniformLocation(simpleShader, "u_color");
-    glUniform4f(intValue, 0.0f, 0.3f, 1.0f, 0.0f);
 
     // Call the drawing command.
     // TODO: Generate local the indices buffer, and use that:
-    glDrawElements(GL_TRIANGLES, 6 * trapezoidCount, GL_UNSIGNED_SHORT, indices);
+    glDrawElements(GL_TRIANGLES, 6 * trapezoidCount, GL_UNSIGNED_SHORT, indicies);
 
-    printf("glGetError: %d\n", glGetError());
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    static GLuint copyPathShader = 0;
+    compileShaderProg(&copyPathShader, copyPathVertexShader, copyPathFragmentShader);
+
+    glUseProgram(copyPathShader);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+
+    static GLfloat textureCoords[] = { 0, 512, 0, 1,
+                                       0, 0, 0, 0,
+                                       512, 512, 1, 1,
+                                       512, 0, 1, 0 };
+    // Set attribute buffers.
+    intValue = glGetAttribLocation(copyPathShader, "a_position");
+    glEnableVertexAttribArray(intValue);
+    glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, 0, textureCoords);
+
+    intValue = glGetUniformLocation(copyPathShader, "u_texture");
+    glBindTexture(GL_TEXTURE_2D, pathTexture);
+
+    intValue = glGetUniformLocation(copyPathShader, "u_color");
+    glUniform4f(intValue, 0.0f, 0.0f, 1.0f, 0.0f);
+
+    static GLushort textinds[] = { 0, 1, 2, 3 };
+    glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, textinds);
+
     eglSwapBuffers(_surface->eglDisplay(), _surface->eglSurface());
+    printf("glGetError: %d\n", glGetError());
 
     // TODO: use global constants and global buffers
     free(attributes);
-    free(indices);
+    free(indicies);
 }
+#endif
 
 std::ostream& operator<<(std::ostream& os, const PathElement& ps)
 {
@@ -459,23 +680,19 @@ void PathData::dump()
 
 /* SegmentApproximator */
 
-void SegmentApproximator::insertSegment(Segment segment)
+void SegmentApproximator::insertSegment(FloatPoint from, FloatPoint to)
 {
-    segment.from.x *= _kAntiAliasLevel;
-    segment.from.y *= _kAntiAliasLevel;
-    segment.to.x *= _kAntiAliasLevel;
-    segment.to.y *= _kAntiAliasLevel;
+    ASSERT(from.y != to.y);
 
-    if (segment.direction == Segment::EqualOrNonExist)
-        return;
+    Segment segment(from, to);
 
     // Update bounding-box.
     _boundingBox.stretch(segment.from);
     _boundingBox.stretch(segment.to);
 
     // Insert segment.
-    const Float topY = segment.topY();
-    const Float bottomY = segment.bottomY();
+    const int topY = segment.topY();
+    const int bottomY = segment.bottomY();
 
     if (_segments.find(topY) == _segments.end()) {
         _segments.emplace(topY, new SegmentList()).first->second->push_front(segment);
@@ -487,6 +704,19 @@ void SegmentApproximator::insertSegment(Segment segment)
     if (_segments.find(bottomY) == _segments.end()) {
         _segments.emplace(bottomY, new SegmentList());
     }
+}
+
+void SegmentApproximator::insertLine(FloatPoint from, FloatPoint to)
+{
+    from.x *= _kAntiAliasLevel;
+    from.y = floor(from.y * _kAntiAliasLevel);
+    to.x *= _kAntiAliasLevel;
+    to.y = floor(to.y * _kAntiAliasLevel);
+
+    if (from.y == to.y)
+        return;
+
+    insertSegment(from, to);
 }
 
 static inline Float abs(const Float &t) { return (t < 0) ? -t : t; }
@@ -555,7 +785,7 @@ void SegmentApproximator::insertQuadCurve(const FloatPoint from, const FloatPoin
 
     do {
         if (quadCurveIsLineSegment(points)) {
-            insertSegment(points[0], points[2]);
+            insertLine(points[0], points[2]);
             points -= 2;
             continue;
         }
@@ -646,7 +876,7 @@ void SegmentApproximator::insertBezierCurve(const FloatPoint from, const FloatPo
 
     do {
         if (curveIsLineSegment(points)) {
-            insertSegment(points[0], points[3]);
+            insertLine(points[0], points[3]);
             points -= 3;
             continue;
         }
@@ -670,12 +900,13 @@ void SegmentApproximator::insertArc(const FloatPoint center, const FloatPoint ra
 void SegmentApproximator::printSegements()
 {
     for (auto& currentSegments : _segments) {
-        std::cout << currentSegments.first << ": ";
+//        std::cout << currentSegments.first << ": ";
         SegmentList currentList = *(currentSegments.second);
-        for (auto segment : currentList) {
-            std::cout << segment << " ";
+        for (Segment& segment : currentList) {
+//            std::cout << segment << " ";
+            std::cout << segment << std::endl;
         }
-        std::cout << std::endl;
+//        std::cout << std::endl;
     }
 }
 
@@ -685,12 +916,12 @@ inline void SegmentApproximator::splitSegments()
         SegmentTree::iterator newSegments = currentSegments;
         ++newSegments;
         if (newSegments != _segments.end()) {
-            SegmentList*  currentList = currentSegments->second;
+            SegmentList* currentList = currentSegments->second;
             SegmentList* newList = newSegments->second;
-            Float splitY = newSegments->first;
+            int splitY = floor(newSegments->first);
             ASSERT(currentList && newList);
 
-            for (auto& segment : *currentList) {
+            for (Segment& segment : *currentList) {
                 if (segment.isOnSegment(splitY)) {
                     newList->push_front(segment.splitSegment(splitY));
                 }
@@ -712,7 +943,9 @@ SegmentList* SegmentApproximator::segments()
             if (segment != currentList->end()) {
                 const Float y = currentSegment->computeIntersectionY(&(*segment));
                 if (y != NAN && y != INFINITY) {
-                    _segments.emplace(y, new SegmentList());
+                    _segments.emplace(floor(y), new SegmentList());
+                    if (floor(y) != y)
+                        _segments.emplace(floor(y + 1.0), new SegmentList());
                 }
             } else {
                 segment = ++currentSegment;
@@ -722,6 +955,7 @@ SegmentList* SegmentApproximator::segments()
 
     // 3. Split segments with all y lines.
     splitSegments();
+printSegements();
 
     // 4. Merge and sort all segment list.
     SegmentList* segments = new SegmentList();
@@ -729,6 +963,23 @@ SegmentList* SegmentApproximator::segments()
         SegmentList* currentList = currentSegments->second;
         currentList->sort();
         segments->merge(*currentList);
+    }
+
+    // 4.b.
+    for (SegmentList::iterator segment = segments->begin(); segment != segments->end(); ++segment) {
+        ASSERT(segment->to.y - segment->from.y >= 1);
+        if (segment->to.y - segment->from.y <= 1) {
+            for (SegmentList::iterator furtherSegment = segment; (furtherSegment != segments->end()) && (segment->from.y == furtherSegment->from.y) ; ++furtherSegment) {
+                ASSERT(segment->to.y == furtherSegment->to.y);
+                if (furtherSegment->from.x < segment->from.x) {
+                    furtherSegment->from.x = segment->from.x;
+                    ASSERT(furtherSegment->to.x >= segment->to.x);
+                }
+                if (furtherSegment->to.x < segment->to.x) {
+                    furtherSegment->to.x = segment->to.x;
+                }
+            }
+        }
     }
 
     // 5. Return independent segments.
@@ -746,7 +997,7 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
 
     ASSERT(element->type == PathElementTypes::MoveTo);
 
-    const Float halfPixelPrecision = 0.5;
+    const Float halfPixelPrecision = 1.0;
     SegmentApproximator segmentApproximator(_antiAliasingLevel, halfPixelPrecision);
     FloatPoint from;
     FloatPoint to = element->to;
@@ -759,16 +1010,16 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
         to = element->to;
         switch (element->type) {
         case PathElementTypes::MoveTo: {
-            segmentApproximator.insertSegment(from, lastMoveTo);
+            segmentApproximator.insertLine(from, lastMoveTo);
             lastMoveTo = to;
             break;
         }
         case PathElementTypes::LineTo: {
-            segmentApproximator.insertSegment(from, to);
+            segmentApproximator.insertLine(from, to);
             break;
         }
         case PathElementTypes::CloseSubpath: {
-            segmentApproximator.insertSegment(from, lastMoveTo);
+            segmentApproximator.insertLine(from, lastMoveTo);
             lastMoveTo = to;
             break;
         }
@@ -793,12 +1044,13 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
         }
     } while (element->next);
 
-    segmentApproximator.insertSegment(lastMoveTo, element->to);
+    segmentApproximator.insertLine(lastMoveTo, element->to);
 
     // 2. Use approximator to generate the list of segments.
     SegmentList* segmentList = segmentApproximator.segments();
     TrapezoidList trapezoidList;
 
+    const Float denom = _antiAliasingLevel * 1 + 0;
     if (segmentList) {
         // 3. Generate trapezoids.
         Trapezoid trapezoid;
@@ -806,6 +1058,8 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
         bool isInFill = false;
         // TODO: ASSERTs for wrong segments.
         for (auto segment : *segmentList) {
+            if (segment.from.y == segment.to.y)
+                continue;
             if (fillRule() == EvenOdd) {
                 fill = !fill;
             } else {
@@ -814,20 +1068,22 @@ TrapezoidList TrapezoidTessallator::trapezoidList()
 
             if (fill) {
                 if (!isInFill) {
-                    trapezoid.bottomY = floor(fixPrecision(segment.from.y) / _antiAliasingLevel);
-                    trapezoid.topY = floor(fixPrecision(segment.to.y) / _antiAliasingLevel);
-                    trapezoid.bottomLeftX = (fixPrecision(segment.from.x) / _antiAliasingLevel);
-                    trapezoid.topLeftX = (fixPrecision(segment.to.x) / _antiAliasingLevel);
-                    isInFill = true;
+                    trapezoid.bottomY = (fixPrecision(segment.topY() / denom));
+                    trapezoid.topY = (fixPrecision(segment.bottomY() / denom));
+                    trapezoid.bottomLeftX = (fixPrecision(segment.from.x) / denom);
+                    trapezoid.topLeftX = (fixPrecision(segment.to.x) / denom);
+                    if (trapezoid.bottomY != trapezoid.topY)
+                        isInFill = true;
                 }
             } else {
-                trapezoid.bottomRightX = (fixPrecision(segment.from.x) / _antiAliasingLevel);
-                trapezoid.topRightX = (fixPrecision(segment.to.x) / _antiAliasingLevel);
+                trapezoid.bottomRightX = (fixPrecision(segment.from.x) / denom);
+                trapezoid.topRightX = (fixPrecision(segment.to.x) / denom);
                 if (trapezoid.bottomY != trapezoid.topY) {
                     trapezoidList.push_front(trapezoid);
                 }
                 isInFill = false;
             }
+            ASSERT(trapezoid.bottomY == (fixPrecision(segment.topY() / denom)));
         }
 
         delete segmentList;

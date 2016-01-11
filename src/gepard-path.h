@@ -56,7 +56,7 @@ struct PathElement {
     PathElement(PathElementType type, FloatPoint to)
         : next(nullptr)
         , type(type)
-        , to(to)
+        , to(fixIt(to))
     {}
 
     bool isMoveTo() const { return this->type == PathElementTypes::MoveTo; }
@@ -92,7 +92,7 @@ struct CloseSubpathElement : public PathElement {
 struct QuadraticCurveToElement : public PathElement {
     QuadraticCurveToElement(FloatPoint control, FloatPoint to)
         : PathElement(PathElementTypes::QuadraticCurve, to)
-        , control(control)
+        , control(fixIt(control))
     {}
 
     std::ostream& output(std::ostream& os) const
@@ -106,8 +106,8 @@ struct QuadraticCurveToElement : public PathElement {
 struct BezierCurveToElement : public PathElement {
     BezierCurveToElement(FloatPoint control1, FloatPoint control2, FloatPoint to)
         : PathElement(PathElementTypes::BezierCurve, to)
-        , control1(control1)
-        , control2(control2)
+        , control1(fixIt(control1))
+        , control2(fixIt(control2))
     {}
 
     std::ostream& output(std::ostream& os) const
@@ -193,19 +193,13 @@ struct Segment {
         Positive = 1,
     };
 
-    Segment()
-        : from(FloatPoint())
-        , to(FloatPoint())
-        , slopeInv(NAN)
-        , direction(EqualOrNonExist)
-    {}
     Segment(FloatPoint from, FloatPoint to)
         : from(from)
         , to(to)
     {
         Float denom = this->to.y - this->from.y;
         if (denom) {
-            if (from.y > to.y) {
+            if (denom < 0) {
                 this->from = to;
                 this->to = from;
                 this->direction = Negative;
@@ -221,14 +215,15 @@ struct Segment {
         }
     }
 
-    Float topY() const { return this->from.y; }
-    Float bottomY() const { return this->to.y; }
+    int topY() const { return floor(this->from.y); }
+    int bottomY() const { return floor(this->to.y); }
     // TODO: find a good function name:
     Float factor() const { return this->slopeInv * this->from.y - this->from.x; }
     bool isOnSegment(Float y) const { return y < this->to.y && y > this->from.y; }
 
     Segment splitSegment(Float y)
     {
+        ASSERT(this->from.y < this->to.y);
         ASSERT(y > this->from.y && y < this->to.y);
 
         Float x = this->slopeInv * (y - this->from.y) + this->from.x;
@@ -241,6 +236,8 @@ struct Segment {
             to = this->to;
         }
 
+        ASSERT(this->from.y != newPoint.y);
+        ASSERT(newPoint.y != to.y);
         return Segment(newPoint, to);
     }
     Float computeIntersectionY(Segment* segment) const
@@ -254,7 +251,7 @@ struct Segment {
             if (denom) {
                 y = (this->factor() - segment->factor()) / denom;
             }
-            if (y <= this->from.y || y >= this->to.y) {
+            if (!isOnSegment(y)) {
                 y = INFINITY;
             }
         } // TODO: else: y is NaN.
@@ -269,20 +266,30 @@ struct Segment {
 
 inline std::ostream& operator<<(std::ostream& os, const Segment& s)
 {
-    return os << s.from << ((s.direction < 0) ? ">" : ((s.direction > 0) ? "<" : "=")) << s.to;
+//    return os << s.from << ((s.direction < 0) ? "<" : ((s.direction > 0) ? ">" : "=")) << s.to;
+    return os << s.from << ((s.direction < 0) ? " " : ((s.direction > 0) ? " " : " ")) << s.to;
 }
 
 inline bool operator<(const Segment& lhs, const Segment& rhs)
 {
     ASSERT(lhs.from <= lhs.to && rhs.from <= rhs.to);
-
     return (lhs.from < rhs.from) || (lhs.from == rhs.from && lhs.to < rhs.to);
+}
+
+inline bool operator==(const Segment& lhs, const Segment& rhs)
+{
+    return (lhs.from == rhs.from) && (lhs.to == rhs.to);
+}
+
+inline bool operator<=(const Segment& lhs, const Segment& rhs)
+{
+    return (lhs < rhs) || (lhs == rhs);
 }
 
 /* SegmentList, SegmentTree */
 
 typedef std::list<Segment> SegmentList;
-typedef std::map<const Float, SegmentList*> SegmentTree;
+typedef std::map<const int, SegmentList*> SegmentTree;
 
 /* SegmentApproximator */
 
@@ -300,8 +307,7 @@ public:
         }
     }
 
-    void insertSegment(Segment segment);
-    void insertSegment(FloatPoint from, FloatPoint to) { insertSegment(Segment(from, to)); }
+    void insertLine(const FloatPoint from, const FloatPoint to);
     void insertQuadCurve(const FloatPoint from, const FloatPoint control, const FloatPoint to);
     void insertBezierCurve(const FloatPoint from, const FloatPoint control1, const FloatPoint control2, const FloatPoint to);
     void insertArc(const FloatPoint center, const FloatPoint radius, const Float startAngle, const Float endAngle, const bool antiClockwise);
@@ -313,6 +319,8 @@ public:
     void printSegements();
 
 private:
+    void insertSegment(FloatPoint from, FloatPoint to);
+
     bool quadCurveIsLineSegment(FloatPoint[]);
     void splitQuadraticCurve(FloatPoint[]);
     bool curveIsLineSegment(FloatPoint[]);
@@ -338,7 +346,8 @@ struct Trapezoid {
 
 inline std::ostream& operator<<(std::ostream& os, const Trapezoid& t)
 {
-    return os << t.bottomY << "," << t.bottomLeftX << "," << t.bottomRightX << ","<< t.topY << "," << t.topLeftX << "," << t.topRightX;
+//    return os << t.bottomY << "," << t.bottomLeftX << "," << t.bottomRightX << "," << t.topY << "," << t.topLeftX << "," << t.topRightX;
+    return os << t.bottomY << " " << t.bottomLeftX << " "<< t.topY << " " << t.topLeftX << std::endl << t.bottomY << " " << t.bottomRightX << " " << t.topY << " " << t.topRightX;
 }
 
 /* TrapezoidList */
