@@ -139,6 +139,17 @@ int main()
     gepardContext.bezierCurveTo(9.0, 399.0, 8.0, 380.0, 69.0, 311.0);
     gepardContext.lineTo(57.0, 301.0);
     gepardContext.bezierCurveTo(-11.0, 370.0, -11.0, 405.0, 56.0, 475.0);
+#elif 1
+    // An ugly test.
+    gepardContext.moveTo(256, 256);
+    for (float x = 0; x < 512.0; x += 512.0 / 16.0) {
+        std::cout << x << " ";
+        for (float y = 250; y < 512.0; y += 512.0 / 16.0) {
+            gepardContext.lineTo(256, 256);
+            gepardContext.lineTo(x, y);
+            gepardContext.lineTo(x, y + 5);
+        }
+    }
 #else
     gepardContext.moveTo(100, 20);
     gepardContext.lineTo(20, 500);

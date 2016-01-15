@@ -352,16 +352,16 @@ inline std::ostream& operator<<(std::ostream& os, const Trapezoid& t)
 
 typedef std::list<Trapezoid> TrapezoidList;
 
-/* TrapezoidTessallator */
+/* TrapezoidTessellator */
 
-class TrapezoidTessallator {
+class TrapezoidTessellator {
 public:
     enum FillRule {
         EvenOdd,
         NonZero,
     };
 
-    TrapezoidTessallator(Path* path, FillRule fillRule = NonZero, int antiAliasingLevel = 16)
+    TrapezoidTessellator(Path* path, FillRule fillRule = NonZero, int antiAliasingLevel = 16)
         : _path(path)
         , _fillRule(fillRule)
         , _antiAliasingLevel(antiAliasingLevel)

@@ -287,6 +287,8 @@ const GLchar* copyPathFragmentShader = PROGRAM(
     }
 );
 
+static inline int min(int l, int r) { return r < l ? r : l; }
+
 void Path::fillPath()
 {
     ASSERT(_pathData.lastElement()->isCloseSubpath());
@@ -296,20 +298,46 @@ void Path::fillPath()
     if (!_surface)
         return;
 
-    TrapezoidTessallator tt(this, TrapezoidTessallator::FillRule::NonZero, ANTIALIAS_LEVEL);
+    // 1. Tessellating the path.
+    TrapezoidTessellator tt(this, TrapezoidTessellator::FillRule::NonZero, ANTIALIAS_LEVEL);
     TrapezoidList trapezoidList = tt.trapezoidList();
 
-    // OpenGL ES 2.0 spec.
-    // TODO: use global constants and global buffers
-    const int bufferSize = 2 * 65536;
-    GLfloat* attributes = reinterpret_cast<GLfloat*>(malloc(bufferSize * sizeof(GLfloat)));
-    GLushort* indices = reinterpret_cast<GLushort*>(malloc(bufferSize * sizeof(GLushort)));
-    // TODO: generate in local the indices buffer:
-    //glGenBuffers(1, &indices);
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices);
-    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize * sizeof(GLushort), indices, GL_STATIC_DRAW);
+    // 2. Using OpenGL ES 2.0 spec. to drawing.
+    static const int s_kMaximumNumberOfAttributes = 65536;
+    static const int s_kMaximumNumberOfUshortQuads = 65536 / 6;
 
-    GLushort* currentQuad = indices;
+    // 2.a Init and bind quad indexes.
+    static GLuint s_indexBufferObject;
+    {
+        GLushort* quadIndexes;
+        const int bufferSize = s_kMaximumNumberOfUshortQuads * 6;
+
+        quadIndexes = reinterpret_cast<GLushort*>(malloc(bufferSize * sizeof(GLushort)));
+
+        GLushort* currentQuad = quadIndexes;
+        GLushort* currentQuadEnd = quadIndexes + bufferSize;
+
+        int index = 0;
+        while (currentQuad < currentQuadEnd) {
+            currentQuad[0] = index;
+            currentQuad[1] = index + 1;
+            currentQuad[2] = index + 2;
+            currentQuad[3] = index + 1;
+            currentQuad[4] = index + 2;
+            currentQuad[5] = index + 3;
+            currentQuad += 6;
+            index += 4;
+        }
+
+        glGenBuffers(1, &s_indexBufferObject);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_indexBufferObject);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize * sizeof(GLushort), quadIndexes, GL_STATIC_DRAW);
+
+        free(quadIndexes);
+    }
+
+    GLfloat* attributes = reinterpret_cast<GLfloat*>(malloc(s_kMaximumNumberOfAttributes * sizeof(GLfloat)));
+
     // Draw path.
     const int trapezoidCount = trapezoidList.size();
     static GLuint fillPathShader = 0;
@@ -353,7 +381,6 @@ void Path::fillPath()
     intValue = glGetUniformLocation(fillPathShader, "u_viewportSize");
     glUniform2f(intValue, 512.0f, 512.0f);
 
-    int index = 0;
     std::cout << "Trapezoids (" << trapezoidList.size() << "): ";
     int trapezoidIndex = 0;
     for (Trapezoid trapezoid : trapezoidList) {
@@ -361,33 +388,18 @@ void Path::fillPath()
         ASSERT(trapezoid.bottomY < trapezoid.topY);
         ASSERT(trapezoid.bottomLeftX <= trapezoid.bottomRightX);
         ASSERT(trapezoid.topLeftX <= trapezoid.topRightX);
-        // TODO: generate in local the indices buffer:
-        currentQuad[0] = index;
-        currentQuad[1] = index + 1;
-        currentQuad[2] = index + 2;
-        currentQuad[3] = index + 1;
-        currentQuad[4] = index + 2;
-        currentQuad[5] = index + 3;
-        currentQuad += 6;
-        index += 4;
 
         setupAttributes(trapezoid, attributes + trapezoidIndex * 32, tt.antiAliasingLevel());
         trapezoidIndex++;
-        // TODO: we need to define a real constant:
-        if (trapezoidIndex >= 3000) {
-            // Call the drawing command.
-            // TODO: Generate local the indices buffer, and use that:
-            glDrawElements(GL_TRIANGLES, 6 * trapezoidIndex, GL_UNSIGNED_SHORT, indices);
+        if (trapezoidIndex >= min(s_kMaximumNumberOfUshortQuads, s_kMaximumNumberOfAttributes / 32)) {
+            glDrawElements(GL_TRIANGLES, 6 * trapezoidIndex, GL_UNSIGNED_SHORT, nullptr);
             trapezoidIndex = 0;
-            break;
         }
     }
     std::cout << std::endl;
 
     if (trapezoidIndex) {
-        // Call the drawing command.
-        // TODO: Generate local the indices buffer, and use that:
-        glDrawElements(GL_TRIANGLES, 6 * trapezoidCount, GL_UNSIGNED_SHORT, indices);
+        glDrawElements(GL_TRIANGLES, 6 * trapezoidCount, GL_UNSIGNED_SHORT, nullptr);
     }
 
     // Copy alpha texture to the display.
@@ -426,7 +438,6 @@ void Path::fillPath()
 
     // TODO: use global constants and global buffers
     free(attributes);
-    free(indices);
 }
 
 std::ostream& operator<<(std::ostream& os, const PathElement& ps)
@@ -830,9 +841,9 @@ SegmentList* SegmentApproximator::segments()
     return segments;
 }
 
-/* TrapezoidTessallator */
+/* TrapezoidTessellator */
 
-TrapezoidList TrapezoidTessallator::trapezoidList()
+TrapezoidList TrapezoidTessellator::trapezoidList()
 {
     PathElement* element = _path->pathData().firstElement();
 

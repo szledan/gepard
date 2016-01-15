@@ -301,7 +301,7 @@ void test_tessallation()
     g.closePath();
 
     bool pass = true;
-    gepard::TrapezoidTessallator tt(g.path());
+    gepard::TrapezoidTessellator tt(g.path());
     gepard::TrapezoidList trapezoidList = tt.trapezoidList();
     for (gepard::TrapezoidList::iterator trapezoid = trapezoidList.begin(); pass && trapezoid != trapezoidList.end(); ++trapezoid) {
         gepard::TrapezoidList::iterator testTrapezoid = trapezoid;
