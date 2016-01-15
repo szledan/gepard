@@ -111,157 +111,8 @@ error:
         glDeleteProgram(shaderProgram);
 }
 
-#if 0
-static GLuint createFrameBuffer(const GLuint texture)
-{
-    GLuint frameBufferObject = 0;
-
-    // Create a framebuffer object.
-    glGenFramebuffers(1, &frameBufferObject);
-    if (glGetError() != GL_NO_ERROR) {
-        printf("Cannot allocate a frame buffer object\n");
-        return 0;
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    return frameBufferObject;
-}
-#endif
-
 #define ANTIALIAS_LEVEL 16
 
-#if 0
-
-const GLchar* fillPathVertexShader = PROGRAM(
-
-    attribute vec2 a_position;
-    attribute vec4 a_color;
-
-    varying vec4 v_color;
-
-    void main(void)
-    {
-        v_color = a_color;
-        gl_Position = vec4(a_position / 128.0, 1.0, 1.0);
-    }
-);
-
-const GLchar* fillPathFragmentShader = PROGRAM(
-    precision mediump float;
-
-    varying vec4 v_color;
-
-    void main(void)
-    {
-        gl_FragColor = v_color;
-    }
-);
-
-void Path::fillPath()
-{
-    assert(_pathData.lastElement()->isCloseSubpath());
-
-    _pathData.dump();
-
-    if (!_surface)
-        return;
-
-    TrapezoidTessallator tt(this);
-    TrapezoidList trapezoidList = tt.trapezoidList();
-
-    // OpenGL ES 2.0 spec.
-    // FIXME: use global constants and global buffers
-    int bufferSize = 65536;
-    GLfloat* attributes = reinterpret_cast<GLfloat*>(malloc(bufferSize * sizeof(GLfloat)));
-    GLushort* indices = reinterpret_cast<GLushort*>(malloc(bufferSize * sizeof(GLushort)));
-    // FIXME: generate in local the indices buffer:
-    //glGenBuffers(1, &indices);
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices);
-    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize * sizeof(GLushort), indices, GL_STATIC_DRAW);
-
-    GLushort* currentQuad = indices;
-
-    int index = 0;
-    int attributeIndex = 0;
-    Float scaleX = (tt.boundingBox().maxX - tt.boundingBox().minX) * 0 + 1;
-    Float scaleY = (tt.boundingBox().maxY - tt.boundingBox().minY) * 0 + 1;
-    Float topX = tt.boundingBox().minX;
-    Float topY = tt.boundingBox().minY;
-    std::cout << "Trapezoids (" << trapezoidList.size() << "): ";
-    for (auto trapezoid : trapezoidList) {
-        std::cout << trapezoid << " ";
-        // FIXME: generate in local the indices buffer:
-        currentQuad[0] = index;
-        currentQuad[1] = index + 1;
-        currentQuad[2] = index + 2;
-        currentQuad[3] = index + 1;
-        currentQuad[4] = index + 2;
-        currentQuad[5] = index + 3;
-        currentQuad += 6;
-        index += 4;
-
-        attributes[attributeIndex++] = trapezoid.bottomLeftX / scaleX - topX;
-        attributes[attributeIndex++] = trapezoid.bottomY / scaleY - topY;
-        // FIXME: use color shader:
-        attributes[attributeIndex++] = 0.0;
-        attributes[attributeIndex++] = 0.3;
-        attributes[attributeIndex++] = 1.0;
-        attributes[attributeIndex++] = 0.99;
-        attributes[attributeIndex++] = trapezoid.bottomRightX / scaleX - topX;
-        attributes[attributeIndex++] = trapezoid.bottomY / scaleY - topY;
-        attributes[attributeIndex++] = 0.0;
-        attributes[attributeIndex++] = 0.3;
-        attributes[attributeIndex++] = 1.0;
-        attributes[attributeIndex++] = 0.7;
-        attributes[attributeIndex++] = trapezoid.topLeftX / scaleX - topX;
-        attributes[attributeIndex++] = trapezoid.topY / scaleY - topY;
-        attributes[attributeIndex++] = 0.0;
-        attributes[attributeIndex++] = 0.3;
-        attributes[attributeIndex++] = 1.0;
-        attributes[attributeIndex++] = 0.7;
-        attributes[attributeIndex++] = trapezoid.topRightX / scaleX - topX;
-        attributes[attributeIndex++] = trapezoid.topY / scaleY - topY;
-        attributes[attributeIndex++] = 0.0;
-        attributes[attributeIndex++] = 0.3;
-        attributes[attributeIndex++] = 1.0;
-        attributes[attributeIndex++] = 0.7;
-    }
-    std::cout << std::endl;
-
-    // Draw path.
-    const int trapezoidCount = trapezoidList.size();
-    static GLuint simpleShader = 0;
-    GLint intValue;
-
-    // Compile shader programs.
-    compileShaderProg(&simpleShader, fillPathVertexShader, fillPathFragmentShader);
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(simpleShader);
-
-    // Set attribute buffers.
-    intValue = glGetAttribLocation(simpleShader, "a_position");
-    glEnableVertexAttribArray(intValue);
-    glVertexAttribPointer(intValue, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), attributes);
-
-    intValue = glGetAttribLocation(simpleShader, "a_color");
-    glEnableVertexAttribArray(intValue);
-    glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), attributes + 2);
-
-    // Call the drawing command.
-    // FIXME: Generate local the indices buffer, and use that:
-    glDrawElements(GL_TRIANGLES, 6 * trapezoidCount, GL_UNSIGNED_SHORT, indices);
-
-    eglSwapBuffers(_surface->eglDisplay(), _surface->eglSurface());
-
-    // FIXME: use global constants and global buffers
-    free(attributes);
-    free(indices);
-}
-
-#else
 const GLchar* fillPathVertexShader = PROGRAM(
     precision highp float;
     attribute vec4 a_position;
@@ -345,16 +196,6 @@ const GLchar* fillPathFragmentShader = PROGRAM(
             alpha = sum * (step);
         }
 
-//if (alpha == 0.0)
-//gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
-//else
-//if (alpha > 0.0 && alpha <= 1.0 / 256.0)
-//gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-//else
-//if (alpha > 1.0 / 256.0 && alpha <= 240.0 / 256.0)
-//gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
-//else
-//        gl_FragColor = vec4(u_color.rgb, alpha);
         gl_FragColor = vec4(0.0, 0.0, 0.0, alpha);
     }
 );
@@ -455,20 +296,20 @@ void Path::fillPath()
     if (!_surface)
         return;
 
-    TrapezoidTessallator tt(this, TrapezoidTessallator::FillRule::EvenOdd, ANTIALIAS_LEVEL);
+    TrapezoidTessallator tt(this, TrapezoidTessallator::FillRule::NonZero, ANTIALIAS_LEVEL);
     TrapezoidList trapezoidList = tt.trapezoidList();
 
     // OpenGL ES 2.0 spec.
     // TODO: use global constants and global buffers
-    const int bufferSize = 65536;
+    const int bufferSize = 2 * 65536;
     GLfloat* attributes = reinterpret_cast<GLfloat*>(malloc(bufferSize * sizeof(GLfloat)));
-    GLushort* indicies = reinterpret_cast<GLushort*>(malloc(bufferSize * sizeof(GLushort)));
+    GLushort* indices = reinterpret_cast<GLushort*>(malloc(bufferSize * sizeof(GLushort)));
     // TODO: generate in local the indices buffer:
     //glGenBuffers(1, &indices);
     //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices);
     //glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize * sizeof(GLushort), indices, GL_STATIC_DRAW);
 
-    GLushort* currentQuad = indicies;
+    GLushort* currentQuad = indices;
     // Draw path.
     const int trapezoidCount = trapezoidList.size();
     static GLuint fillPathShader = 0;
@@ -489,7 +330,6 @@ void Path::fillPath()
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pathTexture, 0);
 
-
     // Compile shader programs.
     compileShaderProg(&fillPathShader, fillPathVertexShader, fillPathFragmentShader);
 
@@ -497,13 +337,21 @@ void Path::fillPath()
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(fillPathShader);
-//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-//    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     glBlendFunc(GL_ONE, GL_ONE);
 
     const int strideLength = 8 * sizeof(GLfloat);
 
+    // Set attribute buffers.
+    intValue = glGetAttribLocation(fillPathShader, "a_position");
+    glEnableVertexAttribArray(intValue);
+    glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, strideLength, attributes);
+
+    intValue = glGetAttribLocation(fillPathShader, "a_x1x2Cdx1dx2");
+    glEnableVertexAttribArray(intValue);
+    glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, strideLength, attributes + 4);
+
+    intValue = glGetUniformLocation(fillPathShader, "u_viewportSize");
+    glUniform2f(intValue, 512.0f, 512.0f);
 
     int index = 0;
     std::cout << "Trapezoids (" << trapezoidList.size() << "): ";
@@ -525,25 +373,24 @@ void Path::fillPath()
 
         setupAttributes(trapezoid, attributes + trapezoidIndex * 32, tt.antiAliasingLevel());
         trapezoidIndex++;
+        // TODO: we need to define a real constant:
+        if (trapezoidIndex >= 3000) {
+            // Call the drawing command.
+            // TODO: Generate local the indices buffer, and use that:
+            glDrawElements(GL_TRIANGLES, 6 * trapezoidIndex, GL_UNSIGNED_SHORT, indices);
+            trapezoidIndex = 0;
+            break;
+        }
     }
     std::cout << std::endl;
 
-    // Set attribute buffers.
-    intValue = glGetAttribLocation(fillPathShader, "a_position");
-    glEnableVertexAttribArray(intValue);
-    glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, strideLength, attributes);
+    if (trapezoidIndex) {
+        // Call the drawing command.
+        // TODO: Generate local the indices buffer, and use that:
+        glDrawElements(GL_TRIANGLES, 6 * trapezoidCount, GL_UNSIGNED_SHORT, indices);
+    }
 
-    intValue = glGetAttribLocation(fillPathShader, "a_x1x2Cdx1dx2");
-    glEnableVertexAttribArray(intValue);
-    glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, strideLength, attributes + 4);
-
-    intValue = glGetUniformLocation(fillPathShader, "u_viewportSize");
-    glUniform2f(intValue, 512.0f, 512.0f);
-
-    // Call the drawing command.
-    // TODO: Generate local the indices buffer, and use that:
-    glDrawElements(GL_TRIANGLES, 6 * trapezoidCount, GL_UNSIGNED_SHORT, indicies);
-
+    // Copy alpha texture to the display.
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     static GLuint copyPathShader = 0;
@@ -551,9 +398,9 @@ void Path::fillPath()
 
     glUseProgram(copyPathShader);
 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(0.0, 0.0, 0.0, 0.0);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     static GLfloat textureCoords[] = { 0, 512, 0, 1,
                                        0, 0, 0, 0,
@@ -568,19 +415,19 @@ void Path::fillPath()
     glBindTexture(GL_TEXTURE_2D, pathTexture);
 
     intValue = glGetUniformLocation(copyPathShader, "u_color");
-    glUniform4f(intValue, 0.0f, 0.0f, 1.0f, 0.0f);
+    glUniform4f(intValue, 0.0f, 0.4f, 0.7f, 0.0f);
 
-    static GLushort textinds[] = { 0, 1, 2, 3 };
-    glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, textinds);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     eglSwapBuffers(_surface->eglDisplay(), _surface->eglSurface());
+
+    // TODO: Remove this line. (only testing)
     printf("glGetError: %d\n", glGetError());
 
     // TODO: use global constants and global buffers
     free(attributes);
-    free(indicies);
+    free(indices);
 }
-#endif
 
 std::ostream& operator<<(std::ostream& os, const PathElement& ps)
 {
@@ -945,7 +792,7 @@ SegmentList* SegmentApproximator::segments()
                 if (y != NAN && y != INFINITY) {
                     _segments.emplace(floor(y), new SegmentList());
                     if (floor(y) != y)
-                        _segments.emplace(floor(y + 1.0), new SegmentList());
+                        _segments.emplace(floor(y) + 1, new SegmentList());
                 }
             } else {
                 segment = ++currentSegment;
@@ -955,7 +802,6 @@ SegmentList* SegmentApproximator::segments()
 
     // 3. Split segments with all y lines.
     splitSegments();
-printSegements();
 
     // 4. Merge and sort all segment list.
     SegmentList* segments = new SegmentList();
@@ -965,24 +811,22 @@ printSegements();
         segments->merge(*currentList);
     }
 
-    // 4.b.
+    // 5. Fix intersection pairs.
     for (SegmentList::iterator segment = segments->begin(); segment != segments->end(); ++segment) {
         ASSERT(segment->to.y - segment->from.y >= 1);
-        if (segment->to.y - segment->from.y <= 1) {
-            for (SegmentList::iterator furtherSegment = segment; (furtherSegment != segments->end()) && (segment->from.y == furtherSegment->from.y) ; ++furtherSegment) {
-                ASSERT(segment->to.y == furtherSegment->to.y);
-                if (furtherSegment->from.x < segment->from.x) {
-                    furtherSegment->from.x = segment->from.x;
-                    ASSERT(furtherSegment->to.x >= segment->to.x);
-                }
-                if (furtherSegment->to.x < segment->to.x) {
-                    furtherSegment->to.x = segment->to.x;
-                }
+        for (SegmentList::iterator furtherSegment = segment; (furtherSegment != segments->end()) && (segment->from.y == furtherSegment->from.y) ; ++furtherSegment) {
+            ASSERT(segment->to.y == furtherSegment->to.y);
+            if (furtherSegment->from.x < segment->from.x) {
+                furtherSegment->from.x = segment->from.x;
+                ASSERT(furtherSegment->to.x >= segment->to.x);
+            }
+            if (furtherSegment->to.x < segment->to.x) {
+                furtherSegment->to.x = segment->to.x;
             }
         }
     }
 
-    // 5. Return independent segments.
+    // 6. Return independent segments.
     return segments;
 }
 

@@ -42,8 +42,7 @@ constexpr double precisionOfFloat = 1000 * 1000 * 1000;
 //constexpr float precisionOfFloat = 100 * 1000;
 //#endif
 
-//inline Float fixPrecision(Float f) { return floor(f * precisionOfFloat) / precisionOfFloat; }
-inline Float fixPrecision(Float f) { return f; }
+inline Float fixPrecision(Float f) { return floor(f * precisionOfFloat) / precisionOfFloat; }
 
 /* Region */
 
@@ -93,8 +92,7 @@ struct FloatPoint {
 
 inline std::ostream& operator<<(std::ostream& os, const FloatPoint& p)
 {
-//    return os << p.x << "," << p.y;
-    return os << p.x << " " << p.y;
+    return os << p.x << "," << p.y;
 }
 
 inline bool operator==(const FloatPoint& a, const FloatPoint& b)
@@ -127,9 +125,6 @@ inline FloatPoint operator/(const FloatPoint& fp, const Float& f)
     ASSERT(f);
     return FloatPoint(fp.x / f, fp.y / f);
 }
-
-//inline FloatPoint fixIt(const FloatPoint fp) { return FloatPoint(floor(fp.x * precisionOfFloat) / precisionOfFloat, floor(fp.y * precisionOfFloat) / precisionOfFloat); }
-inline FloatPoint fixIt(const FloatPoint fp) { return fp; }
 
 /* IntPoint */
 

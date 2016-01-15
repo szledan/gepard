@@ -56,7 +56,7 @@ struct PathElement {
     PathElement(PathElementType type, FloatPoint to)
         : next(nullptr)
         , type(type)
-        , to(fixIt(to))
+        , to(to)
     {}
 
     bool isMoveTo() const { return this->type == PathElementTypes::MoveTo; }
@@ -92,7 +92,7 @@ struct CloseSubpathElement : public PathElement {
 struct QuadraticCurveToElement : public PathElement {
     QuadraticCurveToElement(FloatPoint control, FloatPoint to)
         : PathElement(PathElementTypes::QuadraticCurve, to)
-        , control(fixIt(control))
+        , control(control)
     {}
 
     std::ostream& output(std::ostream& os) const
@@ -106,8 +106,8 @@ struct QuadraticCurveToElement : public PathElement {
 struct BezierCurveToElement : public PathElement {
     BezierCurveToElement(FloatPoint control1, FloatPoint control2, FloatPoint to)
         : PathElement(PathElementTypes::BezierCurve, to)
-        , control1(fixIt(control1))
-        , control2(fixIt(control2))
+        , control1(control1)
+        , control2(control2)
     {}
 
     std::ostream& output(std::ostream& os) const
@@ -266,8 +266,7 @@ struct Segment {
 
 inline std::ostream& operator<<(std::ostream& os, const Segment& s)
 {
-//    return os << s.from << ((s.direction < 0) ? "<" : ((s.direction > 0) ? ">" : "=")) << s.to;
-    return os << s.from << ((s.direction < 0) ? " " : ((s.direction > 0) ? " " : " ")) << s.to;
+    return os << s.from << ((s.direction < 0) ? "<" : ((s.direction > 0) ? ">" : "=")) << s.to;
 }
 
 inline bool operator<(const Segment& lhs, const Segment& rhs)
@@ -346,8 +345,7 @@ struct Trapezoid {
 
 inline std::ostream& operator<<(std::ostream& os, const Trapezoid& t)
 {
-//    return os << t.bottomY << "," << t.bottomLeftX << "," << t.bottomRightX << "," << t.topY << "," << t.topLeftX << "," << t.topRightX;
-    return os << t.bottomY << " " << t.bottomLeftX << " "<< t.topY << " " << t.topLeftX << std::endl << t.bottomY << " " << t.bottomRightX << " " << t.topY << " " << t.topRightX;
+    return os << t.bottomY << "," << t.bottomLeftX << "," << t.bottomRightX << "," << t.topY << "," << t.topLeftX << "," << t.topRightX;
 }
 
 /* TrapezoidList */

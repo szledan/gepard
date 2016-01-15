@@ -81,7 +81,7 @@ public:
 
         const EGLint contextAttribs[] = {
             // Identify OpenGL 2 ES context
-            EGL_CONTEXT_CLIENT_VERSION, 3,
+            EGL_CONTEXT_CLIENT_VERSION, 2,
             EGL_NONE,
         };
 
