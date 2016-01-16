@@ -71,6 +71,11 @@ struct PathElement {
     FloatPoint to;
 };
 
+inline std::ostream& operator<<(std::ostream& os, const PathElement& ps)
+{
+    return ps.output(os);
+}
+
 struct MoveToElement : public PathElement {
     MoveToElement(FloatPoint to) : PathElement(PathElementTypes::MoveTo, to) {}
 

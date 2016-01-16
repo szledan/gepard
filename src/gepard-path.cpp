@@ -36,80 +36,7 @@
 
 namespace gepard {
 
-static void compileShaderProg(GLuint* result, const GLchar *vertexShaderSource, const GLchar *fragmentShaderSource)
-{
-    GLuint shaderProgram = 0;
-    GLuint vertexShader = 0;
-    GLuint fragmentShader = 0;
-    GLint intValue;
-    GLchar *log = NULL;
-    GLsizei length;
-
-    if (*result)
-        return;
-
-    // Shader programs are zero terminated.
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &intValue);
-    if (intValue != GL_TRUE) {
-        glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &intValue);
-        log = (GLchar*)malloc(intValue);
-        glGetShaderInfoLog(vertexShader, intValue, &length, log);
-        printf("Vertex shader compilation failed with: %s\n", log);
-        goto error;
-    }
-
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &intValue);
-    if (intValue != GL_TRUE) {
-        glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &intValue);
-        log = (GLchar*)malloc(intValue);
-        glGetShaderInfoLog(fragmentShader, intValue, &length, log);
-        printf("Fragment shader compilation failed with: %s\n", log);
-        goto error;
-    }
-
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &intValue);
-    if (intValue != GL_TRUE) {
-        GLchar *log;
-        GLsizei length = -13;
-        glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &intValue);
-        log = (GLchar*)malloc(intValue);
-        glGetProgramInfoLog(fragmentShader, intValue, &length, log);
-        printf("Shader program link failed with: %s\n", log);
-        goto error;
-    }
-
-    // According to the specification, the shaders are kept
-    // around until the program object is freed (reference counted).
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    *result = shaderProgram;
-    return;
-
-error:
-    printf("Warning: Shader program cannot be compiled!\n");
-    if (log)
-        free(log);
-    if (vertexShader)
-        glDeleteShader(vertexShader);
-    if (fragmentShader)
-        glDeleteShader(fragmentShader);
-    if (shaderProgram)
-        glDeleteProgram(shaderProgram);
-}
+/* Fill path shaders */
 
 #define ANTIALIAS_LEVEL 16
 
@@ -200,6 +127,112 @@ const GLchar* fillPathFragmentShader = PROGRAM(
     }
 );
 
+/* Copy texture shaders */
+
+const GLchar* copyPathVertexShader = PROGRAM(
+    precision highp float;
+
+    attribute vec4 a_position;
+
+    varying vec2 v_texturePosition;
+
+    void main()
+    {
+        v_texturePosition = a_position.zw;
+        gl_Position = vec4((2.0 * a_position.xy / 512.0) - 1.0, 0.0, 1.0);
+    }
+);
+
+const GLchar* copyPathFragmentShader = PROGRAM(
+    precision highp float;
+
+    uniform sampler2D u_texture;
+    uniform vec4 u_color;
+    varying vec2 v_texturePosition;
+
+    void main()
+    {
+        gl_FragColor = vec4(u_color.rgb, texture2D(u_texture, v_texturePosition).a);
+    }
+);
+
+/* Sheder helper functions */
+
+static void compileShaderProg(GLuint* result, const GLchar *vertexShaderSource, const GLchar *fragmentShaderSource)
+{
+    GLuint shaderProgram = 0;
+    GLuint vertexShader = 0;
+    GLuint fragmentShader = 0;
+    GLint intValue;
+    GLchar *log = NULL;
+    GLsizei length;
+
+    if (*result)
+        return;
+
+    // Shader programs are zero terminated.
+    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
+
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &intValue);
+    if (intValue != GL_TRUE) {
+        glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &intValue);
+        log = (GLchar*)malloc(intValue);
+        glGetShaderInfoLog(vertexShader, intValue, &length, log);
+        printf("Vertex shader compilation failed with: %s\n", log);
+        goto error;
+    }
+
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &intValue);
+    if (intValue != GL_TRUE) {
+        glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &intValue);
+        log = (GLchar*)malloc(intValue);
+        glGetShaderInfoLog(fragmentShader, intValue, &length, log);
+        printf("Fragment shader compilation failed with: %s\n", log);
+        goto error;
+    }
+
+    shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &intValue);
+    if (intValue != GL_TRUE) {
+        GLchar *log;
+        GLsizei length = -13;
+        glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &intValue);
+        log = (GLchar*)malloc(intValue);
+        glGetProgramInfoLog(fragmentShader, intValue, &length, log);
+        printf("Shader program link failed with: %s\n", log);
+        goto error;
+    }
+
+    // According to the specification, the shaders are kept
+    // around until the program object is freed (reference counted).
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    *result = shaderProgram;
+    return;
+
+error:
+    printf("Warning: Shader program cannot be compiled!\n");
+    if (log)
+        free(log);
+    if (vertexShader)
+        glDeleteShader(vertexShader);
+    if (fragmentShader)
+        glDeleteShader(fragmentShader);
+    if (shaderProgram)
+        glDeleteProgram(shaderProgram);
+}
+
 static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes, int antiAliasingLevel)
 {
     GLfloat slopeLeft = (trapezoid.topLeftX - trapezoid.bottomLeftX) / (trapezoid.topY - trapezoid.bottomY);
@@ -260,32 +293,7 @@ static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes, int antiA
     }
 }
 
-const GLchar* copyPathVertexShader = PROGRAM(
-    precision highp float;
-
-    attribute vec4 a_position;
-
-    varying vec2 v_texturePosition;
-
-    void main()
-    {
-        v_texturePosition = a_position.zw;
-        gl_Position = vec4((2.0 * a_position.xy / 512.0) - 1.0, 0.0, 1.0);
-    }
-);
-
-const GLchar* copyPathFragmentShader = PROGRAM(
-    precision highp float;
-
-    uniform sampler2D u_texture;
-    uniform vec4 u_color;
-    varying vec2 v_texturePosition;
-
-    void main()
-    {
-        gl_FragColor = vec4(u_color.rgb, texture2D(u_texture, v_texturePosition).a);
-    }
-);
+/* Path */
 
 static inline int min(int l, int r) { return r < l ? r : l; }
 
@@ -407,22 +415,26 @@ void Path::fillPath()
     }
 
     // 3. Copy alpha texture to the display.
+    // 3.a Bind primary (display) framebuffer.
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    // 3.b Set blend mode.
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // 3.c Set clear color.
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+
+    // 3.d Compile and use shader programs.
     static GLuint copyPathShader = 0;
     compileShaderProg(&copyPathShader, copyPathVertexShader, copyPathFragmentShader);
 
     glUseProgram(copyPathShader);
 
-    glClear(GL_COLOR_BUFFER_BIT);
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // 3.e Set attribute buffers.
+    // TODO: use viewport size:
+    static GLfloat textureCoords[] = { 0, 512, 0, 1, 0, 0, 0, 0, 512, 512, 1, 1, 512, 0, 1, 0 };
 
-    static GLfloat textureCoords[] = { 0, 512, 0, 1,
-                                       0, 0, 0, 0,
-                                       512, 512, 1, 1,
-                                       512, 0, 1, 0 };
-    // Set attribute buffers.
     intValue = glGetAttribLocation(copyPathShader, "a_position");
     glEnableVertexAttribArray(intValue);
     glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, 0, textureCoords);
@@ -430,23 +442,20 @@ void Path::fillPath()
     intValue = glGetUniformLocation(copyPathShader, "u_texture");
     glBindTexture(GL_TEXTURE_2D, pathTexture);
 
+    // 3.f Set color of path.
     intValue = glGetUniformLocation(copyPathShader, "u_color");
     glUniform4f(intValue, 0.0f, 0.4f, 0.7f, 0.0f);
 
+    // 3.g Copy path to display.
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+    // 4. Drawing is ready. Swap buffers.
     eglSwapBuffers(_surface->eglDisplay(), _surface->eglSurface());
 
     // TODO: Remove this line. (only testing)
     printf("glGetError: %d\n", glGetError());
 
-    // TODO: use global constants and global buffers
     free(attributes);
-}
-
-std::ostream& operator<<(std::ostream& os, const PathElement& ps)
-{
-    return ps.output(os);
 }
 
 void PathData::addMoveToElement(FloatPoint to)
