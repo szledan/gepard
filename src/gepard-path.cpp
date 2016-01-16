@@ -301,6 +301,7 @@ void Path::fillPath()
     // 1. Tessellating the path.
     TrapezoidTessellator tt(this, TrapezoidTessellator::FillRule::NonZero, ANTIALIAS_LEVEL);
     TrapezoidList trapezoidList = tt.trapezoidList();
+    const int trapezoidCount = trapezoidList.size();
 
     // 2. Using OpenGL ES 2.0 spec. to drawing.
     static const int s_kMaximumNumberOfAttributes = 65536;
@@ -336,16 +337,13 @@ void Path::fillPath()
         free(quadIndexes);
     }
 
+    // 2.b Allocate a buffer for shader attributes.
     GLfloat* attributes = reinterpret_cast<GLfloat*>(malloc(s_kMaximumNumberOfAttributes * sizeof(GLfloat)));
 
-    // Draw path.
-    const int trapezoidCount = trapezoidList.size();
-    static GLuint fillPathShader = 0;
-    GLint intValue;
+    // 2.c Bind alpha texture for the path.
     GLuint pathTexture;
     GLuint fbo;
 
-    glActiveTexture(GL_TEXTURE0);
     glGenTextures(1, &pathTexture);
     glBindTexture(GL_TEXTURE_2D, pathTexture);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -358,18 +356,23 @@ void Path::fillPath()
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pathTexture, 0);
 
-    // Compile shader programs.
-    compileShaderProg(&fillPathShader, fillPathVertexShader, fillPathFragmentShader);
-
+    // 2.d Enable and set blend mode.
     glEnable(GL_BLEND);
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glUseProgram(fillPathShader);
     glBlendFunc(GL_ONE, GL_ONE);
 
-    const int strideLength = 8 * sizeof(GLfloat);
+    // 2.e Set clear color.
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
 
-    // Set attribute buffers.
+    // 2.f Compile and use shader programs.
+    static GLuint fillPathShader = 0;
+    compileShaderProg(&fillPathShader, fillPathVertexShader, fillPathFragmentShader);
+    glUseProgram(fillPathShader);
+
+    // 2.g Set attribute buffers.
+    const int strideLength = 8 * sizeof(GLfloat);
+    GLint intValue;
+
     intValue = glGetAttribLocation(fillPathShader, "a_position");
     glEnableVertexAttribArray(intValue);
     glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, strideLength, attributes);
@@ -381,6 +384,7 @@ void Path::fillPath()
     intValue = glGetUniformLocation(fillPathShader, "u_viewportSize");
     glUniform2f(intValue, 512.0f, 512.0f);
 
+    // 2.h Draw trapezoids.
     std::cout << "Trapezoids (" << trapezoidList.size() << "): ";
     int trapezoidIndex = 0;
     for (Trapezoid trapezoid : trapezoidList) {
@@ -402,7 +406,7 @@ void Path::fillPath()
         glDrawElements(GL_TRIANGLES, 6 * trapezoidCount, GL_UNSIGNED_SHORT, nullptr);
     }
 
-    // Copy alpha texture to the display.
+    // 3. Copy alpha texture to the display.
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     static GLuint copyPathShader = 0;
