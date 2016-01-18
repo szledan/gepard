@@ -309,7 +309,6 @@ void Path::fillPath()
     // 1. Tessellating the path.
     TrapezoidTessellator tt(this, TrapezoidTessellator::FillRule::NonZero, ANTIALIAS_LEVEL);
     TrapezoidList trapezoidList = tt.trapezoidList();
-    const int trapezoidCount = trapezoidList.size();
 
     // 2. Using OpenGL ES 2.0 spec. to drawing.
     static const int s_kMaximumNumberOfAttributes = 65536;
@@ -411,7 +410,7 @@ void Path::fillPath()
     std::cout << std::endl;
 
     if (trapezoidIndex) {
-        glDrawElements(GL_TRIANGLES, 6 * trapezoidCount, GL_UNSIGNED_SHORT, nullptr);
+        glDrawElements(GL_TRIANGLES, 6 * trapezoidIndex, GL_UNSIGNED_SHORT, nullptr);
     }
 
     // 3. Copy alpha texture to the display.
