@@ -401,6 +401,9 @@ void Path::fillPath()
         ASSERT(trapezoid.bottomLeftX <= trapezoid.bottomRightX);
         ASSERT(trapezoid.topLeftX <= trapezoid.topRightX);
 
+        if (!trapezoid.leftId || !trapezoid.rightId)
+            continue;
+
         setupAttributes(trapezoid, attributes + trapezoidIndex * 32, tt.antiAliasingLevel());
         trapezoidIndex++;
         if (trapezoidIndex >= min(s_kMaximumNumberOfUshortQuads, s_kMaximumNumberOfAttributes / 32)) {
@@ -408,7 +411,6 @@ void Path::fillPath()
             trapezoidIndex = 0;
         }
     }
-    std::cout << std::endl;
 
     if (trapezoidIndex) {
         glDrawElements(GL_TRIANGLES, 6 * trapezoidIndex, GL_UNSIGNED_SHORT, nullptr);
@@ -433,7 +435,12 @@ void Path::fillPath()
 
     // 3.e Set attribute buffers.
     // TODO: use viewport size:
-    static GLfloat textureCoords[] = { 0, 512, 0, 1, 0, 0, 0, 0, 512, 512, 1, 1, 512, 0, 1, 0 };
+    static GLfloat textureCoords[] = {
+        0, 512, 0, 0,
+        0, 0, 0, 1,
+        512, 512, 1, 0,
+        512, 0, 1, 1
+    };
 
     intValue = glGetAttribLocation(copyPathShader, "a_position");
     glEnableVertexAttribArray(intValue);
@@ -925,7 +932,7 @@ TrapezoidList TrapezoidTessellator::trapezoidList()
 
     // 2. Use approximator to generate the list of segments.
     SegmentList* segmentList = segmentApproximator.segments();
-    TrapezoidList trapezoidList;
+    TrapezoidList trapezoids;
 
     const Float denom = _antiAliasingLevel * 1 + 0;
     if (segmentList) {
@@ -934,7 +941,7 @@ TrapezoidList TrapezoidTessellator::trapezoidList()
         int fill = 0;
         bool isInFill = false;
         // TODO: ASSERTs for wrong segments.
-        for (auto segment : *segmentList) {
+        for (Segment& segment : *segmentList) {
             if (segment.from.y == segment.to.y)
                 continue;
             if (fillRule() == EvenOdd) {
@@ -949,14 +956,18 @@ TrapezoidList TrapezoidTessellator::trapezoidList()
                     trapezoid.topY = (fixPrecision(segment.bottomY() / denom));
                     trapezoid.bottomLeftX = (fixPrecision(segment.from.x) / denom);
                     trapezoid.topLeftX = (fixPrecision(segment.to.x) / denom);
+                    trapezoid.leftId = segment.id;
+                    trapezoid.leftSlope = segment.slopeInv;
                     if (trapezoid.bottomY != trapezoid.topY)
                         isInFill = true;
                 }
             } else {
                 trapezoid.bottomRightX = (fixPrecision(segment.from.x) / denom);
                 trapezoid.topRightX = (fixPrecision(segment.to.x) / denom);
+                trapezoid.rightId = segment.id;
+                trapezoid.rightSlope = segment.slopeInv;
                 if (trapezoid.bottomY != trapezoid.topY) {
-                    trapezoidList.push_front(trapezoid);
+                    trapezoids.push_back(trapezoid);
                 }
                 isInFill = false;
             }
@@ -971,6 +982,33 @@ TrapezoidList TrapezoidTessellator::trapezoidList()
         _boundingBox.minY = (fixPrecision(segmentApproximator.boundingBox().minY) / _antiAliasingLevel);
         _boundingBox.maxX = (fixPrecision(segmentApproximator.boundingBox().maxX) / _antiAliasingLevel);
         _boundingBox.maxY = (fixPrecision(segmentApproximator.boundingBox().maxY) / _antiAliasingLevel);
+    }
+
+    trapezoids.sort();
+
+    // TODO: use MovePtr:
+    TrapezoidList trapezoidList;
+    for (TrapezoidList::iterator current = trapezoids.begin(); current != trapezoids.end(); ++current) {
+        const Float topY = current->topY;
+        TrapezoidList::iterator ft = current;
+        for (; (ft != trapezoids.end() && ft->topY == topY); ++ft);
+
+        ASSERT(current->leftId != 0 && current->rightId != 0);
+        ASSERT(current->leftSlope != NAN && current->rightSlope != NAN);
+        for (TrapezoidList::iterator further = current; (further != trapezoids.end() && further->bottomY <= topY); ++further) {
+            ASSERT(further->leftId != 0 && further->rightId != 0);
+            ASSERT(further->leftSlope != NAN && further->rightSlope != NAN);
+            if (further->bottomY == current->topY && current->isMergableInTo(&*further)) {
+                further->bottomY = current->bottomY;
+                further->bottomLeftX = current->bottomLeftX;
+                further->bottomRightX = current->bottomRightX;
+                current->leftId = 0;
+                current->rightId = 0;
+                break;
+            }
+        }
+        if (current->leftId)
+            trapezoidList.push_back(*current);
     }
 
     return trapezoidList;

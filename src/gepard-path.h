@@ -190,6 +190,7 @@ private:
 };
 
 /* Segment */
+static unsigned s_segmentIds = 0;
 
 struct Segment {
     enum {
@@ -198,9 +199,10 @@ struct Segment {
         Positive = 1,
     };
 
-    Segment(FloatPoint from, FloatPoint to)
+    Segment(FloatPoint from, FloatPoint to, unsigned sameId = 0)
         : from(from)
         , to(to)
+        , id((sameId) ? sameId : ++s_segmentIds)
     {
         Float denom = this->to.y - this->from.y;
         if (denom) {
@@ -243,7 +245,8 @@ struct Segment {
 
         ASSERT(this->from.y != newPoint.y);
         ASSERT(newPoint.y != to.y);
-        return Segment(newPoint, to);
+
+        return Segment(newPoint, to, this->id);
     }
     Float computeIntersectionY(Segment* segment) const
     {
@@ -265,6 +268,8 @@ struct Segment {
 
     FloatPoint from;
     FloatPoint to;
+    Float id;
+
     Float slopeInv;
     int direction;
 };
@@ -340,17 +345,66 @@ private:
 /* Trapezoid */
 
 struct Trapezoid {
+    bool isMergableInTo(const Trapezoid* other) const
+    {
+        ASSERT(this->topY == other->bottomY);
+
+        if (this->topLeftX == other->bottomLeftX && this->topRightX == other->bottomRightX) {
+            if (this->leftId == other->leftId && this->rightId == other->rightId)
+                return true;
+
+            if (this->leftSlope == other->leftSlope && this->rightSlope == other->rightSlope)
+                return true;
+        }
+
+        return false;
+    }
+
     Float bottomY;
     Float bottomLeftX;
     Float bottomRightX;
     Float topY;
     Float topLeftX;
     Float topRightX;
+
+    unsigned leftId;
+    unsigned rightId;
+    Float leftSlope;
+    Float rightSlope;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Trapezoid& t)
 {
     return os << t.bottomY << "," << t.bottomLeftX << "," << t.bottomRightX << "," << t.topY << "," << t.topLeftX << "," << t.topRightX;
+}
+
+inline bool operator<(const Trapezoid& lhs, const Trapezoid& rhs)
+{
+    if (lhs.bottomY < rhs.bottomY)
+        return true;
+
+    if (lhs.bottomY == rhs.bottomY) {
+        if (lhs.bottomLeftX < rhs.bottomLeftX)
+            return true;
+
+        if (lhs.bottomLeftX == rhs.bottomLeftX) {
+            if (lhs.topLeftX < rhs.topLeftX)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+inline bool operator==(const Trapezoid& lhs, const Trapezoid& rhs)
+{
+    return lhs.bottomY == rhs.bottomY && lhs.bottomLeftX == rhs.bottomLeftX && lhs.bottomRightX == rhs.bottomRightX
+           && lhs.topY == rhs.topY && lhs.topLeftX == rhs.topLeftX &&  lhs.topRightX == rhs.topRightX;
+}
+
+inline bool operator<=(const Trapezoid& lhs, const Trapezoid& rhs)
+{
+    return lhs < rhs || lhs == rhs;
 }
 
 /* TrapezoidList */

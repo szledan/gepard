@@ -88,57 +88,145 @@ int main()
     gepardContext.moveTo(70, 110);
     gepardContext.lineTo(71, 111);
     gepardContext.lineTo(71, 110);
+
+    //
+    gepardContext.moveTo(30, 120); /* ccw */
+    gepardContext.lineTo(30, 150);
+    gepardContext.lineTo(90, 150);
+    gepardContext.lineTo(90, 120);
+    gepardContext.moveTo(60, 130); /* ccw */
+    gepardContext.lineTo(60, 160);
+    gepardContext.lineTo(120, 160);
+    gepardContext.lineTo(120, 130);
+
+    //
+    gepardContext.moveTo(130, 120); /* ccw */
+    gepardContext.lineTo(130, 150);
+    gepardContext.lineTo(190, 150);
+    gepardContext.lineTo(190, 120);
+    gepardContext.moveTo(160, 130); /* cw */
+    gepardContext.lineTo(220, 130);
+    gepardContext.lineTo(220, 160);
+    gepardContext.lineTo(160, 160);
+
+    //
+    gepardContext.moveTo(30, 170); /* ccw */
+    gepardContext.lineTo(30, 210);
+    gepardContext.lineTo(75, 210);
+    gepardContext.lineTo(75, 170);
+    gepardContext.moveTo(75, 170); /* ccw */
+    gepardContext.lineTo(75, 190);
+    gepardContext.lineTo(120, 190);
+    gepardContext.lineTo(120, 170);
+    gepardContext.moveTo(75, 190); /* cw */
+    gepardContext.lineTo(120, 190);
+    gepardContext.lineTo(120, 210);
+    gepardContext.lineTo(75, 210);
+
+    //
+    gepardContext.moveTo(130, 170); /* ccw */
+    gepardContext.lineTo(130, 210);
+    gepardContext.lineTo(190, 210);
+    gepardContext.lineTo(190, 170);
+    gepardContext.moveTo(170, 170); /* ccw */
+    gepardContext.lineTo(170, 190);
+    gepardContext.lineTo(220, 190);
+    gepardContext.lineTo(220, 170);
+    gepardContext.moveTo(170, 190); /* cw */
+    gepardContext.lineTo(220, 190);
+    gepardContext.lineTo(220, 210);
+    gepardContext.lineTo(170, 210);
+
+    //
+    gepardContext.moveTo(30, 220); /* ccw */
+    gepardContext.lineTo(30, 240);
+    gepardContext.lineTo(120, 240);
+    gepardContext.lineTo(120, 220);
+    gepardContext.moveTo(30, 240); /* cw */
+    gepardContext.lineTo(120, 240);
+    gepardContext.lineTo(120, 260);
+    gepardContext.lineTo(30, 260);
+
+    //
+    gepardContext.moveTo(130, 220); /* ccw */
+    gepardContext.lineTo(130, 240);
+    gepardContext.lineTo(220, 240);
+    gepardContext.lineTo(220, 220);
+    gepardContext.moveTo(130, 240); /* ccw */
+    gepardContext.lineTo(130, 260);
+    gepardContext.lineTo(220, 260);
+    gepardContext.lineTo(220, 240);
+
+    //
+    gepardContext.moveTo(30, 270); /* ccw */
+    gepardContext.lineTo(30, 310);
+    gepardContext.lineTo(120, 310);
+    gepardContext.lineTo(120, 270);
+    gepardContext.moveTo(70, 280); /* ccw */
+    gepardContext.lineTo(70, 300);
+    gepardContext.lineTo(100, 300);
+    gepardContext.lineTo(100, 280);
+
+    //
+    gepardContext.moveTo(130, 270); /* ccw */
+    gepardContext.lineTo(130, 310);
+    gepardContext.lineTo(220, 310);
+    gepardContext.lineTo(220, 270);
+    gepardContext.moveTo(170, 280); /* cw */
+    gepardContext.lineTo(200, 280);
+    gepardContext.lineTo(200, 300);
+    gepardContext.lineTo(170, 300);
 #elif 1
     // The shape of "Erdély" with old hungarian's alphabet.
     // "E"
-    gepardContext.moveTo(287.0, 311.0);
-    gepardContext.bezierCurveTo(349.0, 379.0, 347.0, 398.0, 286.0, 463.0);
-    gepardContext.lineTo(301.0, 474.0);
-    gepardContext.bezierCurveTo(369.0, 404.0, 369.0, 370.0, 300.0, 300.0);
-    gepardContext.moveTo(309.0, 413.0);
-    gepardContext.lineTo(294.0, 429.0);
-    gepardContext.lineTo(335.0, 466.0);
-    gepardContext.lineTo(350.0, 451.0);
-    gepardContext.moveTo(335.0, 308.0);
-    gepardContext.lineTo(292.0, 341.0);
-    gepardContext.lineTo(304.0, 357.0);
-    gepardContext.lineTo(347.0, 323.0);
+    gepardContext.moveTo(358.0, 278.0);
+    gepardContext.bezierCurveTo(419.0, 211.0, 417.0, 192.0, 358.0, 127.0);
+    gepardContext.lineTo(372.0, 116.0);
+    gepardContext.bezierCurveTo(440.0, 186.0, 440.0, 220.0, 371.0, 289.0);
+    gepardContext.moveTo(380.0, 175.0);
+    gepardContext.lineTo(366.0, 160.0);
+    gepardContext.lineTo(406.0, 123.0);
+    gepardContext.lineTo(420.0, 138.0);
+    gepardContext.moveTo(406.0, 281.0);
+    gepardContext.lineTo(364.0, 248.0);
+    gepardContext.lineTo(376.0, 233.0);
+    gepardContext.lineTo(418.0, 266.0);
 
     // "RD"
-    gepardContext.moveTo(262.0, 307.0);
-    gepardContext.lineTo(241.0, 308.0);
-    gepardContext.lineTo(242.0, 469.0);
-    gepardContext.lineTo(263.0, 469.0);
-    gepardContext.moveTo(183.0, 307.0);
-    gepardContext.lineTo(162.0, 307.0);
-    gepardContext.lineTo(165.0, 469.0);
-    gepardContext.lineTo(186.0, 469.0);
-    gepardContext.moveTo(140.0, 344.0);
-    gepardContext.lineTo(128.0, 361.0);
-    gepardContext.lineTo(245.0, 439.0);
-    gepardContext.lineTo(256.0, 421.0);
+    gepardContext.moveTo(330.0, 282.0);
+    gepardContext.lineTo(310.0, 282.0);
+    gepardContext.lineTo(313.0, 121.0);
+    gepardContext.lineTo(333.0, 121.0);
+    gepardContext.moveTo(254.0, 282.0);
+    gepardContext.lineTo(234.0, 282.0);
+    gepardContext.lineTo(236.0, 121.0);
+    gepardContext.lineTo(256.0, 121.0);
+    gepardContext.moveTo(211.0, 245.0);
+    gepardContext.lineTo(199.0, 228.0);
+    gepardContext.lineTo(316.0, 150.0);
+    gepardContext.lineTo(327.0, 167.0);
 
     // "ÉLY"
-    gepardContext.moveTo(41.0, 342.0);
-    gepardContext.lineTo(24.0, 354.0);
-    gepardContext.lineTo(54.0, 396.0);
-    gepardContext.lineTo(71.0, 383.0);
-    gepardContext.moveTo(103.0, 431.0);
-    gepardContext.lineTo(88.0, 446.0);
-    gepardContext.lineTo(114.0, 470.0);
-    gepardContext.lineTo(128.0, 455.0);
-    gepardContext.moveTo(116.0, 309.0);
-    gepardContext.lineTo(87.0, 332.0);
-    gepardContext.lineTo(99.0, 348.0);
-    gepardContext.lineTo(129.0, 326.0);
-    gepardContext.moveTo(55.0, 311.0);
-    gepardContext.bezierCurveTo(116.0, 379.0, 115.0, 398.0, 54.0, 463.0);
-    gepardContext.lineTo(68.0, 474.0);
-    gepardContext.bezierCurveTo(137.0, 404.0, 137.0, 370.0, 67.0, 300.0);
-    gepardContext.moveTo(70.0, 464.0);
-    gepardContext.bezierCurveTo(9.0, 399.0, 8.0, 380.0, 69.0, 311.0);
-    gepardContext.lineTo(57.0, 301.0);
-    gepardContext.bezierCurveTo(-11.0, 370.0, -11.0, 405.0, 56.0, 475.0);
+    gepardContext.moveTo(112.0, 247.0);
+    gepardContext.lineTo(96.0, 235.0);
+    gepardContext.lineTo(126.0, 194.0);
+    gepardContext.lineTo(142.0, 206.0);
+    gepardContext.moveTo(174.0, 158.0);
+    gepardContext.lineTo(160.0, 143.0);
+    gepardContext.lineTo(185.0, 119.0);
+    gepardContext.lineTo(199.0, 134.0);
+    gepardContext.moveTo(187.0, 279.0);
+    gepardContext.lineTo(158.0, 257.0);
+    gepardContext.lineTo(170.0, 241.0);
+    gepardContext.lineTo(200.0, 263.0);
+    gepardContext.moveTo(126.0, 277.0);
+    gepardContext.bezierCurveTo(187.0, 210.0, 185.0, 191.0, 126.0, 126.0);
+    gepardContext.lineTo(140.0, 115.0);
+    gepardContext.bezierCurveTo(208.0, 185.0, 208.0, 219.0, 139.0, 288.0);
+    gepardContext.moveTo(128.0, 287.0);
+    gepardContext.bezierCurveTo(59.0, 218.0, 59.0, 184.0, 127.0, 114.0);
+    gepardContext.lineTo(141.0, 125.0);
+    gepardContext.bezierCurveTo(80.0, 190.0, 79.0, 209.0, 140.0, 277.0);
 #elif 1
     // An ugly test.
     gepardContext.moveTo(256, 256);
