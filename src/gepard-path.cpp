@@ -33,6 +33,7 @@
 #include <map>
 #include <math.h>
 #include <memory>
+#include <set>
 
 namespace gepard {
 
@@ -806,21 +807,29 @@ SegmentList* SegmentApproximator::segments()
     splitSegments();
 
     // 2. Find all intersection points.
+    std::set<int> ys;
     for (auto& currentSegments : _segments) {
         SegmentList* currentList = currentSegments.second;
+        currentList->sort();
         SegmentList::iterator currentSegment = currentList->begin();
         for (SegmentList::iterator segment = currentSegment; currentSegment != currentList->end(); ++segment) {
             if (segment != currentList->end()) {
                 const Float y = currentSegment->computeIntersectionY(&(*segment));
                 if (y != NAN && y != INFINITY) {
-                    _segments.emplace(floor(y), new SegmentList());
-                    if (floor(y) != y)
-                        _segments.emplace(floor(y) + 1, new SegmentList());
+                    const int intersectionY = floor(y);
+                    ys.insert(intersectionY);
+                    if (intersectionY != y) {
+                        ys.insert(intersectionY + 1);
+                    }
                 }
             } else {
                 segment = ++currentSegment;
             }
         }
+    }
+
+    for (auto y : ys) {
+        _segments.emplace(y, new SegmentList());
     }
 
     // 3. Split segments with all y lines.
@@ -837,6 +846,7 @@ SegmentList* SegmentApproximator::segments()
     // 5. Fix intersection pairs.
     for (SegmentList::iterator segment = segments->begin(); segment != segments->end(); ++segment) {
         ASSERT(segment->to.y - segment->from.y >= 1);
+        // if (segment->to.y - segment->from.y <= 1) /* TODO: it is a bug? (testcase: fillmode: EvenOdd, test: "ERD" part from test of "Erdély") */
         for (SegmentList::iterator furtherSegment = segment; (furtherSegment != segments->end()) && (segment->from.y == furtherSegment->from.y) ; ++furtherSegment) {
             ASSERT(segment->to.y == furtherSegment->to.y);
             if (furtherSegment->from.x < segment->from.x) {
