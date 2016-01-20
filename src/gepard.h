@@ -35,6 +35,7 @@
 #include "gepard-path.h"
 #include "gepard-surface.h"
 #include "gepard-texture.h"
+#include "gepard-trapezoid-tessellator.h"
 #include "gepard-types.h"
 #include "gepard-utils.h"
 #include <string>
