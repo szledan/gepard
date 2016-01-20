@@ -156,18 +156,18 @@ void test_path()
 
 inline static bool arePointsOutside(const gepard::Trapezoid& trpzd, const gepard::Float& y, const gepard::Float& xLeft, const gepard::Float& xRight)
 {
-    if (y < trpzd.bottomY || y > trpzd.topY)
+    if (y < trpzd.topY || y > trpzd.bottomY)
         return true;
 
-    gepard::Float dY = (trpzd.bottomY - trpzd.topY);
+    gepard::Float dY = (trpzd.topY - trpzd.bottomY);
     ASSERT(dY);
-    gepard::Float dX = (trpzd.bottomLeftX - trpzd.bottomRightX) ? trpzd.bottomLeftX - trpzd.bottomRightX : trpzd.bottomLeftX - trpzd.topRightX;
+    gepard::Float dX = (trpzd.topLeftX - trpzd.topRightX) ? trpzd.topLeftX - trpzd.topRightX : trpzd.topLeftX - trpzd.bottomRightX;
     gepard::Float leftSideCrossBottomRight = dX * dY;
 
-    gepard::Float leftSideCrossXLeft = (trpzd.bottomLeftX - trpzd.topLeftX) * (y - trpzd.topY) - (xLeft - trpzd.topLeftX) * dY;
-    gepard::Float rightSideCrossXLeft = (trpzd.bottomRightX - trpzd.topRightX) * (y - trpzd.topY) - (xLeft - trpzd.topRightX) * dY;
-    gepard::Float leftSideCrossXRight = (trpzd.bottomLeftX - trpzd.topLeftX) * (y - trpzd.topY) - (xRight - trpzd.topLeftX) * dY;
-    gepard::Float rightSideCrossXRight = (trpzd.bottomRightX - trpzd.topRightX) * (y - trpzd.topY) - (xRight - trpzd.topRightX) * dY;
+    gepard::Float leftSideCrossXLeft = (trpzd.topLeftX - trpzd.bottomLeftX) * (y - trpzd.bottomY) - (xLeft - trpzd.bottomLeftX) * dY;
+    gepard::Float rightSideCrossXLeft = (trpzd.topRightX - trpzd.bottomRightX) * (y - trpzd.bottomY) - (xLeft - trpzd.bottomRightX) * dY;
+    gepard::Float leftSideCrossXRight = (trpzd.topLeftX - trpzd.bottomLeftX) * (y - trpzd.bottomY) - (xRight - trpzd.bottomLeftX) * dY;
+    gepard::Float rightSideCrossXRight = (trpzd.topRightX - trpzd.bottomRightX) * (y - trpzd.bottomY) - (xRight - trpzd.bottomRightX) * dY;
 
     // 'xLeft' and 'xRight' are on different sides of either side of the trapezoid.
     if (NCHECKANDLOG(leftSideCrossXLeft * leftSideCrossXRight < 0 || rightSideCrossXLeft * rightSideCrossXRight < 0))
@@ -191,30 +191,30 @@ inline static bool arePointsOutside(const gepard::Trapezoid& trpzd, const gepard
 static bool hasIntersectionOrWrongTrapezoids(const gepard::Trapezoid& trpzd1, const gepard::Trapezoid& trpzd2)
 {
     // Wrong trapezoid.
-    if (!((trpzd1.bottomY < trpzd1.topY)
-        && (trpzd2.bottomY < trpzd2.topY)
-        && (trpzd1.bottomLeftX <= trpzd1.bottomRightX)
+    if (!((trpzd1.topY < trpzd1.bottomY)
+        && (trpzd2.topY < trpzd2.bottomY)
         && (trpzd1.topLeftX <= trpzd1.topRightX)
-        && (trpzd2.bottomLeftX <= trpzd2.bottomRightX)
-        && (trpzd2.topLeftX <= trpzd2.topRightX)))
+        && (trpzd1.bottomLeftX <= trpzd1.bottomRightX)
+        && (trpzd2.topLeftX <= trpzd2.topRightX)
+        && (trpzd2.bottomLeftX <= trpzd2.bottomRightX)))
         return true;
 
     // Test intersection.
-    if (trpzd1.bottomY >= trpzd2.topY || trpzd1.topY <= trpzd2.bottomY)
+    if (trpzd1.topY >= trpzd2.bottomY || trpzd1.bottomY <= trpzd2.topY)
         return false;
 
-    gepard::Float aMinX = (trpzd1.bottomLeftX < trpzd1.topLeftX) ? trpzd1.bottomLeftX : trpzd1.topLeftX;
-    gepard::Float aMaxX = (trpzd1.bottomRightX > trpzd1.topRightX) ? trpzd1.bottomRightX : trpzd1.topRightX;
-    gepard::Float bMinX = (trpzd2.bottomLeftX < trpzd2.topLeftX) ? trpzd2.bottomLeftX : trpzd2.topLeftX;
-    gepard::Float bMaxX = (trpzd2.bottomRightX > trpzd2.topRightX) ? trpzd2.bottomRightX : trpzd2.topRightX;
+    gepard::Float aMinX = (trpzd1.topLeftX < trpzd1.bottomLeftX) ? trpzd1.topLeftX : trpzd1.bottomLeftX;
+    gepard::Float aMaxX = (trpzd1.topRightX > trpzd1.bottomRightX) ? trpzd1.topRightX : trpzd1.bottomRightX;
+    gepard::Float bMinX = (trpzd2.topLeftX < trpzd2.bottomLeftX) ? trpzd2.topLeftX : trpzd2.bottomLeftX;
+    gepard::Float bMaxX = (trpzd2.topRightX > trpzd2.bottomRightX) ? trpzd2.topRightX : trpzd2.bottomRightX;
 
     if (aMinX >= bMaxX || aMaxX <= bMinX)
         return false;
 
-    return !(CHECKANDMSG(arePointsOutside(trpzd1, trpzd2.bottomY, trpzd2.bottomLeftX, trpzd2.bottomRightX), "(" << trpzd1 << ";" << trpzd2.bottomY << "," << trpzd2.bottomLeftX << "," << trpzd2.bottomRightX)
-             && CHECKANDMSG(arePointsOutside(trpzd1, trpzd2.topY, trpzd2.topLeftX, trpzd2.topRightX), "(" << trpzd1 << ";" << trpzd2.topY << "," << trpzd2.topLeftX << "," << trpzd2.topRightX)
-             && CHECKANDMSG(arePointsOutside(trpzd2, trpzd1.bottomY, trpzd1.bottomLeftX, trpzd1.bottomRightX), "(" << trpzd2 << ";" << trpzd1.bottomY << "," << trpzd1.bottomLeftX << "," << trpzd1.bottomRightX)
-             && CHECKANDMSG(arePointsOutside(trpzd2, trpzd1.topY, trpzd1.topLeftX, trpzd1.topRightX), "(" << trpzd2 << ";" << trpzd1.topY << "," << trpzd1.topLeftX << "," << trpzd1.topRightX));
+    return !(CHECKANDMSG(arePointsOutside(trpzd1, trpzd2.topY, trpzd2.topLeftX, trpzd2.topRightX), "(" << trpzd1 << ";" << trpzd2.topY << "," << trpzd2.topLeftX << "," << trpzd2.topRightX)
+             && CHECKANDMSG(arePointsOutside(trpzd1, trpzd2.bottomY, trpzd2.bottomLeftX, trpzd2.bottomRightX), "(" << trpzd1 << ";" << trpzd2.bottomY << "," << trpzd2.bottomLeftX << "," << trpzd2.bottomRightX)
+             && CHECKANDMSG(arePointsOutside(trpzd2, trpzd1.topY, trpzd1.topLeftX, trpzd1.topRightX), "(" << trpzd2 << ";" << trpzd1.topY << "," << trpzd1.topLeftX << "," << trpzd1.topRightX)
+             && CHECKANDMSG(arePointsOutside(trpzd2, trpzd1.bottomY, trpzd1.bottomLeftX, trpzd1.bottomRightX), "(" << trpzd2 << ";" << trpzd1.bottomY << "," << trpzd1.bottomLeftX << "," << trpzd1.bottomRightX));
 }
 
 void test_tessallation()
@@ -224,13 +224,13 @@ void test_tessallation()
     gepard::Trapezoid trpzd = {0, 0, 10, 10, 0, 10};
     // Test of wrong trapezoid catch.
     {
-        trpzd.topY = trpzd.bottomY - 5;
+        trpzd.bottomY = trpzd.topY - 5;
         TESTCASE(hasIntersectionOrWrongTrapezoids(trpzd, trpzd), "Testing of wrong trapezoid catch 1, " << trpzd);
-        trpzd.topY = 20;
-        trpzd.bottomLeftX = trpzd.bottomRightX + 5;
-        TESTCASE(hasIntersectionOrWrongTrapezoids(trpzd, trpzd), "Testing of wrong trapezoid catch 2, " << trpzd);
-        trpzd.bottomLeftX = 1;
+        trpzd.bottomY = 20;
         trpzd.topLeftX = trpzd.topRightX + 5;
+        TESTCASE(hasIntersectionOrWrongTrapezoids(trpzd, trpzd), "Testing of wrong trapezoid catch 2, " << trpzd);
+        trpzd.topLeftX = 1;
+        trpzd.bottomLeftX = trpzd.bottomRightX + 5;
         TESTCASE(hasIntersectionOrWrongTrapezoids(trpzd, trpzd), "Testing of wrong trapezoid catch 3, " << trpzd);
     }
     // Testing the hasIntersectionOrWrongTrapezoids function.

@@ -199,11 +199,12 @@ struct Segment {
         Positive = 1,
     };
 
-    Segment(FloatPoint from, FloatPoint to, unsigned sameId = 0)
+    Segment(FloatPoint from, FloatPoint to, unsigned sameId = 0, Float slope = NAN)
         : from(from)
         , to(to)
         , id((sameId) ? sameId : ++s_segmentIds)
     {
+        Float slopeInv = NAN;
         Float denom = this->to.y - this->from.y;
         if (denom) {
             if (denom < 0) {
@@ -215,17 +216,19 @@ struct Segment {
                 this->direction = Positive;
             }
 
-            this->slopeInv = (this->to.x - this->from.x) / (denom);
+            slopeInv = (this->to.x - this->from.x) / (denom);
         } else {
             this->direction = EqualOrNonExist;
-            this->slopeInv = INFINITY;
+            slopeInv = INFINITY;
         }
+        realSlope = (slope == NAN) ? slopeInv : slope;
     }
 
     int topY() const { return floor(this->from.y); }
     int bottomY() const { return floor(this->to.y); }
+    Float slopeInv() const { return (this->to.x - this->from.x) / (this->to.y - this->from.y); }
     // TODO: find a good function name:
-    Float factor() const { return this->slopeInv * this->from.y - this->from.x; }
+    Float factor() const { return this->slopeInv() * this->from.y - this->from.x; }
     bool isOnSegment(Float y) const { return y < this->to.y && y > this->from.y; }
 
     Segment splitSegment(Float y)
@@ -233,7 +236,7 @@ struct Segment {
         ASSERT(this->from.y < this->to.y);
         ASSERT(y > this->from.y && y < this->to.y);
 
-        Float x = this->slopeInv * (y - this->from.y) + this->from.x;
+        Float x = this->slopeInv() * (y - this->from.y) + this->from.x;
         FloatPoint to = this->to;
         this->to = FloatPoint(x, y);
         FloatPoint newPoint = this->to;
@@ -246,7 +249,7 @@ struct Segment {
         ASSERT(this->from.y != newPoint.y);
         ASSERT(newPoint.y != to.y);
 
-        return Segment(newPoint, to, this->id);
+        return Segment(newPoint, to, this->id, this->realSlope);
     }
     Float computeIntersectionY(Segment* segment) const
     {
@@ -255,7 +258,7 @@ struct Segment {
             return y;
 
         if (this->from.x != segment->from.x && this->to.x != segment->to.x) {
-            Float denom = (this->slopeInv - segment->slopeInv);
+            Float denom = (this->slopeInv() - segment->slopeInv());
             if (denom) {
                 y = (this->factor() - segment->factor()) / denom;
             }
@@ -269,8 +272,7 @@ struct Segment {
     FloatPoint from;
     FloatPoint to;
     Float id;
-
-    Float slopeInv;
+    Float realSlope;
     int direction;
 };
 
@@ -347,9 +349,9 @@ private:
 struct Trapezoid {
     bool isMergableInTo(const Trapezoid* other) const
     {
-        ASSERT(this->topY == other->bottomY);
+        ASSERT(this->bottomY == other->topY);
 
-        if (this->topLeftX == other->bottomLeftX && this->topRightX == other->bottomRightX) {
+        if (this->bottomLeftX == other->topLeftX && this->bottomRightX == other->topRightX) {
             if (this->leftId == other->leftId && this->rightId == other->rightId)
                 return true;
 
@@ -360,12 +362,12 @@ struct Trapezoid {
         return false;
     }
 
-    Float bottomY;
-    Float bottomLeftX;
-    Float bottomRightX;
     Float topY;
     Float topLeftX;
     Float topRightX;
+    Float bottomY;
+    Float bottomLeftX;
+    Float bottomRightX;
 
     unsigned leftId;
     unsigned rightId;
@@ -375,20 +377,20 @@ struct Trapezoid {
 
 inline std::ostream& operator<<(std::ostream& os, const Trapezoid& t)
 {
-    return os << t.bottomY << "," << t.bottomLeftX << "," << t.bottomRightX << "," << t.topY << "," << t.topLeftX << "," << t.topRightX;
+    return os << t.topY << "," << t.topLeftX << "," << t.topRightX << "," << t.bottomY << "," << t.bottomLeftX << "," << t.bottomRightX;
 }
 
 inline bool operator<(const Trapezoid& lhs, const Trapezoid& rhs)
 {
-    if (lhs.bottomY < rhs.bottomY)
+    if (lhs.topY < rhs.topY)
         return true;
 
-    if (lhs.bottomY == rhs.bottomY) {
-        if (lhs.bottomLeftX < rhs.bottomLeftX)
+    if (lhs.topY == rhs.topY) {
+        if (lhs.topLeftX < rhs.topLeftX)
             return true;
 
-        if (lhs.bottomLeftX == rhs.bottomLeftX) {
-            if (lhs.topLeftX < rhs.topLeftX)
+        if (lhs.topLeftX == rhs.topLeftX) {
+            if (lhs.bottomLeftX < rhs.bottomLeftX)
                 return true;
         }
     }
@@ -398,8 +400,8 @@ inline bool operator<(const Trapezoid& lhs, const Trapezoid& rhs)
 
 inline bool operator==(const Trapezoid& lhs, const Trapezoid& rhs)
 {
-    return lhs.bottomY == rhs.bottomY && lhs.bottomLeftX == rhs.bottomLeftX && lhs.bottomRightX == rhs.bottomRightX
-           && lhs.topY == rhs.topY && lhs.topLeftX == rhs.topLeftX &&  lhs.topRightX == rhs.topRightX;
+    return lhs.topY == rhs.topY && lhs.topLeftX == rhs.topLeftX && lhs.topRightX == rhs.topRightX
+           && lhs.bottomY == rhs.bottomY && lhs.bottomLeftX == rhs.bottomLeftX &&  lhs.bottomRightX == rhs.bottomRightX;
 }
 
 inline bool operator<=(const Trapezoid& lhs, const Trapezoid& rhs)

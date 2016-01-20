@@ -153,7 +153,7 @@ const GLchar* copyPathFragmentShader = PROGRAM(
 
     void main()
     {
-        gl_FragColor = vec4(u_color.rgb, texture2D(u_texture, v_texturePosition).a);
+        gl_FragColor = vec4(u_color.rgb, u_color.a * texture2D(u_texture, v_texturePosition).a);
     }
 );
 
@@ -236,23 +236,23 @@ error:
 
 static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes, int antiAliasingLevel)
 {
-    GLfloat slopeLeft = (trapezoid.topLeftX - trapezoid.bottomLeftX) / (trapezoid.topY - trapezoid.bottomY);
-    GLfloat slopeRight = (trapezoid.topRightX - trapezoid.bottomRightX) / (trapezoid.topY - trapezoid.bottomY);
-    const GLfloat bottomY = floor(trapezoid.bottomY);
-    const GLfloat topY = ceil(trapezoid.topY);
+    GLfloat slopeLeft = (trapezoid.bottomLeftX - trapezoid.topLeftX) / (trapezoid.bottomY - trapezoid.topY);
+    GLfloat slopeRight = (trapezoid.bottomRightX - trapezoid.topRightX) / (trapezoid.bottomY - trapezoid.topY);
+    const GLfloat bottomY = floor(trapezoid.topY);
+    const GLfloat topY = ceil(trapezoid.bottomY);
     // The fraction is stored in a temporary variable.
     GLfloat temp, x1, x2;
     GLfloat bottomLeftX, bottomRightX, topLeftX, topRightX;
 
-    temp = ceil(trapezoid.topY) - (trapezoid.topY);
-    x1 = trapezoid.topLeftX - temp * slopeLeft;
-    x2 = trapezoid.topRightX - temp * slopeRight;
+    temp = ceil(trapezoid.bottomY) - (trapezoid.bottomY);
+    x1 = trapezoid.bottomLeftX - temp * slopeLeft;
+    x2 = trapezoid.bottomRightX - temp * slopeRight;
     topLeftX = floor(x1 - fabs(slopeLeft));
     topRightX = ceil(x2 + fabs(slopeRight));
 
-    temp = trapezoid.bottomY - floor(trapezoid.bottomY);
-    x1 = trapezoid.bottomLeftX - temp * slopeLeft;
-    x2 = trapezoid.bottomRightX - temp * slopeRight;
+    temp = trapezoid.topY - floor(trapezoid.topY);
+    x1 = trapezoid.topLeftX - temp * slopeLeft;
+    x2 = trapezoid.topRightX - temp * slopeRight;
     bottomLeftX = floor(x1 - fabs(slopeLeft));
     bottomRightX = ceil(x2 + fabs(slopeRight));
 
@@ -284,8 +284,8 @@ static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes, int antiA
             break;
         }
 
-        *attributes++ = (trapezoid.bottomY);
         *attributes++ = (trapezoid.topY);
+        *attributes++ = (trapezoid.bottomY);
 
         *attributes++ = (x1);
         *attributes++ = (x2);
@@ -393,17 +393,17 @@ void Path::fillPath()
     glUniform2f(intValue, 512.0f, 512.0f);
 
     // 2.h Draw trapezoids.
-    std::cout << "Trapezoids (" << trapezoidList.size() << "): ";
+    std::cout << "Trapezoids (" << trapezoidList.size() << ")" << std::endl;
     int trapezoidIndex = 0;
     for (Trapezoid trapezoid : trapezoidList) {
-//        std::cout << trapezoid << " ";
-        ASSERT(trapezoid.bottomY < trapezoid.topY);
-        ASSERT(trapezoid.bottomLeftX <= trapezoid.bottomRightX);
+        ASSERT(trapezoid.topY < trapezoid.bottomY);
         ASSERT(trapezoid.topLeftX <= trapezoid.topRightX);
+        ASSERT(trapezoid.bottomLeftX <= trapezoid.bottomRightX);
 
         if (!trapezoid.leftId || !trapezoid.rightId)
             continue;
 
+//        std::cout << trapezoid << std::endl;
         setupAttributes(trapezoid, attributes + trapezoidIndex * 32, tt.antiAliasingLevel());
         trapezoidIndex++;
         if (trapezoidIndex >= min(s_kMaximumNumberOfUshortQuads, s_kMaximumNumberOfAttributes / 32)) {
@@ -451,7 +451,7 @@ void Path::fillPath()
 
     // 3.f Set color of path.
     intValue = glGetUniformLocation(copyPathShader, "u_color");
-    glUniform4f(intValue, 0.0f, 0.4f, 0.7f, 0.0f);
+    glUniform4f(intValue, 0.0f, 0.4f, 0.7f, 1.0f);
 
     // 3.g Copy path to display.
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -843,30 +843,39 @@ SegmentList* SegmentApproximator::segments()
     splitSegments();
 
     // 4. Merge and sort all segment list.
+    // TODO: use MovePtr:
     SegmentList* segments = new SegmentList();
     for (SegmentTree::iterator currentSegments = _segments.begin(); currentSegments != _segments.end(); ++currentSegments) {
         SegmentList* currentList = currentSegments->second;
         currentList->sort();
+
+        bool needSorting = false;
+        // 4.a Fix intersection pairs.
+        for (SegmentList::iterator segment = currentList->begin(); segment != currentList->end(); ++segment) {
+            ASSERT(segment->to.y - segment->from.y >= 1.0);
+//if (segment->to.y - segment->from.y <= 1.0) /* TODO: it is a bug? (testcase: fillmode: EvenOdd, test: "ERD" part from test of "Erdély") */
+            for (SegmentList::iterator furtherSegment = segment; furtherSegment != currentList->end() ; ++furtherSegment) {
+                ASSERT(segment->from.y == furtherSegment->from.y);
+                ASSERT(segment->to.y == furtherSegment->to.y);
+                ASSERT(furtherSegment->from.x >= segment->from.x)
+                if (furtherSegment->to.x < segment->to.x) {
+                    if (furtherSegment->from.x - segment->from.x < segment->to.x - furtherSegment->to.x) {
+                        furtherSegment->from.x = segment->from.x;
+                        needSorting = true;
+                    } else {
+                        furtherSegment->to.x = segment->to.x;
+                    }
+                }
+            }
+        }
+        if (needSorting)
+            currentList->sort();
+
+        // 4.b Merge segment lists.
         segments->merge(*currentList);
     }
 
-    // 5. Fix intersection pairs.
-    for (SegmentList::iterator segment = segments->begin(); segment != segments->end(); ++segment) {
-        ASSERT(segment->to.y - segment->from.y >= 1);
-        // if (segment->to.y - segment->from.y <= 1) /* TODO: it is a bug? (testcase: fillmode: EvenOdd, test: "ERD" part from test of "Erdély") */
-        for (SegmentList::iterator furtherSegment = segment; (furtherSegment != segments->end()) && (segment->from.y == furtherSegment->from.y) ; ++furtherSegment) {
-            ASSERT(segment->to.y == furtherSegment->to.y);
-            if (furtherSegment->from.x < segment->from.x) {
-                furtherSegment->from.x = segment->from.x;
-                ASSERT(furtherSegment->to.x >= segment->to.x);
-            }
-            if (furtherSegment->to.x < segment->to.x) {
-                furtherSegment->to.x = segment->to.x;
-            }
-        }
-    }
-
-    // 6. Return independent segments.
+    // 5. Return independent segments.
     return segments;
 }
 
@@ -881,8 +890,8 @@ TrapezoidList TrapezoidTessellator::trapezoidList()
 
     ASSERT(element->type == PathElementTypes::MoveTo);
 
-    const Float halfPixelPrecision = 1.0;
-    SegmentApproximator segmentApproximator(_antiAliasingLevel, halfPixelPrecision);
+    const Float subPixelPrecision = 1.0;
+    SegmentApproximator segmentApproximator(_antiAliasingLevel, subPixelPrecision);
     FloatPoint from;
     FloatPoint to = element->to;
     FloatPoint lastMoveTo = to;
@@ -934,9 +943,9 @@ TrapezoidList TrapezoidTessellator::trapezoidList()
     SegmentList* segmentList = segmentApproximator.segments();
     TrapezoidList trapezoids;
 
+    // 3. Generate trapezoids.
     const Float denom = _antiAliasingLevel * 1 + 0;
     if (segmentList) {
-        // 3. Generate trapezoids.
         Trapezoid trapezoid;
         int fill = 0;
         bool isInFill = false;
@@ -952,26 +961,27 @@ TrapezoidList TrapezoidTessellator::trapezoidList()
 
             if (fill) {
                 if (!isInFill) {
-                    trapezoid.bottomY = (fixPrecision(segment.topY() / denom));
-                    trapezoid.topY = (fixPrecision(segment.bottomY() / denom));
-                    trapezoid.bottomLeftX = (fixPrecision(segment.from.x) / denom);
-                    trapezoid.topLeftX = (fixPrecision(segment.to.x) / denom);
+                    trapezoid.topY = (fixPrecision(segment.topY() / denom));
+                    trapezoid.bottomY = (fixPrecision(segment.bottomY() / denom));
+                    trapezoid.topLeftX = (fixPrecision(segment.from.x) / denom);
+                    trapezoid.bottomLeftX = (fixPrecision(segment.to.x) / denom);
                     trapezoid.leftId = segment.id;
-                    trapezoid.leftSlope = segment.slopeInv;
-                    if (trapezoid.bottomY != trapezoid.topY)
+                    trapezoid.leftSlope = segment.realSlope;
+                    if (trapezoid.topY != trapezoid.bottomY)
                         isInFill = true;
                 }
             } else {
-                trapezoid.bottomRightX = (fixPrecision(segment.from.x) / denom);
-                trapezoid.topRightX = (fixPrecision(segment.to.x) / denom);
+                // TODO: Horizontal merge trapezoids.
+                trapezoid.topRightX = (fixPrecision(segment.from.x) / denom);
+                trapezoid.bottomRightX = (fixPrecision(segment.to.x) / denom);
                 trapezoid.rightId = segment.id;
-                trapezoid.rightSlope = segment.slopeInv;
-                if (trapezoid.bottomY != trapezoid.topY) {
+                trapezoid.rightSlope = segment.realSlope;
+                if (trapezoid.topY != trapezoid.bottomY) {
                     trapezoids.push_back(trapezoid);
                 }
                 isInFill = false;
             }
-            ASSERT(trapezoid.bottomY == (fixPrecision(segment.topY() / denom)));
+            ASSERT(trapezoid.topY == (fixPrecision(segment.topY() / denom)));
         }
 
         delete segmentList;
@@ -986,22 +996,23 @@ TrapezoidList TrapezoidTessellator::trapezoidList()
 
     trapezoids.sort();
 
+    // 4. Vertical merge trapezoids.
     // TODO: use MovePtr:
     TrapezoidList trapezoidList;
     for (TrapezoidList::iterator current = trapezoids.begin(); current != trapezoids.end(); ++current) {
-        const Float topY = current->topY;
+        const Float bottomY = current->bottomY;
         TrapezoidList::iterator ft = current;
-        for (; (ft != trapezoids.end() && ft->topY == topY); ++ft);
+        for (; (ft != trapezoids.end() && ft->bottomY == bottomY); ++ft);
 
         ASSERT(current->leftId != 0 && current->rightId != 0);
         ASSERT(current->leftSlope != NAN && current->rightSlope != NAN);
-        for (TrapezoidList::iterator further = current; (further != trapezoids.end() && further->bottomY <= topY); ++further) {
+        for (TrapezoidList::iterator further = current; (further != trapezoids.end() && further->topY <= bottomY); ++further) {
             ASSERT(further->leftId != 0 && further->rightId != 0);
             ASSERT(further->leftSlope != NAN && further->rightSlope != NAN);
-            if (further->bottomY == current->topY && current->isMergableInTo(&*further)) {
-                further->bottomY = current->bottomY;
-                further->bottomLeftX = current->bottomLeftX;
-                further->bottomRightX = current->bottomRightX;
+            if (further->topY == current->bottomY && current->isMergableInTo(&*further)) {
+                further->topY = current->topY;
+                further->topLeftX = current->topLeftX;
+                further->topRightX = current->topRightX;
                 current->leftId = 0;
                 current->rightId = 0;
                 break;
