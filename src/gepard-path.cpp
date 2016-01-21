@@ -295,6 +295,99 @@ static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes, int antiA
     }
 }
 
+/* PathData */
+
+void PathData::addMoveToElement(FloatPoint to)
+{
+    if (_lastElement && _lastElement->isMoveTo()) {
+        _lastElement->to = to;
+        return;
+    }
+
+    PathElement* currentElement = static_cast<PathElement*>(new (_region.alloc(sizeof(MoveToElement))) MoveToElement(to));
+
+    if (!_firstElement) {
+        _firstElement = currentElement;
+        _lastElement = _firstElement;
+    } else {
+        _lastElement->next = currentElement;
+        _lastElement = _lastElement->next;
+    }
+
+    _lastMoveToElement = _lastElement;
+}
+
+void PathData::addLineToElement(FloatPoint to)
+{
+    if (!_lastElement) {
+        addMoveToElement(to);
+    }
+
+    if (!_lastElement->isMoveTo() && _lastElement->to == to)
+        return;
+
+    _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(LineToElement))) LineToElement(to));
+    _lastElement = _lastElement->next;
+}
+
+void PathData::addQuadaraticCurveToElement(FloatPoint control, FloatPoint to)
+{
+    if (!_lastElement) {
+        addMoveToElement(to);
+    }
+
+    _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(QuadraticCurveToElement))) QuadraticCurveToElement(control, to));
+    _lastElement = _lastElement->next;
+}
+
+void PathData::addBezierCurveToElement(FloatPoint control1, FloatPoint control2, FloatPoint to)
+{
+    if (!_lastElement) {
+        addMoveToElement(to);
+    }
+
+    _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(BezierCurveToElement))) BezierCurveToElement(control1, control2, to));
+    _lastElement = _lastElement->next;
+}
+
+void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAngle, Float endAngle, bool antiClockwise)
+{
+    if (!_lastElement) {
+        addMoveToElement(center);
+    }
+
+    _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(ArcElement))) ArcElement(center, radius, startAngle, endAngle, antiClockwise));
+    _lastElement = _lastElement->next;
+}
+
+void PathData::addCloseSubpath()
+{
+    if (!_lastElement || _lastElement->isCloseSubpath())
+        return;
+
+    if (_lastElement->isMoveTo()) {
+        addLineToElement(_lastElement->to);
+    }
+
+    _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(CloseSubpathElement))) CloseSubpathElement(_lastMoveToElement->to));
+    _lastElement = _lastElement->next;
+}
+
+void PathData::dump()
+{
+    PathElement* element = _firstElement;
+
+    std::cout << "firstElement: " << _firstElement << std::endl;
+    std::cout << "lastElement: " << _lastElement << std::endl;
+    std::cout << "lastMoveToElement: " << _lastMoveToElement << std::endl;
+    std::cout << "PathData:";
+    while (element) {
+        std::cout << " " << *element;
+        element = element->next;
+    }
+    std::cout << std::endl;
+}
+
 /* Path */
 
 static inline int min(int l, int r) { return r < l ? r : l; }
@@ -464,97 +557,6 @@ void Path::fillPath()
     printf("glGetError: %d\n", glGetError());
 
     free(attributes);
-}
-
-void PathData::addMoveToElement(FloatPoint to)
-{
-    if (_lastElement && _lastElement->isMoveTo()) {
-        _lastElement->to = to;
-        return;
-    }
-
-    PathElement* currentElement = static_cast<PathElement*>(new (_region.alloc(sizeof(MoveToElement))) MoveToElement(to));
-
-    if (!_firstElement) {
-        _firstElement = currentElement;
-        _lastElement = _firstElement;
-    } else {
-        _lastElement->next = currentElement;
-        _lastElement = _lastElement->next;
-    }
-
-    _lastMoveToElement = _lastElement;
-}
-
-void PathData::addLineToElement(FloatPoint to)
-{
-    if (!_lastElement) {
-        addMoveToElement(to);
-    }
-
-    if (!_lastElement->isMoveTo() && _lastElement->to == to)
-        return;
-
-    _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(LineToElement))) LineToElement(to));
-    _lastElement = _lastElement->next;
-}
-
-void PathData::addQuadaraticCurveToElement(FloatPoint control, FloatPoint to)
-{
-    if (!_lastElement) {
-        addMoveToElement(to);
-    }
-
-    _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(QuadraticCurveToElement))) QuadraticCurveToElement(control, to));
-    _lastElement = _lastElement->next;
-}
-
-void PathData::addBezierCurveToElement(FloatPoint control1, FloatPoint control2, FloatPoint to)
-{
-    if (!_lastElement) {
-        addMoveToElement(to);
-    }
-
-    _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(BezierCurveToElement))) BezierCurveToElement(control1, control2, to));
-    _lastElement = _lastElement->next;
-}
-
-void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAngle, Float endAngle, bool antiClockwise)
-{
-    if (!_lastElement) {
-        addMoveToElement(center);
-    }
-
-    _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(ArcElement))) ArcElement(center, radius, startAngle, endAngle, antiClockwise));
-    _lastElement = _lastElement->next;
-}
-
-void PathData::addCloseSubpath()
-{
-    if (!_lastElement || _lastElement->isCloseSubpath())
-        return;
-
-    if (_lastElement->isMoveTo()) {
-        addLineToElement(_lastElement->to);
-    }
-
-    _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(CloseSubpathElement))) CloseSubpathElement(_lastMoveToElement->to));
-    _lastElement = _lastElement->next;
-}
-
-void PathData::dump()
-{
-    PathElement* element = _firstElement;
-
-    std::cout << "firstElement: " << _firstElement << std::endl;
-    std::cout << "lastElement: " << _lastElement << std::endl;
-    std::cout << "lastMoveToElement: " << _lastMoveToElement << std::endl;
-    std::cout << "PathData:";
-    while (element) {
-        std::cout << " " << *element;
-        element = element->next;
-    }
-    std::cout << std::endl;
 }
 
 } // namespace gepard
