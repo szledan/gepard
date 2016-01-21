@@ -347,8 +347,9 @@ SegmentList* SegmentApproximator::segments()
                 }
             }
         }
-        if (needSorting)
+        if (needSorting) {
             currentList->sort();
+        }
 
         // 4.b Merge segment lists.
         segments->merge(*currentList);
