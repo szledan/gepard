@@ -73,9 +73,9 @@ public:
     void arc(float x, float y, float radius, float startAngle, float endAngle, bool anticlockwise = true);
     void rect(float x, float y, float w, float h);
 
-    // 10. Drawing paths to the canvas (W3-2DContext-2015)
+    // 11. Drawing paths to the canvas (W3-2DContext-2015)
     void beginPath();
-    void fill();
+    void fill(const std::string fillRule = "nonzero");
     void stroke();
     void drawFocusIfNeeded(/* Element& */);
     void clip();

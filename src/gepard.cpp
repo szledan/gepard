@@ -101,11 +101,11 @@ void Gepard::beginPath()
     }
 }
 
-void Gepard::fill()
+void Gepard::fill(const std::string fillRule)
 {
     if (_path) {
         closePath();
-        _path->fillPath();
+        _path->fillPath(fillRule);
     }
 }
 

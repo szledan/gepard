@@ -182,7 +182,7 @@ public:
     {}
 
     PathData& pathData() { return _pathData; }
-    void fillPath();
+    void fillPath(const std::string fillRuleStr = "nonzero");
 
 private:
     PathData _pathData;

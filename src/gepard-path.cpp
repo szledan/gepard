@@ -392,7 +392,7 @@ void PathData::dump()
 
 static inline int min(int l, int r) { return r < l ? r : l; }
 
-void Path::fillPath()
+void Path::fillPath(const std::string fillRuleStr)
 {
     ASSERT(_pathData.lastElement()->isCloseSubpath());
 
@@ -401,8 +401,13 @@ void Path::fillPath()
     if (!_surface)
         return;
 
+    // 0. Parse fill rule.
+    TrapezoidTessellator::FillRule fillRule = TrapezoidTessellator::FillRule::NonZero;
+    if (fillRuleStr.compare("evenodd") == 0)
+        fillRule = TrapezoidTessellator::FillRule::EvenOdd;
+
     // 1. Tessellating the path.
-    TrapezoidTessellator tt(this, TrapezoidTessellator::FillRule::NonZero, ANTIALIAS_LEVEL);
+    TrapezoidTessellator tt(this, fillRule, ANTIALIAS_LEVEL);
     TrapezoidList trapezoidList = tt.trapezoidList();
 
     // 2. Using OpenGL ES 2.0 spec. to drawing.
