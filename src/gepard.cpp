@@ -87,9 +87,13 @@ void Gepard::arc(float x, float y, float radius, float startAngle, float endAngl
     _path->pathData().addArcElement(FloatPoint(x, y), FloatPoint(radius, radius), startAngle, endAngle, anticlockwise);
 }
 
-void Gepard::rect(float x ATTR_UNUSED, float y ATTR_UNUSED, float w ATTR_UNUSED, float h ATTR_UNUSED)
+void Gepard::rect(float x, float y, float w, float h)
 {
-    // TODO: Unimplemented
+    moveTo(x, y);
+    lineTo(x + w, y);
+    lineTo(x + w, y + h);
+    lineTo(x, y + h);
+    closePath();
 }
 
 void Gepard::beginPath()

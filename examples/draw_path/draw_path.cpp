@@ -44,10 +44,7 @@ int main()
     gepardContext.lineTo(10, 91);
 
     // One pixel heigh line.
-    gepardContext.moveTo(10, 100);
-    gepardContext.lineTo(10 + 256, 100);
-    gepardContext.lineTo(10 + 256, 101);
-    gepardContext.lineTo(10, 101);
+    gepardContext.rect(10.0, 100.0, 256.0, 1.0);
 
     // One pixel wide triangle.
     gepardContext.moveTo(10, 110);
@@ -55,34 +52,19 @@ int main()
     gepardContext.lineTo(10, 110 + 256);
 
     // One pixel wide line.
-    gepardContext.moveTo(20, 110);
-    gepardContext.lineTo(20, 110 + 256);
-    gepardContext.lineTo(21, 110 + 256);
-    gepardContext.lineTo(21, 110);
+    gepardContext.rect(20.0, 110.0, 1.0, 256.0);
 
     // Full pixel size rect on one pixel.
-    gepardContext.moveTo(30, 110);
-    gepardContext.lineTo(30, 111);
-    gepardContext.lineTo(31, 111);
-    gepardContext.lineTo(31, 110);
+    gepardContext.rect(30.0, 110.0, 1.0, 1.0);
 
     // Half pixel size rect on one pixel.
-    gepardContext.moveTo(40.5, 110);
-    gepardContext.lineTo(40.5, 111);
-    gepardContext.lineTo(41, 111);
-    gepardContext.lineTo(41, 110);
+    gepardContext.rect(40.5, 110.0, 0.5, 1.0);
 
     // Full pixel size rect on two pixels.
-    gepardContext.moveTo(50.5, 110);
-    gepardContext.lineTo(50.5, 111);
-    gepardContext.lineTo(51.5, 111);
-    gepardContext.lineTo(51.5, 110);
+    gepardContext.rect(50.5, 110.0, 1.0, 1.0);
 
     // Full pixel size rect on forth pixels.
-    gepardContext.moveTo(60.5, 110.5);
-    gepardContext.lineTo(60.5, 111.5);
-    gepardContext.lineTo(61.5, 111.5);
-    gepardContext.lineTo(61.5, 110.5);
+    gepardContext.rect(60.5, 110.5, 1.0, 1.0);
 
     // Half pixel size triangle on one pixel.
     gepardContext.moveTo(70, 110);
