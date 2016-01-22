@@ -352,8 +352,54 @@ void PathData::addBezierCurveToElement(FloatPoint control1, FloatPoint control2,
 
 void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAngle, Float endAngle, bool antiClockwise)
 {
+    FloatPoint start = FloatPoint(center.x + cos(startAngle) * radius.x, center.y + sin(startAngle) * radius.y);
+
     if (!_lastElement) {
         addMoveToElement(center);
+    }
+
+    if (!radius.x || !radius.x || startAngle == endAngle) {
+        addLineToElement(start);
+        return;
+    }
+
+    if (_lastElement->to != start) {
+        addLineToElement(start);
+    }
+
+    const Float twoPiFloat = 2.0 * piFloat;
+    if (antiClockwise && startAngle - endAngle >= twoPiFloat) {
+        startAngle = fmod(startAngle, twoPiFloat);
+        endAngle = startAngle - twoPiFloat;
+    } else if (!antiClockwise && endAngle - startAngle >= twoPiFloat) {
+        startAngle = fmod(startAngle, twoPiFloat);
+        endAngle = startAngle + twoPiFloat;
+    } else {
+        bool equal = startAngle == endAngle;
+
+        startAngle = fmod(startAngle, twoPiFloat);
+        if (startAngle < 0) {
+            startAngle += twoPiFloat;
+        }
+
+        endAngle = fmod(endAngle, twoPiFloat);
+        if (endAngle < 0) {
+            endAngle += twoPiFloat;
+        }
+
+        if (!antiClockwise) {
+            if (startAngle > endAngle || (startAngle == endAngle && !equal)) {
+                endAngle += twoPiFloat;
+            }
+            ASSERT(0 <= startAngle && startAngle <= twoPiFloat);
+            ASSERT(startAngle <= endAngle && endAngle - startAngle <= twoPiFloat);
+        } else {
+            if (startAngle < endAngle || (startAngle == endAngle && !equal)) {
+                endAngle -= twoPiFloat;
+            }
+            ASSERT(0 <= startAngle && startAngle <= twoPiFloat);
+            ASSERT(endAngle <= startAngle && startAngle - endAngle <= twoPiFloat);
+        }
     }
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(ArcElement))) ArcElement(center, radius, startAngle, endAngle, antiClockwise));
@@ -389,8 +435,6 @@ void PathData::dump()
 }
 
 /* Path */
-
-static inline int min(int l, int r) { return r < l ? r : l; }
 
 void Path::fillPath(const std::string fillRuleStr)
 {

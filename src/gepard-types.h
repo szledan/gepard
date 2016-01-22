@@ -44,6 +44,14 @@ constexpr double precisionOfFloat = 1000 * 1000 * 1000;
 
 inline Float fixPrecision(Float f) { return floor(f * precisionOfFloat) / precisionOfFloat; }
 
+static const Float piFloat = 2.0 * asin(1.0);
+
+template<class T>
+static inline const T& min(const T& lhs, const T& rhs) { return !(rhs < lhs) ? lhs : rhs; }
+
+template<class T>
+static inline const T& max(const T& lhs, const T& rhs) { return (lhs < rhs) ? rhs : lhs; }
+
 /* Region */
 
 #define REGION_BLOCK_SIZE (2048 - (int)sizeof(void*))
@@ -100,6 +108,11 @@ inline bool operator==(const FloatPoint& a, const FloatPoint& b)
     return a.x == b.x && a.y == b.y;
 }
 
+inline bool operator!=(const FloatPoint& a, const FloatPoint& b)
+{
+    return !(a == b);
+}
+
 inline bool operator<(const FloatPoint& lhs, const FloatPoint& rhs)
 {
     return (lhs.y < rhs.y) || (lhs.y == rhs.y && lhs.x < rhs.x);
@@ -124,6 +137,11 @@ inline FloatPoint operator/(const FloatPoint& fp, const Float& f)
 {
     ASSERT(f);
     return FloatPoint(fp.x / f, fp.y / f);
+}
+
+inline FloatPoint operator*(const FloatPoint& fp, const FloatPoint& de)
+{
+    return FloatPoint(fp.x * de.x, fp.y * de.y);
 }
 
 /* IntPoint */

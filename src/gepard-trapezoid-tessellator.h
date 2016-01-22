@@ -173,7 +173,7 @@ public:
     void insertLine(const FloatPoint from, const FloatPoint to);
     void insertQuadCurve(const FloatPoint from, const FloatPoint control, const FloatPoint to);
     void insertBezierCurve(const FloatPoint from, const FloatPoint control1, const FloatPoint control2, const FloatPoint to);
-    void insertArc(const FloatPoint center, const FloatPoint radius, const Float startAngle, const Float endAngle, const bool antiClockwise);
+    void insertArc(const FloatPoint lastEndPoint, const ArcElement* arcElement);
 
     SegmentList* segments();
     BoundingBox boundingBox() const { return _boundingBox; }
@@ -188,6 +188,8 @@ private:
     void splitQuadraticCurve(FloatPoint[]);
     bool curveIsLineSegment(FloatPoint[]);
     void splitCubeCurve(FloatPoint[]);
+    int calculateSegments(const Float& angle, const Float& radius);
+    void arcToCurve(FloatPoint[], const Float&, const Float&);
 
     SegmentTree _segments;
     const int _kAntiAliasLevel;

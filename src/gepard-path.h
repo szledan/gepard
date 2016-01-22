@@ -126,13 +126,15 @@ struct BezierCurveToElement : public PathElement {
 
 struct ArcElement : public PathElement {
     ArcElement(FloatPoint center, FloatPoint radius, Float startAngle, Float endAngle, bool antiClockwise = true)
-        : PathElement(PathElementTypes::Arc, FloatPoint (cos(endAngle) * radius.x, sin(endAngle) * radius.y))
+        : PathElement(PathElementTypes::Arc, FloatPoint(center.x + cos(endAngle) * radius.x, center.y + sin(endAngle) * radius.y))
         , center(center)
         , radius(radius)
         , startAngle(startAngle)
         , endAngle(endAngle)
         , antiClockwise(antiClockwise)
-    {}
+    {
+        ASSERT(radius.x >= 0 && radius.y >= 0);
+    }
 
     std::ostream& output(std::ostream& os) const
     {

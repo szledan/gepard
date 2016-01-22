@@ -76,8 +76,6 @@ void SegmentApproximator::insertLine(FloatPoint from, FloatPoint to)
     insertSegment(from, to);
 }
 
-static inline Float abs(const Float &t) { return (t < 0) ? -t : t; }
-
 bool SegmentApproximator::quadCurveIsLineSegment(FloatPoint points[])
 {
     const Float x0 = points[0].x;
@@ -249,9 +247,70 @@ void SegmentApproximator::insertBezierCurve(const FloatPoint from, const FloatPo
     } while (points >= buffer);
 }
 
-void SegmentApproximator::insertArc(const FloatPoint center, const FloatPoint radius, const Float startAngle, const Float endAngle, const bool antiClockwise)
+int SegmentApproximator::calculateSegments(const Float& angle, const Float& radius)
 {
-    // TODO: Missing approximation!
+    const Float epsilon = _kTolerance / radius;
+    Float angleSegment;
+    Float error;
+
+    int i = 1;
+    do {
+        angleSegment = piFloat / i++;
+        error = 2.0 / 27.0 * pow(sin(angleSegment / 4.0), 6) / pow(cos(angleSegment / 4.0), 2);
+    } while (error > epsilon);
+
+    return ceil(abs(angle) / angleSegment);
+}
+
+void SegmentApproximator::arcToCurve(FloatPoint result[], const Float& startAngle, const Float& endAngle)
+{
+    const Float sinStartAngle = sin(startAngle);
+    const Float cosStartAngle = cos(startAngle);
+    const Float sinEndAngle = sin(endAngle);
+    const Float cosEndAngle = cos(endAngle);
+
+    const Float height = 4.0 / 3.0 * tan((endAngle - startAngle) / 4.0);
+
+    result[0].x = cosStartAngle - height * sinStartAngle;
+    result[0].y = sinStartAngle + height * cosStartAngle;
+    result[1].x = cosEndAngle + height * sinEndAngle;
+    result[1].y = sinEndAngle - height * cosEndAngle;
+    result[2].x = cosEndAngle;
+    result[2].y = sinEndAngle;
+}
+
+void SegmentApproximator::insertArc(const FloatPoint lastEndPoint, const ArcElement* arcElement)
+{
+    Float startAngle = arcElement->startAngle;
+    const Float endAngle = arcElement->endAngle;
+    const bool antiClockwise = arcElement->antiClockwise;
+
+    FloatPoint startPoint = FloatPoint(cos(startAngle) * arcElement->radius.x, sin(startAngle) * arcElement->radius.y) + arcElement->center;
+    insertLine(lastEndPoint, startPoint);
+
+    ASSERT(startAngle != endAngle);
+
+    const Float deltaAngle = antiClockwise ? startAngle - endAngle : endAngle - startAngle;
+
+    const int segments = calculateSegments(deltaAngle, max(arcElement->radius.x * 2, arcElement->radius.y * 2));
+    Float step = deltaAngle / segments;
+
+    if (antiClockwise)
+        step = -step;
+
+    FloatPoint bezierPoints[3];
+    for (int i = 0; i < segments; i++, startAngle += step) {
+        arcToCurve(bezierPoints, startAngle, (i == segments - 1) ? endAngle : startAngle + step);
+        bezierPoints[0] = bezierPoints[0] * arcElement->radius + arcElement->center;
+        bezierPoints[1] = bezierPoints[1] * arcElement->radius + arcElement->center;
+        if (i == segments - 1) {
+            bezierPoints[2] = arcElement->to;
+        } else {
+            bezierPoints[2] = bezierPoints[2] * arcElement->radius + arcElement->center;
+        }
+        insertBezierCurve(startPoint, bezierPoints[0], bezierPoints[1], bezierPoints[2]);
+        startPoint = bezierPoints[2];
+    }
 }
 
 void SegmentApproximator::printSegements()
@@ -407,7 +466,8 @@ TrapezoidList TrapezoidTessellator::trapezoidList()
             break;
         }
         case PathElementTypes::Arc: {
-            // TODO: Not implemented!
+            ArcElement* ae = reinterpret_cast<ArcElement*>(element);
+            segmentApproximator.insertArc(from, ae);
             break;
         }
         case PathElementTypes::Undefined:

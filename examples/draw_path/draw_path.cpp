@@ -158,6 +158,18 @@ int main()
     gepardContext.lineTo(200, 280);
     gepardContext.lineTo(200, 300);
     gepardContext.lineTo(170, 300);
+
+    //
+    gepardContext.moveTo(50.0, 340.0);
+    gepardContext.arc(50.0, 340.0, 20.0, 0, 4.0 * asin(1.0), false);
+    gepardContext.moveTo(80.0, 340.0);
+    gepardContext.arc(80.0, 340.0, 20.0, 0, 4.0 * asin(1.0), false);
+
+    //
+    gepardContext.moveTo(150.0, 340.0);
+    gepardContext.arc(150.0, 340.0, 20.0, 0, 4.0 * asin(1.0), false);
+    gepardContext.moveTo(180.0, 340.0);
+    gepardContext.arc(180.0, 340.0, 20.0, 0, 4.0 * asin(1.0), true);
 #elif 1
     // The shape of "Erdély" with old hungarian's alphabet.
     // "E"
