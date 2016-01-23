@@ -406,7 +406,76 @@ void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAn
     _lastElement = _lastElement->next;
 }
 
-void PathData::addCloseSubpath()
+void PathData::addArcToElement(const FloatPoint& control, const FloatPoint& end, const Float& radius)
+{
+    if (!_lastElement) {
+        addMoveToElement(control);
+        return;
+    }
+
+    if (_lastElement->to == control || control == end || !radius) {
+        addLineToElement(control);
+    }
+
+    FloatPoint start(_lastElement->to);
+
+    FloatPoint delta1(start - control);
+    FloatPoint delta2(end - control);
+    Float delta1Length = sqrtf(delta1.lengthSquared());
+    Float delta2Length = sqrtf(delta2.lengthSquared());
+
+    // Normalized dot product.
+    ASSERT(delta1Length && delta2Length);
+    Float cosPhi = delta1.dot(delta2) / (delta1Length * delta2Length);
+
+    // All three points are on the same straight line (HTML5, 4.8.11.1.8).
+    if (fabs(cosPhi) >= 0.9999) {
+        addLineToElement(control);
+        return;
+    }
+
+    Float tangent = radius / tan(acos(cosPhi) / 2.0);
+    Float delta1Factor = tangent / delta1Length;
+    FloatPoint arcStartPoint((control.x + delta1Factor * delta1.x), (control.y + delta1Factor * delta1.y));
+
+    FloatPoint orthoStartPoint(delta1.y, -delta1.x);
+    Float orthoStartPointLength = sqrtf(orthoStartPoint.lengthSquared());
+    Float radiusFactor = radius / orthoStartPointLength;
+
+    ASSERT(orthoStartPointLength);
+    Float cosAlpha = (orthoStartPoint.x * delta2.x + orthoStartPoint.y * delta2.y) / (orthoStartPointLength * delta2Length);
+    if (cosAlpha < 0.0)
+        orthoStartPoint = FloatPoint(-orthoStartPoint.x, -orthoStartPoint.y);
+
+    FloatPoint center((arcStartPoint.x + radiusFactor * orthoStartPoint.x), (arcStartPoint.y + radiusFactor * orthoStartPoint.y));
+
+    // Calculate angles for addArc.
+    orthoStartPoint = FloatPoint(-orthoStartPoint.x, -orthoStartPoint.y);
+    Float startAngle = acos(orthoStartPoint.x / orthoStartPointLength);
+    if (orthoStartPoint.y < 0.0)
+        startAngle = 2.0 * piFloat - startAngle;
+
+    bool antiClockwise = false;
+
+    Float delta2Factor = tangent / delta2Length;
+    FloatPoint arcEndPoint((control.x + delta2Factor * delta2.x), (control.y + delta2Factor * delta2.y));
+    FloatPoint orthoEndPoint(arcEndPoint - center);
+    Float orthoEndPointLength = sqrtf(orthoEndPoint.lengthSquared());
+    Float endAngle = acos(orthoEndPoint.x / orthoEndPointLength);
+    if (orthoEndPoint.y < 0.0) {
+        endAngle = 2 * piFloat - endAngle;
+    }
+    if ((startAngle > endAngle) && ((startAngle - endAngle) < piFloat)) {
+        antiClockwise = true;
+    }
+    if ((startAngle < endAngle) && ((endAngle - startAngle) > piFloat)) {
+        antiClockwise = true;
+    }
+
+    addArcElement(center, FloatPoint(radius, radius), startAngle, endAngle, antiClockwise);
+}
+
+void PathData::addCloseSubpathElement()
 {
     if (!_lastElement || _lastElement->isCloseSubpath())
         return;

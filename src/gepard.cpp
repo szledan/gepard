@@ -42,7 +42,7 @@ void Gepard::moveTo(float x, float y)
 void Gepard::closePath()
 {
     if (_path) {
-        _path->pathData().addCloseSubpath();
+        _path->pathData().addCloseSubpathElement();
     }
 }
 

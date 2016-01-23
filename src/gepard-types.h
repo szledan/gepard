@@ -94,6 +94,9 @@ struct FloatPoint {
     FloatPoint() : x(0), y(0) {}
     FloatPoint(Float x, Float y) : x(x), y(y) {}
 
+    Float lengthSquared() const { return x * x + y * y; }
+    Float dot(const FloatPoint& p) const { return x * p.x + y * p.y; }
+
     Float x;
     Float y;
 };
@@ -131,6 +134,11 @@ inline bool operator<=(const FloatPoint& lhs, const FloatPoint& rhs)
 inline FloatPoint operator+(const FloatPoint& lhs, const FloatPoint& rhs)
 {
     return FloatPoint(lhs.x + rhs.x, lhs.y + rhs.y);
+}
+
+inline FloatPoint operator-(const FloatPoint& lhs, const FloatPoint& rhs)
+{
+    return FloatPoint(lhs.x - rhs.x, lhs.y - rhs.y);
 }
 
 inline FloatPoint operator/(const FloatPoint& fp, const Float& f)

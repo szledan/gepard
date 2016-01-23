@@ -162,7 +162,8 @@ struct PathData {
     void addQuadaraticCurveToElement(FloatPoint, FloatPoint);
     void addBezierCurveToElement(FloatPoint, FloatPoint, FloatPoint);
     void addArcElement(FloatPoint, FloatPoint, Float, Float, bool = true);
-    void addCloseSubpath();
+    void addArcToElement(const FloatPoint&, const FloatPoint&, const Float&);
+    void addCloseSubpathElement();
     void dump();
 
     PathElement* firstElement() const { return _firstElement; }
