@@ -73,9 +73,13 @@ void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float
     _path->pathData().addBezierCurveToElement(FloatPoint(cp1x, cp1y), FloatPoint(cp2x, cp2y), FloatPoint(x, y));
 }
 
-void Gepard::arcTo(float x1 ATTR_UNUSED, float y1 ATTR_UNUSED, float x2 ATTR_UNUSED, float y2 ATTR_UNUSED, float radius ATTR_UNUSED)
+void Gepard::arcTo(float x1, float y1, float x2, float y2, float radius)
 {
-    // TODO: Unimplemented
+    if (!_path) {
+        moveTo(x1, y1);
+    }
+
+    _path->pathData().addArcToElement(FloatPoint(x1, y1), FloatPoint(x2, y2), radius);
 }
 
 void Gepard::arc(float x, float y, float radius, float startAngle, float endAngle, bool anticlockwise)

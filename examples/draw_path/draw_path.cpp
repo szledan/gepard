@@ -30,6 +30,25 @@
 #include <iostream>
 #include <string>
 
+void lineCap(gepard::Gepard& gepardContext, const float ex, const float ey, const float sx, const float sy, const bool withArcTo = true)
+{
+    if (withArcTo) {
+        const float c1x = ex + (sy - ey) / 2.0;
+        const float c1y = ey - (sx - ex) / 2.0;
+        const float c2x = sx - (ey - sy) / 2.0;
+        const float c2y = sy + (ex - sx) / 2.0;
+        float h1x = (c2x - c1x) / 2.0;
+        float h1y = (c2y - c1y) / 2.0;
+        const float radius = sqrt(h1x * h1x + h1y * h1y);
+        h1x += c1x;
+        h1y += c1y;
+        gepardContext.arcTo(c1x, c1y, h1x, h1y, radius);
+        gepardContext.arcTo(c2x, c2y, sx, sy, radius);
+    } else {
+        gepardContext.lineTo(sx, sy);
+    }
+}
+
 int main()
 {
     gepard::XGepardSurface xSurface(512, 512);
@@ -38,18 +57,18 @@ int main()
     gepardContext.beginPath();
 
 #if 0
-    // One pixel heigh triangle.
-    gepardContext.moveTo(10, 90);
-    gepardContext.lineTo(10 + 256, 90);
-    gepardContext.lineTo(10, 91);
+    // One pixel high triangle.
+    gepardContext.moveTo(10.0, 90.0);
+    gepardContext.lineTo(10.0 + 256.0, 90.0);
+    gepardContext.lineTo(10.0, 91.0);
 
-    // One pixel heigh line.
+    // One pixel high line.
     gepardContext.rect(10.0, 100.0, 256.0, 1.0);
 
     // One pixel wide triangle.
-    gepardContext.moveTo(10, 110);
-    gepardContext.lineTo(11, 110);
-    gepardContext.lineTo(10, 110 + 256);
+    gepardContext.moveTo(10.0, 110.0);
+    gepardContext.lineTo(11.0, 110.0);
+    gepardContext.lineTo(10.0, 110.0 + 256.0);
 
     // One pixel wide line.
     gepardContext.rect(20.0, 110.0, 1.0, 256.0);
@@ -63,198 +82,180 @@ int main()
     // Full pixel size rect on two pixels.
     gepardContext.rect(50.5, 110.0, 1.0, 1.0);
 
-    // Full pixel size rect on forth pixels.
+    // Full pixel size rect on four pixels.
     gepardContext.rect(60.5, 110.5, 1.0, 1.0);
 
     // Half pixel size triangle on one pixel.
-    gepardContext.moveTo(70, 110);
-    gepardContext.lineTo(71, 111);
-    gepardContext.lineTo(71, 110);
+    gepardContext.moveTo(70.0, 110.0);
+    gepardContext.lineTo(71.0, 111.0);
+    gepardContext.lineTo(71.0, 110.0);
 
-    //
-    gepardContext.moveTo(30, 120); /* ccw */
-    gepardContext.lineTo(30, 150);
-    gepardContext.lineTo(90, 150);
-    gepardContext.lineTo(90, 120);
-    gepardContext.moveTo(60, 130); /* ccw */
-    gepardContext.lineTo(60, 160);
-    gepardContext.lineTo(120, 160);
-    gepardContext.lineTo(120, 130);
+    // Tests for fitting shapes and drawing directions.
+    {
+        float shiftBottomX = 10.0;
+        // Two quads slided onto each other with same drawing directions.
+        gepardContext.moveTo(30.0, 120.0); /* ccw */
+        gepardContext.lineTo(30.0 + shiftBottomX, 150.0);
+        gepardContext.lineTo(90.0 + shiftBottomX, 150.0);
+        gepardContext.lineTo(90.0, 120.0);
+        gepardContext.moveTo(60.0, 130.0); /* ccw */
+        gepardContext.lineTo(60.0 + shiftBottomX, 160.0);
+        gepardContext.lineTo(120.0 + shiftBottomX, 160.0);
+        gepardContext.lineTo(120.0, 130.0);
 
-    //
-    gepardContext.moveTo(130, 120); /* ccw */
-    gepardContext.lineTo(130, 150);
-    gepardContext.lineTo(190, 150);
-    gepardContext.lineTo(190, 120);
-    gepardContext.moveTo(160, 130); /* cw */
-    gepardContext.lineTo(220, 130);
-    gepardContext.lineTo(220, 160);
-    gepardContext.lineTo(160, 160);
+        // Two quads slided onto each other with opposite drawing directions.
+        gepardContext.moveTo(130.0, 120.0); /* ccw */
+        gepardContext.lineTo(130.0 + shiftBottomX, 150.0);
+        gepardContext.lineTo(190.0 + shiftBottomX, 150.0);
+        gepardContext.lineTo(190.0, 120.0);
+        gepardContext.moveTo(160.0, 130.0); /* cw */
+        gepardContext.lineTo(220.0, 130.0);
+        gepardContext.lineTo(220.0 + shiftBottomX, 160.0);
+        gepardContext.lineTo(160.0 + shiftBottomX, 160.0);
 
-    //
-    gepardContext.moveTo(30, 170); /* ccw */
-    gepardContext.lineTo(30, 210);
-    gepardContext.lineTo(75, 210);
-    gepardContext.lineTo(75, 170);
-    gepardContext.moveTo(75, 170); /* ccw */
-    gepardContext.lineTo(75, 190);
-    gepardContext.lineTo(120, 190);
-    gepardContext.lineTo(120, 170);
-    gepardContext.moveTo(75, 190); /* cw */
-    gepardContext.lineTo(120, 190);
-    gepardContext.lineTo(120, 210);
-    gepardContext.lineTo(75, 210);
+        // Three quads fitted together.0, they may be combined to one trapezoid.
+        gepardContext.moveTo(30.0, 170.0); /* ccw */
+        gepardContext.lineTo(30.0 + shiftBottomX, 210.0);
+        gepardContext.lineTo(75.0 + shiftBottomX, 210.0);
+        gepardContext.lineTo(75.0, 170.0);
+        gepardContext.moveTo(75.0, 170.0); /* ccw */
+        gepardContext.lineTo(75.0 + shiftBottomX / 2.0, 190.0);
+        gepardContext.lineTo(120.0 + shiftBottomX / 2.0, 190.0);
+        gepardContext.lineTo(120.0, 170.0);
+        gepardContext.moveTo(75.0 + shiftBottomX / 2.0, 190.0); /* cw */
+        gepardContext.lineTo(120.0 + shiftBottomX / 2.0, 190.0);
+        gepardContext.lineTo(120.0 + shiftBottomX, 210.0);
+        gepardContext.lineTo(75.0 + shiftBottomX, 210.0);
 
-    //
-    gepardContext.moveTo(130, 170); /* ccw */
-    gepardContext.lineTo(130, 210);
-    gepardContext.lineTo(190, 210);
-    gepardContext.lineTo(190, 170);
-    gepardContext.moveTo(170, 170); /* ccw */
-    gepardContext.lineTo(170, 190);
-    gepardContext.lineTo(220, 190);
-    gepardContext.lineTo(220, 170);
-    gepardContext.moveTo(170, 190); /* cw */
-    gepardContext.lineTo(220, 190);
-    gepardContext.lineTo(220, 210);
-    gepardContext.lineTo(170, 210);
+        // Three quads where the last two are slided to the first one.
+        // The last two quads may be combined to one trapezoid.
+        gepardContext.moveTo(130.0, 170.0); /* ccw */
+        gepardContext.lineTo(130.0 + shiftBottomX, 210.0);
+        gepardContext.lineTo(190.0 + shiftBottomX, 210.0);
+        gepardContext.lineTo(190.0, 170.0);
+        gepardContext.moveTo(170.0, 170.0); /* ccw */
+        gepardContext.lineTo(170.0 + shiftBottomX / 2.0, 190.0);
+        gepardContext.lineTo(220.0 + shiftBottomX / 2.0, 190.0);
+        gepardContext.lineTo(220.0, 170.0);
+        gepardContext.moveTo(170.0 + shiftBottomX / 2.0, 190.0); /* cw */
+        gepardContext.lineTo(220.0 + shiftBottomX / 2.0, 190.0);
+        gepardContext.lineTo(220.0 + shiftBottomX, 210.0);
+        gepardContext.lineTo(170.0 + shiftBottomX, 210.0);
 
-    //
-    gepardContext.moveTo(30, 220); /* ccw */
-    gepardContext.lineTo(30, 240);
-    gepardContext.lineTo(120, 240);
-    gepardContext.lineTo(120, 220);
-    gepardContext.moveTo(30, 240); /* cw */
-    gepardContext.lineTo(120, 240);
-    gepardContext.lineTo(120, 260);
-    gepardContext.lineTo(30, 260);
+        // Two quads fitted on top of each other with same drawing directions.
+        // They may be combined to one trapezoid.
+        gepardContext.moveTo(30.0, 220.0); /* ccw */
+        gepardContext.lineTo(30.0 + shiftBottomX / 2.0, 240.0);
+        gepardContext.lineTo(120.0 + shiftBottomX / 2.0, 240.0);
+        gepardContext.lineTo(120.0, 220.0);
+        gepardContext.moveTo(30.0 + shiftBottomX / 2.0, 240.0); /* cw */
+        gepardContext.lineTo(120.0 + shiftBottomX / 2.0, 240.0);
+        gepardContext.lineTo(120.0 + shiftBottomX, 260.0);
+        gepardContext.lineTo(30.0 + shiftBottomX, 260.0);
 
-    //
-    gepardContext.moveTo(130, 220); /* ccw */
-    gepardContext.lineTo(130, 240);
-    gepardContext.lineTo(220, 240);
-    gepardContext.lineTo(220, 220);
-    gepardContext.moveTo(130, 240); /* ccw */
-    gepardContext.lineTo(130, 260);
-    gepardContext.lineTo(220, 260);
-    gepardContext.lineTo(220, 240);
+        // Two quads fitted on top of each other with opposite drawing directions.
+        // They may be combined to one trapezoid.
+        gepardContext.moveTo(130.0, 220.0); /* ccw */
+        gepardContext.lineTo(130.0 + shiftBottomX / 2.0, 240.0);
+        gepardContext.lineTo(220.0 + shiftBottomX / 2.0, 240.0);
+        gepardContext.lineTo(220.0, 220.0);
+        gepardContext.moveTo(130.0 + shiftBottomX / 2.0, 240.0); /* ccw */
+        gepardContext.lineTo(130.0 + shiftBottomX, 260.0);
+        gepardContext.lineTo(220.0 + shiftBottomX, 260.0);
+        gepardContext.lineTo(220.0 + shiftBottomX / 2.0, 240.0);
 
-    //
-    gepardContext.moveTo(30, 270); /* ccw */
-    gepardContext.lineTo(30, 310);
-    gepardContext.lineTo(120, 310);
-    gepardContext.lineTo(120, 270);
-    gepardContext.moveTo(70, 280); /* ccw */
-    gepardContext.lineTo(70, 300);
-    gepardContext.lineTo(100, 300);
-    gepardContext.lineTo(100, 280);
+        // One quad inside the other one with same drawing directions.
+        gepardContext.moveTo(30.0, 270.0); /* ccw */
+        gepardContext.lineTo(30.0 + shiftBottomX, 310.0);
+        gepardContext.lineTo(120.0 + shiftBottomX, 310.0);
+        gepardContext.lineTo(120.0, 270.0);
+        gepardContext.moveTo(70.0, 280.0); /* ccw */
+        gepardContext.lineTo(70.0 + shiftBottomX / 2.0, 300.0);
+        gepardContext.lineTo(100.0 + shiftBottomX / 2.0, 300.0);
+        gepardContext.lineTo(100.0, 280.0);
 
-    //
-    gepardContext.moveTo(130, 270); /* ccw */
-    gepardContext.lineTo(130, 310);
-    gepardContext.lineTo(220, 310);
-    gepardContext.lineTo(220, 270);
-    gepardContext.moveTo(170, 280); /* cw */
-    gepardContext.lineTo(200, 280);
-    gepardContext.lineTo(200, 300);
-    gepardContext.lineTo(170, 300);
+        // One quad inside the other one with opposite drawing directions.
+        gepardContext.moveTo(130.0, 270.0); /* ccw */
+        gepardContext.lineTo(130.0 + shiftBottomX, 310.0);
+        gepardContext.lineTo(220.0 + shiftBottomX, 310.0);
+        gepardContext.lineTo(220.0, 270.0);
+        gepardContext.moveTo(170.0, 280.0); /* cw */
+        gepardContext.lineTo(200.0, 280.0);
+        gepardContext.lineTo(200.0 + shiftBottomX / 2.0, 300.0);
+        gepardContext.lineTo(170.0 + shiftBottomX / 2.0, 300.0);
 
-    //
-    gepardContext.moveTo(50.0, 340.0);
-    gepardContext.arc(50.0, 340.0, 20.0, 0, 4.0 * asin(1.0), false);
-    gepardContext.moveTo(80.0, 340.0);
-    gepardContext.arc(80.0, 340.0, 20.0, 0, 4.0 * asin(1.0), false);
+        bool anticlockwise = true;
+        // Two full circles slided onto each other with same drawing directions.
+        gepardContext.moveTo(65.0, 340.0);
+        gepardContext.arc(65.0, 340.0, 20.0, 0.0, 4.0 * asin(1.0), !anticlockwise);
+        gepardContext.moveTo(95.0, 340.0);
+        gepardContext.arc(95.0, 340.0, 20.0, 0.0, 4.0 * asin(1.0), !anticlockwise);
 
-    //
-    gepardContext.moveTo(150.0, 340.0);
-    gepardContext.arc(150.0, 340.0, 20.0, 0, 4.0 * asin(1.0), false);
-    gepardContext.moveTo(180.0, 340.0);
-    gepardContext.arc(180.0, 340.0, 20.0, 0, 4.0 * asin(1.0), true);
+        // Two full circles slided onto each other with opposite drawing directions.
+        gepardContext.moveTo(165.0, 340.0);
+        gepardContext.arc(165.0, 340.0, 20.0, 0.0, 4.0 * asin(1.0), !anticlockwise);
+        gepardContext.moveTo(195.0, 340.0);
+        gepardContext.arc(195.0, 340.0, 20.0, 0.0, 4.0 * asin(1.0), anticlockwise);
+    }
 #elif 1
-    // The shape of "Erdély" with old hungarian's alphabet.
-    // "E"
+    bool lineCapWithArcTo = true;
+    // The shape of "Erdély" with old Hungarian alphabet.
+    // "E" character.
     gepardContext.moveTo(358.0, 278.0);
     gepardContext.bezierCurveTo(419.0, 211.0, 417.0, 192.0, 358.0, 127.0);
-    gepardContext.lineTo(372.0, 116.0);
+    lineCap(gepardContext, 358.0, 127.0, 372.0, 116.0, lineCapWithArcTo);
     gepardContext.bezierCurveTo(440.0, 186.0, 440.0, 220.0, 371.0, 289.0);
+    lineCap(gepardContext, 371.0, 289.0, 358.0, 278.0, lineCapWithArcTo);
     gepardContext.moveTo(380.0, 175.0);
-    gepardContext.lineTo(366.0, 160.0);
+    lineCap(gepardContext, 380.0, 175.0, 366.0, 160.0, lineCapWithArcTo);
     gepardContext.lineTo(406.0, 123.0);
-    gepardContext.lineTo(420.0, 138.0);
-    gepardContext.moveTo(406.0, 281.0);
-    gepardContext.lineTo(364.0, 248.0);
-    gepardContext.lineTo(376.0, 233.0);
+    lineCap(gepardContext, 406.0, 123.0, 420.0, 138.0, lineCapWithArcTo);
+    gepardContext.moveTo(364.0, 248.0);
+    lineCap(gepardContext, 364.0, 248.0, 376.0, 233.0, lineCapWithArcTo);
     gepardContext.lineTo(418.0, 266.0);
+    lineCap(gepardContext, 418.0, 266.0, 406.0, 281.0, lineCapWithArcTo);
 
-    // "RD"
+    // "RD" characters.
     gepardContext.moveTo(330.0, 282.0);
-    gepardContext.lineTo(310.0, 282.0);
-    gepardContext.lineTo(313.0, 121.0);
-    gepardContext.lineTo(333.0, 121.0);
+    lineCap(gepardContext, 330.0, 282.0, 310.0, 282.0, lineCapWithArcTo);
+    gepardContext.lineTo(311.0, 121.0);
+    lineCap(gepardContext, 311.0, 121.0, 331.0, 121.0, lineCapWithArcTo);
     gepardContext.moveTo(254.0, 282.0);
-    gepardContext.lineTo(234.0, 282.0);
+    lineCap(gepardContext, 254.0, 282.0, 234.0, 282.0, lineCapWithArcTo);
     gepardContext.lineTo(236.0, 121.0);
-    gepardContext.lineTo(256.0, 121.0);
+    lineCap(gepardContext, 236.0, 121.0, 256.0, 121.0, lineCapWithArcTo);
     gepardContext.moveTo(211.0, 245.0);
-    gepardContext.lineTo(199.0, 228.0);
+    lineCap(gepardContext, 211.0, 245.0, 199.0, 228.0, lineCapWithArcTo);
     gepardContext.lineTo(316.0, 150.0);
-    gepardContext.lineTo(327.0, 167.0);
+    lineCap(gepardContext, 316.0, 150.0, 327.0, 167.0, lineCapWithArcTo);
 
-    // "ÉLY"
+    // "ÉLY" characters.
     gepardContext.moveTo(112.0, 247.0);
-    gepardContext.lineTo(96.0, 235.0);
+    lineCap(gepardContext, 112.0, 247.0, 96.0, 235.0, lineCapWithArcTo);
     gepardContext.lineTo(126.0, 194.0);
-    gepardContext.lineTo(142.0, 206.0);
+    lineCap(gepardContext, 126.0, 194.0, 142.0, 206.0, lineCapWithArcTo);
     gepardContext.moveTo(174.0, 158.0);
-    gepardContext.lineTo(160.0, 143.0);
+    lineCap(gepardContext, 174.0, 158.0, 160.0, 143.0, lineCapWithArcTo);
     gepardContext.lineTo(185.0, 119.0);
-    gepardContext.lineTo(199.0, 134.0);
-    gepardContext.moveTo(187.0, 279.0);
-    gepardContext.lineTo(158.0, 257.0);
-    gepardContext.lineTo(170.0, 241.0);
+    lineCap(gepardContext, 185.0, 119.0, 199.0, 134.0, lineCapWithArcTo);
+    gepardContext.moveTo(158.0, 257.0);
+    lineCap(gepardContext, 158.0, 257.0, 170.0, 241.0, lineCapWithArcTo);
     gepardContext.lineTo(200.0, 263.0);
+    lineCap(gepardContext, 200.0, 263.0, 187.0, 279.0, lineCapWithArcTo);
     gepardContext.moveTo(126.0, 277.0);
     gepardContext.bezierCurveTo(187.0, 210.0, 185.0, 191.0, 126.0, 126.0);
-    gepardContext.lineTo(140.0, 115.0);
+    lineCap(gepardContext, 126.0, 126.0, 140.0, 115.0, lineCapWithArcTo);
     gepardContext.bezierCurveTo(208.0, 185.0, 208.0, 219.0, 139.0, 288.0);
-    gepardContext.moveTo(128.0, 287.0);
-    gepardContext.bezierCurveTo(59.0, 218.0, 59.0, 184.0, 127.0, 114.0);
-    gepardContext.lineTo(141.0, 125.0);
-    gepardContext.bezierCurveTo(80.0, 190.0, 79.0, 209.0, 140.0, 277.0);
-#elif 1
-    // An ugly test.
-    gepardContext.moveTo(256, 256);
-    for (float x = 0; x < 512.0; x += 512.0 / 16.0) {
-        std::cout << x << " ";
-        for (float y = 250; y < 512.0; y += 512.0 / 16.0) {
-            gepardContext.lineTo(256, 256);
-            gepardContext.lineTo(x, y);
-            gepardContext.lineTo(x, y + 5);
-        }
-    }
-#else
-    gepardContext.moveTo(100, 20);
-    gepardContext.lineTo(20, 500);
-    gepardContext.lineTo(100, 500);
-    gepardContext.lineTo(120, 400);
-    gepardContext.lineTo(280, 400);
-    gepardContext.lineTo(300, 500);
-    gepardContext.lineTo(400, 500);
-    gepardContext.lineTo(300, 20);
-    gepardContext.lineTo(200, 20);
-    gepardContext.lineTo(200, 50);
-    gepardContext.lineTo(200, 20);
-    gepardContext.moveTo(100, 200);
-    gepardContext.quadraticCurveTo(200, 100, 300, 200);
-    gepardContext.bezierCurveTo(300, 300, 100, 300, 100, 200);
-    gepardContext.moveTo(50, 30);
-    gepardContext.lineTo(20, 100);
-    gepardContext.lineTo(300, 400);
-    gepardContext.lineTo(380, 350);
+    lineCap(gepardContext, 139.0, 288.0, 126.0, 277.0, lineCapWithArcTo);
+    gepardContext.moveTo(128.0, 288.0);
+    gepardContext.bezierCurveTo(59.0, 219.0, 59.0, 185.0, 127.0, 115.0);
+    lineCap(gepardContext, 127.0, 115.0, 141.0, 126.0, lineCapWithArcTo);
+    gepardContext.bezierCurveTo(80.0, 191.0, 79.0, 210.0, 140.0, 278.0);
+    lineCap(gepardContext, 140.0, 278.0, 128.0, 288.0, lineCapWithArcTo);
 #endif
 
     gepardContext.closePath();
-    gepardContext.fill();
+    gepardContext.fill("nonzero");
 
     int a;
     std::cin >> a;
