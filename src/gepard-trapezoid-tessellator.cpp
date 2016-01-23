@@ -85,7 +85,7 @@ bool SegmentApproximator::quadCurveIsLineSegment(FloatPoint points[])
     const Float x2 = points[2].x;
     const Float y2 = points[2].y;
 
-    const Float dt = abs((x2 - x0) * (y0 - y1) - (x0 - x1) * (y2 - y0));
+    const Float dt = fabs((x2 - x0) * (y0 - y1) - (x0 - x1) * (y2 - y0));
 
     if (dt > _kTolerance)
         return false;
@@ -167,8 +167,8 @@ bool SegmentApproximator::curveIsLineSegment(FloatPoint points[])
     const Float x3 = points[3].x;
     const Float y3 = points[3].y;
 
-    const Float dt1 = abs((x3 - x0) * (y0 - y1) - (x0 - x1) * (y3 - y0));
-    const Float dt2 = abs((x3 - x0) * (y0 - y2) - (x0 - x2) * (y3 - y0));
+    const Float dt1 = fabs((x3 - x0) * (y0 - y1) - (x0 - x1) * (y3 - y0));
+    const Float dt2 = fabs((x3 - x0) * (y0 - y2) - (x0 - x2) * (y3 - y0));
 
     if (dt1 > _kTolerance || dt2 > _kTolerance)
         return false;
@@ -259,7 +259,7 @@ int SegmentApproximator::calculateSegments(const Float& angle, const Float& radi
         error = 2.0 / 27.0 * pow(sin(angleSegment / 4.0), 6) / pow(cos(angleSegment / 4.0), 2);
     } while (error > epsilon);
 
-    return ceil(abs(angle) / angleSegment);
+    return ceil(fabs(angle) / angleSegment);
 }
 
 void SegmentApproximator::arcToCurve(FloatPoint result[], const Float& startAngle, const Float& endAngle)
