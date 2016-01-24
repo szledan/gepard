@@ -52,6 +52,12 @@ static inline const T& min(const T& lhs, const T& rhs) { return !(rhs < lhs) ? l
 template<class T>
 static inline const T& max(const T& lhs, const T& rhs) { return (lhs < rhs) ? rhs : lhs; }
 
+template<class T>
+static inline const T& clamp(const T& value, const T& min, const T& max)
+{
+    return (value < min) ? min : ((value > max) ? max : value);
+}
+
 /* Region */
 
 #define REGION_BLOCK_SIZE (2048 - (int)sizeof(void*))
@@ -213,6 +219,24 @@ inline std::ostream& operator<<(std::ostream& os, const BoundingBox& bb)
 {
     return os << bb.minX << "," << bb.minY << "," << bb.maxX << "," << bb.maxY;
 }
+
+// Color
+
+struct Color {
+    Color() : r(0), g(0), b(0), a(0) {}
+    Color(const int red, const int green, const int blue, const int alpha)
+        : r(clamp(red, 0, 255))
+        , g(clamp(green, 0, 255))
+        , b(clamp(blue, 0, 255))
+        , a(clamp(alpha, 0, 1))
+    {
+    }
+
+    int r;
+    int g;
+    int b;
+    int a;
+};
 
 } // namespace gepard
 

@@ -255,6 +255,8 @@ int main()
 #endif
 
     gepardContext.closePath();
+
+    gepardContext.setFillColor(0.0 * 255, 0.4 * 255, 0.7 * 255, 1.0 * 1);
     gepardContext.fill("nonzero");
 
     int a;

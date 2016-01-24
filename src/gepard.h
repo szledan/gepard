@@ -47,6 +47,7 @@ public:
     Gepard(GepardSurface* surface)
         : _surface(surface)
         , _path(0)
+        , _fillColorRGBA(255, 255, 255, 1)
     {
         if (surface) {
             // We don't use depth: glEnable(GL_DEPTH_TEST);
@@ -84,9 +85,13 @@ public:
     // Extras
     Path* path() const { return _path; }
 
+    // Temporary functions
+    void setFillColor(const int red, const int green, const int blue, const int alpha);
 private:
     GepardSurface* _surface;
     Path* _path;
+
+    Color _fillColorRGBA;
 };
 
 } // namespace gepard

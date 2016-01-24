@@ -505,7 +505,7 @@ void PathData::dump()
 
 /* Path */
 
-void Path::fillPath(const std::string fillRuleStr)
+void Path::fillPath(const Color fillColor, const std::string fillRuleStr)
 {
     ASSERT(_pathData.lastElement()->isCloseSubpath());
 
@@ -516,7 +516,7 @@ void Path::fillPath(const std::string fillRuleStr)
 
     // 0. Parse fill rule.
     TrapezoidTessellator::FillRule fillRule = TrapezoidTessellator::FillRule::NonZero;
-    if (fillRuleStr.compare("evenodd") == 0)
+    if (fillRuleStr == "evenodd")
         fillRule = TrapezoidTessellator::FillRule::EvenOdd;
 
     // 1. Tessellating the path.
@@ -663,7 +663,7 @@ void Path::fillPath(const std::string fillRuleStr)
 
     // 3.f Set color of path.
     intValue = glGetUniformLocation(copyPathShader, "u_color");
-    glUniform4f(intValue, 0.0f, 0.4f, 0.7f, 1.0f);
+    glUniform4f(intValue, ((Float)fillColor.r) / 255.0, ((Float)fillColor.g) / 255.0, ((Float)fillColor.b) / 255.0, fillColor.a);
 
     // 3.g Copy path to display.
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

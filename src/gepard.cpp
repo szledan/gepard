@@ -113,7 +113,7 @@ void Gepard::fill(const std::string fillRule)
 {
     if (_path) {
         closePath();
-        _path->fillPath(fillRule);
+        _path->fillPath(_fillColorRGBA, fillRule);
     }
 }
 
@@ -135,6 +135,11 @@ void Gepard::clip()
 void Gepard::isPointInPath(const float x ATTR_UNUSED, const float y ATTR_UNUSED)
 {
     // TODO: Unimplemented
+}
+
+void Gepard::setFillColor(const int red, const int green, const int blue, const int alpha)
+{
+    _fillColorRGBA = Color(red, green, blue, alpha);
 }
 
 } // namespace gepard
