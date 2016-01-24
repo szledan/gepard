@@ -40,6 +40,7 @@ namespace gepard {
 
 /* Fill path shaders */
 
+#define TEXTURE_SIZE 512
 #define ANTIALIAS_LEVEL 16
 
 const GLchar* fillPathVertexShader = PROGRAM(
@@ -53,8 +54,6 @@ const GLchar* fillPathVertexShader = PROGRAM(
     varying vec4 v_y1y2;
     varying vec4 v_x1x2;
     varying vec2 v_dx1dx2;
-
-    uniform vec2 u_viewportSize;
 
     void main(void)
     {
@@ -77,7 +76,7 @@ const GLchar* fillPathVertexShader = PROGRAM(
         // slopeRight
         v_dx1dx2[1] = a_x1x2Cdx1dx2[3];
 
-        gl_Position = vec4((2.0 * a_position.xy / u_viewportSize) - 1.0, 0.0, 1.0);
+        gl_Position = vec4((2.0 * a_position.xy / TEXTURE_SIZE.0) - 1.0, 0.0, 1.0);
     }
 );
 
@@ -138,10 +137,12 @@ const GLchar* copyPathVertexShader = PROGRAM(
 
     varying vec2 v_texturePosition;
 
+    uniform vec2 u_viewportSize;
+
     void main()
     {
         v_texturePosition = a_position.zw;
-        gl_Position = vec4((2.0 * a_position.xy / 512.0) - 1.0, 0.0, 1.0);
+        gl_Position = vec4((2.0 * a_position.xy / u_viewportSize) - 1.0, 0.0, 1.0);
     }
 );
 
@@ -566,11 +567,11 @@ void Path::fillPath(const Color fillColor, const std::string fillRuleStr)
 
     glGenTextures(1, &pathTexture);
     glBindTexture(GL_TEXTURE_2D, pathTexture);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512.0, 512.0, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -600,9 +601,6 @@ void Path::fillPath(const Color fillColor, const std::string fillRuleStr)
     intValue = glGetAttribLocation(fillPathShader, "a_x1x2Cdx1dx2");
     glEnableVertexAttribArray(intValue);
     glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, strideLength, attributes + 4);
-
-    intValue = glGetUniformLocation(fillPathShader, "u_viewportSize");
-    glUniform2f(intValue, 512.0f, 512.0f);
 
     // 2.h Draw trapezoids.
     std::cout << "Trapezoids (" << trapezoidList.size() << ")" << std::endl;
@@ -646,12 +644,16 @@ void Path::fillPath(const Color fillColor, const std::string fillRuleStr)
     glUseProgram(copyPathShader);
 
     // 3.e Set attribute buffers.
-    // TODO: use viewport size:
+    int width = 0;
+    int height = 0;
+    eglQuerySurface(_surface->eglDisplay(), _surface->eglSurface(), EGL_WIDTH, &width);
+    eglQuerySurface(_surface->eglDisplay(), _surface->eglSurface(), EGL_HEIGHT, &height);
+
     static GLfloat textureCoords[] = {
-        0, 512, 0, 0,
+        0, (GLfloat)height, 0, 0,
         0, 0, 0, 1,
-        512, 512, 1, 0,
-        512, 0, 1, 1
+        (GLfloat)width, (GLfloat)height, 1, 0,
+        (GLfloat)width, 0, 1, 1
     };
 
     intValue = glGetAttribLocation(copyPathShader, "a_position");
@@ -660,6 +662,9 @@ void Path::fillPath(const Color fillColor, const std::string fillRuleStr)
 
     intValue = glGetUniformLocation(copyPathShader, "u_texture");
     glBindTexture(GL_TEXTURE_2D, pathTexture);
+
+    intValue = glGetUniformLocation(copyPathShader, "u_viewportSize");
+    glUniform2f(intValue, width, height);
 
     // 3.f Set color of path.
     intValue = glGetUniformLocation(copyPathShader, "u_color");
