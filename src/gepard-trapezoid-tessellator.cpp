@@ -37,9 +37,10 @@ namespace gepard {
 
 /* SegmentApproximator */
 
-void SegmentApproximator::insertSegment(FloatPoint from, FloatPoint to)
+void SegmentApproximator::insertSegment(const FloatPoint& from, const FloatPoint& to)
 {
-    ASSERT(from.y != to.y);
+    if (from.y == to.y)
+        return;
 
     Segment segment(from, to);
 
@@ -63,17 +64,9 @@ void SegmentApproximator::insertSegment(FloatPoint from, FloatPoint to)
     }
 }
 
-void SegmentApproximator::insertLine(FloatPoint from, FloatPoint to)
+void SegmentApproximator::insertLine(const FloatPoint& from, const FloatPoint& to)
 {
-    from.x *= _kAntiAliasLevel;
-    from.y = floor(from.y * _kAntiAliasLevel);
-    to.x *= _kAntiAliasLevel;
-    to.y = floor(to.y * _kAntiAliasLevel);
-
-    if (from.y == to.y)
-        return;
-
-    insertSegment(from, to);
+    insertSegment(FloatPoint(from.x * _kAntiAliasLevel, floor(from.y * _kAntiAliasLevel)), FloatPoint(to.x * _kAntiAliasLevel, floor(to.y * _kAntiAliasLevel)));
 }
 
 bool SegmentApproximator::quadCurveIsLineSegment(FloatPoint points[])
@@ -127,7 +120,7 @@ void SegmentApproximator::splitQuadraticCurve(FloatPoint points[])
     points[4] = c;
 }
 
-void SegmentApproximator::insertQuadCurve(const FloatPoint from, const FloatPoint control, const FloatPoint to)
+void SegmentApproximator::insertQuadCurve(const FloatPoint& from, const FloatPoint& control, const FloatPoint& to)
 {
     // De Casteljau algorithm.
     const int max = 16 * 2 + 1;
@@ -217,7 +210,7 @@ void SegmentApproximator::splitCubeCurve(FloatPoint points[])
     points[6] = d;
 }
 
-void SegmentApproximator::insertBezierCurve(const FloatPoint from, const FloatPoint control1, const FloatPoint control2, const FloatPoint to)
+void SegmentApproximator::insertBezierCurve(const FloatPoint& from, const FloatPoint& control1, const FloatPoint& control2, const FloatPoint& to)
 {
     // De Casteljau algorithm.
     const int max = 16 * 3 + 1;
@@ -279,7 +272,7 @@ void SegmentApproximator::arcToCurve(FloatPoint result[], const Float& startAngl
     result[2].y = sinEndAngle;
 }
 
-void SegmentApproximator::insertArc(const FloatPoint lastEndPoint, const ArcElement* arcElement)
+void SegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement)
 {
     Float startAngle = arcElement->startAngle;
     const Float endAngle = arcElement->endAngle;

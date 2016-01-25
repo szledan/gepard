@@ -109,7 +109,7 @@ void Gepard::beginPath()
     }
 }
 
-void Gepard::fill(const std::string fillRule)
+void Gepard::fill(const std::string& fillRule)
 {
     if (_path) {
         closePath();

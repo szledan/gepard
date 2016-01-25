@@ -44,7 +44,7 @@ namespace gepard {
 
 class Gepard {
 public:
-    Gepard(GepardSurface* surface)
+    explicit Gepard(GepardSurface* surface)
         : _surface(surface)
         , _path(0)
         , _fillColorRGBA(255, 255, 255, 1)
@@ -76,7 +76,7 @@ public:
 
     // 11. Drawing paths to the canvas (W3-2DContext-2015)
     void beginPath();
-    void fill(const std::string fillRule = "nonzero");
+    void fill(const std::string& fillRule = "nonzero");
     void stroke();
     void drawFocusIfNeeded(/* Element& */);
     void clip();

@@ -42,7 +42,7 @@ public:
     void bindTexture() const { glBindTexture(GL_TEXTURE_2D, _texture); }
 
 private:
-    Texture(GLuint texture)
+    explicit Texture(GLuint texture)
         : _texture(texture)
         , _fbo(0)
     {}

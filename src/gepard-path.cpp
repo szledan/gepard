@@ -359,7 +359,7 @@ void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAn
         addMoveToElement(center);
     }
 
-    if (!radius.x || !radius.x || startAngle == endAngle) {
+    if (!radius.x || !radius.y || startAngle == endAngle) {
         addLineToElement(start);
         return;
     }
@@ -506,7 +506,7 @@ void PathData::dump()
 
 /* Path */
 
-void Path::fillPath(const Color fillColor, const std::string fillRuleStr)
+void Path::fillPath(const Color& fillColor, const std::string& fillRuleStr)
 {
     ASSERT(_pathData.lastElement()->isCloseSubpath());
 
@@ -660,11 +660,14 @@ void Path::fillPath(const Color fillColor, const std::string fillRuleStr)
     glEnableVertexAttribArray(intValue);
     glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, 0, textureCoords);
 
-    intValue = glGetUniformLocation(copyPathShader, "u_texture");
-    glBindTexture(GL_TEXTURE_2D, pathTexture);
-
     intValue = glGetUniformLocation(copyPathShader, "u_viewportSize");
     glUniform2f(intValue, width, height);
+
+    // TODO: bug, why does it work?
+    // intValue = glGetUniformLocation(copyPathShader, "u_texture");
+    // glUniform1i(intValue, 0 /* GL_TEXTURE0 */);
+    // glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, pathTexture);
 
     // 3.f Set color of path.
     intValue = glGetUniformLocation(copyPathShader, "u_color");

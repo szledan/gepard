@@ -170,10 +170,10 @@ public:
         }
     }
 
-    void insertLine(const FloatPoint from, const FloatPoint to);
-    void insertQuadCurve(const FloatPoint from, const FloatPoint control, const FloatPoint to);
-    void insertBezierCurve(const FloatPoint from, const FloatPoint control1, const FloatPoint control2, const FloatPoint to);
-    void insertArc(const FloatPoint lastEndPoint, const ArcElement* arcElement);
+    void insertLine(const FloatPoint& from, const FloatPoint& to);
+    void insertQuadCurve(const FloatPoint& from, const FloatPoint& control, const FloatPoint& to);
+    void insertBezierCurve(const FloatPoint& from, const FloatPoint& control1, const FloatPoint& control2, const FloatPoint& to);
+    void insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement);
 
     SegmentList* segments();
     BoundingBox boundingBox() const { return _boundingBox; }
@@ -182,7 +182,7 @@ public:
     void printSegements();
 
 private:
-    void insertSegment(FloatPoint from, FloatPoint to);
+    void insertSegment(const FloatPoint& from, const FloatPoint& to);
 
     bool quadCurveIsLineSegment(FloatPoint[]);
     void splitQuadraticCurve(FloatPoint[]);
