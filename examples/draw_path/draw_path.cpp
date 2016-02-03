@@ -56,7 +56,7 @@ int main()
 
     gepardContext.beginPath();
 
-#if 0
+#if 1
     // One pixel high triangle.
     gepardContext.moveTo(10.0, 90.0);
     gepardContext.lineTo(10.0 + 256.0, 90.0);
@@ -256,7 +256,7 @@ int main()
 
     gepardContext.closePath();
 
-    gepardContext.setFillColor(0.0 * 255, 0.4 * 255, 0.7 * 255, 1.0 * 1);
+    gepardContext.setFillColor(0.2 * 255, 0.5 * 255, 0.8 * 255, 1.0 * 1);
     gepardContext.fill("nonzero");
 
     int a;

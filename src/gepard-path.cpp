@@ -583,7 +583,7 @@ void Path::fillPath(const Color& fillColor, const std::string& fillRuleStr)
 
     // 2.e Set clear color.
     glClear(GL_COLOR_BUFFER_BIT);
-    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClearColor(1.0, 1.0, 1.0, 1.0);
 
     // 2.f Compile and use shader programs.
     static GLuint fillPathShader = 0;
