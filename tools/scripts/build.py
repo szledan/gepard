@@ -5,6 +5,7 @@ import sys
 from os import path
 from os import chdir
 from os import getcwd
+from os import makedirs
 from subprocess import call
 
 
@@ -28,8 +29,13 @@ def build(arguments):
     basedir = path.join(getcwd(), path.split(sys.argv[0])[0], '..', '..')
     build_path = path.join(basedir, 'build', arguments.build_type)
 
-    call(['mkdir', '-p', build_path])
+    try:
+        makedirs(build_path)
+    except OSError:
+        pass
+
     chdir(build_path)
+
     if arguments.clean:
         call(['make', 'clean'])
 
