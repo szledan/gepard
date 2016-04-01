@@ -56,7 +56,7 @@ def main():
     parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='build_type', help='Build with debug enabled')
     parser.add_argument('--clean', action='store_true', default=False, help='Perform clean build')
     parser.add_argument('--target', action='store', choices=['x86-linux', 'arm-linux'], help='Specify build target. Leave empty for native build.')
-    parser.add_argument('--backend', action='store', choices=['gles2', 'vulkan'], default='gles2', help='Specify which graphics backend to use.')
+    parser.add_argument('--backend', action='store', choices=['gles2', 'vulkan'], default='gles2', help='Specify which graphics back-end to use.')
     parser.add_argument('--log-level', action='store', type=int, choices=range(0,4), default=0, help='Set logging level')
     parser.add_argument('--no-colored-logs', action='store_true', default=False, help='Disable colored log messages')
 
