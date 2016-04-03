@@ -27,12 +27,70 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#ifndef gepard_h
-#define gepard_h
+#ifndef GEPARD_H
+#define GEPARD_H
 
 #include "gepard-defs.h"
 
+#include "gepard-image.h"
+#include "gepard-surface.h"
+
 namespace gepard {
+
+class Image;
+class Surface;
+
+class Gepard {
+public:
+    explicit Gepard(Surface* surface)
+        : _surface(surface)
+    {}
+
+    /**
+     * 2. State (W3-2DContext-2015)
+     */
+    void save();
+    void restore();
+
+    /**
+     * 6. Transformations (W3-2DContext-2015)
+     * (default: transform is the identity matrix)
+     */
+    void scale(float x, float y);
+    void rotate(float angle);
+    void translate(float x, float y);
+    void transform(float a, float b, float c, float d, float e, float f);
+    void setTransform(float a, float b, float c, float d, float e, float f);
+
+    /**
+     * 9. Rectangles (W3-2DContext-2015)
+     */
+    void clearRect(float x, float y, float w, float h);
+    void fillRect(float x, float y, float w, float h);
+    void strokeRect(float x, float y, float w, float h);
+
+    /**
+     * 12. Drawing images (W3-2DContext-2015)
+     */
+    void drawImage(Image image, float dx, float dy);
+    void drawImage(Image image, float dx, float dy, float dw, float dh);
+    void drawImage(Image image, float sx, float sy, float sw, float sh,
+        float dx, float dy, float dw, float dh);
+
+    /**
+     * 14. Pixel manipulation (W3-2DContext-2015)
+     */
+    Image createImageData(float sw, float sh);
+    Image createImageData(Image imagedata);
+    Image getImageData(double sx, double sy, double sw, double sh);
+    void putImageData(Image imagedata, double dx, double dy);
+    void putImageData(Image imagedata, double dx, double dy, double dirtyX, double dirtyY,
+        double dirtyWidth, double dirtyHeight);
+
+private:
+    Surface* _surface;
+};
+
 } // namespace gepard
 
-#endif // gepard_h
+#endif // GEPARD_H
