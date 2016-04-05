@@ -1,18 +1,17 @@
-#! /usr/bin/python2
+#! /usr/bin/python
 
+import subprocess
 import sys
 from os import path
 from os import chdir
 from os import getcwd
-from subprocess import call
 
 
 def run_cppcheck():
-    basedir = path.join(getcwd(), path.split(sys.argv[0])[0], '..', '..')
-    chdir(basedir)
+    basedir = path.abspath(path.dirname(path.dirname(path.join(getcwd(), path.dirname(sys.argv[0])))))
 
-    call(['cppcheck', 'src'])
-    call(['cppcheck', 'examples'])
+    subprocess.call(['cppcheck', path.join(basedir, 'src')])
+    subprocess.call(['cppcheck', path.join(basedir, 'examples')])
 
 
 if __name__ == "__main__":

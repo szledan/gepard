@@ -1,12 +1,12 @@
-#! /usr/bin/python2
+#! /usr/bin/python
 
 import argparse
+import subprocess
 import sys
 from os import path
 from os import chdir
 from os import getcwd
 from os import makedirs
-from subprocess import call
 
 
 # Create cmake option list from parsed arguments
@@ -26,7 +26,7 @@ def create_options(arguments):
 
 # Perform the build
 def build(arguments):
-    basedir = path.join(getcwd(), path.split(sys.argv[0])[0], '..', '..')
+    basedir = path.abspath(path.dirname(path.dirname(path.join(getcwd(), path.dirname(sys.argv[0])))))
     build_path = path.join(basedir, 'build', arguments.build_type)
 
     try:
@@ -34,27 +34,25 @@ def build(arguments):
     except OSError:
         pass
 
-    chdir(build_path)
-
     if arguments.clean:
-        call(['make', 'clean'])
+        subprocess.call(['make', '-C', build_path, 'clean'])
 
-    ret = call(['cmake'] + create_options(arguments) + [basedir])
+    ret = subprocess.call(['cmake', '-E', 'chdir', build_path, 'cmake'] + create_options(arguments) + [basedir])
     if ret:
         return ret
 
-    return call(['make']);
+    return subprocess.call(['make', '-C', build_path])
 
 
 # Print build result
 def print_result(ret):
     print('')
-    print('------------------------------')
+    print('-' * 30)
     if ret:
-        print 'Build failed with exit code: ' + str(ret)
+        print('Build failed with exit code: %s' % (ret))
     else:
-        print 'Build succeeded!'
-    print('------------------------------')
+        print('Build succeeded!')
+    print('-' * 30)
 
 
 def main():

@@ -1,7 +1,6 @@
-#! /usr/bin/python2
+#! /usr/bin/python
 
 import argparse
-import sys
 from unittest import run_unittest
 from cppcheck import run_cppcheck
 
@@ -11,9 +10,9 @@ def main():
 
     arguments = parser.parse_args()
 
-    print "Running cppcheck."
+    print("Running cppcheck.")
     run_cppcheck()
-    print "\nRunning unit-tests."
+    print("\nRunning unit-tests.")
     run_unittest(arguments.type)
 
 

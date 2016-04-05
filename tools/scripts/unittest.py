@@ -1,21 +1,21 @@
-#! /usr/bin/python2
+#! /usr/bin/python
 
 import argparse
+import subprocess
 import sys
 from os import path
 from os import chdir
 from os import getcwd
-from subprocess import call
+
 
 def run_unittest(type):
-    basedir = path.join(getcwd(), path.split(sys.argv[0])[0], '..', '..')
+    basedir = path.abspath(path.dirname(path.dirname(path.join(getcwd(), path.dirname(sys.argv[0])))))
     build_path = path.join(basedir, 'build', type)
     if not path.isfile(path.join(build_path, 'bin', 'unit')):
-        print "Error: Unit-tests are not built."
+        print("Error: Unit-tests are not built.")
         return 1
 
-    chdir(build_path)
-    return call(['./bin/unit'])
+    return subprocess.call([path.join(build_path, 'bin', 'unit')])
 
 
 def main():
