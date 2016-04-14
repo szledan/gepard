@@ -30,4 +30,103 @@
 #include "gepard.h"
 
 namespace gepard {
+
+void Gepard::save()
+{
+/** @todo unimplemented function */
+}
+
+void Gepard::restore()
+{
+/** @todo unimplemented function */
+}
+
+void Gepard::scale(float x, float y)
+{
+/** @todo unimplemented function */
+}
+
+void Gepard::rotate(float angle)
+{
+/** @todo unimplemented function */
+}
+
+void Gepard::translate(float x, float y)
+{
+/** @todo unimplemented function */
+}
+
+void Gepard::transform(float a, float b, float c, float d, float e, float f)
+{
+/** @todo unimplemented function */
+}
+
+void Gepard::setTransform(float a, float b, float c, float d, float e, float f)
+{
+/** @todo unimplemented function */
+}
+
+void Gepard::clearRect(float x, float y, float w, float h)
+{
+/** @todo unimplemented function */
+}
+
+void Gepard::fillRect(float x, float y, float w, float h)
+{
+/** @todo unimplemented function */
+}
+
+void Gepard::strokeRect(float x, float y, float w, float h)
+{
+/** @todo unimplemented function */
+}
+
+void Gepard::drawImage(Image /*image*/, float dx, float dy)
+{
+/** @todo unimplemented function */
+}
+
+void Gepard::drawImage(Image /*image*/, float dx, float dy, float dw, float dh)
+{
+/** @todo unimplemented function */
+}
+
+void Gepard::drawImage(Image /*image*/, float sx, float sy, float sw, float sh,
+    float dx, float dy, float dw, float dh)
+{
+/** @todo unimplemented function */
+}
+
+Image Gepard::createImageData(float sw, float sh)
+{
+/** @todo unimplemented function */
+    ASSERT(0 && "Unimplemented function!");
+    return Image();
+}
+
+Image Gepard::createImageData(Image /*imagedata*/)
+{
+/** @todo unimplemented function */
+    ASSERT(0 && "Unimplemented function!");
+    return Image();
+}
+
+Image Gepard::getImageData(double sx, double sy, double sw, double sh)
+{
+/** @todo unimplemented function */
+    ASSERT(0 && "Unimplemented function!");
+    return Image();
+}
+
+void Gepard::putImageData(Image /*imagedata*/, double dx, double dy)
+{
+/** @todo unimplemented function */
+}
+
+void Gepard::putImageData(Image /*imagedata*/, double dx, double dy, double dirtyX, double dirtyY,
+    double dirtyWidth, double dirtyHeight)
+{
+/** @todo unimplemented function */
+}
+
 } // namespace gepard
