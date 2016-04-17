@@ -53,6 +53,18 @@ public:
     void restore();
 
     /**
+     * 5 Building paths (W3-2DContext-2015)
+     */
+    void cloeePath();
+    void moveTo(float x, float y);
+    void lineTo(float x, float y);
+    void quadraticCurveTo(float cpx, float cpy, float x, float y);
+    void bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y);
+    void arcTo(float x1, float y1, float x2, float y2, float radius);
+    void rect(float x, float y, float w, float h);
+    void arc(float x, float y, float radius, float startAngle, float endAngle, bool counterclockwise = false);
+
+    /**
      * 6. Transformations (W3-2DContext-2015)
      * (default: transform is the identity matrix)
      */
@@ -68,6 +80,16 @@ public:
     void clearRect(float x, float y, float w, float h);
     void fillRect(float x, float y, float w, float h);
     void strokeRect(float x, float y, float w, float h);
+
+    /**
+     * 11. Drawing paths to the canvas (W3-2DContext-2015)
+     */
+    void beginPath();
+    void fill();
+    void stroke();
+    void drawFocusIfNeeded(/*Element element*/);
+    void clip();
+    bool isPointInPath(float x, float y);
 
     /**
      * 12. Drawing images (W3-2DContext-2015)
