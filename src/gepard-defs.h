@@ -1,5 +1,6 @@
-/* Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
- * Copyright (C) 2015, Dániel Bátyai <dbatyai@inf.u-szeged.hu>
+/* Copyright (C) 2015-2016, Gepard Graphics
+ * Copyright (C) 2015-2016, Szilard Ledan <szledan@gmail.com>
+ * Copyright (C) 2015-2016, Dániel Bátyai <dbatyai@inf.u-szeged.hu>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

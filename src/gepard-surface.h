@@ -1,4 +1,5 @@
-/* Copyright (C) 2016, Kristof Kosztyo
+/* Copyright (C) 2015-2016, Gepard Graphics
+ * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
  * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
