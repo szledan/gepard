@@ -4,21 +4,22 @@ import argparse
 import subprocess
 import sys
 from os import path
-from os import chdir
 from os import getcwd
 from os import makedirs
 
 
 # Create cmake option list from parsed arguments
 def create_options(arguments):
-    opts = []
-    opts.append('-DCMAKE_BUILD_TYPE=' + arguments.build_type.capitalize())
-    opts.append('-DUSE_' + arguments.backend.upper() + '=ON')
-    opts.append('-DLOG_LEVEL=' + str(arguments.log_level))
+    opts = [
+            '-DCMAKE_BUILD_TYPE=' + arguments.build_type.capitalize(),
+            '-DUSE_%s=ON' % arguments.backend.upper(),
+            '-DLOG_LEVEL=' + str(arguments.log_level)
+    ]
+
     if arguments.no_colored_logs:
         opts.append('-DDISABLE_LOG_COLORS=ON')
 
-    if (arguments.backend != 'gles2'):
+    if arguments.backend != 'gles2':
         opts.append('-DUSE_GLES2=OFF')  #GLES2 is enabled by default, so just disable it if we're not using it.
 
     return opts
@@ -26,7 +27,7 @@ def create_options(arguments):
 
 # Perform the build
 def build(arguments):
-    basedir = path.abspath(path.dirname(path.dirname(path.join(getcwd(), path.dirname(sys.argv[0])))))
+    basedir = path.abspath(path.join(path.dirname(__file__), '..', '..'))
     build_path = path.join(basedir, 'build', arguments.build_type)
 
     try:
@@ -37,7 +38,7 @@ def build(arguments):
     if arguments.clean:
         subprocess.call(['make', '-C', build_path, 'clean'])
 
-    ret = subprocess.call(['cmake', '-E', 'chdir', build_path, 'cmake'] + create_options(arguments) + [basedir])
+    ret = subprocess.call(['cmake', '-B' + build_path, '-H' + basedir] + create_options(arguments))
     if ret:
         return ret
 
