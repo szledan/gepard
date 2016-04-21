@@ -42,42 +42,42 @@ void Gepard::restore()
 /** @todo unimplemented function */
 }
 
-void cloeePath()
+void Gepard::cloeePath()
 {
 /** @todo unimplemented function */
 }
 
-void moveTo(float x, float y)
+void Gepard::moveTo(float x, float y)
 {
 /** @todo unimplemented function */
 }
 
-void lineTo(float x, float y)
+void Gepard::lineTo(float x, float y)
 {
 /** @todo unimplemented function */
 }
 
-void quadraticCurveTo(float cpx, float cpy, float x, float y)
+void Gepard::quadraticCurveTo(float cpx, float cpy, float x, float y)
 {
 /** @todo unimplemented function */
 }
 
-void bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
+void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
 {
 /** @todo unimplemented function */
 }
 
-void arcTo(float x1, float y1, float x2, float y2, float radius)
+void Gepard::arcTo(float x1, float y1, float x2, float y2, float radius)
 {
 /** @todo unimplemented function */
 }
 
-void rect(float x, float y, float w, float h)
+void Gepard::rect(float x, float y, float w, float h)
 {
 /** @todo unimplemented function */
 }
 
-void arc(float x, float y, float radius, float startAngle, float endAngle, bool counterclockwise = false)
+void Gepard::arc(float x, float y, float radius, float startAngle, float endAngle, bool counterclockwise)
 {
 /** @todo unimplemented function */
 }
@@ -122,32 +122,32 @@ void Gepard::strokeRect(float x, float y, float w, float h)
 /** @todo unimplemented function */
 }
 
-void beginPath()
+void Gepard::beginPath()
 {
 /** @todo unimplemented function */
 }
 
-void fill()
+void Gepard::fill()
 {
 /** @todo unimplemented function */
 }
 
-void stroke()
+void Gepard::stroke()
 {
 /** @todo unimplemented function */
 }
 
-void drawFocusIfNeeded(/*Element element*/)
+void Gepard::drawFocusIfNeeded(/*Element element*/)
 {
 /** @todo unimplemented function */
 }
 
-void clip()
+void Gepard::clip()
 {
 /** @todo unimplemented function */
 }
 
-bool isPointInPath(float x, float y)
+bool Gepard::isPointInPath(float x, float y)
 {
 /** @todo unimplemented function */
     ASSERT(0 && "Unimplemented function!");
