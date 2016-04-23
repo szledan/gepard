@@ -42,44 +42,121 @@ void Gepard::restore()
 /** @todo unimplemented function */
 }
 
+/**
+ * @brief Gepard::cloeePath
+ *
+ * @todo unimplemented function
+ *
+ */
 void Gepard::cloeePath()
 {
-/** @todo unimplemented function */
+    ASSERT(0 && "Unimplemented function!");
 }
 
+/**
+ * @brief Gepard::moveTo
+ * @param x
+ * @param y
+ *
+ * @todo unimplemented function
+ *
+ */
 void Gepard::moveTo(float x, float y)
 {
-/** @todo unimplemented function */
+    ASSERT(0 && "Unimplemented function!");
 }
 
+/**
+ * @brief Gepard::lineTo
+ * @param x
+ * @param y
+ *
+ * @todo unimplemented function
+ *
+ */
 void Gepard::lineTo(float x, float y)
 {
-/** @todo unimplemented function */
+    ASSERT(0 && "Unimplemented function!");
 }
 
+/**
+ * @brief Gepard::quadraticCurveTo
+ * @param cpx
+ * @param cpy
+ * @param x
+ * @param y
+ *
+ * @todo unimplemented function
+ *
+ */
 void Gepard::quadraticCurveTo(float cpx, float cpy, float x, float y)
 {
-/** @todo unimplemented function */
+    ASSERT(0 && "Unimplemented function!");
 }
 
+/**
+ * @brief Gepard::bezierCurveTo
+ * @param cp1x
+ * @param cp1y
+ * @param cp2x
+ * @param cp2y
+ * @param x
+ * @param y
+ *
+ * @todo unimplemented function
+ *
+ */
 void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
 {
-/** @todo unimplemented function */
+    ASSERT(0 && "Unimplemented function!");
 }
 
+/**
+ * @brief Gepard::arcTo
+ * @param x1
+ * @param y1
+ * @param x2
+ * @param y2
+ * @param radius
+ *
+ * @todo unimplemented function
+ *
+ */
 void Gepard::arcTo(float x1, float y1, float x2, float y2, float radius)
 {
-/** @todo unimplemented function */
+    ASSERT(0 && "Unimplemented function!");
 }
 
+/**
+ * @brief Gepard::rect
+ * @param x
+ * @param y
+ * @param w
+ * @param h
+ *
+ * @todo unimplemented function
+ *
+ */
 void Gepard::rect(float x, float y, float w, float h)
 {
-/** @todo unimplemented function */
+    ASSERT(0 && "Unimplemented function!");
 }
 
+/**
+ * @brief Gepard::arc
+ * @param x
+ * @param y
+ * @param radius
+ * @param startAngle
+ * @param endAngle
+ * @param counterclockwise
+ *
+ * @todo unimplemented function
+ *
+ */
 void Gepard::arc(float x, float y, float radius, float startAngle, float endAngle, bool counterclockwise)
 {
-/** @todo unimplemented function */
+    ASSERT(0 && "Unimplemented function!");
 }
 
 void Gepard::scale(float x, float y)
@@ -122,34 +199,72 @@ void Gepard::strokeRect(float x, float y, float w, float h)
 /** @todo unimplemented function */
 }
 
+/**
+ * @brief Gepard::beginPath
+ *
+ * @todo unimplemented function
+ *
+ */
 void Gepard::beginPath()
 {
-/** @todo unimplemented function */
+    ASSERT(0 && "Unimplemented function!");
 }
 
+/**
+ * @brief Gepard::fill
+ *
+ * @todo unimplemented function
+ *
+ */
 void Gepard::fill()
 {
-/** @todo unimplemented function */
+    ASSERT(0 && "Unimplemented function!");
 }
 
+/**
+ * @brief Gepard::stroke
+ *
+ * @todo unimplemented function
+ *
+ */
 void Gepard::stroke()
 {
-/** @todo unimplemented function */
+    ASSERT(0 && "Unimplemented function!");
 }
 
+/**
+ * @brief Gepard::drawFocusIfNeeded
+ *
+ * @todo unimplemented function
+ *
+ */
 void Gepard::drawFocusIfNeeded(/*Element element*/)
 {
-/** @todo unimplemented function */
+    ASSERT(0 && "Unimplemented function!");
 }
 
+/**
+ * @brief Gepard::clip
+ *
+ * @todo unimplemented function
+ *
+ */
 void Gepard::clip()
 {
-/** @todo unimplemented function */
+    ASSERT(0 && "Unimplemented function!");
 }
 
+/**
+ * @brief Gepard::isPointInPath
+ * @param x
+ * @param y
+ * @return
+ *
+ * @todo unimplemented function
+ *
+ */
 bool Gepard::isPointInPath(float x, float y)
 {
-/** @todo unimplemented function */
     ASSERT(0 && "Unimplemented function!");
     return false;
 }
