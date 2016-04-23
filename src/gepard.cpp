@@ -101,21 +101,21 @@ void Gepard::drawImage(Image /*image*/, float sx, float sy, float sw, float sh,
 Image Gepard::createImageData(float sw, float sh)
 {
 /** @todo unimplemented function */
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
     return Image();
 }
 
 Image Gepard::createImageData(Image /*imagedata*/)
 {
 /** @todo unimplemented function */
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
     return Image();
 }
 
 Image Gepard::getImageData(double sx, double sy, double sw, double sh)
 {
 /** @todo unimplemented function */
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
     return Image();
 }
 

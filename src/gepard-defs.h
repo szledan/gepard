@@ -40,6 +40,11 @@
 #endif
 #define ASSERT(...) assert(__VA_ARGS__);
 
+#ifdef NOT_IMPLEMENTED
+#undef NOT_IMPLEMENTED
+#endif
+#define NOT_IMPLEMENTED(...) ASSERT(0 && "Unimplemented function!")
+
 #ifdef LOG_LEVEL
 #ifndef DISABLE_LOG_COLORS
 #define LOG1_COLOR "\033[94m"
