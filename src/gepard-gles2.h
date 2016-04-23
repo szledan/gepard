@@ -49,9 +49,7 @@ public:
         : _surface(surface)
     {}
 
-    /**
-     * 5 Building paths (W3-2DContext-2015)
-     */
+    /* 5. Building paths (W3-2DContext-2015) */
     void cloeePath();
     void moveTo(Float x, Float y);
     void lineTo(Float x, Float y);
@@ -61,9 +59,7 @@ public:
     void rect(Float x, Float y, Float w, Float h);
     void arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise = false);
 
-    /**
-     * 11. Drawing paths to the canvas (W3-2DContext-2015)
-     */
+    /* 11. Drawing paths to the canvas (W3-2DContext-2015) */
     void beginPath();
     void fill();
     void stroke();

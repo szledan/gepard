@@ -53,16 +53,68 @@ public:
     void save();
     void restore();
 
+    /* 5. Building paths (W3-2DContext-2015) */
+
     /**
-     * 5 Building paths (W3-2DContext-2015)
+     * @brief cloeePath
      */
     void cloeePath();
+    /**
+     * @brief moveTo
+     * @param x
+     * @param y
+     */
     void moveTo(float x, float y);
+    /**
+     * @brief lineTo
+     * @param x
+     * @param y
+     */
     void lineTo(float x, float y);
+    /**
+     * @brief quadraticCurveTo
+     * @param cpx
+     * @param cpy
+     * @param x
+     * @param y
+     */
     void quadraticCurveTo(float cpx, float cpy, float x, float y);
+    /**
+     * @brief bezierCurveTo
+     * @param cp1x
+     * @param cp1y
+     * @param cp2x
+     * @param cp2y
+     * @param x
+     * @param y
+     */
     void bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y);
+    /**
+     * @brief arcTo
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     * @param radius
+     */
     void arcTo(float x1, float y1, float x2, float y2, float radius);
+    /**
+     * @brief rect
+     * @param x
+     * @param y
+     * @param w
+     * @param h
+     */
     void rect(float x, float y, float w, float h);
+    /**
+     * @brief arc
+     * @param x
+     * @param y
+     * @param radius
+     * @param startAngle
+     * @param endAngle
+     * @param counterclockwise
+     */
     void arc(float x, float y, float radius, float startAngle, float endAngle, bool counterclockwise = false);
 
     /**
@@ -82,14 +134,33 @@ public:
     void fillRect(float x, float y, float w, float h);
     void strokeRect(float x, float y, float w, float h);
 
+    /* 11. Drawing paths to the canvas (W3-2DContext-2015) */
     /**
-     * 11. Drawing paths to the canvas (W3-2DContext-2015)
+     * @brief beginPath
      */
     void beginPath();
+    /**
+     * @brief fill
+     */
     void fill();
+    /**
+     * @brief stroke
+     */
     void stroke();
+    /**
+     * @brief drawFocusIfNeeded
+     */
     void drawFocusIfNeeded(/*Element element*/);
+    /**
+     * @brief clip
+     */
     void clip();
+    /**
+     * @brief isPointInPath
+     * @param x
+     * @param y
+     * @return
+     */
     bool isPointInPath(float x, float y);
 
     /**
