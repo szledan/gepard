@@ -43,7 +43,7 @@ namespace gepard {
  */
 void GepardGLES2::cloeePath()
 {
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
 }
 
 /**
@@ -56,7 +56,7 @@ void GepardGLES2::cloeePath()
  */
 void GepardGLES2::moveTo(Float x, Float y)
 {
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
 }
 
 /**
@@ -69,7 +69,7 @@ void GepardGLES2::moveTo(Float x, Float y)
  */
 void GepardGLES2::lineTo(Float x, Float y)
 {
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
 }
 
 /**
@@ -84,7 +84,7 @@ void GepardGLES2::lineTo(Float x, Float y)
  */
 void GepardGLES2::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
 {
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
 }
 
 /**
@@ -101,7 +101,7 @@ void GepardGLES2::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
  */
 void GepardGLES2::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y)
 {
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
 }
 
 /**
@@ -117,7 +117,7 @@ void GepardGLES2::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, 
  */
 void GepardGLES2::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
 {
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
 }
 
 /**
@@ -132,7 +132,7 @@ void GepardGLES2::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
  */
 void GepardGLES2::rect(Float x, Float y, Float w, Float h)
 {
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
 }
 
 /**
@@ -149,7 +149,7 @@ void GepardGLES2::rect(Float x, Float y, Float w, Float h)
  */
 void GepardGLES2::arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise)
 {
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
 }
 
 /**
@@ -160,7 +160,7 @@ void GepardGLES2::arc(Float x, Float y, Float radius, Float startAngle, Float en
  */
 void GepardGLES2::beginPath()
 {
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
 }
 
 /**
@@ -171,7 +171,7 @@ void GepardGLES2::beginPath()
  */
 void GepardGLES2::fill()
 {
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
 }
 
 /**
@@ -182,7 +182,7 @@ void GepardGLES2::fill()
  */
 void GepardGLES2::stroke()
 {
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
 }
 
 /**
@@ -193,7 +193,7 @@ void GepardGLES2::stroke()
  */
 void GepardGLES2::drawFocusIfNeeded(/*Element element*/)
 {
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
 }
 
 /**
@@ -204,7 +204,7 @@ void GepardGLES2::drawFocusIfNeeded(/*Element element*/)
  */
 void GepardGLES2::clip()
 {
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
 }
 
 /**
@@ -218,7 +218,7 @@ void GepardGLES2::clip()
  */
 bool GepardGLES2::isPointInPath(Float x, Float y)
 {
-    ASSERT(0 && "Unimplemented function!");
+    NOT_IMPLEMENTED();
     return false;
 }
 
