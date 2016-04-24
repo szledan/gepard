@@ -1,4 +1,5 @@
-/* Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2015-2016, Gepard Graphics
+ * Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,18 +36,22 @@
 
 namespace gepard {
 
-// TODO: #ifdef double-precision:
+/* Float */
+
+// TODO(szledan): use 'guards' for choosing precissions
+// #ifdef double-precision:
 typedef double Float;
-// TODO: use standard:
-constexpr double precisionOfFloat = 1000 * 1000 * 1000;
-//#else
-//typedef float Float;
-//constexpr float precisionOfFloat = 100 * 1000;
-//#endif
+const double precisionOfFloat = 1000 * 1000 * 1000;
+// #else
+//   typedef float Float;
+//   const float precisionOfFloat = 100 * 1000;
+// #endif
 
 inline Float fixPrecision(Float f) { return floor(f * precisionOfFloat) / precisionOfFloat; }
 
 static const Float piFloat = 2.0 * asin(1.0);
+
+/* Basic math functions. */
 
 template<class T>
 static inline const T& min(const T& lhs, const T& rhs) { return !(rhs < lhs) ? lhs : rhs; }
@@ -160,26 +165,6 @@ inline FloatPoint operator*(const FloatPoint& fp, const FloatPoint& de)
     return FloatPoint(fp.x * de.x, fp.y * de.y);
 }
 
-/* IntPoint */
-
-struct IntPoint {
-    IntPoint() : x(0), y(0) {}
-    IntPoint(int x, int y) : x(x), y(y) {}
-
-    int x;
-    int y;
-};
-
-inline std::ostream& operator<<(std::ostream& os, const IntPoint& p)
-{
-    return os << p.x << "," << p.y;
-}
-
-inline bool operator==(const IntPoint& a, const IntPoint& b)
-{
-    return a.x == b.x && a.y == b.y;
-}
-
 /* BoundingBox */
 
 struct BoundingBox {
@@ -190,7 +175,7 @@ struct BoundingBox {
         , maxY(-INFINITY)
     {}
 
-    void stretchX(Float x)
+    void stretchX(const Float x)
     {
         if (x < minX) {
             minX = x;
@@ -199,7 +184,7 @@ struct BoundingBox {
             maxX = x;
         }
     }
-    void stretchY(Float y)
+    void stretchY(const Float y)
     {
         if (y < minY) {
             minY = y;
@@ -208,7 +193,7 @@ struct BoundingBox {
             maxY = y;
         }
     }
-    void stretch(FloatPoint p)
+    void stretch(const FloatPoint p)
     {
         stretchX(p.x);
         stretchY(p.y);
@@ -231,7 +216,8 @@ struct Color {
         , g(clamp(green, 0, 255))
         , b(clamp(blue, 0, 255))
         , a(clamp(alpha, 0, 1))
-    {}
+    {
+    }
 
     int r;
     int g;
