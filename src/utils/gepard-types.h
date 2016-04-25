@@ -196,7 +196,7 @@ inline FloatPoint operator*(const FloatPoint& fp, const FloatPoint& de)
 /**
  * @brief The BoundingBox struct
  *
- * The BoundignBox struct describe a rectangle with four Float values.
+ * The BoundignBox struct describes a rectangle with four Float values.
  * Each value determines either minimum or maximum values from
  * the given points.
  *
@@ -262,10 +262,10 @@ struct Color {
     {
     }
 
-    int r; /**< red chanel */
-    int g; /**< green chanel */
-    int b; /**< blue chanel */
-    int a; /**< alpha chanel */
+    uint8_t r; /**< red chanel */
+    uint8_t g; /**< green chanel */
+    uint8_t b; /**< blue chanel */
+    uint8_t a; /**< alpha chanel */
 };
 
 } // namespace gepard
