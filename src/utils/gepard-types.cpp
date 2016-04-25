@@ -33,6 +33,14 @@ namespace gepard {
 
 /* Region */
 
+/**
+ * @brief Region::alloc
+ *
+ * @param size  size of required memory in bytes
+ * @return      pointer to allocated memory
+ *
+ * @internal
+ */
 void* Region::alloc(int size)
 {
     if (_fill + size > REGION_BLOCK_SIZE) {
