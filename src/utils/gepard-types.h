@@ -207,7 +207,7 @@ inline std::ostream& operator<<(std::ostream& os, const BoundingBox& bb)
     return os << bb.minX << "," << bb.minY << "," << bb.maxX << "," << bb.maxY;
 }
 
-// Color
+/* Color */
 
 struct Color {
     Color() : r(0), g(0), b(0), a(0) {}
