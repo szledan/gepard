@@ -1,4 +1,5 @@
 #! /usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2015-2016, Gepard Graphics
 # Copyright (C) 2016, Dániel Bátyai <dbatyai@inf.u-szeged.hu>
