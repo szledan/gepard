@@ -38,7 +38,7 @@ namespace gepard {
 
 /* Float */
 
-// TODO(szledan): use 'guards' for choosing precissions
+// TODO(szledan): use 'guards' for choosing precision of Float type
 // #ifdef double-precision:
 typedef double Float;
 const double precisionOfFloat = 1000 * 1000 * 1000;
@@ -67,8 +67,27 @@ static inline const T& clamp(const T& value, const T& min, const T& max)
 
 /* Region */
 
+/**
+ * @brief REGION_BLOCK_SIZE
+ * REGION_BLOCK_SIZE = 2048 bytes minus size of a pointer
+ *
+ * @internal
+ */
 #define REGION_BLOCK_SIZE (2048 - (int)sizeof(void*))
 
+/**
+ * @brief The Region class
+ *
+ * This is a simple class for memory allocation.  It doesn't have free() or
+ * realloc(), only alloc() for allocation.  It's used to allocate lots of
+ * regions with variating sizes, but which are usually small, and are kept
+ * until the whole Region is freed.
+ *
+ * The Region model determines free space in blocks of less than 2 KiB
+ * (2048 bytes minus size of a pointer).
+ *
+ * @internal
+ */
 class Region {
 public:
     Region()
@@ -103,6 +122,13 @@ private:
 
 /* FloatPoint */
 
+/**
+ * @brief The FloatPoint struct
+ *
+ * This is a type for a 2D point.
+ *
+ * @internal
+ */
 struct FloatPoint {
     FloatPoint() : x(0), y(0) {}
     FloatPoint(Float x, Float y) : x(x), y(y) {}
@@ -167,6 +193,15 @@ inline FloatPoint operator*(const FloatPoint& fp, const FloatPoint& de)
 
 /* BoundingBox */
 
+/**
+ * @brief The BoundingBox struct
+ *
+ * The BoundignBox struct describes a rectangle with four Float values.
+ * Each value determines either minimum or maximum values from
+ * the given points.
+ *
+ * @internal
+ */
 struct BoundingBox {
     BoundingBox()
         : minX(INFINITY)
@@ -207,8 +242,16 @@ inline std::ostream& operator<<(std::ostream& os, const BoundingBox& bb)
     return os << bb.minX << "," << bb.minY << "," << bb.maxX << "," << bb.maxY;
 }
 
-// Color
+/* Color */
 
+/**
+ * @brief The Color struct
+ *
+ * Describes a simple RGBA color chanel struct
+ * where each chanel is an unsigned byte (0-255).
+ *
+ * @internal
+ */
 struct Color {
     Color() : r(0), g(0), b(0), a(0) {}
     Color(const int red, const int green, const int blue, const int alpha)
@@ -219,10 +262,10 @@ struct Color {
     {
     }
 
-    int r;
-    int g;
-    int b;
-    int a;
+    uint8_t r; /**< red chanel */
+    uint8_t g; /**< green chanel */
+    uint8_t b; /**< blue chanel */
+    uint8_t a; /**< alpha chanel */
 };
 
 } // namespace gepard
