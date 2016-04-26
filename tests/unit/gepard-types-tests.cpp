@@ -1,5 +1,5 @@
-/* Copyright (C) 2015-2016, Gepard Graphics
- * Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2016, Gepard Graphics
+ * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,35 +28,36 @@
  */
 
 #include "gepard-types.h"
+#include "gtest/gtest.h"
 
-namespace gepard {
+namespace {
 
-/* Region */
+/* Region tests */
 
-/**
- * @brief Region::alloc
- *
- * @param size  size of required memory in bytes
- * @return      pointer to allocated memory
- *
- * @internal
- */
-void* Region::alloc(int size)
+TEST(RegionTest, SizeTooBig)
 {
-    ASSERT(size <= REGION_BLOCK_SIZE);
-    if (size > REGION_BLOCK_SIZE)
-        return nullptr;
+    gepard::Region region;
+    void* ptr = region.alloc(REGION_BLOCK_SIZE + 1);
 
-    if (_fill + size > REGION_BLOCK_SIZE) {
-        _last->next = new RegionElement();
-        _last = _last->next;
-        _fill = 0;
-    }
-
-    void* ptr = _last->value + _fill;
-    _fill += size;
-
-    return ptr;
+    EXPECT_EQ(nullptr, ptr) << "The alloc() doesn't return 'nullptr' when the 'size' bigger like REGION_BLOCK_SIZE.";
 }
 
-} // namespace gepard
+TEST(RegionTest, SizeIsZero)
+{
+    gepard::Region region;
+    void* ptr1 = region.alloc(0);
+    void* ptr2 = region.alloc(0);
+
+    EXPECT_EQ(ptr1, ptr2) << "The returned pointers are different despite of 'size' was 0 in both allocations.";
+}
+
+} // anonymous namespace
+
+/* Gepard types tests */
+
+int main(int argc, char* argv[])
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}
+
