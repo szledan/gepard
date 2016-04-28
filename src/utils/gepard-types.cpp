@@ -57,7 +57,6 @@ void* Region::alloc(int size)
         return ptr;
     }
 
-    ASSERT(size <= REGION_BLOCK_SIZE && "size bigger like REGION_BLOCK_SIZE");
     return nullptr;
 }
 
