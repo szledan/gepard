@@ -31,7 +31,7 @@
 mkdir -p tests/framework/googletest
 
 # Clone Google Test Framework to a temporary direction.
-git clone git@github.com:google/googletest.git tests/framework/build
+git clone https://github.com/google/googletest.git tests/framework/build
 
 # Build libs.
 cd tests/framework/build
@@ -41,6 +41,6 @@ make
 # Copy headers and libs.
 cp -R googletest/include libgtest.a  libgtest_main.a ../googletest/
 
-# Delete temporary direction.
+# Delete temporary directory.
 cd ..
 rm -rf build

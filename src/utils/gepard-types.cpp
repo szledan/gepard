@@ -37,26 +37,28 @@ namespace gepard {
  * @brief Region::alloc
  *
  * @param size  size of required memory in bytes
- * @return      pointer to allocated memory
+ * @return      pointer to allocated memory or nullptr if allocation failed.
  *
  * @internal
  */
 void* Region::alloc(int size)
 {
-    ASSERT(size <= REGION_BLOCK_SIZE);
-    if (size > REGION_BLOCK_SIZE)
-        return nullptr;
+    if (size <= REGION_BLOCK_SIZE) {
 
-    if (_fill + size > REGION_BLOCK_SIZE) {
-        _last->next = new RegionElement();
-        _last = _last->next;
-        _fill = 0;
+        if (_fill + size > REGION_BLOCK_SIZE) {
+            _last->next = new RegionElement();
+            _last = _last->next;
+            _fill = 0;
+        }
+
+        void* ptr = _last->value + _fill;
+        _fill += size;
+
+        return ptr;
     }
 
-    void* ptr = _last->value + _fill;
-    _fill += size;
-
-    return ptr;
+    ASSERT(size <= REGION_BLOCK_SIZE && "size bigger like REGION_BLOCK_SIZE");
+    return nullptr;
 }
 
 } // namespace gepard
