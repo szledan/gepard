@@ -116,6 +116,54 @@ TEST(RegionTest, SizeIsZero)
     EXPECT_EQ(ptr1, ptr2) << "The returned pointers are different despite 'size' was 0 in both allocations.";
 }
 
+/* FloatPoint tests */
+
+TEST(FloatPointTest, Initialize)
+{
+    gepard::FloatPoint fp0;
+
+    EXPECT_EQ(0.0, fp0.x);
+    EXPECT_EQ(0.0, fp0.y);
+
+    gepard::FloatPoint fp(1.0, 2.0);
+
+    EXPECT_EQ(1.0, fp.x);
+    EXPECT_EQ(2.0, fp.y);
+}
+
+TEST(FloatPointTest, LengthSquared)
+{
+    gepard::FloatPoint fp(3.0, -4.0);
+
+    EXPECT_EQ(25.0, fp.lengthSquared());
+}
+
+TEST(FloatPointTest, Dot)
+{
+    gepard::FloatPoint fp(3.0, -4.0);
+
+    EXPECT_EQ(2.0, fp.dot(gepard::FloatPoint(2.0, 1.0)));
+}
+
+TEST(FloatPointTest, Operators)
+{
+    gepard::FloatPoint fp(3.0, -4.0);
+
+    // Operator '=='.
+    EXPECT_TRUE(gepard::FloatPoint(3.0, -4.0) == fp);
+    // Operator '<'.
+    EXPECT_TRUE(gepard::FloatPoint(3.0, -5.0) < fp);
+    EXPECT_TRUE(gepard::FloatPoint(2.0, -4.0) < fp);
+    // Operator '+'.
+    EXPECT_EQ(gepard::FloatPoint(), gepard::FloatPoint(-3.0, 4.0) + fp);
+    // Operator '-'.
+    EXPECT_EQ(gepard::FloatPoint(), gepard::FloatPoint(3.0, -4.0) - fp);
+    // Operator '/'.
+    EXPECT_EQ(gepard::FloatPoint(1.5, -2.0), fp / 2.0);
+    // Operator '*'.
+    EXPECT_EQ(gepard::FloatPoint(4.5, 2.0), gepard::FloatPoint(1.5, -0.5) * fp);
+}
+
 /* BoundingBox */
 
 TEST(BoundingBoxTest, Initialize)
@@ -150,6 +198,8 @@ TEST(BoundingBoxTest, Stretch)
     EXPECT_EQ(2.0, bb.maxX);
     EXPECT_EQ(2.5, bb.maxY);
 }
+
+/* Color */
 
 } // anonymous namespace
 
