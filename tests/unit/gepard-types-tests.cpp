@@ -39,7 +39,7 @@ TEST(RegionTest, SizeTooBig)
     gepard::Region region;
     void* ptr = region.alloc(REGION_BLOCK_SIZE + 1);
 
-    EXPECT_EQ(nullptr, ptr) << "The alloc() doesn't return 'nullptr' when the 'size' bigger like REGION_BLOCK_SIZE.";
+    EXPECT_EQ(nullptr, ptr) << "The alloc() doesn't return 'nullptr' when 'size' is bigger than REGION_BLOCK_SIZE.";
 }
 
 TEST(RegionTest, SizeIsZero)
@@ -48,7 +48,7 @@ TEST(RegionTest, SizeIsZero)
     void* ptr1 = region.alloc(0);
     void* ptr2 = region.alloc(0);
 
-    EXPECT_EQ(ptr1, ptr2) << "The returned pointers are different despite of 'size' was 0 in both allocations.";
+    EXPECT_EQ(ptr1, ptr2) << "The returned pointers are different despite 'size' was 0 in both allocations.";
 }
 
 } // anonymous namespace
