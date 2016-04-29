@@ -32,6 +32,71 @@
 
 namespace {
 
+/* Float tests */
+
+TEST(FloatTest, ConstValuePrecisionOfFloat)
+{
+    ASSERT_NE(0.0, gepard::precisionOfFloat) << "The precisionOfFloat value is 0.";
+    EXPECT_LT(0.0, gepard::precisionOfFloat) << "The precisionOfFloat is non-pozitive.";
+    ASSERT_NE(INFINITY, gepard::precisionOfFloat) << "The precisionOfFloat is INFINITY.";
+    ASSERT_NE(NAN, gepard::precisionOfFloat) << "The precisionOfFloat is NAN.";
+}
+
+TEST(FloatTest, FixPrecision)
+{
+    gepard::Float g = 1.0 / gepard::precisionOfFloat;
+    gepard::Float h = 1.99 / gepard::precisionOfFloat;
+    EXPECT_EQ(gepard::fixPrecision(g), gepard::fixPrecision(h)) << "The fixPrecision() rounds wrong.";
+
+    g = 0.0 / gepard::precisionOfFloat;
+    h = 0.99 / gepard::precisionOfFloat;
+    EXPECT_EQ(gepard::fixPrecision(g), gepard::fixPrecision(h)) << "The fixPrecision() rounds wrong on positive numbers.";
+
+    g = -1.0 / gepard::precisionOfFloat;
+    h = -0.99 / gepard::precisionOfFloat;
+    EXPECT_EQ(gepard::fixPrecision(g), gepard::fixPrecision(h)) << "The fixPrecision() rounds wrong on negative numbers.";
+}
+
+TEST(FloatTest, PiFloat)
+{
+    gepard::Float pi100 = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679;
+    gepard::Float pi = gepard::fixPrecision(pi100);
+    gepard::Float gepardPi = gepard::fixPrecision(gepard::piFloat);
+    EXPECT_EQ(pi, gepardPi) << "Architecture used 'pi' is different than expected one.";
+}
+
+/* Basic math functions tests */
+
+TEST(BasicMathFuncTest, Min)
+{
+    EXPECT_EQ(int(0), gepard::min(int(0), int(1))) << "The min<int> works wrong.";
+    EXPECT_EQ(int(-1), gepard::min(int(-1), int(0))) << "The min<int> works wrong.";
+    EXPECT_EQ(int(0), gepard::min(int(0), int(-0))) << "The min<int> works wrong.";
+    EXPECT_EQ(gepard::Float(0.0), gepard::min(gepard::Float(0.0), gepard::Float(1.0))) << "The min<Float> works wrong.";
+    EXPECT_EQ(gepard::Float(-1.0), gepard::min(gepard::Float(-1.0), gepard::Float(0.0))) << "The min<Float> works wrong.";
+    EXPECT_EQ(gepard::Float(0.0), gepard::min(gepard::Float(0.0), gepard::Float(-0.0))) << "The min<Float> works wrong.";
+}
+
+TEST(BasicMathFuncTest, Max)
+{
+    EXPECT_EQ(int(1), gepard::max(int(0), int(1))) << "The max<int> works wrong.";
+    EXPECT_EQ(int(0), gepard::max(int(-1), int(0))) << "The max<int> works wrong.";
+    EXPECT_EQ(int(0), gepard::max(int(0), int(-0))) << "The max<int> works wrong.";
+    EXPECT_EQ(gepard::Float(1.0), gepard::max(gepard::Float(0.0), gepard::Float(1.0))) << "The max<Float> works wrong.";
+    EXPECT_EQ(gepard::Float(0.0), gepard::max(gepard::Float(-1.0), gepard::Float(0.0))) << "The max<Float> works wrong.";
+    EXPECT_EQ(gepard::Float(0.0), gepard::max(gepard::Float(0.0), gepard::Float(-0.0))) << "The max<Float> works wrong.";
+}
+
+TEST(BasicMathFuncTest, Clamp)
+{
+    EXPECT_EQ(int(-1), gepard::clamp(int(-2), int(-1), int(1))) << "The clamp<int> works wrong.";
+    EXPECT_EQ(int(0), gepard::clamp(int(-0), int(-1), int(1))) << "The clamp<int> works wrong.";
+    EXPECT_EQ(int(1), gepard::clamp(int(2), int(-1), int(1))) << "The clamp<int> works wrong.";
+    EXPECT_EQ(gepard::Float(-1.0), gepard::clamp(gepard::Float(-2.0), gepard::Float(-1.0), gepard::Float(1.0))) << "The clamp<Float> works wrong.";
+    EXPECT_EQ(gepard::Float(0.0), gepard::clamp(gepard::Float(-0.0), gepard::Float(-1.0), gepard::Float(1.0))) << "The clamp<Float> works wrong.";
+    EXPECT_EQ(gepard::Float(1.0), gepard::clamp(gepard::Float(2.0), gepard::Float(-1.0), gepard::Float(1.0))) << "The clamp<Float> works wrong.";
+}
+
 /* Region tests */
 
 TEST(RegionTest, SizeTooBig)

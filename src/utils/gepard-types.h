@@ -51,7 +51,7 @@ inline Float fixPrecision(Float f) { return floor(f * precisionOfFloat) / precis
 
 static const Float piFloat = 2.0 * asin(1.0);
 
-/* Basic math functions. */
+/* Basic math functions */
 
 template<class T>
 static inline const T& min(const T& lhs, const T& rhs) { return !(rhs < lhs) ? lhs : rhs; }
@@ -130,7 +130,7 @@ private:
  * @internal
  */
 struct FloatPoint {
-    FloatPoint() : x(0), y(0) {}
+    FloatPoint() : x(0.0), y(0.0) {}
     FloatPoint(Float x, Float y) : x(x), y(y) {}
 
     Float lengthSquared() const { return x * x + y * y; }
