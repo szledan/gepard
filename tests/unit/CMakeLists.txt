@@ -3,11 +3,19 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_FLAGS}")
 
 include_directories(${CMAKE_BINARY_DIR}/include/)
-# TODO: remove:
-include_directories(${CMAKE_SOURCE_DIR}/src/)
+
+file(GLOB_RECURSE header_list ${CMAKE_SOURCE_DIR}/src/*.h)
+set(dir_list "")
+foreach(file_path ${header_list})
+  get_filename_component(dir_path ${file_path} PATH)
+  list(APPEND dir_list ${dir_path})
+endforeach()
+list(REMOVE_DUPLICATES dir_list)
+include_directories(${dir_list})
+include_directories(${CMAKE_SOURCE_DIR}/tests/framework/googletest/include)
 
 file(GLOB SOURCES *.cpp)
 if( SOURCES )
   add_executable(unit ${SOURCES})
-  target_link_libraries(unit gepard X11 ${LIB_DEPENDENCIES})
+  target_link_libraries(unit gepard X11 ${CMAKE_SOURCE_DIR}/tests/framework/googletest/libgtest.a pthread ${LIB_DEPENDENCIES})
 endif()
