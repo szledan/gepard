@@ -45,6 +45,12 @@ void Gepard::restore()
 /**
  * @brief Gepard::cloeePath
  *
+ * In <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-closepath">W3C-2DContext-2015</a>:
+ * The closePath() method must do nothing if the object's path has no subpaths.
+ * Otherwise, it must mark the last subpath as closed, create a new subpath
+ * whose first point is the same as the previous subpath's first point, and
+ * finally add this new subpath to the path.
+ *
  * @todo unimplemented function
  *
  */
