@@ -33,13 +33,13 @@ namespace gepard {
 
 /* Region */
 
-/**
- * @brief Region::alloc
+/*!
+ * \brief Region::alloc
  *
- * @param size  size of required memory in bytes
- * @return      pointer to allocated memory or nullptr if allocation failed.
+ * \param size  size of required memory in bytes
+ * \return  pointer to allocated memory or nullptr if allocation failed.
  *
- * @internal
+ * \internal
  */
 void* Region::alloc(int size)
 {

@@ -35,10 +35,10 @@
 
 namespace gepard {
 
-/**
- * @brief GepardGLES2::closePath
+/*!
+ * \brief GepardGLES2::closePath
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void GepardGLES2::closePath()
@@ -46,12 +46,12 @@ void GepardGLES2::closePath()
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief GepardGLES2::moveTo
- * @param x
- * @param y
+/*!
+ * \brief GepardGLES2::moveTo
+ * \param x
+ * \param y
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void GepardGLES2::moveTo(Float x, Float y)
@@ -59,12 +59,12 @@ void GepardGLES2::moveTo(Float x, Float y)
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief GepardGLES2::lineTo
- * @param x
- * @param y
+/*!
+ * \brief GepardGLES2::lineTo
+ * \param x
+ * \param y
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void GepardGLES2::lineTo(Float x, Float y)
@@ -72,14 +72,14 @@ void GepardGLES2::lineTo(Float x, Float y)
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief GepardGLES2::quadraticCurveTo
- * @param cpx
- * @param cpy
- * @param x
- * @param y
+/*!
+ * \brief GepardGLES2::quadraticCurveTo
+ * \param cpx
+ * \param cpy
+ * \param x
+ * \param y
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void GepardGLES2::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
@@ -87,16 +87,16 @@ void GepardGLES2::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief GepardGLES2::bezierCurveTo
- * @param cp1x
- * @param cp1y
- * @param cp2x
- * @param cp2y
- * @param x
- * @param y
+/*!
+ * \brief GepardGLES2::bezierCurveTo
+ * \param cp1x
+ * \param cp1y
+ * \param cp2x
+ * \param cp2y
+ * \param x
+ * \param y
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void GepardGLES2::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y)
@@ -104,15 +104,15 @@ void GepardGLES2::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, 
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief GepardGLES2::arcTo
- * @param x1
- * @param y1
- * @param x2
- * @param y2
- * @param radius
+/*!
+ * \brief GepardGLES2::arcTo
+ * \param x1
+ * \param y1
+ * \param x2
+ * \param y2
+ * \param radius
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void GepardGLES2::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
@@ -120,14 +120,14 @@ void GepardGLES2::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief GepardGLES2::rect
- * @param x
- * @param y
- * @param w
- * @param h
+/*!
+ * \brief GepardGLES2::rect
+ * \param x
+ * \param y
+ * \param w
+ * \param h
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void GepardGLES2::rect(Float x, Float y, Float w, Float h)
@@ -135,16 +135,16 @@ void GepardGLES2::rect(Float x, Float y, Float w, Float h)
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief GepardGLES2::arc
- * @param x
- * @param y
- * @param radius
- * @param startAngle
- * @param endAngle
- * @param counterclockwise
+/*!
+ * \brief GepardGLES2::arc
+ * \param x
+ * \param y
+ * \param radius
+ * \param startAngle
+ * \param endAngle
+ * \param counterclockwise
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void GepardGLES2::arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise)
@@ -152,10 +152,10 @@ void GepardGLES2::arc(Float x, Float y, Float radius, Float startAngle, Float en
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief GepardGLES2::beginPath
+/*!
+ * \brief GepardGLES2::beginPath
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void GepardGLES2::beginPath()
@@ -163,10 +163,10 @@ void GepardGLES2::beginPath()
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief GepardGLES2::fill
+/*!
+ * \brief GepardGLES2::fill
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void GepardGLES2::fill()
@@ -174,10 +174,10 @@ void GepardGLES2::fill()
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief GepardGLES2::stroke
+/*!
+ * \brief GepardGLES2::stroke
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void GepardGLES2::stroke()
@@ -185,10 +185,10 @@ void GepardGLES2::stroke()
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief GepardGLES2::drawFocusIfNeeded
+/*!
+ * \brief GepardGLES2::drawFocusIfNeeded
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void GepardGLES2::drawFocusIfNeeded(/*Element element*/)
@@ -196,10 +196,10 @@ void GepardGLES2::drawFocusIfNeeded(/*Element element*/)
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief GepardGLES2::clip
+/*!
+ * \brief GepardGLES2::clip
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void GepardGLES2::clip()
@@ -207,13 +207,13 @@ void GepardGLES2::clip()
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief GepardGLES2::isPointInPath
- * @param x
- * @param y
- * @return
+/*!
+ * \brief GepardGLES2::isPointInPath
+ * \param x
+ * \param y
+ * \return
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 bool GepardGLES2::isPointInPath(Float x, Float y)

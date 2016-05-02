@@ -67,16 +67,16 @@ static inline const T& clamp(const T& value, const T& min, const T& max)
 
 /* Region */
 
-/**
- * @brief REGION_BLOCK_SIZE
+/*!
+ * \brief REGION_BLOCK_SIZE
  * REGION_BLOCK_SIZE = 2048 bytes minus size of a pointer
  *
- * @internal
+ * \internal
  */
 #define REGION_BLOCK_SIZE (2048 - (int)sizeof(void*))
 
-/**
- * @brief The Region class
+/*!
+ * \brief The Region class
  *
  * This is a simple class for memory allocation.  It doesn't have free() or
  * realloc(), only alloc() for allocation.  It's used to allocate lots of
@@ -86,7 +86,7 @@ static inline const T& clamp(const T& value, const T& min, const T& max)
  * The Region model determines free space in blocks of less than 2 KiB
  * (2048 bytes minus size of a pointer).
  *
- * @internal
+ * \internal
  */
 class Region {
 public:
@@ -122,12 +122,12 @@ private:
 
 /* FloatPoint */
 
-/**
- * @brief The FloatPoint struct
+/*!
+ * \brief The FloatPoint struct
  *
  * This is a type for a 2D point.
  *
- * @internal
+ * \internal
  */
 struct FloatPoint {
     FloatPoint() : x(0.0), y(0.0) {}
@@ -193,14 +193,14 @@ inline FloatPoint operator*(const FloatPoint& fp, const FloatPoint& de)
 
 /* BoundingBox */
 
-/**
- * @brief The BoundingBox struct
+/*!
+ * \brief The BoundingBox struct
  *
  * The BoundignBox struct describes a rectangle with four Float values.
  * Each value determines either minimum or maximum values from
  * the given points.
  *
- * @internal
+ * \internal
  */
 struct BoundingBox {
     BoundingBox()
@@ -244,13 +244,13 @@ inline std::ostream& operator<<(std::ostream& os, const BoundingBox& bb)
 
 /* Color */
 
-/**
- * @brief The Color struct
+/*!
+ * \brief The Color struct
  *
  * Describes a simple RGBA color chanel struct
  * where each chanel is an unsigned byte (0-255).
  *
- * @internal
+ * \internal
  */
 struct Color {
     Color() : r(0), g(0), b(0), a(0) {}
@@ -262,10 +262,10 @@ struct Color {
     {
     }
 
-    uint8_t r; /**< red chanel */
-    uint8_t g; /**< green chanel */
-    uint8_t b; /**< blue chanel */
-    uint8_t a; /**< alpha chanel */
+    uint8_t r; /*!< red chanel */
+    uint8_t g; /*!< green chanel */
+    uint8_t b; /*!< blue chanel */
+    uint8_t a; /*!< alpha chanel */
 };
 
 } // namespace gepard

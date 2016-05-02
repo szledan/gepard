@@ -42,8 +42,8 @@ void Gepard::restore()
 /** @todo unimplemented function */
 }
 
-/**
- * @brief Gepard::closePath
+/*!
+ * \brief Gepard::closePath
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
  * The closePath() method must do nothing if the object's path has no subpaths.
@@ -51,7 +51,7 @@ void Gepard::restore()
  * whose first point is the same as the previous subpath's first point, and
  * finally add this new subpath to the path.
  *
- * @note
+ * \note
  * If the last subpath had more than one point in its list of points,
  * then this is equivalent to adding a straight line connecting the last point
  * back to the first point, thus "closing" the shape, and then repeating the
@@ -60,7 +60,7 @@ void Gepard::restore()
  *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-closepath">[W3C-2DContext]</a>
  *   </blockquote>
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void Gepard::closePath()
@@ -68,8 +68,8 @@ void Gepard::closePath()
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief Gepard::moveTo
+/*!
+ * \brief Gepard::moveTo
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
  * The moveTo(x, y) method must create a new subpath with the specified point
@@ -83,7 +83,7 @@ void Gepard::closePath()
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-moveto">[W3C-2DContext]</a>
  *   </blockquote>
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void Gepard::moveTo(float x, float y)
@@ -91,8 +91,8 @@ void Gepard::moveTo(float x, float y)
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief Gepard::lineTo
+/*!
+ * \brief Gepard::lineTo
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
  *
@@ -104,7 +104,7 @@ void Gepard::moveTo(float x, float y)
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-lineto">[W3C-2DContext]</a>
  *   </blockquote>
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void Gepard::lineTo(float x, float y)
@@ -112,8 +112,8 @@ void Gepard::lineTo(float x, float y)
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief Gepard::quadraticCurveTo
+/*!
+ * \brief Gepard::quadraticCurveTo
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
  *
@@ -125,7 +125,7 @@ void Gepard::lineTo(float x, float y)
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-quadraticcurveto">[W3C-2DContext]</a>
  *   </blockquote>
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void Gepard::quadraticCurveTo(float cpx, float cpy, float x, float y)
@@ -133,8 +133,8 @@ void Gepard::quadraticCurveTo(float cpx, float cpy, float x, float y)
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief Gepard::bezierCurveTo
+/*!
+ * \brief Gepard::bezierCurveTo
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
  *
@@ -147,7 +147,7 @@ void Gepard::quadraticCurveTo(float cpx, float cpy, float x, float y)
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-beziercurveto">[W3C-2DContext]</a>
  *   </blockquote>
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
@@ -155,8 +155,8 @@ void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief Gepard::arcTo
+/*!
+ * \brief Gepard::arcTo
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
  *
@@ -193,7 +193,7 @@ void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-arcto">[W3C-2DContext]</a>
  *   </blockquote>
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void Gepard::arcTo(float x1, float y1, float x2, float y2, float radius)
@@ -201,8 +201,8 @@ void Gepard::arcTo(float x1, float y1, float x2, float y2, float radius)
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief Gepard::rect
+/*!
+ * \brief Gepard::rect
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
  *
@@ -215,7 +215,7 @@ void Gepard::arcTo(float x1, float y1, float x2, float y2, float radius)
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-rect">[W3C-2DContext]</a>
  *   </blockquote>
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void Gepard::rect(float x, float y, float w, float h)
@@ -223,8 +223,8 @@ void Gepard::rect(float x, float y, float w, float h)
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief Gepard::arc
+/*!
+ * \brief Gepard::arc
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
  *
@@ -243,15 +243,15 @@ void Gepard::rect(float x, float y, float w, float h)
  * respectively.
  *
  * If the counterclockwise argument false and endAngle-startAngle is equal to
- * or greater than 2π, or if the counterclockwise argument is true and
- * startAngle-endAngle is equal to or greater than 2π, then the arc is the
+ * or greater than 2\f$\pi\f$, or if the counterclockwise argument is true and
+ * startAngle-endAngle is equal to or greater than 2\f$\pi\f$, then the arc is the
  * whole circumference of this circle.
  *
  * Otherwise, the arc is the path along the circumference of this circle from
  * the start point to the end point, going anti-clockwise if the
  * counterclockwise argument is true, and clockwise otherwise. Since the points
  * are on the circle, as opposed to being simply angles from zero, the arc can
- * never cover an angle greater than 2π radians. If the two points are the
+ * never cover an angle greater than 2\f$\pi\f$ radians. If the two points are the
  * same, or if the radius is zero, then the arc is defined as being of zero
  * length in both directions.
  *
@@ -261,7 +261,7 @@ void Gepard::rect(float x, float y, float w, float h)
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-arc">[W3C-2DContext]</a>
  *   </blockquote>
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void Gepard::arc(float x, float y, float radius, float startAngle, float endAngle, bool counterclockwise)
@@ -309,14 +309,14 @@ void Gepard::strokeRect(float x, float y, float w, float h)
 /** @todo unimplemented function */
 }
 
-/**
- * @brief Gepard::beginPath
+/*!
+ * \brief Gepard::beginPath
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
  * -- <a href="">[W3C-2DContext]</a>
  *   </blockquote>
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void Gepard::beginPath()
@@ -324,15 +324,15 @@ void Gepard::beginPath()
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief Gepard::fill
+/*!
+ * \brief Gepard::fill
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
  * The fill() method must fill all the subpaths of the current path, using
  * fillStyle, and using the non-zero winding number rule. Open subpaths must
  * be implicitly closed when being filled (without affecting the actual subpaths).
  *
- * @note Thus, if two overlapping but otherwise independent subpaths have
+ * \note Thus, if two overlapping but otherwise independent subpaths have
  * opposite windings, they cancel out and result in no fill. If they have the
  * same winding, that area just gets painted once.
  *
@@ -343,7 +343,7 @@ void Gepard::beginPath()
  * -- <a href="">[W3C-2DContext]</a>
  *   </blockquote>
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void Gepard::fill()
@@ -351,8 +351,8 @@ void Gepard::fill()
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief Gepard::stroke
+/*!
+ * \brief Gepard::stroke
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
  *
@@ -360,11 +360,11 @@ void Gepard::fill()
  * object for the line styles, and then fill the combined stroke area using the
  * strokeStyle attribute.
  *
- * @note As a result of how the algorithm to trace a path is defined,
+ * \note As a result of how the algorithm to trace a path is defined,
  * overlapping parts of the paths in one stroke operation are treated as if
  * their union was what was painted.
  *
- * @note The stroke style is affected by the transformation during painting,
+ * \note The stroke style is affected by the transformation during painting,
  * even if the path is the current default path.
  *
  * Paths, when filled or stroked, must be painted without affecting the current
@@ -377,7 +377,7 @@ void Gepard::fill()
  * -- <a href="">[W3C-2DContext]</a>
  *   </blockquote>
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void Gepard::stroke()
@@ -385,8 +385,8 @@ void Gepard::stroke()
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief Gepard::drawFocusIfNeeded
+/*!
+ * \brief Gepard::drawFocusIfNeeded
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
  *
@@ -401,7 +401,7 @@ void Gepard::stroke()
  *   high-contrast focus outlines), or if the element would have a focus
  *   outline drawn around it, then draw a focus outline of the appropriate
  *   style along the intended path, following platform conventions.\n
- *   @note Some platforms only draw focus outlines around elements that have
+ *   \note Some platforms only draw focus outlines around elements that have
  *   been focused from the keyboard, and not those focused from the mouse.
  *   Other platforms simply don't draw focus outlines around some elements at
  *   all unless relevant accessibility features are enabled.
@@ -423,7 +423,7 @@ void Gepard::stroke()
  *   supported. User agents may wait until the next time the event loop reaches
  *   its "update the rendering" step to inform the user.
  *
- *   @note "Inform the user", as used in this section, could mean calling a
+ *   \note "Inform the user", as used in this section, could mean calling a
  *   system accessibility API, which would notify assistive technologies such
  *   as magnification tools. To properly drive magnification based on a focus
  *   change, a system accessibility API driving a screen magnifier needs the
@@ -437,7 +437,7 @@ void Gepard::stroke()
  * -- <a href="">[W3C-2DContext]</a>
  *   </blockquote>
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void Gepard::drawFocusIfNeeded(/*Element element*/)
@@ -445,8 +445,8 @@ void Gepard::drawFocusIfNeeded(/*Element element*/)
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief Gepard::clip
+/*!
+ * \brief Gepard::clip
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
  *
@@ -464,7 +464,7 @@ void Gepard::drawFocusIfNeeded(/*Element element*/)
  * -- <a href="">[W3C-2DContext]</a>
  *   </blockquote>
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 void Gepard::clip()
@@ -472,8 +472,8 @@ void Gepard::clip()
     NOT_IMPLEMENTED();
 }
 
-/**
- * @brief Gepard::isPointInPath
+/*!
+ * \brief Gepard::isPointInPath
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
  *
@@ -488,7 +488,7 @@ void Gepard::clip()
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-quadraticcurveto">[W3C-2DContext]</a>
  *   </blockquote>
  *
- * @todo unimplemented function
+ * \todo unimplemented function
  *
  */
 bool Gepard::isPointInPath(float x, float y)
