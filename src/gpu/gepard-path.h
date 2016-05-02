@@ -158,7 +158,9 @@ struct PathData {
     void addArcElement(FloatPoint, FloatPoint, Float, Float, bool = true);
     void addArcToElement(const FloatPoint&, const FloatPoint&, const Float&);
     void addCloseSubpathElement();
+#ifndef NDEBUG
     void dump();
+#endif
 
     PathElement* firstElement() const { return _firstElement; }
     PathElement* lastElement() const { return _lastElement; }

@@ -228,6 +228,7 @@ void PathData::addCloseSubpathElement()
     _lastElement = _lastElement->next;
 }
 
+#ifndef NDEBUG
 void PathData::dump()
 {
     PathElement* element = _firstElement;
@@ -242,6 +243,7 @@ void PathData::dump()
     }
     std::cout << std::endl;
 }
+#endif
 
 /* Path */
 
@@ -249,8 +251,10 @@ void Path::fillPath()
 {
     ASSERT(_pathData.lastElement()->isCloseSubpath());
 
+#ifndef NDEBUG
     // TODO(@szledan): For testing.
     _pathData.dump();
+#endif
 
     // Choose a GPU_BACK_END.
     // TODO(szledan): GLESV2
