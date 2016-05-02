@@ -46,6 +46,7 @@ void Gepard::restore()
  * \brief Gepard::closePath
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
+ *
  * The closePath() method must do nothing if the object's path has no subpaths.
  * Otherwise, it must mark the last subpath as closed, create a new subpath
  * whose first point is the same as the previous subpath's first point, and
@@ -71,6 +72,7 @@ void Gepard::closePath()
  * \brief Gepard::moveTo
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
+ *
  * The moveTo(x, y) method must create a new subpath with the specified point
  * as its first (and only) point.
  *
@@ -305,6 +307,10 @@ void Gepard::strokeRect(float x, float y, float w, float h)
  * \brief Gepard::beginPath
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
+ *
+ * The beginPath() method must empty the list of subpaths in the context's
+ * current path so that the it once again has zero subpaths.
+ *
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-beginpath">[W3C-2DContext]</a>
  *   </blockquote>
  *
@@ -319,6 +325,7 @@ void Gepard::beginPath()
  * \brief Gepard::fill
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
+ *
  * The fill() method must fill all the subpaths of the current path, using
  * fillStyle, and using the non-zero winding number rule. Open subpaths must
  * be implicitly closed when being filled (without affecting the actual subpaths).
