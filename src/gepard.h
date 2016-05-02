@@ -53,69 +53,110 @@ public:
     void save();
     void restore();
 
-    /* 5. Building paths (W3-2DContext-2015) */
+    /**
+     * 5. Building paths (W3-2DContext-2015)
+     */
+
+    /** @name CanvasPathMethods
+     *
+     *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
+     * A path has a list of zero or more subpaths. Each subpath consists of a
+     * list of one or more points, connected by straight or curved lines, and a
+     * flag indicating whether the subpath is closed or not. A closed subpath
+     * is one where the last point of the subpath is connected to the first
+     * point of the subpath by a straight line. Subpaths with fewer than two
+     * points are ignored when painting the path.
+     *  -- <a href="https://www.w3.org/TR/2dcontext/#building-paths">[W3C-2DContext]</a>
+     *   </blockquote>
+     *
+     * This group documentation contains some quotes from the
+     * <a href="https://www.w3.org/TR/2dcontext">W3C-2DContext-2015</a>
+     * recommandation and every qoutes closed in a  \c <blockquote\>.
+     *
+     */
+    /// @{
 
     /**
-     * @brief cloeePath
+     * @brief Marks the current subpath as closed, and starts a new subpath
+     * with a point the same as the start and end of the newly closed subpath.
+     * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-closepath">[W3C-2DContext]</a>
      */
-    void cloeePath();
+    void closePath();
     /**
-     * @brief moveTo
-     * @param x
-     * @param y
+     * @brief Creates a new subpath with the given point.
+     *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-moveto">[W3C-2DContext]</a>
+     * @param x X-axis value of _end_ point
+     * @param y Y-axis value of _end_ point
+     *
      */
     void moveTo(float x, float y);
     /**
-     * @brief lineTo
-     * @param x
-     * @param y
+     * @brief Adds the given point to the current subpath, connected to the
+     * previous one by a straight line.
+     *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-lineto">[W3C-2DContext]</a>
+     * @param x X-axis value of _end_ point
+     * @param y Y-axis value of _end_ point
      */
     void lineTo(float x, float y);
     /**
-     * @brief quadraticCurveTo
-     * @param cpx
-     * @param cpy
-     * @param x
-     * @param y
+     * @brief Adds the given point to the current subpath, connected to the
+     * previous one by a quadratic Bézier curve with the given control point.
+     *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-quadraticcurveto">[W3C-2DContext]</a>
+     * @param cpx  X-axis value of _control_ point
+     * @param cpy  Y-axis value of _control_ point
+     * @param x  X-axis value of _end_ point
+     * @param y  Y-axis value of _end_ point
      */
     void quadraticCurveTo(float cpx, float cpy, float x, float y);
     /**
-     * @brief bezierCurveTo
-     * @param cp1x
-     * @param cp1y
-     * @param cp2x
-     * @param cp2y
-     * @param x
-     * @param y
+     * @brief Adds the given point to the current subpath, connected to the
+     * previous one by a cubic Bézier curve with the given control points.
+     *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-beziercurveto">[W3C-2DContext]</a>
+     * @param cp1x  X-axis value of _first control_ point
+     * @param cp1y  Y-axis value of _first control_ point
+     * @param cp2x  X-axis value of _second control_ point
+     * @param cp2y  Y-axis value of _second control_ point
+     * @param x  X-axis value of _end_ point
+     * @param y  Y-axis value of _end_ point
      */
     void bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y);
     /**
-     * @brief arcTo
-     * @param x1
-     * @param y1
-     * @param x2
-     * @param y2
-     * @param radius
+     * @brief Adds an arc with the given control points and radius to the
+     * current subpath, connected to the previous point by a straight line.
+     *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-arcto">[W3C-2DContext]</a>
+     * @param x1  X-axis value of _tangent_ point
+     * @param y1  Y-axis value of _tangent_ point
+     * @param x2  X-axis value of _end_ point
+     * @param y2  Y-axis value of _end_ point
+     * @param radius  size of arc
      */
     void arcTo(float x1, float y1, float x2, float y2, float radius);
     /**
-     * @brief rect
-     * @param x
-     * @param y
-     * @param w
-     * @param h
+     * @brief Adds a new closed subpath to the path, representing the given
+     * rectangle.
+     *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-rect">[W3C-2DContext]</a>
+     * @param x  X-axis value of _start_ and _end_ point
+     * @param y  Y-axis value of _start_ and _end_ point
+     * @param w  size on X-axis
+     * @param h  size on Y-axis
      */
     void rect(float x, float y, float w, float h);
     /**
-     * @brief arc
-     * @param x
-     * @param y
-     * @param radius
-     * @param startAngle
-     * @param endAngle
-     * @param counterclockwise
+     * @brief Adds points to the subpath such that the arc described by the
+     * circumference of the circle described by the arguments, starting at the
+     * given start angle and ending at the given end angle, going in the given
+     * direction (defaulting to clockwise), is added to the path, connected to
+     * the previous point by a straight line.
+     *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-arc">[W3C-2DContext]</a>
+     * @param x  X-axis value of _center_ point
+     * @param y  Y-axis value of _center_ point
+     * @param radius  size of arc
+     * @param startAngle  specify the _start_ point on arc
+     * @param endAngle  specify the _end_ point on arc
+     * @param counterclockwise  specify the draw direction on arc
      */
     void arc(float x, float y, float radius, float startAngle, float endAngle, bool counterclockwise = false);
+    /// @}
 
     /**
      * 6. Transformations (W3-2DContext-2015)
@@ -134,32 +175,50 @@ public:
     void fillRect(float x, float y, float w, float h);
     void strokeRect(float x, float y, float w, float h);
 
-    /* 11. Drawing paths to the canvas (W3-2DContext-2015) */
     /**
-     * @brief beginPath
+     * 11. Drawing paths to the canvas (W3-2DContext-2015)
+     */
+
+    /**
+     * @brief
+     * Resets the current path.
+     * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-beginpath">[W3C-2DContext]</a>
      */
     void beginPath();
     /**
-     * @brief fill
+     * @brief
+     * Fills the subpaths of the current path or the given path with the current fill style.
+     * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-fill">[W3C-2DContext]</a>
      */
     void fill();
     /**
-     * @brief stroke
+     * @brief
+     * Strokes the subpaths of the current path or the given path with the current stroke style.
+     * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-stroke">[W3C-2DContext]</a>
      */
     void stroke();
     /**
-     * @brief drawFocusIfNeeded
+     * @brief
+     * Informs the user of the canvas location for the fallback element, based
+     * on the current path. If the given element has focus, draws a focus
+     * outline around the current path following the platform or user agent
+     * conventions for focus outlines as defined by the user agent.
+     * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-drawfocusifneeded">[W3C-2DContext]</a>
      */
     void drawFocusIfNeeded(/*Element element*/);
     /**
-     * @brief clip
+     * @brief
+     * Further constrains the clipping region to the current path.
+     * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-clip">[W3C-2DContext]</a>
      */
     void clip();
     /**
-     * @brief isPointInPath
-     * @param x
-     * @param y
-     * @return
+     * @brief
+     * Returns true if the given point is in the current path.
+     * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-ispointinpath">[W3C-2DContext]</a>
+     * @param x  X-axis value of the given point
+     * @param y  Y-axis value of the given point
+     * @return  true if the given _point_ is in the current path
      */
     bool isPointInPath(float x, float y);
 

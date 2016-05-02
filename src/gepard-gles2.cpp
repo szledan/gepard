@@ -36,12 +36,12 @@
 namespace gepard {
 
 /**
- * @brief GepardGLES2::cloeePath
+ * @brief GepardGLES2::closePath
  *
  * @todo unimplemented function
  *
  */
-void GepardGLES2::cloeePath()
+void GepardGLES2::closePath()
 {
     NOT_IMPLEMENTED();
 }

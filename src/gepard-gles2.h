@@ -50,7 +50,7 @@ public:
     {}
 
     /* 5. Building paths (W3-2DContext-2015) */
-    void cloeePath();
+    void closePath();
     void moveTo(Float x, Float y);
     void lineTo(Float x, Float y);
     void quadraticCurveTo(Float cpx, Float cpy, Float x, Float y);
