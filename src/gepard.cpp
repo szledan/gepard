@@ -305,7 +305,7 @@ void Gepard::strokeRect(float x, float y, float w, float h)
  * \brief Gepard::beginPath
  *
  *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
- * -- <a href="">[W3C-2DContext]</a>
+ * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-beginpath">[W3C-2DContext]</a>
  *   </blockquote>
  *
  * \todo unimplemented function
@@ -331,7 +331,7 @@ void Gepard::beginPath()
  * path, and must be subject to shadow effects, global alpha, the clipping
  * region, and global composition operators.
  *
- * -- <a href="">[W3C-2DContext]</a>
+ * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-fill">[W3C-2DContext]</a>
  *   </blockquote>
  *
  * \todo unimplemented function
@@ -364,7 +364,7 @@ void Gepard::fill()
  * Zero-length line segments must be pruned before stroking a path. Empty
  * subpaths must be ignored.
  *
- * -- <a href="">[W3C-2DContext]</a>
+ * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-stroke">[W3C-2DContext]</a>
  *   </blockquote>
  *
  * \todo unimplemented function
@@ -423,7 +423,7 @@ void Gepard::stroke()
  *   the area to which the user agent is scrolling as the bounding box of the
  *   current selection.
  *
- * -- <a href="">[W3C-2DContext]</a>
+ * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-drawfocusifneeded">[W3C-2DContext]</a>
  *   </blockquote>
  *
  * \todo unimplemented function
@@ -449,7 +449,7 @@ void Gepard::drawFocusIfNeeded(/*Element element*/)
  * rectangle with the top left corner at (0,0) and the width and height of the
  * coordinate space.
  *
- * -- <a href="">[W3C-2DContext]</a>
+ * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-clip">[W3C-2DContext]</a>
  *   </blockquote>
  *
  * \todo unimplemented function
@@ -472,7 +472,7 @@ void Gepard::clip()
  * be inside the path. If either of the arguments is infinite or NaN, then the
  * method must return false.
  *
- * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-quadraticcurveto">[W3C-2DContext]</a>
+ * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-ispointinpath">[W3C-2DContext]</a>
  *   </blockquote>
  *
  * \todo unimplemented function
