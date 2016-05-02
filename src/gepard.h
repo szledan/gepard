@@ -55,7 +55,7 @@ public:
 
     /* 5. Building paths (W3-2DContext-2015) */
 
-    /** \name CanvasPathMethods
+    /*! \name CanvasPathMethods
      *
      *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
      * A path has a list of zero or more subpaths. Each subpath consists of a
@@ -74,13 +74,13 @@ public:
      */
     /// \{
 
-    /**
+    /*!
      * \brief Marks the current subpath as closed, and starts a new subpath
      * with a point the same as the start and end of the newly closed subpath.
      * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-closepath">[W3C-2DContext]</a>
      */
     void closePath();
-    /**
+    /*!
      * \brief Creates a new subpath with the given point.
      *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-moveto">[W3C-2DContext]</a>
      * \param x  X-axis value of _end_ point
@@ -88,7 +88,7 @@ public:
      *
      */
     void moveTo(float x, float y);
-    /**
+    /*!
      * \brief Adds the given point to the current subpath, connected to the
      * previous one by a straight line.
      *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-lineto">[W3C-2DContext]</a>
@@ -96,7 +96,7 @@ public:
      * \param y Y-axis value of _end_ point
      */
     void lineTo(float x, float y);
-    /**
+    /*!
      * \brief Adds the given point to the current subpath, connected to the
      * previous one by a quadratic Bézier curve with the given control point.
      *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-quadraticcurveto">[W3C-2DContext]</a>
@@ -106,7 +106,7 @@ public:
      * \param y  Y-axis value of _end_ point
      */
     void quadraticCurveTo(float cpx, float cpy, float x, float y);
-    /**
+    /*!
      * \brief Adds the given point to the current subpath, connected to the
      * previous one by a cubic Bézier curve with the given control points.
      *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-beziercurveto">[W3C-2DContext]</a>
@@ -118,7 +118,7 @@ public:
      * \param y  Y-axis value of _end_ point
      */
     void bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y);
-    /**
+    /*!
      * \brief Adds an arc with the given control points and radius to the
      * current subpath, connected to the previous point by a straight line.
      *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-arcto">[W3C-2DContext]</a>
@@ -129,7 +129,7 @@ public:
      * \param radius  size of arc
      */
     void arcTo(float x1, float y1, float x2, float y2, float radius);
-    /**
+    /*!
      * \brief Adds a new closed subpath to the path, representing the given
      * rectangle.
      *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-rect">[W3C-2DContext]</a>
@@ -139,7 +139,7 @@ public:
      * \param h  size on Y-axis
      */
     void rect(float x, float y, float w, float h);
-    /**
+    /*!
      * \brief Adds points to the subpath such that the arc described by the
      * circumference of the circle described by the arguments, starting at the
      * given start angle and ending at the given end angle, going in the given
@@ -175,24 +175,24 @@ public:
 
     /* 11. Drawing paths to the canvas (W3-2DContext-2015) */
 
-    /**
+    /*!
      * \brief Resets the current path.
      * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-beginpath">[W3C-2DContext]</a>
      */
     void beginPath();
-    /**
+    /*!
      * \brief Fills the subpaths of the current path or the given path with the
      * current fill style.
      * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-fill">[W3C-2DContext]</a>
      */
     void fill();
-    /**
+    /*!
      * \brief Strokes the subpaths of the current path or the given path with
      * the current stroke style.
      * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-stroke">[W3C-2DContext]</a>
      */
     void stroke();
-    /**
+    /*!
      * \brief Informs the user of the canvas location for the fallback element,
      * based on the current path. If the given element has focus, draws a focus
      * outline around the current path following the platform or user agent
@@ -200,12 +200,12 @@ public:
      * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-drawfocusifneeded">[W3C-2DContext]</a>
      */
     void drawFocusIfNeeded(/*Element element*/);
-    /**
+    /*!
      * \brief Further constrains the clipping region to the current path.
      * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-clip">[W3C-2DContext]</a>
      */
     void clip();
-    /**
+    /*!
      * \brief Returns true if the given point is in the current path.
      * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-ispointinpath">[W3C-2DContext]</a>
      * \param x  X-axis value of the given point
