@@ -47,8 +47,8 @@ void GepardGLES2::closePath()
 
 /*!
  * \brief GepardGLES2::moveTo
- * \param x
- * \param y
+ * \param x  X-axis value of _end_ point
+ * \param y  Y-axis value of _end_ point
  *
  * \todo unimplemented function
  */
@@ -59,8 +59,8 @@ void GepardGLES2::moveTo(Float x, Float y)
 
 /*!
  * \brief GepardGLES2::lineTo
- * \param x
- * \param y
+ * \param x  X-axis value of _end_ point
+ * \param y  Y-axis value of _end_ point
  *
  * \todo unimplemented function
  */
@@ -71,10 +71,10 @@ void GepardGLES2::lineTo(Float x, Float y)
 
 /*!
  * \brief GepardGLES2::quadraticCurveTo
- * \param cpx
- * \param cpy
- * \param x
- * \param y
+ * \param cpx  X-axis value of _control_ poin
+ * \param cpy  Y-axis value of _control_ poin
+ * \param x  X-axis value of _end_ point
+ * \param y  Y-axis value of _end_ point
  *
  * \todo unimplemented function
  */
@@ -85,12 +85,12 @@ void GepardGLES2::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
 
 /*!
  * \brief GepardGLES2::bezierCurveTo
- * \param cp1x
- * \param cp1y
- * \param cp2x
- * \param cp2y
- * \param x
- * \param y
+ * \param cp1x  X-axis value of _first control_ point
+ * \param cp1y  Y-axis value of _first control_ point
+ * \param cp2x  X-axis value of _second control_ point
+ * \param cp2y  Y-axis value of _second control_ point
+ * \param x  X-axis value of _end_ point
+ * \param y  Y-axis value of _end_ point
  *
  * \todo unimplemented function
  */
@@ -101,11 +101,11 @@ void GepardGLES2::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, 
 
 /*!
  * \brief GepardGLES2::arcTo
- * \param x1
- * \param y1
- * \param x2
- * \param y2
- * \param radius
+ * \param x1  X-axis value of _tangent_ point
+ * \param y1  Y-axis value of _tangent_ point
+ * \param x2  X-axis value of _end_ point
+ * \param y2  Y-axis value of _end_ point
+ * \param radius  size of arc
  *
  * \todo unimplemented function
  */
@@ -116,10 +116,10 @@ void GepardGLES2::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
 
 /*!
  * \brief GepardGLES2::rect
- * \param x
- * \param y
- * \param w
- * \param h
+ * \param x  X-axis value of _start_ and _end_ point
+ * \param y  Y-axis value of _start_ and _end_ point
+ * \param w  size on X-axis
+ * \param h  size on Y-axis
  *
  * \todo unimplemented function
  */
@@ -130,12 +130,12 @@ void GepardGLES2::rect(Float x, Float y, Float w, Float h)
 
 /*!
  * \brief GepardGLES2::arc
- * \param x
- * \param y
- * \param radius
- * \param startAngle
- * \param endAngle
- * \param counterclockwise
+ * \param x  X-axis value of _center_ point
+ * \param y  Y-axis value of _center_ point
+ * \param radius  size of arc
+ * \param startAngle  specify the _start_ point on arc
+ * \param endAngle  specify the _end_ point on arc
+ * \param counterclockwise  specify the draw direction on arc
  *
  * \todo unimplemented function
  */
@@ -196,9 +196,9 @@ void GepardGLES2::clip()
 
 /*!
  * \brief GepardGLES2::isPointInPath
- * \param x
- * \param y
- * \return
+ * \param x  X-axis value of the given point
+ * \param y  Y-axis value of the given point
+ * \return  true if the given _point_ is in the current path
  *
  * \todo unimplemented function
  */
