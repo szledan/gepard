@@ -39,7 +39,6 @@ namespace gepard {
  * \brief GepardGLES2::closePath
  *
  * \todo unimplemented function
- *
  */
 void GepardGLES2::closePath()
 {
@@ -52,7 +51,6 @@ void GepardGLES2::closePath()
  * \param y
  *
  * \todo unimplemented function
- *
  */
 void GepardGLES2::moveTo(Float x, Float y)
 {
@@ -65,7 +63,6 @@ void GepardGLES2::moveTo(Float x, Float y)
  * \param y
  *
  * \todo unimplemented function
- *
  */
 void GepardGLES2::lineTo(Float x, Float y)
 {
@@ -80,7 +77,6 @@ void GepardGLES2::lineTo(Float x, Float y)
  * \param y
  *
  * \todo unimplemented function
- *
  */
 void GepardGLES2::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
 {
@@ -97,7 +93,6 @@ void GepardGLES2::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
  * \param y
  *
  * \todo unimplemented function
- *
  */
 void GepardGLES2::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y)
 {
@@ -113,7 +108,6 @@ void GepardGLES2::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, 
  * \param radius
  *
  * \todo unimplemented function
- *
  */
 void GepardGLES2::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
 {
@@ -128,7 +122,6 @@ void GepardGLES2::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
  * \param h
  *
  * \todo unimplemented function
- *
  */
 void GepardGLES2::rect(Float x, Float y, Float w, Float h)
 {
@@ -145,7 +138,6 @@ void GepardGLES2::rect(Float x, Float y, Float w, Float h)
  * \param counterclockwise
  *
  * \todo unimplemented function
- *
  */
 void GepardGLES2::arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise)
 {
@@ -156,7 +148,6 @@ void GepardGLES2::arc(Float x, Float y, Float radius, Float startAngle, Float en
  * \brief GepardGLES2::beginPath
  *
  * \todo unimplemented function
- *
  */
 void GepardGLES2::beginPath()
 {
@@ -167,7 +158,6 @@ void GepardGLES2::beginPath()
  * \brief GepardGLES2::fill
  *
  * \todo unimplemented function
- *
  */
 void GepardGLES2::fill()
 {
@@ -178,7 +168,6 @@ void GepardGLES2::fill()
  * \brief GepardGLES2::stroke
  *
  * \todo unimplemented function
- *
  */
 void GepardGLES2::stroke()
 {
@@ -189,7 +178,6 @@ void GepardGLES2::stroke()
  * \brief GepardGLES2::drawFocusIfNeeded
  *
  * \todo unimplemented function
- *
  */
 void GepardGLES2::drawFocusIfNeeded(/*Element element*/)
 {
@@ -200,7 +188,6 @@ void GepardGLES2::drawFocusIfNeeded(/*Element element*/)
  * \brief GepardGLES2::clip
  *
  * \todo unimplemented function
- *
  */
 void GepardGLES2::clip()
 {
@@ -214,7 +201,6 @@ void GepardGLES2::clip()
  * \return
  *
  * \todo unimplemented function
- *
  */
 bool GepardGLES2::isPointInPath(Float x, Float y)
 {

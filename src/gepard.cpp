@@ -61,7 +61,6 @@ void Gepard::restore()
  *   </blockquote>
  *
  * \todo unimplemented function
- *
  */
 void Gepard::closePath()
 {
@@ -84,7 +83,6 @@ void Gepard::closePath()
  *   </blockquote>
  *
  * \todo unimplemented function
- *
  */
 void Gepard::moveTo(float x, float y)
 {
@@ -105,7 +103,6 @@ void Gepard::moveTo(float x, float y)
  *   </blockquote>
  *
  * \todo unimplemented function
- *
  */
 void Gepard::lineTo(float x, float y)
 {
@@ -126,7 +123,6 @@ void Gepard::lineTo(float x, float y)
  *   </blockquote>
  *
  * \todo unimplemented function
- *
  */
 void Gepard::quadraticCurveTo(float cpx, float cpy, float x, float y)
 {
@@ -148,7 +144,6 @@ void Gepard::quadraticCurveTo(float cpx, float cpy, float x, float y)
  *   </blockquote>
  *
  * \todo unimplemented function
- *
  */
 void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
 {
@@ -194,7 +189,6 @@ void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float
  *   </blockquote>
  *
  * \todo unimplemented function
- *
  */
 void Gepard::arcTo(float x1, float y1, float x2, float y2, float radius)
 {
@@ -216,7 +210,6 @@ void Gepard::arcTo(float x1, float y1, float x2, float y2, float radius)
  *   </blockquote>
  *
  * \todo unimplemented function
- *
  */
 void Gepard::rect(float x, float y, float w, float h)
 {
@@ -262,7 +255,6 @@ void Gepard::rect(float x, float y, float w, float h)
  *   </blockquote>
  *
  * \todo unimplemented function
- *
  */
 void Gepard::arc(float x, float y, float radius, float startAngle, float endAngle, bool counterclockwise)
 {
@@ -317,7 +309,6 @@ void Gepard::strokeRect(float x, float y, float w, float h)
  *   </blockquote>
  *
  * \todo unimplemented function
- *
  */
 void Gepard::beginPath()
 {
@@ -344,7 +335,6 @@ void Gepard::beginPath()
  *   </blockquote>
  *
  * \todo unimplemented function
- *
  */
 void Gepard::fill()
 {
@@ -378,7 +368,6 @@ void Gepard::fill()
  *   </blockquote>
  *
  * \todo unimplemented function
- *
  */
 void Gepard::stroke()
 {
@@ -438,7 +427,6 @@ void Gepard::stroke()
  *   </blockquote>
  *
  * \todo unimplemented function
- *
  */
 void Gepard::drawFocusIfNeeded(/*Element element*/)
 {
@@ -465,7 +453,6 @@ void Gepard::drawFocusIfNeeded(/*Element element*/)
  *   </blockquote>
  *
  * \todo unimplemented function
- *
  */
 void Gepard::clip()
 {
@@ -489,7 +476,6 @@ void Gepard::clip()
  *   </blockquote>
  *
  * \todo unimplemented function
- *
  */
 bool Gepard::isPointInPath(float x, float y)
 {
