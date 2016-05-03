@@ -77,17 +77,20 @@ static inline const T& clamp(const T& value, const T& min, const T& max)
 
 /*!
  * \brief The Region class
+ * \tparam BLOCK_SIZE  defines the region size; the default size is the
+ * REGION_BLOCK_SIZE = 2048 bytes minus size of a pointer.
  *
  * This is a simple class for memory allocation.  It doesn't have free() or
  * realloc(), only alloc() for allocation.  It's used to allocate lots of
  * regions with variating sizes, but which are usually small, and are kept
  * until the whole Region is freed.
  *
- * The Region model determines free space in blocks of less than 2 KiB
- * (2048 bytes minus size of a pointer).
+ * The Region model determines free space in blocks (which is less than 2 KiB
+ * by default).
  *
  * \internal
  */
+template<const uint32_t BLOCK_SIZE = REGION_BLOCK_SIZE>
 class Region {
 public:
     Region()
@@ -105,19 +108,44 @@ public:
         }
     }
 
-    void* alloc(int size);
+    /*!
+     * \brief Region::alloc
+     *
+     * \param size  size of required memory in bytes
+     * \return  pointer to allocated memory or nullptr if allocation failed.
+     *
+     * \internal
+     */
+    void* alloc(uint32_t size)
+    {
+        if (size <= BLOCK_SIZE) {
+
+            if (_fill + size > BLOCK_SIZE) {
+                _last->next = new RegionElement();
+                _last = _last->next;
+                _fill = 0;
+            }
+
+            void* ptr = _last->value + _fill;
+            _fill += size;
+
+            return ptr;
+        }
+
+        return nullptr;
+    }
 
 private:
     struct RegionElement {
         RegionElement() : next(nullptr) {}
 
         RegionElement* next;
-        uint8_t value[REGION_BLOCK_SIZE];
+        uint8_t value[BLOCK_SIZE];
     };
 
     RegionElement* _first;
     RegionElement* _last;
-    int _fill;
+    uint32_t _fill;
 };
 
 /* FloatPoint */

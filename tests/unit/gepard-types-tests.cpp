@@ -101,7 +101,7 @@ TEST(BasicMathFuncTest, Clamp)
 
 TEST(RegionTest, SizeTooBig)
 {
-    gepard::Region region;
+    gepard::Region<REGION_BLOCK_SIZE> region;
     void* ptr = region.alloc(REGION_BLOCK_SIZE + 1);
 
     EXPECT_EQ(nullptr, ptr) << "The alloc() doesn't return 'nullptr' when 'size' is bigger than REGION_BLOCK_SIZE.";
@@ -109,11 +109,34 @@ TEST(RegionTest, SizeTooBig)
 
 TEST(RegionTest, SizeIsZero)
 {
-    gepard::Region region;
+    gepard::Region<REGION_BLOCK_SIZE> region;
     void* ptr1 = region.alloc(0);
     void* ptr2 = region.alloc(0);
 
     EXPECT_EQ(ptr1, ptr2) << "The returned pointers are different despite 'size' was 0 in both allocations.";
+}
+
+TEST(RegionTest, SizeIsNotDefault)
+{
+    const size_t word = sizeof(uint8_t*);
+
+    // One 'word' sized buffer.
+    gepard::Region<1 * word> region1;
+
+    uint8_t* ptr1 = (uint8_t*)region1.alloc(0);
+    uint8_t* ptr2 = (uint8_t*)region1.alloc(0);
+    EXPECT_EQ(ptr1, ptr2) << "The returned pointers are different despite 'size' was 0 in both allocations.";
+
+    ptr1 = (uint8_t*)region1.alloc(word);
+    ptr2 = (uint8_t*)region1.alloc(word);
+    EXPECT_NE(ptr1, (ptr2 - word)) << "The expected item after 'ptr1' is an intenrnal 'next' pointer.";
+
+    // Two 'word' sized buffer.
+    gepard::Region<2 * word> region2;
+
+    ptr1 = (uint8_t*)region2.alloc(word);
+    ptr2 = (uint8_t*)region2.alloc(word);
+    EXPECT_EQ(ptr1, (ptr2 - word));
 }
 
 /* FloatPoint tests */

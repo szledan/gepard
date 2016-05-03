@@ -166,7 +166,7 @@ struct PathData {
     PathElement* lastElement() const { return _lastElement; }
 
 private:
-    Region _region;
+    Region<> _region;
     PathElement* _firstElement;
     PathElement* _lastElement;
     PathElement* _lastMoveToElement;
