@@ -39,7 +39,7 @@ from os import errno
 
 def run_cppcheck(all):
     basedir = path.abspath(path.join(path.dirname(__file__), '..', '..'))
-    cmd = ['cppcheck', path.join(basedir, 'src'), path.join(basedir, 'examples')]
+    cmd = ['cppcheck', '--error-exitcode=2', path.join(basedir, 'src'), path.join(basedir, 'examples')]
 
     if all:
         cmd.append('--enable=all')
@@ -54,6 +54,17 @@ def run_cppcheck(all):
             raise
 
 
+def print_result(ret):
+    print('')
+    print('-' * 30)
+    if ret:
+        print('There were some issues.\nPlease check the log above.')
+    else:
+        print('All checks passed.')
+
+    print('-' * 30)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--all', '-a', action='store_true', default=False, dest='all', help='Enable all checks')
@@ -61,6 +72,7 @@ def main():
     arguments = parser.parse_args()
     ret = run_cppcheck(arguments.all)
 
+    print_result(ret)
     sys.exit(ret)
 
 

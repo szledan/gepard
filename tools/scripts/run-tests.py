@@ -33,6 +33,7 @@ import argparse
 import sys
 from unittest import run_unittest
 from cppcheck import run_cppcheck
+from cppcheck import print_result
 
 def main():
     parser = argparse.ArgumentParser()
@@ -42,9 +43,11 @@ def main():
     arguments = parser.parse_args()
 
     print("Running cppcheck.")
-    run_cppcheck(arguments.all)
+    ret = run_cppcheck(arguments.all)
     print("\nRunning unit-tests.")
-    ret = run_unittest(arguments.type)
+    ret += run_unittest(arguments.type)
+
+    print_result(ret)
     sys.exit(ret)
 
 
