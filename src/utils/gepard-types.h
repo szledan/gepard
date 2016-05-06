@@ -51,7 +51,7 @@ inline Float fixPrecision(Float f) { return floor(f * precisionOfFloat) / precis
 
 static const Float piFloat = 2.0 * asin(1.0);
 
-/* Basic math functions. */
+/* Basic math functions */
 
 template<class T>
 static inline const T& min(const T& lhs, const T& rhs) { return !(rhs < lhs) ? lhs : rhs; }
@@ -67,27 +67,30 @@ static inline const T& clamp(const T& value, const T& min, const T& max)
 
 /* Region */
 
-/**
- * @brief REGION_BLOCK_SIZE
+/*!
+ * \brief REGION_BLOCK_SIZE
  * REGION_BLOCK_SIZE = 2048 bytes minus size of a pointer
  *
- * @internal
+ * \internal
  */
 #define REGION_BLOCK_SIZE (2048 - (int)sizeof(void*))
 
-/**
- * @brief The Region class
+/*!
+ * \brief The Region class
+ * \tparam BLOCK_SIZE  defines the region size; the default size is the
+ * REGION_BLOCK_SIZE = 2048 bytes minus size of a pointer.
  *
  * This is a simple class for memory allocation.  It doesn't have free() or
  * realloc(), only alloc() for allocation.  It's used to allocate lots of
  * regions with variating sizes, but which are usually small, and are kept
  * until the whole Region is freed.
  *
- * The Region model determines free space in blocks of less than 2 KiB
- * (2048 bytes minus size of a pointer).
+ * The Region model determines free space in blocks (which is less than 2 KiB
+ * by default).
  *
- * @internal
+ * \internal
  */
+template<const uint32_t BLOCK_SIZE = REGION_BLOCK_SIZE>
 class Region {
 public:
     Region()
@@ -105,32 +108,57 @@ public:
         }
     }
 
-    void* alloc(int size);
+    /*!
+     * \brief Region::alloc
+     *
+     * \param size  size of required memory in bytes
+     * \return  pointer to allocated memory or nullptr if allocation failed.
+     *
+     * \internal
+     */
+    void* alloc(uint32_t size)
+    {
+        if (size <= BLOCK_SIZE) {
+
+            if (_fill + size > BLOCK_SIZE) {
+                _last->next = new RegionElement();
+                _last = _last->next;
+                _fill = 0;
+            }
+
+            void* ptr = _last->value + _fill;
+            _fill += size;
+
+            return ptr;
+        }
+
+        return nullptr;
+    }
 
 private:
     struct RegionElement {
         RegionElement() : next(nullptr) {}
 
         RegionElement* next;
-        uint8_t value[REGION_BLOCK_SIZE];
+        uint8_t value[BLOCK_SIZE];
     };
 
     RegionElement* _first;
     RegionElement* _last;
-    int _fill;
+    uint32_t _fill;
 };
 
 /* FloatPoint */
 
-/**
- * @brief The FloatPoint struct
+/*!
+ * \brief The FloatPoint struct
  *
  * This is a type for a 2D point.
  *
- * @internal
+ * \internal
  */
 struct FloatPoint {
-    FloatPoint() : x(0), y(0) {}
+    FloatPoint() : x(0.0), y(0.0) {}
     FloatPoint(Float x, Float y) : x(x), y(y) {}
 
     Float lengthSquared() const { return x * x + y * y; }
@@ -193,14 +221,14 @@ inline FloatPoint operator*(const FloatPoint& fp, const FloatPoint& de)
 
 /* BoundingBox */
 
-/**
- * @brief The BoundingBox struct
+/*!
+ * \brief The BoundingBox struct
  *
  * The BoundignBox struct describes a rectangle with four Float values.
  * Each value determines either minimum or maximum values from
  * the given points.
  *
- * @internal
+ * \internal
  */
 struct BoundingBox {
     BoundingBox()
@@ -244,13 +272,13 @@ inline std::ostream& operator<<(std::ostream& os, const BoundingBox& bb)
 
 /* Color */
 
-/**
- * @brief The Color struct
+/*!
+ * \brief The Color struct
  *
  * Describes a simple RGBA color chanel struct
  * where each chanel is an unsigned byte (0-255).
  *
- * @internal
+ * \internal
  */
 struct Color {
     Color() : r(0), g(0), b(0), a(0) {}
@@ -262,10 +290,10 @@ struct Color {
     {
     }
 
-    uint8_t r; /**< red chanel */
-    uint8_t g; /**< green chanel */
-    uint8_t b; /**< blue chanel */
-    uint8_t a; /**< alpha chanel */
+    uint8_t r; /*!< red chanel */
+    uint8_t g; /*!< green chanel */
+    uint8_t b; /*!< blue chanel */
+    uint8_t a; /*!< alpha chanel */
 };
 
 } // namespace gepard

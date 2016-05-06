@@ -1,5 +1,5 @@
-/* Copyright (C) 2015-2016, Gepard Graphics
- * Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2016, Gepard Graphics
+ * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,85 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#include "gepard-types.h"
+#include "gepard-gles2.h"
+#include "gtest/gtest.h"
 
-namespace gepard {
-} // namespace gepard
+namespace {
+
+TEST(GepardGLES2Test, ClosePath)
+{
+    NOT_IMPLEMENTED();
+}
+
+TEST(GepardGLES2Test, MoveTo)
+{
+    NOT_IMPLEMENTED();
+}
+
+TEST(GepardGLES2Test, LineTo)
+{
+    NOT_IMPLEMENTED();
+}
+
+TEST(GepardGLES2Test, QuadraticCurveTo)
+{
+    NOT_IMPLEMENTED();
+}
+
+TEST(GepardGLES2Test, BezierCurveTo)
+{
+    NOT_IMPLEMENTED();
+}
+
+TEST(GepardGLES2Test, ArcTo)
+{
+    NOT_IMPLEMENTED();
+}
+
+TEST(GepardGLES2Test, Rect)
+{
+    NOT_IMPLEMENTED();
+}
+
+TEST(GepardGLES2Test, Arc)
+{
+    NOT_IMPLEMENTED();
+}
+
+TEST(GepardGLES2Test, BeginPath)
+{
+    NOT_IMPLEMENTED();
+}
+
+TEST(GepardGLES2Test, Fill)
+{
+    NOT_IMPLEMENTED();
+}
+
+TEST(GepardGLES2Test, Stroke)
+{
+    NOT_IMPLEMENTED();
+}
+
+TEST(GepardGLES2Test, DrawFocusIfNeeded)
+{
+    NOT_IMPLEMENTED();
+}
+
+TEST(GepardGLES2Test, Clip)
+{
+    NOT_IMPLEMENTED();
+}
+
+TEST(GepardGLES2Test, IsPointInPath)
+{
+    NOT_IMPLEMENTED();
+}
+
+} // anonymous namespace
+
+int main(int argc, char* argv[])
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}
