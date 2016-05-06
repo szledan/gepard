@@ -34,6 +34,7 @@ import subprocess
 import sys
 from os import path
 from os import getcwd
+from os import errno
 
 
 def run_cppcheck(all):
@@ -43,7 +44,14 @@ def run_cppcheck(all):
     if all:
         cmd.append('--enable=all')
 
-    return subprocess.call(cmd)
+    try:
+        return subprocess.call(cmd)
+    except OSError as e:
+        if e.errno == errno.ENOENT:
+            print("Error: cppcheck is not installed.")
+            return 1
+        else:
+            raise
 
 
 def main():
