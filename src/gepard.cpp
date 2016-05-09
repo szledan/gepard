@@ -30,6 +30,10 @@
 
 #include "gepard.h"
 
+#include "gepard-defs.h"
+#include "gepard-image.h"
+#include "gepard-surface.h"
+
 namespace gepard {
 
 void Gepard::save()
