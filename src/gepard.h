@@ -31,11 +31,6 @@
 #ifndef GEPARD_H
 #define GEPARD_H
 
-#include "gepard-defs.h"
-
-#include "gepard-image.h"
-#include "gepard-surface.h"
-
 namespace gepard {
 
 class Image;
