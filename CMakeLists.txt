@@ -28,5 +28,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIB_OUTPUT_DIR})
 
 add_subdirectory(src)
-add_subdirectory(examples)
 add_subdirectory(tests/unit)
+
+if ("${BUILD_EXAMPLES}")
+  add_subdirectory(examples)
+endif()

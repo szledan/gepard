@@ -48,6 +48,9 @@ def create_options(arguments):
     if arguments.no_colored_logs:
         opts.append('-DDISABLE_LOG_COLORS=ON')
 
+    if arguments.build_examples:
+        opts.append('-DBUILD_EXAMPLES=ON')
+
     if arguments.backend != 'gles2':
         opts.append('-DUSE_GLES2=OFF')  #GLES2 is enabled by default, so just disable it if we're not using it.
 
@@ -89,6 +92,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='build_type', help='Build with debug enabled')
     parser.add_argument('--clean', action='store_true', default=False, help='Perform clean build')
+    parser.add_argument('--examples', '-e', action='store_true', default=False, dest='build_examples', help='Build example applications')
     parser.add_argument('--target', action='store', choices=['x86-linux', 'arm-linux'], help='Specify build target. Leave empty for native build.')
     parser.add_argument('--backend', action='store', choices=['gles2', 'vulkan'], default='gles2', help='Specify which graphics back-end to use.')
     parser.add_argument('--log-level', action='store', type=int, choices=range(0,4), default=0, help='Set logging level')
