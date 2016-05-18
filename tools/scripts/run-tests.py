@@ -33,15 +33,16 @@ from cppcheck import print_result
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='type')
-    parser.add_argument('--all-cppcheck', '-a', action='store_true', default=False, dest='all', help='Enable all checks for cppcheck')
+    parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='build_type', help='Build debug.')
+    parser.add_argument('--backend', action='store', choices=['gles2', 'vulkan'], default='gles2', help='Specify which graphics back-end to use.')
+    parser.add_argument('--all-cppcheck', '-a', action='store_true', default=False, dest='all', help='Enable all checks for cppcheck.')
 
     arguments = parser.parse_args()
 
     print("Running cppcheck.")
     ret = run_cppcheck(arguments.all)
     print("\nRunning unit-tests.")
-    ret += run_unittest(arguments.type)
+    ret += run_unittest(arguments)
 
     print_result(ret)
     sys.exit(ret)

@@ -3,11 +3,11 @@ all: release
 
 .PHONY: release
 release: build_dir.release
-	cd build/release/ && cmake -DCMAKE_BUILD_TYPE=Release $(OPTIONS) ../../ && make
+	cd build/release/ && cmake -DCMAKE_BUILD_TYPE=Release $(OPTIONS) ../../ && make && make unit
 
 .PHONY: debug
 debug: build_dir.debug
-	cd build/debug/ && cmake -DCMAKE_BUILD_TYPE=Debug $(OPTIONS) ../../ && make
+	cd build/debug/ && cmake -DCMAKE_BUILD_TYPE=Debug $(OPTIONS) ../../ && make && make unit
 
 .PHONY: gepard
 gepard: build_dir.release

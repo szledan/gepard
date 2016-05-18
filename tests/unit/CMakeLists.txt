@@ -20,12 +20,13 @@ ExternalProject_Add(gtest
                     GIT_REPOSITORY https://github.com/google/googletest.git
                     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_SOURCE_DIR}/tests/framework/googletest
                     INSTALL_COMMAND make install > /dev/null)
+set_target_properties(gtest PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 include_directories(${CMAKE_SOURCE_DIR}/tests/framework/googletest/include)
 
 file(GLOB SOURCES *.cpp)
 if( SOURCES )
-  add_executable(unit ${SOURCES})
+  add_executable(unit EXCLUDE_FROM_ALL ${SOURCES})
   add_dependencies(unit gtest)
   target_link_libraries(unit gepard X11 ${CMAKE_SOURCE_DIR}/tests/framework/googletest/lib/libgtest.a pthread ${LIB_DEPENDENCIES})
 endif()
