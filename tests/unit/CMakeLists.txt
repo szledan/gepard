@@ -1,3 +1,5 @@
+include(ExternalProject)
+
 set(EXTRA_FLAGS " -Wall -pedantic -std=c++11 ")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_FLAGS}")
@@ -12,10 +14,18 @@ foreach(file_path ${header_list})
 endforeach()
 list(REMOVE_DUPLICATES dir_list)
 include_directories(${dir_list})
+
+ExternalProject_Add(gtest
+                    PREFIX ${CMAKE_SOURCE_DIR}/tests/framework/googletest
+                    GIT_REPOSITORY https://github.com/google/googletest.git
+                    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_SOURCE_DIR}/tests/framework/googletest
+                    INSTALL_COMMAND make install > /dev/null)
+
 include_directories(${CMAKE_SOURCE_DIR}/tests/framework/googletest/include)
 
 file(GLOB SOURCES *.cpp)
 if( SOURCES )
   add_executable(unit ${SOURCES})
-  target_link_libraries(unit gepard X11 ${CMAKE_SOURCE_DIR}/tests/framework/googletest/libgtest.a pthread ${LIB_DEPENDENCIES})
+  add_dependencies(unit gtest)
+  target_link_libraries(unit gepard X11 ${CMAKE_SOURCE_DIR}/tests/framework/googletest/lib/libgtest.a pthread ${LIB_DEPENDENCIES})
 endif()

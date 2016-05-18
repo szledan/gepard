@@ -7,5 +7,8 @@ __pycache__
 # vim swapfiles
 .*.swp
 
+#test framework directory
+/tests/framework
+
 # 'temp' directory for local usage
 temp
