@@ -16,17 +16,17 @@ list(REMOVE_DUPLICATES dir_list)
 include_directories(${dir_list})
 
 ExternalProject_Add(gtest
-                    PREFIX ${CMAKE_SOURCE_DIR}/tests/framework/googletest
+                    PREFIX ${CMAKE_SOURCE_DIR}/tools/frameworks/googletest
                     GIT_REPOSITORY https://github.com/google/googletest.git
-                    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_SOURCE_DIR}/tests/framework/googletest
+                    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_SOURCE_DIR}/tools/frameworks/googletest
                     INSTALL_COMMAND make install > /dev/null)
 set_target_properties(gtest PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
-include_directories(${CMAKE_SOURCE_DIR}/tests/framework/googletest/include)
+include_directories(${CMAKE_SOURCE_DIR}/tools/frameworks/googletest/include)
 
 file(GLOB SOURCES *.cpp)
 if( SOURCES )
   add_executable(unit EXCLUDE_FROM_ALL ${SOURCES})
   add_dependencies(unit gtest)
-  target_link_libraries(unit gepard X11 ${CMAKE_SOURCE_DIR}/tests/framework/googletest/lib/libgtest.a pthread ${LIB_DEPENDENCIES})
+  target_link_libraries(unit gepard X11 ${CMAKE_SOURCE_DIR}/tools/frameworks/googletest/lib/libgtest.a pthread ${LIB_DEPENDENCIES})
 endif()
