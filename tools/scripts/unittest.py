@@ -28,26 +28,30 @@
 import argparse
 import subprocess
 import sys
+import build
 from os import path
 from os import getcwd
 
 
-def run_unittest(type):
-    basedir = path.abspath(path.join(path.dirname(__file__), '..', '..'))
-    build_path = path.join(basedir, 'build', type)
-    if not path.isfile(path.join(build_path, 'bin', 'unit')):
-        print("Error: Unit-tests are not built.")
-        return 1
+def run_unittest(args):
+    build_path = build.get_build_path(args)
+
+    print("Building unit-tests...")
+    # We use the argument parser from the main build script here to initialize all required members of the argument structure.
+    build.configure(build.get_args())
+    build.build_unit(args)
 
     return subprocess.call([path.join(build_path, 'bin', 'unit')])
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='type')
+    parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='build_type', help='Build debug.')
+    parser.add_argument('--backend', action='store', choices=['gles2', 'vulkan'], default='gles2', help='Specify which graphics back-end to use.')
 
     arguments = parser.parse_args()
-    ret = run_unittest(arguments.type)
+
+    ret = run_unittest(arguments)
 
     sys.exit(ret)
 

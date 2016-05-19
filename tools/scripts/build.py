@@ -53,22 +53,62 @@ def create_options(arguments):
     return opts
 
 
-# Perform the build
-def build(arguments):
-    basedir = path.abspath(path.join(path.dirname(__file__), '..', '..'))
-    build_path = path.join(basedir, 'build', arguments.build_type)
+# Parse build args
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='build_type', help='Build debug.')
+    parser.add_argument('--clean', action='store_true', default=False, help='Perform clean build.')
+    parser.add_argument('--examples', '-e', action='store_true', default=False, dest='build_examples', help='Build example applications.')
+    parser.add_argument('--target', action='store', choices=['x86-linux', 'arm-linux'], help='Specify build target. Leave empty for native build.')
+    parser.add_argument('--backend', action='store', choices=['gles2', 'vulkan'], default='gles2', help='Specify which graphics back-end to use.')
+    parser.add_argument('--log-level', action='store', type=int, choices=range(0,4), default=0, help='Set logging level.')
+    parser.add_argument('--no-colored-logs', action='store_true', default=False, help='Disable colored log messages.')
+
+    return parser.parse_args()
+
+
+# Get base path
+def get_base_path():
+    return path.abspath(path.join(path.dirname(__file__), '..', '..'))
+
+
+# Get build path
+def get_build_path(arguments):
+    basedir = get_base_path()
+    return path.join(basedir, 'build', arguments.build_type)
+
+
+# Generate build config
+def configure(arguments):
+    build_path = get_build_path(arguments)
 
     try:
         makedirs(build_path)
     except OSError:
         pass
 
+    return subprocess.call(['cmake', '-B' + build_path, '-H' + get_base_path()] + create_options(arguments))
+
+
+# Build unit tests
+def build_unit(arguments):
+    build_path = get_build_path(arguments)
+
+    if not path.isfile(path.join(build_path, 'Makefile')):
+        raise RuntimeError('Build is not configured.')
+
+    return subprocess.call(['make', '-C', build_path, 'unit'])
+
+
+# Perform the build
+def build_gepard(arguments):
+    build_path = get_build_path(arguments)
+
+    if not path.isfile(path.join(build_path, 'Makefile')):
+        raise RuntimeError('Build is not configured.')
+
     if arguments.clean:
         subprocess.call(['make', '-C', build_path, 'clean'])
-
-    ret = subprocess.call(['cmake', '-B' + build_path, '-H' + basedir] + create_options(arguments))
-    if ret:
-        return ret
 
     return subprocess.call(['make', '-C', build_path])
 
@@ -85,18 +125,10 @@ def print_result(ret):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='build_type', help='Build with debug enabled')
-    parser.add_argument('--clean', action='store_true', default=False, help='Perform clean build')
-    parser.add_argument('--examples', '-e', action='store_true', default=False, dest='build_examples', help='Build example applications')
-    parser.add_argument('--target', action='store', choices=['x86-linux', 'arm-linux'], help='Specify build target. Leave empty for native build.')
-    parser.add_argument('--backend', action='store', choices=['gles2', 'vulkan'], default='gles2', help='Specify which graphics back-end to use.')
-    parser.add_argument('--log-level', action='store', type=int, choices=range(0,4), default=0, help='Set logging level')
-    parser.add_argument('--no-colored-logs', action='store_true', default=False, help='Disable colored log messages')
+    arguments = get_args()
+    configure(arguments)
 
-    arguments = parser.parse_args()
-
-    ret = build(arguments)
+    ret = build_gepard(arguments)
 
     print_result(ret)
     sys.exit(ret)
