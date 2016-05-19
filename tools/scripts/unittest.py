@@ -38,10 +38,15 @@ def run_unittest(args):
 
     print("Building unit-tests...")
     # We use the argument parser from the main build script here to initialize all required members of the argument structure.
-    build.configure(build.get_args())
-    build.build_unit(args)
+    ret = build.configure(build.get_args())
 
-    return subprocess.call([path.join(build_path, 'bin', 'unit')])
+    if not ret:
+      ret = build.build_unit(args)
+
+    if not ret:
+      ret = subprocess.call([path.join(build_path, 'bin', 'unit')])
+
+    return ret
 
 
 def main():
