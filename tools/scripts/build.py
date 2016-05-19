@@ -67,15 +67,19 @@ def get_args():
     return parser.parse_args()
 
 
+# Get base path
+def get_base_path():
+    return path.abspath(path.join(path.dirname(__file__), '..', '..'))
+
+
 # Get build path
 def get_build_path(arguments):
-    basedir = path.abspath(path.join(path.dirname(__file__), '..', '..'))
+    basedir = get_base_path()
     return path.join(basedir, 'build', arguments.build_type)
 
 
 # Generate build config
 def configure(arguments):
-    basedir = path.abspath(path.join(path.dirname(__file__), '..', '..'))
     build_path = get_build_path(arguments)
 
     try:
@@ -83,8 +87,7 @@ def configure(arguments):
     except OSError:
         pass
 
-    return subprocess.call(['cmake', '-B' + build_path, '-H' + basedir] + create_options(arguments))
-
+    return subprocess.call(['cmake', '-B' + build_path, '-H' + get_base_path()] + create_options(arguments))
 
 
 # Build unit tests
