@@ -11,33 +11,51 @@ create an engine which is:
 * modular/configurability: provide configuration options where the developer
 can specify which part is needed.
 
-## How to build
+## Getting Started
 
-You need to install some dependencies, after use the
+Check out the source code
 ```
-make
+git clone https://github.com/GepardGraphics/gepard.git
 ```
-command for release build.
+Install any necessary dependencies
+```
+./tools/scripts/install-deps.sh
+```
+Build `gepard` dynamic library
+```
+./tools/scripts/build.py
+```
+
+## Build examples
+
+[__TODO__](https://github.com/GepardGraphics/gepard/issues/44)
 
 ## For developers
 
-You need to install some dependencies for contributing. After please use the scripts in `./tools/scripts` directory for building, testing and checking your patches.
+We use the fork model. If you want to contributing to gepard then you need to use it. ([GitHub help] (https://help.github.com/articles/working-with-forks/))
+
+After you _fork_ and _clone_ the Gepard, you will need to install more dependencies for contributing.
+```
+./tools/scripts/install-deps.sh --developer
+```
 
 ### Our contributing process is:
 
-* [Fork](https://github.com/GepardGraphics/gepard#fork-destination-box) the _gepard_ repository. (Only the first time.)
+1. Create a branch with a name like these: `fix-min-compute`, `15-canvas2d-path`, etc.
 
-2. Create a branch like these: `fix-min-compute`, `15-canvas2d-path`, `update-readme_szledan`, `update-readme_bzsolt`, etc.
+    ```
+    git checkout -b my-fisrt-patch
+    ```
+    
+    Note: About the branch naming in Gepard. If you work on an [issue](https://github.com/GepardGraphics/gepard/issues) from Gepard then recommanded to start your branchname with the issue number.
 
-    Note: The number at the beggin of second branch name means the isse _id_. _Nicknames_ at the two last examples differentiate the same works.
+2. Create your patch.
+    
+    Note: Please use `sign-off` in every commits. Git usage: `git commit -s|--sign-off` (https://git-scm.com/docs/git-commit).
 
-3. Create your patch. Please use `sign-off` every commits. Git usage: `git commit -s|--sign-off` (https://git-scm.com/docs/git-commit).
+4. If you are ready, create a _Pull request_(PR) to the `GepardGraphics/gepard/master`. (If you know who works on that topic, you should assign her/him.)
 
-4. If you are ready, create a _Pull request_(PR) in the `GepardGraphics/gepard/master`.
+5. Your PR will be approved if you get 2 _lgtm_s (or _+1_, _r+_) from the [reviewers](https://github.com/orgs/GepardGraphics/teams/gepard-reviewers).
 
-5. If you are know how is your specialist in rivewers then assign him/her, otherwise ignore it.
-
-6. You need 2 `lgtm`s (Looks Good To Me), `+1` or `r+` for merge your patch in to the _gepard_.
-
-See more: __For contributors__ section in [wiki](https://github.com/GepardGraphics/gepard/wiki) page.
+For more information see the [wiki](https://github.com/GepardGraphics/gepard/wiki) page's '__For contributors__' section.
 
