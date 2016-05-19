@@ -39,7 +39,7 @@ After you _fork_ and _clone_ the Gepard, you will need to install more dependenc
 ./tools/scripts/install-deps.sh --developer
 ```
 
-### Our contributing process is:
+#### Our contributing process is:
 
 1. Create a branch with a name like these: `fix-min-compute`, `15-canvas2d-path`, etc.
 
@@ -53,9 +53,9 @@ After you _fork_ and _clone_ the Gepard, you will need to install more dependenc
     
     Note: Please use `sign-off` in every commits. Git usage: `git commit -s|--sign-off` (https://git-scm.com/docs/git-commit).
 
-4. If you are ready, create a _Pull request_(PR) to the `GepardGraphics/gepard/master`. (If you know who works on that topic, you should assign her/him.)
+4. If you are ready, create a _Pull request_ (PR) to the `GepardGraphics/gepard/master`. (If you know who works on that topic, you should assign her/him.)
 
-5. Your PR will be approved if you get 2 _lgtm_s (or _+1_, _r+_) from the [reviewers](https://github.com/orgs/GepardGraphics/teams/gepard-reviewers).
+5. Your PR will be approved if you get 2 __lgtm__-s from the [reviewers](https://github.com/orgs/GepardGraphics/teams/gepard-reviewers).
 
 For more information see the [wiki](https://github.com/GepardGraphics/gepard/wiki) page's '__For contributors__' section.
 
