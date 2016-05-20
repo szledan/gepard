@@ -67,7 +67,7 @@ matrix:
         - python tools/scripts/build.py --debug --backend=vulkan
       env:
         - CMD=build
-        - TYEP=debug
+        - TYPE=debug
         - BACKEND=vulkan
       addons:
         apt:
