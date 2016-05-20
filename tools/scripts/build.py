@@ -126,9 +126,10 @@ def print_result(ret):
 
 def main():
     arguments = get_args()
-    configure(arguments)
+    ret = configure(arguments)
 
-    ret = build_gepard(arguments)
+    if not ret:
+        ret = build_gepard(arguments)
 
     print_result(ret)
     sys.exit(ret)
