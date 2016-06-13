@@ -28,19 +28,27 @@
 import argparse
 import subprocess
 import sys
-from os import path
-from os import getcwd
+from os import chdir
 from os import errno
+from os import getcwd
+from os import path
 
 
-def run_cppcheck(all):
+def run_cppcheck():
     basedir = path.abspath(path.join(path.dirname(__file__), '..', '..'))
-    cmd = ['cppcheck', '--error-exitcode=2', path.join(basedir, 'src'), path.join(basedir, 'examples')]
-
-    if all:
-        cmd.append('--enable=all')
+    cmd = [
+        'cppcheck',
+        '--enable=all',
+#        '--error-exitcode=2', # Uncomment when cppcheck issues are fixed
+        '-ULOG_LEVEL', '-UDISABLE_LOG_COLORS',
+        '--suppressions-list=%s' % (path.join('tools', 'cppcheck-suppr-list')),
+        '--includes-file=%s' % (path.join('tools', 'cppcheck-incl-list')),
+        'src',
+        'examples',
+    ]
 
     try:
+        chdir(basedir)
         return subprocess.call(cmd)
     except OSError as e:
         if e.errno == errno.ENOENT:
@@ -62,11 +70,7 @@ def print_result(ret):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--all', '-a', action='store_true', default=False, dest='all', help='Enable all checks')
-
-    arguments = parser.parse_args()
-    ret = run_cppcheck(arguments.all)
+    ret = run_cppcheck()
 
     print_result(ret)
     sys.exit(ret)

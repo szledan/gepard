@@ -51,9 +51,7 @@ def run_unittest(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='build_type', help='Build debug.')
-    parser.add_argument('--backend', action='store', choices=['gles2', 'vulkan'], default='gles2', help='Specify which graphics back-end to use.')
-
+    build.add_base_args(parser)
     arguments = parser.parse_args()
 
     ret = run_unittest(arguments)
