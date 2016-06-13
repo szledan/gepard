@@ -26,9 +26,18 @@ Build `gepard` dynamic library
 ./tools/scripts/build.py
 ```
 
-## Build examples
+## Build & run examples
 
-[__TODO__](https://github.com/GepardGraphics/gepard/issues/44)
+Build all examples in `./example`
+```
+./tools/scripts/build.py -e   # release mode
+./tools/scripts/build.py -ed  # debug mode
+```
+Run an example (now the _fill-rect_)
+```
+./build/release/bin/fill-rect   # release mode
+./build/debug/bin/fill-rect     # debug mode
+```
 
 ## For developers
 
