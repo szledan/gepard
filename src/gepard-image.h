@@ -34,6 +34,6 @@ class Image {
 /** @todo Implement Image */
 };
 
-} //  namespace gepard
+} // namespace gepard
 
 #endif // GEPARDIMAGE_H

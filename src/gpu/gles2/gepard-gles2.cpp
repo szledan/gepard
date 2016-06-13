@@ -71,7 +71,7 @@ GepardGLES2::GepardGLES2(Surface* surface)
             exit(-1);
         }
         if (eglInitialize(eglDisplay, NULL, NULL) != EGL_TRUE) {
-            //! \todo: LOG:  "eglInitialize returned with EGL_FALSE");
+            //! \todo: LOG: "eglInitialize returned with EGL_FALSE");
             exit(-1);
         }
         if (eglChooseConfig(eglDisplay, configAttribs, &eglConfig, 1, &numOfConfigs) != EGL_TRUE) {
@@ -81,7 +81,7 @@ GepardGLES2::GepardGLES2(Surface* surface)
         EGLNativeWindowType window = _surface->getWindow();
         eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, window, NULL);
         if (eglSurface == EGL_NO_SURFACE) {
-            //! \todo: LOG:  "eglCreateWindowSurface returned EGL_NO_SURFACE");
+            //! \todo: LOG: "eglCreateWindowSurface returned EGL_NO_SURFACE");
             exit(-1);
         }
         _eglContext = eglCreateContext(eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttribs);
@@ -284,7 +284,7 @@ bool GepardGLES2::isPointInPath(Float x, Float y)
  *
  * \todo unimplemented function
  */
-void  GepardGLES2::fillRect(float x, float y, float w, float h)
+void GepardGLES2::fillRect(float x, float y, float w, float h)
 {
     //! \todo: implement fillRect with GLES2
 
@@ -475,7 +475,7 @@ bool GepardEngine::isPointInPath(Float x, Float y)
  *
  * \todo documentation is missing
  */
-void  GepardEngine::fillRect(float x, float y, float w, float h)
+void GepardEngine::fillRect(float x, float y, float w, float h)
 {
     _engineBackend->fillRect(x, y, w, h);
 }

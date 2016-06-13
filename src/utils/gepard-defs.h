@@ -71,7 +71,7 @@
 #define LOG2(MSG) do \
 { \
     std::ostringstream os; \
-    os << LOG2_COLOR  << MSG << CLEAR_COLOR; \
+    os << LOG2_COLOR << MSG << CLEAR_COLOR; \
     _log(2, os.str()); \
 } while (false)
 
@@ -82,7 +82,7 @@
 #define LOG3(MSG) do \
 { \
     std::ostringstream os; \
-    os << LOG3_COLOR  << MSG << CLEAR_COLOR; \
+    os << LOG3_COLOR << MSG << CLEAR_COLOR; \
     _log(3, os.str()); \
 } while (false)
 
@@ -93,7 +93,7 @@ void _log(int level, std::string msg) {
   }
 }
 
-#else  /* LOG_LEVEL */
+#else /* LOG_LEVEL */
 #ifdef LOG1
 #undef LOG1
 #endif
@@ -108,7 +108,7 @@ void _log(int level, std::string msg) {
 #define LOG2(MSG)
 #define LOG3(MSG)
 
-#endif  /* LOG_LEVEL */
+#endif /* LOG_LEVEL */
 
 namespace gepard {
 

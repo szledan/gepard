@@ -35,4 +35,4 @@ Surface::Surface(Gepard* gepard, uint32_t width, uint32_t height)
 {
 }
 
-} //  namespace gepard
+} // namespace gepard

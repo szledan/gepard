@@ -27,7 +27,6 @@
 #ifndef GEPARD_XSURFACE_H
 #define GEPARD_XSURFACE_H
 
-#include "gepard-defs.h"
 #include "gepard-surface.h"
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
@@ -74,6 +73,6 @@ private:
     Window _window;
 };
 
-} //  namespace gepard
+} // namespace gepard
 
 #endif // GEPARD_XSURFACE_H

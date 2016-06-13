@@ -27,7 +27,7 @@
 #ifndef GEPARD_SURFACE_H
 #define GEPARD_SURFACE_H
 
-#include "gepard-defs.h"
+#include <stdint.h>
 
 namespace gepard {
 
@@ -70,6 +70,6 @@ protected:
     uint32_t _height;
 };
 
-} //  namespace gepard
+} // namespace gepard
 
 #endif // GEPARD_SURFACE_H
