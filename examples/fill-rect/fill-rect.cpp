@@ -34,7 +34,7 @@ int main()
     gepard::XSurface s(500, 500);
     gepard::Gepard g(&s);
 
-    g.fillRect(100, 100, 400, 300);
+    g.fillRect(100, 150, 300, 150);
 
     char a;
     std::cin >> a;

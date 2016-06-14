@@ -28,6 +28,7 @@
 #include "gepard-gles2.h"
 
 #include "gepard-defs.h"
+#include "gepard-gles2-defs.h"
 
 namespace gepard {
 
@@ -273,7 +274,25 @@ bool GepardGLES2::isPointInPath(Float x, Float y)
     return false;
 }
 
-#include <iostream>
+//! \brief Fill rectangle vertex shader.
+const GLchar* fillRectVertexShader = "\
+        attribute vec2 in_position;                     \
+                                                        \
+        void main(void)                                 \
+        {                                               \
+            gl_Position = vec4((2.0 * in_position.xy / 500.0) - 1.0, 1.0, 1.0);  \
+        }                                               \
+                                     ";
+
+//! \brief Fill rectangle fragment shader.
+const GLchar* fillRectFragmentShader = "\
+        precision mediump float;                        \
+                                                        \
+        void main(void)                                 \
+        {                                               \
+            gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);    \
+        }                                               \
+                                       ";
 
 /*!
  * \brief GepardGLES2::fillRect
@@ -286,8 +305,37 @@ bool GepardGLES2::isPointInPath(Float x, Float y)
  */
 void GepardGLES2::fillRect(float x, float y, float w, float h)
 {
-    //! \todo: implement fillRect with GLES2
+    // 1. Rect attributes.
+    const GLubyte rectIndexes[] = {0, 1, 2, 2, 1, 3};
+    const GLfloat attributes[] = {
+        GLfloat(x), GLfloat(y),
+        GLfloat(x + w), GLfloat(y),
+        GLfloat(x), GLfloat(y + h),
+        GLfloat(x + w), GLfloat(y + h),
+    };
 
+    // 2. Init GLES2 context.
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // 3. Compile shaders.
+    static GLuint fillRectProgram = 0;
+    compileShaderProg(&fillRectProgram, "FillRectProgram", fillRectVertexShader, fillRectFragmentShader);
+
+    // 4. Use shader programs.
+    glUseProgram(fillRectProgram);
+
+    // 5. Binding attributes.
+    GLint intValue = glGetAttribLocation(fillRectProgram, "in_position");
+    glEnableVertexAttribArray(intValue);
+    glVertexAttribPointer(intValue, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), attributes);
+
+    // 6. Draw two triangles as rect.
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, rectIndexes);
+
+    // 7. Swap buffers.
     eglSwapBuffers(_eglDisplay, _eglSurface);
 }
 

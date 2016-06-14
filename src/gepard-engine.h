@@ -53,6 +53,7 @@ class GepardEngine {
 public:
     explicit GepardEngine(Surface* surface)
         : _surface(surface)
+        , _engineBackend(nullptr)
     {
         engineBackendInit();
     }
