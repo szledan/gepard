@@ -1,6 +1,5 @@
-/* Copyright (C) 2015-2016, Gepard Graphics
- * Copyright (C) 2015-2016, Szilard Ledan <szledan@gmail.com>
- * Copyright (C) 2015, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
+/* Copyright (C) 2016, Gepard Graphics
+ * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,27 +23,45 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard.h"
-#include "gepard-xsurface.h"
-#include "gepard-memory-buffer-surface.h"
+#ifdef USE_VULKAN
+
+#include "gepard-vulkan.h"
+
 #include <iostream>
 
-int main()
+namespace gepard {
+
+void GepardEngine::engineBackendInit()
 {
-    // Draw on XWindow
-    gepard::XSurface s(500, 500);
-    gepard::Gepard g(&s);
-
-    g.fillRect(100, 100, 400, 300);
-
-    char a;
-    std::cin >> a;
-
-    // Draw to memory buffer
-    gepard::MemoryBufferSurface s2(500, 500);
-    gepard::Gepard g2(&s2);
-
-    g2.fillRect(100, 100, 400, 300);
-
-    return 0;
+    _engineBackend = reinterpret_cast<vulkan::GepardVulkan*>(new vulkan::GepardVulkan(_surface));
 }
+
+void GepardEngine::engineBackendDestroy()
+{
+    if (_engineBackend)
+        delete reinterpret_cast<vulkan::GepardVulkan*>(_engineBackend);
+}
+
+namespace vulkan {
+
+GepardVulkan::GepardVulkan(Surface* surface)
+    : _surface(surface)
+{
+    std::cout << "GepardVulkan" << std::endl;
+}
+
+void GepardVulkan::fillRect(float x, float y, float w, float h)
+{
+    std::cout << "fillrect: " << x << " " <<  x << " " <<  x << " " <<  x << std::endl;
+}
+
+void GepardVulkan::closePath()
+{
+}
+
+
+} // namespace vulkan
+
+} // namespace gepard
+
+#endif // USE_VULKAN

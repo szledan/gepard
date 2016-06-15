@@ -29,6 +29,8 @@
 
 #include "gepard-surface.h"
 
+#include <cstdlib>
+
 namespace gepard {
 
 /*!
@@ -41,7 +43,13 @@ public:
     MemoryBufferSurface(uint32_t width = 0, uint32_t height = 0)
         : Surface(width, height)
     {
+        buffer = std::malloc(width * height * 4);
+    }
 
+    ~MemoryBufferSurface()
+    {
+        if (buffer)
+            std::free(buffer);
     }
 
     virtual void* getDisplay() { return nullptr; }

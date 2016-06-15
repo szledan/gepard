@@ -1,5 +1,5 @@
 /* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
+ * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,81 +23,40 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GEPARD_ENGINE_H
-#define GEPARD_ENGINE_H
+#ifdef USE_VULKAN
+
+#ifndef GEPARD_VULKAN_H
+#define GEPARD_VULKAN_H
 
 #include "gepard-defs.h"
 
+#include "gepard-engine.h"
 #include "gepard-image.h"
 #include "gepard-surface.h"
 #include "gepard-types.h"
-#ifdef USE_GLES2
-#include "gepard-gles2.h"
-#endif // USE_GLES2
-
-#ifdef USE_VULKAN
-#include "gepard-vulkan.h"
-#endif // USE_VULKAN
 
 namespace gepard {
 
 class Image;
 class Surface;
 
-#ifdef USE_GLES2
-namespace gles2 {
-class GepardGLES2;
-} // namespace gles2
-typedef gles2::GepardGLES2 GepardEngineBackend;
-#elif defined USE_VULKAN
 namespace vulkan {
-class GepardVulkan;
-} // namespace gles2
-typedef vulkan::GepardVulkan GepardEngineBackend;
-#else
-typedef void GepardEngineBackend;
-#endif
 
-class GepardEngine {
+class GepardVulkan {
 public:
-    explicit GepardEngine(Surface* surface)
-        : _surface(surface)
-    {
-        engineBackendInit();
-    }
-    ~GepardEngine()
-    {
-        engineBackendDestroy();
-    }
-
-    /* 5. Building paths */
-    void closePath();
-    void moveTo(Float x, Float y);
-    void lineTo(Float x, Float y);
-    void quadraticCurveTo(Float cpx, Float cpy, Float x, Float y);
-    void bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y);
-    void arcTo(Float x1, Float y1, Float x2, Float y2, Float radius);
-    void rect(Float x, Float y, Float w, Float h);
-    void arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise = false);
-
-    /* 11. Drawing paths to the canvas */
-    void beginPath();
-    void fill();
-    void stroke();
-    void drawFocusIfNeeded(/*Element element*/);
-    void clip();
-    bool isPointInPath(Float x, Float y);
+    explicit GepardVulkan(Surface* surface);
 
     void fillRect(float x, float y, float w, float h);
+    void closePath();
 
 private:
-    void engineBackendInit();
-    void engineBackendDestroy();
-
     Surface* _surface;
-    GepardEngineBackend* _engineBackend;
 };
+
+} // namespace vulkan
 
 } // namespace gepard
 
-#endif // GEPARD_ENGINE_H
+#endif // GEPARD_VULKAN_H
+
+#endif // USE_VULKAN
