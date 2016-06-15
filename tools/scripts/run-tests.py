@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/python -B
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2015-2016, Gepard Graphics
@@ -26,21 +26,19 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import argparse
+import build
 import sys
-from unittest import run_unittest
-from cppcheck import run_cppcheck
 from cppcheck import print_result
+from cppcheck import run_cppcheck
+from unittest import run_unittest
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='build_type', help='Build debug.')
-    parser.add_argument('--backend', action='store', choices=['gles2', 'vulkan'], default='gles2', help='Specify which graphics back-end to use.')
-    parser.add_argument('--all-cppcheck', '-a', action='store_true', default=False, dest='all', help='Enable all checks for cppcheck.')
-
+    build.add_base_args(parser)
     arguments = parser.parse_args()
 
     print("Running cppcheck.")
-    ret = run_cppcheck(arguments.all)
+    ret = run_cppcheck()
     print("\nRunning unit-tests.")
     ret += run_unittest(arguments)
 
