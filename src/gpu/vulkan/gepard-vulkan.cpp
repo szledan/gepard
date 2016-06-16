@@ -33,13 +33,14 @@ namespace gepard {
 
 void GepardEngine::engineBackendInit()
 {
-    _engineBackend = reinterpret_cast<vulkan::GepardVulkan*>(new vulkan::GepardVulkan(_surface));
+    _engineBackend = new vulkan::GepardVulkan(_surface);
 }
 
 void GepardEngine::engineBackendDestroy()
 {
-    if (_engineBackend)
-        delete reinterpret_cast<vulkan::GepardVulkan*>(_engineBackend);
+    if (_engineBackend) {
+        delete _engineBackend;
+    }
 }
 
 namespace vulkan {
@@ -58,7 +59,6 @@ void GepardVulkan::fillRect(float x, float y, float w, float h)
 void GepardVulkan::closePath()
 {
 }
-
 
 } // namespace vulkan
 

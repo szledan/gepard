@@ -50,7 +50,7 @@ public:
 
     virtual void* getDisplay() = 0;
     virtual unsigned long getWindow() = 0;
-	virtual void* getBuffer() = 0;
+    virtual void* getBuffer() = 0;
 
     const Gepard* gepard() const { return _gepard; }
     const uint32_t width() const { return _width; }

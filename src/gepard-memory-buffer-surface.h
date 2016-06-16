@@ -46,10 +46,11 @@ public:
         buffer = std::malloc(width * height * 4);
     }
 
-    ~MemoryBufferSurface()
+    virtual ~MemoryBufferSurface()
     {
-        if (buffer)
+        if (buffer) {
             std::free(buffer);
+        }
     }
 
     virtual void* getDisplay() { return nullptr; }
