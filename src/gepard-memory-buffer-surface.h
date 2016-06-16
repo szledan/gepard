@@ -24,56 +24,43 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GEPARD_XSURFACE_H
-#define GEPARD_XSURFACE_H
+#ifndef GEPARD_MEMORY_BUFFER_SURFACE_H
+#define GEPARD_MEMORY_BUFFER_SURFACE_H
 
 #include "gepard-surface.h"
-#include <X11/Xatom.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
+
+#include <cstdlib>
 
 namespace gepard {
 
 /*!
- * \brief A simple XSurface class for _Gepard_
+ * \brief A simple memory buffer surface class for _Gepard_
  *
  * \todo: documentation is missing.
  */
-class XSurface : public Surface {
+class MemoryBufferSurface : public Surface {
 public:
-    XSurface(uint32_t width = 0, uint32_t height = 0)
+    MemoryBufferSurface(uint32_t width = 0, uint32_t height = 0)
         : Surface(width, height)
     {
-        XSetWindowAttributes windowAttributes;
-        XWMHints hints;
-        Window root = 0;
-
-        _display = XOpenDisplay(NULL);
-        if(_display == NULL) {
-            //! \todo: LOG: "XOpenDisplay returned NULL");
-        }
-        root = XDefaultRootWindow(_display);
-        windowAttributes.event_mask = ExposureMask | PointerMotionMask | KeyPressMask;
-        _window = XCreateWindow ( // create a window with the provided parameters
-            _display, root, 0, 0, width, height, 0,
-            CopyFromParent, InputOutput, CopyFromParent, CWEventMask, &windowAttributes);
-        hints.input = True;
-        hints.flags = InputHint;
-        XSetWMHints(_display, _window, &hints);
-
-        XMapWindow(_display, _window); // make the window visible on the screen
-        XStoreName(_display, _window, "XSurface for gepard"); //! \todo: set title.
+        buffer = std::malloc(width * height * 4);
     }
 
-    virtual void* getDisplay() { return (void*)_display; }
-    virtual unsigned long getWindow() { return _window; }
-    virtual void* getBuffer() { return nullptr; }
+    virtual ~MemoryBufferSurface()
+    {
+        if (buffer) {
+            std::free(buffer);
+        }
+    }
+
+    virtual void* getDisplay() { return nullptr; }
+    virtual unsigned long getWindow() { return 0; }
+    virtual void* getBuffer() { return buffer; }
 
 private:
-    Display* _display;
-    Window _window;
+    void* buffer;
 };
 
 } // namespace gepard
 
-#endif // GEPARD_XSURFACE_H
+#endif // GEPARD_MEMORY_BUFFER_SURFACE_H

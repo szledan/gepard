@@ -35,6 +35,10 @@
 #include "gepard-gles2.h"
 #endif // USE_GLES2
 
+#ifdef USE_VULKAN
+#include "gepard-vulkan.h"
+#endif // USE_VULKAN
+
 namespace gepard {
 
 class Image;
@@ -45,6 +49,11 @@ namespace gles2 {
 class GepardGLES2;
 } // namespace gles2
 typedef gles2::GepardGLES2 GepardEngineBackend;
+#elif defined USE_VULKAN
+namespace vulkan {
+class GepardVulkan;
+} // namespace gles2
+typedef vulkan::GepardVulkan GepardEngineBackend;
 #else
 typedef void GepardEngineBackend;
 #endif

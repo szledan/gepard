@@ -26,6 +26,7 @@
 
 #include "gepard.h"
 #include "gepard-xsurface.h"
+#include "gepard-memory-buffer-surface.h"
 #include <iostream>
 
 int main()
@@ -39,12 +40,11 @@ int main()
     char a;
     std::cin >> a;
 
-//    // Draw to a png
-//    gepard::PNGSurface s2(500, 500, buffer);
-//    gepard::Gepard g2;
+    // Draw to memory buffer
+    gepard::MemoryBufferSurface s2(500, 500);
+    gepard::Gepard g2(&s2);
 
-//    g2.fillRect(100, 100, 400, 300);
-//    s2.save("result.png");
+    g2.fillRect(100, 100, 400, 300);
 
     return 0;
 }

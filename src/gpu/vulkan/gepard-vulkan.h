@@ -1,6 +1,5 @@
 /* Copyright (C) 2016, Gepard Graphics
  * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
- * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,56 +23,40 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GEPARD_XSURFACE_H
-#define GEPARD_XSURFACE_H
+#ifdef USE_VULKAN
 
+#ifndef GEPARD_VULKAN_H
+#define GEPARD_VULKAN_H
+
+#include "gepard-defs.h"
+
+#include "gepard-engine.h"
+#include "gepard-image.h"
 #include "gepard-surface.h"
-#include <X11/Xatom.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
+#include "gepard-types.h"
 
 namespace gepard {
 
-/*!
- * \brief A simple XSurface class for _Gepard_
- *
- * \todo: documentation is missing.
- */
-class XSurface : public Surface {
+class Image;
+class Surface;
+
+namespace vulkan {
+
+class GepardVulkan {
 public:
-    XSurface(uint32_t width = 0, uint32_t height = 0)
-        : Surface(width, height)
-    {
-        XSetWindowAttributes windowAttributes;
-        XWMHints hints;
-        Window root = 0;
+    explicit GepardVulkan(Surface* surface);
 
-        _display = XOpenDisplay(NULL);
-        if(_display == NULL) {
-            //! \todo: LOG: "XOpenDisplay returned NULL");
-        }
-        root = XDefaultRootWindow(_display);
-        windowAttributes.event_mask = ExposureMask | PointerMotionMask | KeyPressMask;
-        _window = XCreateWindow ( // create a window with the provided parameters
-            _display, root, 0, 0, width, height, 0,
-            CopyFromParent, InputOutput, CopyFromParent, CWEventMask, &windowAttributes);
-        hints.input = True;
-        hints.flags = InputHint;
-        XSetWMHints(_display, _window, &hints);
-
-        XMapWindow(_display, _window); // make the window visible on the screen
-        XStoreName(_display, _window, "XSurface for gepard"); //! \todo: set title.
-    }
-
-    virtual void* getDisplay() { return (void*)_display; }
-    virtual unsigned long getWindow() { return _window; }
-    virtual void* getBuffer() { return nullptr; }
+    void fillRect(float x, float y, float w, float h);
+    void closePath();
 
 private:
-    Display* _display;
-    Window _window;
+    Surface* _surface;
 };
+
+} // namespace vulkan
 
 } // namespace gepard
 
-#endif // GEPARD_XSURFACE_H
+#endif // GEPARD_VULKAN_H
+
+#endif // USE_VULKAN

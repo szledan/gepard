@@ -1,6 +1,5 @@
-/* Copyright (C) 2015-2016, Gepard Graphics
+/* Copyright (C) 2016, Gepard Graphics
  * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
- * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,53 +23,45 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GEPARD_SURFACE_H
-#define GEPARD_SURFACE_H
+#ifdef USE_VULKAN
 
-#include <stdint.h>
+#include "gepard-vulkan.h"
+
+#include <iostream>
 
 namespace gepard {
 
-class Gepard;
+void GepardEngine::engineBackendInit()
+{
+    _engineBackend = new vulkan::GepardVulkan(_surface);
+}
 
-/*!
- * \brief The basic Surface class for _Gepard_
- *
- * \todo: documentation is missing.
- */
-class Surface {
-public:
-    Surface(Gepard* gepard = nullptr, uint32_t width = 0, uint32_t height = 0);
-    Surface(uint32_t width = 0, uint32_t height = 0)
-        : _gepard(nullptr)
-        , _width(width)
-        , _height(height)
-    {
+void GepardEngine::engineBackendDestroy()
+{
+    if (_engineBackend) {
+        delete _engineBackend;
     }
+}
 
-    virtual void* getDisplay() = 0;
-    virtual unsigned long getWindow() = 0;
-    virtual void* getBuffer() = 0;
+namespace vulkan {
 
-    const Gepard* gepard() const { return _gepard; }
-    const uint32_t width() const { return _width; }
-    const uint32_t height() const { return _height; }
+GepardVulkan::GepardVulkan(Surface* surface)
+    : _surface(surface)
+{
+    std::cout << "GepardVulkan" << std::endl;
+}
 
-    // \deprecated: use 'static connect(Surface, Gepard)'
-    void setGepard(Gepard* gepard)
-    {
-        if (!this->_gepard) {
-            _gepard = gepard;
-        }
-    }
+void GepardVulkan::fillRect(float x, float y, float w, float h)
+{
+    std::cout << "fillrect: " << x << " " <<  x << " " <<  x << " " <<  x << std::endl;
+}
 
-protected:
-    Gepard* _gepard;
+void GepardVulkan::closePath()
+{
+}
 
-    uint32_t _width;
-    uint32_t _height;
-};
+} // namespace vulkan
 
 } // namespace gepard
 
-#endif // GEPARD_SURFACE_H
+#endif // USE_VULKAN
