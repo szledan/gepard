@@ -32,7 +32,9 @@ namespace gepard {
  */
 void GepardEngine::closePath()
 {
-    _engineBackend->closePath();
+    if (_engineBackend) {
+        _engineBackend->closePath();
+    }
 }
 
 /*!
@@ -209,7 +211,9 @@ bool GepardEngine::isPointInPath(Float x, Float y)
  */
 void GepardEngine::fillRect(float x, float y, float w, float h)
 {
-    _engineBackend->fillRect(x, y, w, h);
+    if (_engineBackend) {
+        _engineBackend->fillRect(x, y, w, h);
+    }
 }
 
 } // namespace gepard
