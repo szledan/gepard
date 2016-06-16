@@ -30,7 +30,6 @@
 
 #include "gepard-defs.h"
 
-#include "gepard-engine.h"
 #include "gepard-image.h"
 #include "gepard-surface.h"
 #include "gepard-types.h"
@@ -76,6 +75,8 @@ private:
 };
 
 } // namespace gles2
+
+typedef gles2::GepardGLES2 GepardEngineBackend;
 
 } // namespace gepard
 

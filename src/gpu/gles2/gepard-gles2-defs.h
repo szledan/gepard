@@ -1,4 +1,5 @@
 /* Copyright (C) 2016, Gepard Graphics
+ * Copyright (C) 2013, Zoltan Herczeg
  * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *

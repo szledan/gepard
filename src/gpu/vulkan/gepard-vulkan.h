@@ -30,7 +30,6 @@
 
 #include "gepard-defs.h"
 
-#include "gepard-engine.h"
 #include "gepard-image.h"
 #include "gepard-surface.h"
 #include "gepard-types.h"
@@ -54,6 +53,8 @@ private:
 };
 
 } // namespace vulkan
+
+typedef vulkan::GepardVulkan GepardEngineBackend;
 
 } // namespace gepard
 

@@ -31,18 +31,6 @@
 
 namespace gepard {
 
-void GepardEngine::engineBackendInit()
-{
-    _engineBackend = new vulkan::GepardVulkan(_surface);
-}
-
-void GepardEngine::engineBackendDestroy()
-{
-    if (_engineBackend) {
-        delete _engineBackend;
-    }
-}
-
 namespace vulkan {
 
 GepardVulkan::GepardVulkan(Surface* surface)

@@ -1,4 +1,5 @@
 /* Copyright (C) 2016, Gepard Graphics
+ * Copyright (C) 2013, Zoltan Herczeg
  * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
@@ -340,20 +341,6 @@ void GepardGLES2::fillRect(float x, float y, float w, float h)
 }
 
 } // namespace gles2
-
-// GepardEngine functions
-
-void GepardEngine::engineBackendInit()
-{
-    _engineBackend = reinterpret_cast<gles2::GepardGLES2*>(new gles2::GepardGLES2(_surface));
-}
-
-void GepardEngine::engineBackendDestroy()
-{
-    if (_engineBackend) {
-        delete reinterpret_cast<gles2::GepardGLES2*>(_engineBackend);
-    }
-}
 
 } // namespace gepard
 

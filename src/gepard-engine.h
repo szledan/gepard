@@ -44,31 +44,15 @@ namespace gepard {
 class Image;
 class Surface;
 
-#ifdef USE_GLES2
-namespace gles2 {
-class GepardGLES2;
-} // namespace gles2
-typedef gles2::GepardGLES2 GepardEngineBackend;
-#elif defined USE_VULKAN
-namespace vulkan {
-class GepardVulkan;
-} // namespace gles2
-typedef vulkan::GepardVulkan GepardEngineBackend;
-#else
-typedef void GepardEngineBackend;
-#endif
-
 class GepardEngine {
 public:
     explicit GepardEngine(Surface* surface)
         : _surface(surface)
-        , _engineBackend(nullptr)
+        , _engineBackend(new GepardEngineBackend(surface))
     {
-        engineBackendInit();
     }
     ~GepardEngine()
     {
-        engineBackendDestroy();
     }
 
     /* 5. Building paths */
@@ -92,10 +76,6 @@ public:
     void fillRect(float x, float y, float w, float h);
 
 private:
-    // These two functions should be implemented in backend dependent manner.
-    void engineBackendInit();
-    void engineBackendDestroy();
-
     Surface* _surface;
     GepardEngineBackend* _engineBackend;
 };
