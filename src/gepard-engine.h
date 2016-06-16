@@ -91,6 +91,7 @@ public:
     void fillRect(float x, float y, float w, float h);
 
 private:
+    // These two functions should be implemented in backend dependent manner.
     void engineBackendInit();
     void engineBackendDestroy();
 
