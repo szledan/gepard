@@ -25,46 +25,45 @@
 
 #ifdef USE_VULKAN
 
-#ifndef GEPARD_VULKAN_H
-#define GEPARD_VULKAN_H
+#ifndef GEPARD_VULKAN_INTERFACE_H
+#define GEPARD_VULKAN_INTERFACE_H
 
 #include "gepard-defs.h"
 
-#include "gepard-image.h"
-#include "gepard-surface.h"
-#include "gepard-types.h"
-
-#include "gepard-vulkan-interface.h"
+#include <vulkan/vulkan.h>
 
 namespace gepard {
-
-class Image;
-class Surface;
-
 namespace vulkan {
 
-class GepardVulkan {
+class GepardVulkanInterface {
 public:
-    explicit GepardVulkan(Surface* surface);
-    ~GepardVulkan();
+    GepardVulkanInterface(const char* libraryName);
+    ~GepardVulkanInterface();
 
-    void fillRect(Float x, Float y, Float w, Float h);
-    void closePath();
+    void loadGlobalFunctions();
+    void loadInstanceFunctions(VkInstance* instance);
+    void loadDeviceFunctions(VkDevice* device);
+
+#define GD_VK_DECLARE_FUNCTION(fun) PFN_##fun fun
+
+    // Global level vulkan functions
+    GD_VK_DECLARE_FUNCTION(vkGetInstanceProcAddr);
+    GD_VK_DECLARE_FUNCTION(vkCreateInstance);
+
+    // Instance level vulkan functions
+    GD_VK_DECLARE_FUNCTION(vkDestroyInstance);
+
+    // Device level vulkan functions
+
+#undef GD_VK_DECLARE_FUNCTION
 
 private:
-    Surface* _surface;
-    GepardVulkanInterface _vk;
-    VkInstance _vkInstance;
-
-    void createDefaultInstance();
+    void* _vulkanLibrary;
 };
 
 } // namespace vulkan
-
-typedef vulkan::GepardVulkan GepardEngineBackend;
-
 } // namespace gepard
 
-#endif // GEPARD_VULKAN_H
+#endif // GEPARD_VULKAN_INTERFACE_H
 
 #endif // USE_VULKAN

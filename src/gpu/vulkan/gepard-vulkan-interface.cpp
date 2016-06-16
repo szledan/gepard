@@ -25,46 +25,57 @@
 
 #ifdef USE_VULKAN
 
-#ifndef GEPARD_VULKAN_H
-#define GEPARD_VULKAN_H
-
-#include "gepard-defs.h"
-
-#include "gepard-image.h"
-#include "gepard-surface.h"
-#include "gepard-types.h"
-
 #include "gepard-vulkan-interface.h"
+
+#include <dlfcn.h>
 
 namespace gepard {
 
-class Image;
-class Surface;
-
 namespace vulkan {
 
-class GepardVulkan {
-public:
-    explicit GepardVulkan(Surface* surface);
-    ~GepardVulkan();
+GepardVulkanInterface::GepardVulkanInterface(const char *libraryName)
+{
+    _vulkanLibrary = dlopen(libraryName, RTLD_LAZY);
+}
 
-    void fillRect(Float x, Float y, Float w, Float h);
-    void closePath();
+GepardVulkanInterface::~GepardVulkanInterface()
+{
+    dlclose(_vulkanLibrary);
+}
 
-private:
-    Surface* _surface;
-    GepardVulkanInterface _vk;
-    VkInstance _vkInstance;
+#define GD_VK_LOAD_FUNCTION(fun)\
+    fun = (PFN_##fun) vkGetInstanceProcAddr (nullptr, #fun); \
+    ASSERT(fun && "Couldn't load " #fun "!"); \
 
-    void createDefaultInstance();
-};
+void GepardVulkanInterface::loadGlobalFunctions()
+{
+    if (!_vulkanLibrary) {
+            LOG1("Loading the Vulkan library was unsuccessfuly!\n");
+            return;
+    }
+
+    vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)dlsym(_vulkanLibrary, "vkGetInstanceProcAddr");
+    ASSERT(vkGetInstanceProcAddr && "Couldn't load the vkGetInstanceProcAddr function!");
+
+    GD_VK_LOAD_FUNCTION (vkCreateInstance);
+}
+
+#undef GD_VK_LOAD_FUNCTION
+
+#define GD_VK_LOAD_FUNCTION(instance, fun)\
+    fun = (PFN_##fun) vkGetInstanceProcAddr (instance, #fun); \
+    ASSERT(fun && "Couldn't load " #fun "!"); \
+
+void GepardVulkanInterface::loadInstanceFunctions(VkInstance* instance)
+{
+    GD_VK_LOAD_FUNCTION(*instance, vkDestroyInstance);
+}
+
+#undef GD_VK_LOAD_FUNCTION
+
 
 } // namespace vulkan
 
-typedef vulkan::GepardVulkan GepardEngineBackend;
-
 } // namespace gepard
-
-#endif // GEPARD_VULKAN_H
 
 #endif // USE_VULKAN
