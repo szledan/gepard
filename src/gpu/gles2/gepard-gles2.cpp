@@ -304,7 +304,7 @@ const GLchar* fillRectFragmentShader = "\
  *
  * \todo unimplemented function
  */
-void GepardGLES2::fillRect(float x, float y, float w, float h)
+void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
 {
     // 1. Rect attributes.
     const GLubyte rectIndexes[] = {0, 1, 2, 2, 1, 3};

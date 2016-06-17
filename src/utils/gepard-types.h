@@ -95,6 +95,7 @@ public:
         _last = _first;
         _fill = 0;
     }
+
     ~Region()
     {
         while (_first) {
@@ -234,29 +235,9 @@ struct BoundingBox {
         , maxY(-INFINITY)
     {}
 
-    void stretchX(const Float x)
-    {
-        if (x < minX) {
-            minX = x;
-        }
-        if (x > maxX) {
-            maxX = x;
-        }
-    }
-    void stretchY(const Float y)
-    {
-        if (y < minY) {
-            minY = y;
-        }
-        if (y > maxY) {
-            maxY = y;
-        }
-    }
-    void stretch(const FloatPoint p)
-    {
-        stretchX(p.x);
-        stretchY(p.y);
-    }
+    void stretchX(const Float x);
+    void stretchY(const Float y);
+    void stretch(const FloatPoint p);
 
     Float minX, minY, maxX, maxY;
 };

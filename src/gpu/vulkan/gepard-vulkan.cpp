@@ -39,7 +39,7 @@ GepardVulkan::GepardVulkan(Surface* surface)
     std::cout << "GepardVulkan" << std::endl;
 }
 
-void GepardVulkan::fillRect(float x, float y, float w, float h)
+void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
 {
     std::cout << "fillrect: " << x << " " <<  x << " " <<  x << " " <<  x << std::endl;
 }

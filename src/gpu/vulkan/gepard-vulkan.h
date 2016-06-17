@@ -45,7 +45,7 @@ class GepardVulkan {
 public:
     explicit GepardVulkan(Surface* surface);
 
-    void fillRect(float x, float y, float w, float h);
+    void fillRect(Float x, Float y, Float w, Float h);
     void closePath();
 
 private:

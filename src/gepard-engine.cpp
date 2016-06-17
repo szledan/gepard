@@ -209,7 +209,7 @@ bool GepardEngine::isPointInPath(Float x, Float y)
  *
  * \todo documentation is missing
  */
-void GepardEngine::fillRect(float x, float y, float w, float h)
+void GepardEngine::fillRect(Float x, Float y, Float w, Float h)
 {
     if (_engineBackend) {
         _engineBackend->fillRect(x, y, w, h);

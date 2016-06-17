@@ -64,7 +64,7 @@ public:
     void clip();
     bool isPointInPath(Float x, Float y);
 
-    void fillRect(float x, float y, float w, float h);
+    void fillRect(Float x, Float y, Float w, Float h);
 
 private:
     Surface* _surface;

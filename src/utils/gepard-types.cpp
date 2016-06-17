@@ -26,4 +26,31 @@
 #include "gepard-types.h"
 
 namespace gepard {
+
+/* BoundingBox */
+
+void BoundingBox::stretchX(const Float x)
+{
+    if (x < minX) {
+        minX = x;
+    }
+    if (x > maxX) {
+        maxX = x;
+    }
+}
+void BoundingBox::stretchY(const Float y)
+{
+    if (y < minY) {
+        minY = y;
+    }
+    if (y > maxY) {
+        maxY = y;
+    }
+}
+void BoundingBox::stretch(const FloatPoint p)
+{
+    stretchX(p.x);
+    stretchY(p.y);
+}
+
 } // namespace gepard
