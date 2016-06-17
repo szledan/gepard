@@ -95,7 +95,6 @@ public:
         _last = _first;
         _fill = 0;
     }
-
     ~Region()
     {
         while (_first) {
