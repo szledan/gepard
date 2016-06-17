@@ -102,6 +102,13 @@ GepardGLES2::GepardGLES2(Surface* surface)
     }
 }
 
+GepardGLES2::~GepardGLES2()
+{
+    eglDestroyContext(_eglDisplay, _eglContext);
+    eglDestroySurface(_eglDisplay, _eglSurface);
+    eglTerminate(_eglDisplay);
+}
+
 /*!
  * \brief GepardGLES2::closePath
  *

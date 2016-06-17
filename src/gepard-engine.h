@@ -53,6 +53,9 @@ public:
     }
     ~GepardEngine()
     {
+        if (_engineBackend) {
+            delete _engineBackend;
+        }
     }
 
     /* 5. Building paths */

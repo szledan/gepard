@@ -45,6 +45,7 @@ namespace gles2 {
 class GepardGLES2 {
 public:
     explicit GepardGLES2(Surface* surface);
+    ~GepardGLES2();
 
     /* 5. Building paths */
     void closePath();
