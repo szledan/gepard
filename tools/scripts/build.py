@@ -44,9 +44,6 @@ def create_options(arguments):
     if arguments.no_colored_logs:
         opts.append('-DDISABLE_LOG_COLORS=ON')
 
-    if arguments.build_examples:
-        opts.append('-DBUILD_EXAMPLES=ON')
-
     return opts
 
 
@@ -107,6 +104,16 @@ def build_unit(arguments):
     return subprocess.call(['make', '-C', build_path, 'unit'])
 
 
+# Build examples
+def build_examples(arguments):
+    build_path = get_build_path(arguments)
+
+    if not path.isfile(path.join(build_path, 'Makefile')):
+        raise RuntimeError('Build is not configured.')
+
+    return subprocess.call(['make', '-C', build_path, 'examples'])
+
+
 # Perform the build
 def build_gepard(arguments):
     build_path = get_build_path(arguments)
@@ -136,7 +143,10 @@ def main():
     ret = configure(arguments)
 
     if not ret:
-        ret = build_gepard(arguments)
+        if arguments.build_examples:
+            ret = build_examples(arguments)
+        else:
+            ret = build_gepard(arguments)
 
     print_result(ret)
     sys.exit(ret)
