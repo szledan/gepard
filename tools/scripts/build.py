@@ -37,7 +37,7 @@ from os import makedirs
 def create_options(arguments):
     opts = [
             '-DCMAKE_BUILD_TYPE=' + arguments.build_type.capitalize(),
-            '-DUSE_%s=ON' % arguments.backend.upper(),
+            '-DBACKEND=' + arguments.backend.upper(),
             '-DLOG_LEVEL=' + str(arguments.log_level)
     ]
 
@@ -46,9 +46,6 @@ def create_options(arguments):
 
     if arguments.build_examples:
         opts.append('-DBUILD_EXAMPLES=ON')
-
-    if arguments.backend != 'gles2':
-        opts.append('-DUSE_GLES2=OFF')  #GLES2 is enabled by default, so just disable it if we're not using it.
 
     return opts
 
