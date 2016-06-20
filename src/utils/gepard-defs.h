@@ -31,6 +31,8 @@
 #include <iostream>
 #include <sstream>
 
+namespace gepard {
+
 #ifdef ASSERT
 #undef ASSERT
 #endif
@@ -41,76 +43,50 @@
 #endif
 #define NOT_IMPLEMENTED(...) ASSERT(0 && "Unimplemented function!")
 
+#ifdef LOG1
+#undef LOG1
+#endif
+#ifdef LOG2
+#undef LOG2
+#endif
+#ifdef LOG3
+#undef LOG3
+#endif
+
 #ifdef LOG_LEVEL
+
 #ifndef DISABLE_LOG_COLORS
 #define LOG1_COLOR "\033[94m"
 #define LOG2_COLOR "\033[36m"
 #define LOG3_COLOR "\033[93m"
 #define CLEAR_COLOR "\033[39m"
-#else
+#else /* !DISABLE_LOG_COLORS */
 #define LOG1_COLOR ""
 #define LOG2_COLOR ""
 #define LOG3_COLOR ""
 #define CLEAR_COLOR ""
 #endif
 
-#ifdef LOG1
-#undef LOG1
-#endif
-#define LOG1(MSG) do \
-{ \
-    std::ostringstream os; \
-    os << LOG1_COLOR << MSG << CLEAR_COLOR; \
-    _log(1, os.str()); \
-} while (false)
+#define LOG1(MSG) _log(1, MSG)
+#define LOG2(MSG) _log(2, MSG)
+#define LOG3(MSG) _log(3, MSG)
 
-
-#ifdef LOG2
-#undef LOG2
-#endif
-#define LOG2(MSG) do \
-{ \
-    std::ostringstream os; \
-    os << LOG2_COLOR << MSG << CLEAR_COLOR; \
-    _log(2, os.str()); \
-} while (false)
-
-
-#ifdef LOG3
-#undef LOG3
-#endif
-#define LOG3(MSG) do \
-{ \
-    std::ostringstream os; \
-    os << LOG3_COLOR << MSG << CLEAR_COLOR; \
-    _log(3, os.str()); \
-} while (false)
-
-void _log(int level, std::string msg) {
+template<typename T>
+void _log(unsigned int level, T& msg) {
   const int max_level = LOG_LEVEL;
   if (level <= max_level) {
-    std::cout << msg << std::endl;
+    static char *color[] = { LOG1_COLOR, LOG2_COLOR, LOG3_COLOR };
+    std::cout << color[level] << msg << CLEAR_COLOR << std::endl;
   }
 }
 
-#else /* LOG_LEVEL */
-#ifdef LOG1
-#undef LOG1
-#endif
-#ifdef LOG2
-#undef LOG2
-#endif
-#ifdef LOG3
-#undef LOG3
-#endif
+#else /* !LOG_LEVEL */
 
 #define LOG1(MSG)
 #define LOG2(MSG)
 #define LOG3(MSG)
 
 #endif /* LOG_LEVEL */
-
-namespace gepard {
 
 } // namespace gepard
 
