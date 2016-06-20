@@ -1,6 +1,5 @@
 /* Copyright (C) 2015-2016, Gepard Graphics
- * Copyright (C) 2015-2016, Szilard Ledan <szledan@gmail.com>
- * Copyright (C) 2015-2016, Dániel Bátyai <dbatyai@inf.u-szeged.hu>
+ * Copyright (C) 2016, Peter Gal <galpeter@inf.u-szeged.hu>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,68 +23,22 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GEPARD_DEFS_H
-#define GEPARD_DEFS_H
+#include "gepard-defs.h"
 
-#include <assert.h>
-#include <sstream>
+#include <iostream>
 
 namespace gepard {
 
-#ifdef ASSERT
-#undef ASSERT
-#endif
-#define ASSERT(...) assert(__VA_ARGS__);
-
-#ifdef NOT_IMPLEMENTED
-#undef NOT_IMPLEMENTED
-#endif
-#define NOT_IMPLEMENTED(...) ASSERT(0 && "Unimplemented function!")
-
-#ifdef LOG1
-#undef LOG1
-#endif
-#ifdef LOG2
-#undef LOG2
-#endif
-#ifdef LOG3
-#undef LOG3
-#endif
-
 #ifdef LOG_LEVEL
 
-#ifndef DISABLE_LOG_COLORS
-#define LOG1_COLOR "\033[94m"
-#define LOG2_COLOR "\033[36m"
-#define LOG3_COLOR "\033[93m"
-#define CLEAR_COLOR "\033[39m"
-#else /* !DISABLE_LOG_COLORS */
-#define LOG1_COLOR ""
-#define LOG2_COLOR ""
-#define LOG3_COLOR ""
-#define CLEAR_COLOR ""
-#endif
-
-#define LOG1(MSG) _LOG(1, MSG)
-#define LOG2(MSG) _LOG(2, MSG)
-#define LOG3(MSG) _LOG(3, MSG)
-
-#define _LOG(LEVEL, MSG) do {\
-  std::ostringstream os; \
-  os << MSG; \
-  _log(LEVEL, os.str()); \
-} while(false)
-
-void _log(unsigned int level, const std::string& msg);
-
-#else /* !LOG_LEVEL */
-
-#define LOG1(MSG)
-#define LOG2(MSG)
-#define LOG3(MSG)
+void _log(unsigned int level, const std::string& msg) {
+  const int max_level = LOG_LEVEL;
+  if (level <= max_level) {
+    static std::string color[] = { LOG1_COLOR, LOG2_COLOR, LOG3_COLOR };
+    std::cout << color[level] << msg << CLEAR_COLOR << std::endl;
+  }
+}
 
 #endif /* LOG_LEVEL */
 
 } // namespace gepard
-
-#endif // GEPARD_DEFS_H
