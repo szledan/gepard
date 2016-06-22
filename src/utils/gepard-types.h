@@ -250,45 +250,47 @@ inline std::ostream& operator<<(std::ostream& os, const BoundingBox& bb)
 
 /*!
  * \brief The IVec4 struct
+ *
+ * \internal
  */
-struct IVec4 {
-    IVec4() : x(0), y(0), z(0), w(0) {}
-    IVec4(int x_, int y_, int z_, int w_) : x(x_), y(y_), z(z_), w(w_) {}
-    IVec4(const IVec4& vec4) : x(vec4.x), y(vec4.y), z(vec4.z), w(vec4.w) {}
+struct Vec4 {
+    Vec4() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
+    Vec4(Float x_, Float y_, Float z_, Float w_) : x(x_), y(y_), z(z_), w(w_) {}
+    Vec4(const Vec4& vec4) : x(vec4.x), y(vec4.y), z(vec4.z), w(vec4.w) {}
 
-    int& operator[](std::size_t idx);
+    Float& operator[](std::size_t idx);
 
     /*!
      * \brief The x/r/s component union
      */
     union {
-        int x; /*!< the x coordinate */
-        int r; /*!< red chanel */
-        int s; /*!< the s parameter */
+        Float x; /*!< the x coordinate */
+        Float r; /*!< red chanel */
+        Float s; /*!< the s parameter */
     };
     /*!
      * \brief The y/g/t component union
      */
     union {
-        int y; /*!< the y coordinate */
-        int g; /*!< green chanel */
-        int t; /*!< the t parameter */
+        Float y; /*!< the y coordinate */
+        Float g; /*!< green chanel */
+        Float t; /*!< the t parameter */
     };
     /*!
      * \brief The z/b/p component union
      */
     union {
-        int z; /*!< the z coordinate */
-        int b; /*!< blue chanel */
-        int p; /*!< the p parameter */
+        Float z; /*!< the z coordinate */
+        Float b; /*!< blue chanel */
+        Float p; /*!< the p parameter */
     };
     /*!
      * \brief The w/a/q component union
      */
     union {
-        int w; /*!< the w coordinate */
-        int a; /*!< alpha chanel */
-        int q; /*!< the q parameter */
+        Float w; /*!< the w coordinate */
+        Float a; /*!< alpha chanel */
+        Float q; /*!< the q parameter */
     };
 };
 
@@ -298,14 +300,14 @@ struct IVec4 {
  * \brief The Color struct
  *
  * Describes a simple RGBA color chanel struct
- * where each chanel is an unsigned byte (0-255).
+ * where each chanel is an gepard::Float [0.0, 1.0].
  *
  * \internal
  */
-struct Color : public IVec4 {
-    Color() : IVec4() {}
-    Color(const int red, const int green, const int blue, const int alpha)
-        : IVec4(clamp(red, 0, 255), clamp(green, 0, 255), clamp(blue, 0, 255), clamp(alpha, 0, 255))
+struct Color : public Vec4 {
+    Color() : Vec4() {}
+    Color(const Float red, const Float green, const Float blue, const Float alpha)
+        : Vec4(clamp(red, Float(0.0f), Float(1.0f)), clamp(green, Float(0.0f), Float(1.0f)), clamp(blue, Float(0.0f), Float(1.0f)), clamp(alpha, Float(0.0f), Float(1.0f)))
     {
     }
     Color(const Color& color) : Color(color.r, color.g, color.b, color.a) {}

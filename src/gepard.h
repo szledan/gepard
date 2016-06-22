@@ -223,6 +223,33 @@ public:
     void putImageData(Image imagedata, double dx, double dy, double dirtyX, double dirtyY,
         double dirtyWidth, double dirtyHeight);
 
+    /*! \name A. NonCanvasAPI Functions
+     *
+     * \cond
+     * \todo Missing short description
+     * \endcond
+     */
+    /// \{
+
+    /*!
+     * \brief Set fill color with red, green, blue and alpha components
+     * \param red  the red channel in range [0, 255]
+     * \param green  the green channel in range [0, 255]
+     * \param blue  the blue channel in range [0, 255]
+     * \param alpha  the alpha channel in range [0, 255]
+     */
+    void setFillColor(const int red, const int green, const int blue, const int alpha = 255);
+    /*!
+     * \brief Set fill color with red, green, blue and alpha components
+     * \param red  the red channel in range [0.0, 1.0]
+     * \param green  the green channel in range [0.0, 1.0]
+     * \param blue  the blue channel in range [0.0, 1.0]
+     * \param alpha  the alpha channel in range [0.0, 1.0]
+     */
+    void setFillColor(const float red, const float green, const float blue, const float alpha = 1.0f);
+
+    /// \} A. NonCanvasAPI Functions
+
 private:
     GepardEngine* _engine;
 };

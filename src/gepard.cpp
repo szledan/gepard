@@ -308,7 +308,9 @@ void Gepard::clearRect(float x, float y, float w, float h)
 
 void Gepard::fillRect(float x, float y, float w, float h)
 {
-    _engine->fillRect(x, y, w, h);
+    if (_engine) {
+        _engine->fillRect(x, y, w, h);
+    }
 }
 
 void Gepard::strokeRect(float x, float y, float w, float h)
@@ -549,6 +551,19 @@ void Gepard::putImageData(Image /*imagedata*/, double dx, double dy, double dirt
     double dirtyWidth, double dirtyHeight)
 {
 /** \todo unimplemented function */
+}
+
+void Gepard::setFillColor(const int red, const int green, const int blue, const int alpha)
+{
+    const float ratio = 1.0f / 255.0f;
+    setFillColor(ratio * float(red), ratio * float(green), ratio * float(blue), ratio * float(alpha));
+}
+
+void Gepard::setFillColor(const float red, const float green, const float blue, const float alpha)
+{
+    if (_engine) {
+        _engine->setFillColor(red, green, blue, alpha);
+    }
 }
 
 } // namespace gepard

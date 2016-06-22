@@ -55,7 +55,7 @@ void BoundingBox::stretch(const FloatPoint p)
 
 /* IVec4 */
 
-int& IVec4::operator[](std::size_t idx)
+Float& Vec4::operator[](std::size_t idx)
 {
     switch (idx) {
     case 0: return x;
@@ -69,6 +69,6 @@ int& IVec4::operator[](std::size_t idx)
 
 /* Color */
 
-const Color Color::WHITE(255, 255, 255, 255);
+const Color Color::WHITE(1.0f, 1.0f, 1.0f, 1.0f);
 
 } // namespace gepard
