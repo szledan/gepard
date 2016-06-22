@@ -38,15 +38,19 @@ public:
     explicit Gepard(Surface* surface);
     ~Gepard();
 
-    /**
-     * 2. State (W3-2DContext-2015)
+    /*! \name 2. CanvasAPI State
+     *
+     * \cond
+     * \todo Missing short description
+     * \endcond
      */
+    /// \{
+
     void save();
     void restore();
+    /// \} 2. CanvasAPI State
 
-    /* 5. Building paths (W3-2DContext-2015) */
-
-    /*! \name CanvasPathMethods
+    /*! \name 5. CanvasAPI Building paths
      *
      *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
      * A path has a list of zero or more subpaths. Each subpath consists of a
@@ -58,10 +62,11 @@ public:
      *  -- <a href="https://www.w3.org/TR/2dcontext/#building-paths">[W3C-2DContext]</a>
      *   </blockquote>
      *
+     * \cond
      * \note The documentation contains quotes from the
      * <a href="https://www.w3.org/TR/2dcontext">W3C-2DContext</a>
      * recommandation.  These are closed in a \c \<blockquote\>.
-     *
+     * \endcond
      */
     /// \{
 
@@ -145,26 +150,43 @@ public:
      * \param counterclockwise  specify the draw direction on arc
      */
     void arc(float x, float y, float radius, float startAngle, float endAngle, bool counterclockwise = false);
-    /// \}
+    /// \}  5. CanvasAPI Building paths
 
-    /**
-     * 6. Transformations (W3-2DContext-2015)
-     * (default: transform is the identity matrix)
+    /*! \name 6. CanvasAPI Transformations
+     *
+     * \cond
+     * \todo Missing short description
+     * \endcond
      */
+    /// \{
+
     void scale(float x, float y);
     void rotate(float angle);
     void translate(float x, float y);
     void transform(float a, float b, float c, float d, float e, float f);
     void setTransform(float a, float b, float c, float d, float e, float f);
+    /// \} 6. CanvasAPI Transformations
 
-    /**
-     * 9. Rectangles (W3-2DContext-2015)
+    /*! \name 9. CanvasAPI Rectangles
+     *
+     * \cond
+     * \todo Missing short description
+     * \endcond
      */
+    /// \{
+
     void clearRect(float x, float y, float w, float h);
     void fillRect(float x, float y, float w, float h);
     void strokeRect(float x, float y, float w, float h);
+    /// \} 9. CanvasAPI Rectangles
 
-    /* 11. Drawing paths to the canvas (W3-2DContext-2015) */
+    /*! \name 11. CanvasAPI Drawing paths to the canvas
+     *
+     * \cond
+     * \todo Missing short description
+     * \endcond
+     */
+    /// \{
 
     /*!
      * \brief Resets the current path.
@@ -204,24 +226,37 @@ public:
      * \return  true if the given _point_ is in the current path
      */
     bool isPointInPath(float x, float y);
+    /// \} 11. CanvasAPI Drawing paths to the canvas
 
-    /**
-     * 12. Drawing images (W3-2DContext-2015)
+    /*! \name 12. CanvasAPI Drawing images
+     *
+     * \cond
+     * \todo Missing short description
+     * \endcond
      */
+    /// \{
+
     void drawImage(Image image, float dx, float dy);
     void drawImage(Image image, float dx, float dy, float dw, float dh);
     void drawImage(Image image, float sx, float sy, float sw, float sh,
         float dx, float dy, float dw, float dh);
+    /// \} 12. CanvasAPI Drawing images
 
-    /**
-     * 14. Pixel manipulation (W3-2DContext-2015)
+    /*! \name 14. CanvasAPI Pixel manipulation
+     *
+     * \cond
+     * \todo Missing short description
+     * \endcond
      */
+    /// \{
+
     Image createImageData(float sw, float sh);
     Image createImageData(Image imagedata);
     Image getImageData(double sx, double sy, double sw, double sh);
     void putImageData(Image imagedata, double dx, double dy);
     void putImageData(Image imagedata, double dx, double dy, double dirtyX, double dirtyY,
         double dirtyWidth, double dirtyHeight);
+    /// \} 14. CanvasAPI Pixel manipulation
 
     /*! \name A. NonCanvasAPI Functions
      *
