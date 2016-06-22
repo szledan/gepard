@@ -218,6 +218,69 @@ TEST(BoundingBoxTest, Stretch)
     EXPECT_EQ(2.5, bb.maxY);
 }
 
+/* IVec4 */
+
+TEST(IVec4Test, Initialize)
+{
+    gepard::IVec4 vec4;
+
+    EXPECT_EQ(0, vec4.x);
+    EXPECT_EQ(0, vec4.y);
+    EXPECT_EQ(0, vec4.z);
+    EXPECT_EQ(0, vec4.w);
+
+    EXPECT_EQ(0, vec4.r);
+    EXPECT_EQ(0, vec4.g);
+    EXPECT_EQ(0, vec4.b);
+    EXPECT_EQ(0, vec4.a);
+
+    EXPECT_EQ(0, vec4.s);
+    EXPECT_EQ(0, vec4.t);
+    EXPECT_EQ(0, vec4.p);
+    EXPECT_EQ(0, vec4.q);
+
+    EXPECT_EQ(0, vec4[0]);
+    EXPECT_EQ(0, vec4[1]);
+    EXPECT_EQ(0, vec4[2]);
+    EXPECT_EQ(0, vec4[3]);
+}
+
+TEST(IVec4Test, Union)
+{
+    gepard::IVec4 vec4(1, 2, 3, 4);
+
+    EXPECT_EQ(1, vec4.x);
+    EXPECT_EQ(1, vec4.r);
+    EXPECT_EQ(1, vec4.s);
+    EXPECT_EQ(1, vec4[0]);
+
+    EXPECT_EQ(2, vec4.y);
+    EXPECT_EQ(2, vec4.g);
+    EXPECT_EQ(2, vec4.t);
+    EXPECT_EQ(2, vec4[1]);
+
+    EXPECT_EQ(3, vec4.z);
+    EXPECT_EQ(3, vec4.b);
+    EXPECT_EQ(3, vec4.p);
+    EXPECT_EQ(3, vec4[2]);
+
+    EXPECT_EQ(4, vec4.w);
+    EXPECT_EQ(4, vec4.a);
+    EXPECT_EQ(4, vec4.q);
+    EXPECT_EQ(4, vec4[3]);
+}
+
+TEST(IVec4Test, CopyConstructor)
+{
+    gepard::IVec4 vec4(1, 2, 3, 4);
+    gepard::IVec4 vec4New(vec4);
+
+    EXPECT_EQ(1, vec4New.x);
+    EXPECT_EQ(2, vec4New.y);
+    EXPECT_EQ(3, vec4New.z);
+    EXPECT_EQ(4, vec4New.w);
+}
+
 /* Color */
 
 } // anonymous namespace

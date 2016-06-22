@@ -53,4 +53,22 @@ void BoundingBox::stretch(const FloatPoint p)
     stretchY(p.y);
 }
 
+/* IVec4 */
+
+int& IVec4::operator[](std::size_t idx)
+{
+    switch (idx) {
+    case 0: return x;
+    case 1: return y;
+    case 2: return z;
+    case 3: return w;
+    default:
+        CRASH("Index out of bound!");
+    }
+}
+
+/* Color */
+
+const Color Color::WHITE(255, 255, 255, 255);
+
 } // namespace gepard

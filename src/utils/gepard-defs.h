@@ -36,6 +36,14 @@
 #endif
 #define ASSERT(...) assert(__VA_ARGS__);
 
+#ifdef CRASH
+#undef CRASH
+#endif
+#define CRASH(X) do { \
+        std::cerr << (X) << std::endl; \
+        abort(); \
+    } while (false)
+
 #ifdef NOT_IMPLEMENTED
 #undef NOT_IMPLEMENTED
 #endif

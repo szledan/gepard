@@ -155,7 +155,7 @@ private:
  */
 struct FloatPoint {
     FloatPoint() : x(0.0), y(0.0) {}
-    FloatPoint(Float x, Float y) : x(x), y(y) {}
+    FloatPoint(Float x_, Float y_) : x(x_), y(y_) {}
 
     Float lengthSquared() const { return x * x + y * y; }
     Float dot(const FloatPoint& p) const { return x * p.x + y * p.y; }
@@ -246,6 +246,52 @@ inline std::ostream& operator<<(std::ostream& os, const BoundingBox& bb)
     return os << bb.minX << "," << bb.minY << "," << bb.maxX << "," << bb.maxY;
 }
 
+/* IVec4 */
+
+/*!
+ * \brief The IVec4 struct
+ */
+struct IVec4 {
+    IVec4() : x(0), y(0), z(0), w(0) {}
+    IVec4(int x_, int y_, int z_, int w_) : x(x_), y(y_), z(z_), w(w_) {}
+    IVec4(const IVec4& vec4) : x(vec4.x), y(vec4.y), z(vec4.z), w(vec4.w) {}
+
+    int& operator[](std::size_t idx);
+
+    /*!
+     * \brief The x/r/s component union
+     */
+    union {
+        int x; /*!< the x coordinate */
+        int r; /*!< red chanel */
+        int s; /*!< the s parameter */
+    };
+    /*!
+     * \brief The y/g/t component union
+     */
+    union {
+        int y; /*!< the y coordinate */
+        int g; /*!< green chanel */
+        int t; /*!< the t parameter */
+    };
+    /*!
+     * \brief The z/b/p component union
+     */
+    union {
+        int z; /*!< the z coordinate */
+        int b; /*!< blue chanel */
+        int p; /*!< the p parameter */
+    };
+    /*!
+     * \brief The w/a/q component union
+     */
+    union {
+        int w; /*!< the w coordinate */
+        int a; /*!< alpha chanel */
+        int q; /*!< the q parameter */
+    };
+};
+
 /* Color */
 
 /*!
@@ -256,20 +302,29 @@ inline std::ostream& operator<<(std::ostream& os, const BoundingBox& bb)
  *
  * \internal
  */
-struct Color {
-    Color() : r(0), g(0), b(0), a(0) {}
+struct Color : public IVec4 {
+    Color() : IVec4() {}
     Color(const int red, const int green, const int blue, const int alpha)
-        : r(clamp(red, 0, 255))
-        , g(clamp(green, 0, 255))
-        , b(clamp(blue, 0, 255))
-        , a(clamp(alpha, 0, 1))
+        : IVec4(clamp(red, 0, 255), clamp(green, 0, 255), clamp(blue, 0, 255), clamp(alpha, 0, 255))
     {
     }
+    Color(const Color& color) : Color(color.r, color.g, color.b, color.a) {}
 
-    uint8_t r; /*!< red chanel */
-    uint8_t g; /*!< green chanel */
-    uint8_t b; /*!< blue chanel */
-    uint8_t a; /*!< alpha chanel */
+    static const Color WHITE;
+};
+
+/* GepardState */
+
+/*!
+ * \brief The GepardState struct
+ *
+ * Describes the Drawing state.
+ * -- <a href="https://www.w3.org/TR/2dcontext/#the-canvas-state">[W3C-2DContext]</a>
+ *
+ * \internal
+ */
+struct GepardState {
+    Color fillColor = Color(Color::WHITE);
 };
 
 } // namespace gepard
