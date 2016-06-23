@@ -70,7 +70,6 @@ public:
     /// \todo remove into a vector<GepardState> states.
     GepardState state;
 private:
-
     Surface* _surface;
 
     EGLDisplay _eglDisplay;

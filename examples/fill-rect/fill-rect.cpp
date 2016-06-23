@@ -32,32 +32,36 @@
 int main()
 {
     // Draw on XWindow
-    gepard::XSurface s(600, 600);
-    gepard::Gepard g(&s);
+    gepard::XSurface surface(600, 600);
+    gepard::Gepard gepard(&surface);
 
-    g.setFillColor(0.5f, 0.4f, 0.1f, 0.2f);
-    g.fillRect(50, 50, 500, 500);
+    gepard.setFillColor(0.5f, 0.4f, 0.1f, 0.2f);
+    gepard.fillRect(50, 50, 500, 500);
 
-    g.setFillColor(0.0f, 0.8f, 0.3f);
-    g.fillRect(100, 100, 80, 320);
+    gepard.setFillColor(0.0f, 0.8f, 0.3f);
+    gepard.fillRect(100, 100, 80, 320);
 
-    g.setFillColor(0.0f, 0.0f, 1.0f);
-    g.fillRect(100, 420, 280, 80);
+    gepard.setFillColor(0.0f, 0.0f, 1.0f);
+    gepard.fillRect(100, 420, 280, 80);
 
-    g.setFillColor(0.3f, 0.0f, 0.7f);
-    g.fillRect(180, 100, 200, 80);
+    gepard.setFillColor(0.3f, 0.0f, 0.7f);
+    gepard.fillRect(180, 100, 200, 80);
 
-    g.setFillColor(0.3f, 0.7f, 0.2f);
-    g.fillRect(380, 80, 80, 130);
+    gepard.setFillColor(0.3f, 0.7f, 0.2f);
+    gepard.fillRect(380, 80, 80, 130);
 
-    g.setFillColor("#af5f4f");
-    g.fillRect(380, 380, 80, 130);
+    gepard.setFillColor("#af5f4f");
+    gepard.fillRect(380, 380, 80, 130);
 
-    g.setFillColor(220, 180, 40);
-    g.fillRect(330, 320, 160, 60);
+    gepard.setFillColor(220, 180, 40);
+    gepard.fillRect(330, 320, 160, 60);
 
-    char a;
-    std::cin >> a;
+    XEvent xEvent;
+    while (true) {
+        if (XCheckWindowEvent((Display*)surface.getDisplay(), (Window)surface.getWindow(), KeyPress | ClientMessage, &xEvent)) {
+            break;
+        }
+    }
 
     // Draw to memory buffer
     gepard::MemoryBufferSurface s2(500, 500);

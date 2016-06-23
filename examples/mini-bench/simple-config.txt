@@ -1,0 +1,9 @@
+paintRectSize=30
+rectHeight=4
+rectNumbers=40
+rectWidth=4
+maxVelocity=51
+warmupCount=5
+windowHeight=400
+windowWidth=400
+seed=1985
