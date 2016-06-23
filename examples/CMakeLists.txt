@@ -1,6 +1,9 @@
+add_custom_target(examples)
+
 function(build_example directory)
   file(GLOB SOURCES ${directory}/*.cpp)
-  add_executable("${directory}" ${SOURCES})
+  add_executable("${directory}" EXCLUDE_FROM_ALL ${SOURCES})
+  add_dependencies(examples "${directory}")
   target_link_libraries("${directory}" gepard X11 ${LIB_DEPENDENCIES})
 endfunction(build_example)
 
