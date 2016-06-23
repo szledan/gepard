@@ -107,7 +107,7 @@ def build_unit(arguments):
     if not path.isfile(path.join(build_path, 'Makefile')):
         raise RuntimeError('Build is not configured.')
 
-    return subprocess.call(['make', '-C', build_path, 'unit'])
+    return subprocess.call(['make', '-s', '-C', build_path, 'unit'])
 
 
 # Perform the build
@@ -118,9 +118,9 @@ def build_gepard(arguments):
         raise RuntimeError('Build is not configured.')
 
     if arguments.clean:
-        subprocess.call(['make', '-C', build_path, 'clean'])
+        subprocess.call(['make', '-s', '-C', build_path, 'clean'])
 
-    return subprocess.call(['make', '-C', build_path])
+    return subprocess.call(['make', '-s', '-C', build_path])
 
 
 # Print build result
