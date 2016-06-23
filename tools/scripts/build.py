@@ -111,7 +111,7 @@ def build_examples(arguments):
     if not path.isfile(path.join(build_path, 'Makefile')):
         raise RuntimeError('Build is not configured.')
 
-    return subprocess.call(['make', '-C', build_path, 'examples'])
+    return subprocess.call(['make', '-s', '-C', build_path, 'examples'])
 
 
 # Perform the build
