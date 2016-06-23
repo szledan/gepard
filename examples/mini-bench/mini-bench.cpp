@@ -38,30 +38,30 @@ ConfigMap s_configs;
 
 inline void step()
 {
-    static int warmupCount = -s_configs["warmupCount"];
+    static time_t currentTime, oldTime = 0;
+    static int steps = 0;
 
-    static time_t s_currentTime, s_oldTime = 0;
-    static long long unsigned int s_sum = 0;
-    static int s_steps = 0;
+    steps++;
+    time(&currentTime);
 
-    s_steps++;
-    time(&s_currentTime);
+    if (currentTime - oldTime >= 1) {
+        static int warmupCount = -s_configs["warmupCount"];
+        static long long unsigned int sum = 0;
 
-    if (s_currentTime - s_oldTime >= 1) {
         if (warmupCount >= 0) {
-            s_sum += s_steps;
+            sum += steps;
         }
         warmupCount++;
 
         float avg = 0;
         if (warmupCount > 0) {
-            avg = float(s_sum) / float(warmupCount);
+            avg = float(sum) / float(warmupCount);
         }
-        std::cout << warmupCount << ". FPS: " << s_steps << ", AVG: " << avg << "" << std::endl;
+        std::cout << warmupCount << ". FPS: " << steps << ", AVG: " << avg << "" << std::endl;
 
         // Reset.
-        s_steps = 0;
-        time(&s_oldTime);
+        steps = 0;
+        time(&oldTime);
     }
 }
 

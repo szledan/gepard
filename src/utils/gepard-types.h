@@ -236,7 +236,7 @@ struct BoundingBox {
 
     void stretchX(const Float x);
     void stretchY(const Float y);
-    void stretch(const FloatPoint p);
+    void stretch(const FloatPoint& p);
 
     Float minX, minY, maxX, maxY;
 };

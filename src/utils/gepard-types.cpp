@@ -47,7 +47,7 @@ void BoundingBox::stretchY(const Float y)
         maxY = y;
     }
 }
-void BoundingBox::stretch(const FloatPoint p)
+void BoundingBox::stretch(const FloatPoint& p)
 {
     stretchX(p.x);
     stretchY(p.y);
