@@ -553,6 +553,25 @@ void Gepard::putImageData(Image /*imagedata*/, double dx, double dy, double dirt
 /** \todo unimplemented function */
 }
 
+void Gepard::setFillColor(std::string color)
+{
+    size_t length = color.length();
+    int n;
+
+    // Convert string hex to unsgined int.
+    std::stringstream ss;
+    ss << std::hex << color.substr(1);
+    ss >> n;
+
+    if (length == 7) {
+        setFillColor((n & 0xff0000) >> 16, (n & 0x00ff00) >> 8, n & 0x0000ff);
+    } else if (length == 4) {
+        setFillColor((n & 0xf00) >> 8, (n & 0x0f0) >> 4, n & 0x00f);
+    } else {
+        setFillColor(1.0f, 1.0f, 1.0f);
+    }
+}
+
 void Gepard::setFillColor(const int red, const int green, const int blue, const int alpha)
 {
     const float ratio = 1.0f / 255.0f;

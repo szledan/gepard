@@ -81,9 +81,6 @@ public:
     void setFillColor(const Float red, const Float green, const Float blue, const Float alpha = 1.0f);
 
 private:
-    /// \todo remove into a vector<GepardState> states.
-    GepardState _state;
-
     Surface* _surface;
     GepardEngineBackend* _engineBackend;
 };

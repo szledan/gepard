@@ -32,10 +32,29 @@
 int main()
 {
     // Draw on XWindow
-    gepard::XSurface s(500, 500);
+    gepard::XSurface s(600, 600);
     gepard::Gepard g(&s);
 
-    g.fillRect(100, 150, 300, 150);
+    g.setFillColor(0.5f, 0.4f, 0.1f, 0.2f);
+    g.fillRect(50, 50, 500, 500);
+
+    g.setFillColor(0.0f, 0.8f, 0.3f);
+    g.fillRect(100, 100, 80, 320);
+
+    g.setFillColor(0.0f, 0.0f, 1.0f);
+    g.fillRect(100, 420, 280, 80);
+
+    g.setFillColor(0.3f, 0.0f, 0.7f);
+    g.fillRect(180, 100, 200, 80);
+
+    g.setFillColor(0.3f, 0.7f, 0.2f);
+    g.fillRect(380, 80, 80, 130);
+
+    g.setFillColor("#af5f4f");
+    g.fillRect(380, 380, 80, 130);
+
+    g.setFillColor(220, 180, 40);
+    g.fillRect(330, 320, 160, 60);
 
     char a;
     std::cin >> a;

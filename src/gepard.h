@@ -27,6 +27,8 @@
 #ifndef GEPARD_H
 #define GEPARD_H
 
+#include "string"
+
 namespace gepard {
 
 class GepardEngine;
@@ -282,9 +284,9 @@ public:
      * \param alpha  the alpha channel in range [0.0, 1.0]
      */
     void setFillColor(const float red, const float green, const float blue, const float alpha = 1.0f);
+    void setFillColor(std::string color = "#ffffff");
 
     /// \} A. NonCanvasAPI Functions
-
 private:
     GepardEngine* _engine;
 };

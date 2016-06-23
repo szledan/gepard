@@ -265,7 +265,7 @@ struct Vec4 {
      */
     union {
         Float x; /*!< the x coordinate */
-        Float r; /*!< red chanel */
+        Float r; /*!< red channel */
         Float s; /*!< the s parameter */
     };
     /*!
@@ -273,7 +273,7 @@ struct Vec4 {
      */
     union {
         Float y; /*!< the y coordinate */
-        Float g; /*!< green chanel */
+        Float g; /*!< green channel */
         Float t; /*!< the t parameter */
     };
     /*!
@@ -281,7 +281,7 @@ struct Vec4 {
      */
     union {
         Float z; /*!< the z coordinate */
-        Float b; /*!< blue chanel */
+        Float b; /*!< blue channel */
         Float p; /*!< the p parameter */
     };
     /*!
@@ -289,7 +289,7 @@ struct Vec4 {
      */
     union {
         Float w; /*!< the w coordinate */
-        Float a; /*!< alpha chanel */
+        Float a; /*!< alpha channel */
         Float q; /*!< the q parameter */
     };
 };
