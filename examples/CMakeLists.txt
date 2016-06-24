@@ -10,4 +10,4 @@ endfunction(build_example)
 include_directories(${CMAKE_BINARY_DIR}/include/)
 
 build_example("fill-rect" "A simple example for drawing a filled rectangle with Gepard and different surfaces.")
-build_example("mini-bench" "A simple benchmark for testing FPS.")
+build_example("antilop-benchmark" "A simple benchmark for testing Gepard.")

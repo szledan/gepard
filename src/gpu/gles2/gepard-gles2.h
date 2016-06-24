@@ -34,6 +34,7 @@
 #include "gepard-surface.h"
 #include "gepard-types.h"
 #include <EGL/egl.h>
+#include <map>
 
 namespace gepard {
 
@@ -75,6 +76,8 @@ private:
     EGLDisplay _eglDisplay;
     EGLSurface _eglSurface;
     EGLContext _eglContext;
+
+    std::map<std::string, uint> _programs;
 };
 
 } // namespace gles2

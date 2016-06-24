@@ -107,6 +107,7 @@ GepardGLES2::GepardGLES2(Surface* surface)
 
 GepardGLES2::~GepardGLES2()
 {
+    eglMakeCurrent(_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglDestroyContext(_eglDisplay, _eglContext);
     eglDestroySurface(_eglDisplay, _eglSurface);
     eglTerminate(_eglDisplay);
@@ -336,7 +337,7 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // 3. Compile shaders.
-    static GLuint fillRectProgram = 0;
+    GLuint& fillRectProgram = _programs["FillRectProgram"];
     compileShaderProg(&fillRectProgram, "FillRectProgram", fillRectVertexShader, fillRectFragmentShader);
 
     // 4. Use shader programs.

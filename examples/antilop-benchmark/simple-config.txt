@@ -1,0 +1,10 @@
+iterateCount=10
+maxVelocity=51
+paintRectSize=30
+rectHeight=5
+rectNumbers=20
+rectWidth=5
+seed=1985
+warmupCount=3
+windowHeight=500
+windowWidth=500
