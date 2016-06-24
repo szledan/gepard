@@ -34,11 +34,5 @@ int main(int argc, char* argv[])
     std::unique_ptr<antilop::AntilopMark> snake(new antilop::SnakeMark());
     antilop.add(snake.get());
 
-    std::unique_ptr<antilop::AntilopMark> snake2(new antilop::SnakeMark());
-    antilop.add(snake2.get());
-
-    std::unique_ptr<antilop::AntilopMark> snake3(new antilop::SnakeMark());
-    antilop.add(snake3.get());
-
     return antilop.run();
 }

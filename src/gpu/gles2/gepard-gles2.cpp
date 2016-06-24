@@ -69,31 +69,25 @@ GepardGLES2::GepardGLES2(Surface* surface)
 
         // Initialize EGL
         if (eglDisplay == EGL_NO_DISPLAY) {
-            //! \todo: LOG: "eglGetDisplay returned EGL_DEFAULT_DISPLAY");
-            exit(-1);
+            CRASH("eglGetDisplay returned EGL_DEFAULT_DISPLAY");
         }
         if (eglInitialize(eglDisplay, NULL, NULL) != EGL_TRUE) {
-            //! \todo: LOG: "eglInitialize returned with EGL_FALSE");
-            exit(-1);
+            CRASH("eglInitialize returned with EGL_FALSE");
         }
         if (eglChooseConfig(eglDisplay, configAttribs, &eglConfig, 1, &numOfConfigs) != EGL_TRUE) {
-            //! \todo: LOG: "eglChooseConfig returned with EGL_FALSE");
-            exit(-1);
+            CRASH("eglChooseConfig returned with EGL_FALSE");
         }
         EGLNativeWindowType window = _surface->getWindow();
         eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, window, NULL);
         if (eglSurface == EGL_NO_SURFACE) {
-            //! \todo: LOG: "eglCreateWindowSurface returned EGL_NO_SURFACE");
-            exit(-1);
+            CRASH("eglCreateWindowSurface returned EGL_NO_SURFACE");
         }
         _eglContext = eglCreateContext(eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttribs);
         if (_eglContext == EGL_NO_CONTEXT) {
-            //! \todo: LOG: "eglCreateContext returned EGL_NO_CONTEXT");
-            exit(-1);
+            CRASH("eglCreateContext returned EGL_NO_CONTEXT");
         }
         if (eglMakeCurrent(eglDisplay, eglSurface, eglSurface, _eglContext) != EGL_TRUE) {
-            //! \todo: LOG: "eglMakeCurrent returned EGL_FALSE");
-            exit(-1);
+            CRASH("eglMakeCurrent returned EGL_FALSE");
         }
 
         // Set EGL display & surface.

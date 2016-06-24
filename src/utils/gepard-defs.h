@@ -41,7 +41,7 @@ namespace gepard {
 #undef CRASH
 #endif
 #define CRASH(X) do { \
-        std::cerr << (X) << std::endl; \
+        std::cerr << X << std::endl; \
         abort(); \
     } while (false)
 
