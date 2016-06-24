@@ -64,8 +64,8 @@ class AntilopMark {
 public:
     AntilopMark();
 
-    virtual void init(ConfigMap& configMap, gepard::XSurface*) = 0;
-    virtual void start() = 0;
+    virtual int init(ConfigMap& configMap, gepard::XSurface*) = 0;
+    virtual int start() = 0;
     virtual int run() = 0;
     virtual int stop() = 0;
 
@@ -84,10 +84,14 @@ public:
  */
 class Antilop {
 public:
-    typedef enum NonFails {
+    typedef enum Fails {
+        // Passes <= 0.
         PASS = 0,
         EXIT = -1,
-    } NonFails;
+
+        // Fails > 0.
+        MEM_LEAK = 1,
+    } Fails;
 
     void init(int argc, char* argv[]);
     void add(AntilopMark*);
@@ -104,10 +108,25 @@ private:
  */
 class SnakeMark : public AntilopMark {
 public:
-    SnakeMark() : surface(nullptr), gepard(nullptr) {}
+    SnakeMark()
+        : iterateCount(0)
+        , maxVelocity(0)
+        , paintRectSize(0)
+        , rectHeight(0)
+        , rectNumbers(0)
+        , rectWidth(0)
+        , windowHeight(0)
+        , windowWidth(0)
+        , maxSize2(0)
+        , maxFlet(0)
+        , ratio(0.0f)
+        , surface(nullptr)
+        , gepard(nullptr)
+    {
+    }
 
-    void init(ConfigMap& configMap, gepard::XSurface*);
-    void start();
+    int init(ConfigMap& configMap, gepard::XSurface*);
+    int start();
     int stop();
     int run();
 

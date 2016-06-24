@@ -84,7 +84,7 @@ inline static std::unique_ptr<T> makeUnique(T* ptr)
 
 void Antilop::init(int argc, char* argv[])
 {
-    LOG("*** Mini-BenchMark for Gepard, 2016, *** ");
+    LOG("*** Antilop BenchMark for Gepard, 2016. *** ");
     LOG("Usage: " << argv[0] << " [config-file]");
 
     std::string configFile = "";
@@ -144,21 +144,22 @@ void Antilop::add(AntilopMark* antilopMark)
 
 int Antilop::run()
 {
-    LOG("Antilop BenchMark start...");
+    LOG("Antilop BenchMark START");
     int fail = 0;
     for (std::list<AntilopMark*>::iterator it = benchMarks.begin(); it != benchMarks.end() && !fail; ++it) {
         (*it)->init(configs, surface.get());
-        (*it)->start();
-        fail = (*it)->run();
-        (*it)->stop();
+        if ((*it)->start() == Antilop::PASS) {
+            fail = (*it)->run();
+            (*it)->stop();
+        }
     }
-    LOG("Stop");
+    LOG("Antilop BenchMark STOP");
     return fail > 0 ? fail : 0;
 }
 
 // SnakeMark
 
-void SnakeMark::init(ConfigMap& configMap, gepard::XSurface* srfc)
+int SnakeMark::init(ConfigMap& configMap, gepard::XSurface* srfc)
 {
     configs = configMap;
 
@@ -179,13 +180,20 @@ void SnakeMark::init(ConfigMap& configMap, gepard::XSurface* srfc)
     std::srand(configs["seed"]);
 
     surface = srfc;
+
+    return Antilop::PASS;
 }
 
-void SnakeMark::start()
+int SnakeMark::start()
 {
+    if (gepard)
+        return Antilop::MEM_LEAK;
+
     gepard = new gepard::Gepard(surface);
 
     LOG("SnakeBenchMark START.");
+
+    return Antilop::PASS;
 }
 
 int SnakeMark::stop()
@@ -227,7 +235,6 @@ int SnakeMark::run()
 
         if (XCheckWindowEvent((Display*)surface->getDisplay(), (Window)surface->getWindow(), KeyPress | ClientMessage, &e)) {
             if (e.type == KeyPress && XLookupKeysym(&e.xkey, 0) == XK_Escape) {
-                std::cout << "EXITING at " << iterateCount << std::endl;
                 return Antilop::EXIT;
             }
         }
