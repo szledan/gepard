@@ -37,10 +37,11 @@ namespace gepard {
 #endif
 #define ASSERT(...) assert(__VA_ARGS__);
 
-#ifdef CRASH
-#undef CRASH
+#ifdef GD_CRASH
+#undef GD_CRASH
 #endif
-#define CRASH(X) do { \
+#define GD_CRASH(X) \
+    do { \
         std::cerr << X << std::endl; \
         abort(); \
     } while (false)

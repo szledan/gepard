@@ -51,8 +51,8 @@ inline static std::unique_ptr<T> makeUnique(T* ptr)
 
 void Savanna::init(int argc, char* argv[])
 {
-    LOG("*** Savanna BenchMark for Gepard, 2016. *** ");
-    LOG("Usage: " << argv[0] << " [config-file]");
+    SN_LOG("*** Savanna BenchMark for Gepard, 2016. *** ");
+    SN_LOG("Usage: " << argv[0] << " [config-file]");
 
     std::string configFile = "";
     if (argc > 1) {
@@ -71,7 +71,7 @@ void Savanna::init(int argc, char* argv[])
     configs["windowHeight"] = 500;
     configs["windowWidth"] = 500;
 
-    LOG("Read config file...");
+    SN_LOG("Read config file...");
     if (!configFile.empty()) {
         std::fstream fs(configFile, std::fstream::in);
         std::string line;
@@ -82,7 +82,6 @@ void Savanna::init(int argc, char* argv[])
             if (std::remove(line.begin(), line.end(), ' ') == line.end()) {
                 continue;
             }
-//            std::cerr << "ii:" << (ii == line.end()) << "_" << std::endl;
 
             std::istringstream issLine(line);
             std::string key;
@@ -96,17 +95,17 @@ void Savanna::init(int argc, char* argv[])
             }
         }
 
-        LOG("...done.");
+        SN_LOG("...done.");
     } else {
-        LOG("...not found. Use default configs.");
+        SN_LOG("...not found. Use default configs.");
     }
-    LOG("");
+    SN_LOG("");
 
-    LOG(" * Configs:");
+    SN_LOG(" * Configs:");
     for (ConfigMap::iterator config = configs.begin(); config != configs.end(); ++config) {
-        LOG(config->first << "=" << config->second);
+        SN_LOG(config->first << "=" << config->second);
     }
-    LOG("");
+    SN_LOG("");
 
     surface = makeUnique(new gepard::XSurface(configs["windowWidth"], configs["windowHeight"]));
 }
@@ -118,7 +117,7 @@ void Savanna::add(ZygoteMark* zygoteMark)
 
 int Savanna::run()
 {
-    LOG("Savanna BenchMark START");
+    SN_LOG("Savanna BenchMark START");
     Savanna::React reaction;
     for (std::list<ZygoteMark*>::iterator it = benchMarks.begin(); it != benchMarks.end() && reaction.isPass(); ++it) {
         (*it)->init(surface.get());
@@ -127,7 +126,7 @@ int Savanna::run()
             (*it)->stop();
         }
     }
-    LOG("Savanna BenchMark STOP");
+    SN_LOG("Savanna BenchMark STOP");
     return reaction.isFail() ? int(reaction.ra()) : 0;
 }
 
@@ -156,7 +155,7 @@ void ZygoteMark::step()
             sum += steps;
             avg = float(sum) / float(sampleCount);
         }
-        LOG(sampleCount << ". FPS: " << steps << ", AVG: " << avg << "");
+        SN_LOG(sampleCount << ". FPS: " << steps << ", AVG: " << avg << "");
 
         // Reset.
         steps = 0;

@@ -38,13 +38,13 @@
 
 namespace savanna {
 
-#ifdef LOG
-#undef LOG
+#ifdef SN_LOG
+#undef SN_LOG
 #endif
 /*!
  * \brief A simple LOG macro.
  */
-#define LOG(X) do { std::cout << X << std::endl; } while(false)
+#define SN_LOG(X) do { std::cout << X << std::endl; } while(false)
 
 template<typename T>
 T clamp(T x, const T min, const T max)

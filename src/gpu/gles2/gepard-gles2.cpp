@@ -30,9 +30,9 @@
 
 #include "gepard-defs.h"
 #include "gepard-gles2-defs.h"
+#include "gepard-gles2-shader-factory.h"
 
 namespace gepard {
-
 namespace gles2 {
 
 GepardGLES2::GepardGLES2(Surface* surface)
@@ -69,25 +69,25 @@ GepardGLES2::GepardGLES2(Surface* surface)
 
         // Initialize EGL
         if (eglDisplay == EGL_NO_DISPLAY) {
-            CRASH("eglGetDisplay returned EGL_DEFAULT_DISPLAY");
+            GD_CRASH("eglGetDisplay returned EGL_DEFAULT_DISPLAY");
         }
         if (eglInitialize(eglDisplay, NULL, NULL) != EGL_TRUE) {
-            CRASH("eglInitialize returned with EGL_FALSE");
+            GD_CRASH("eglInitialize returned with EGL_FALSE");
         }
         if (eglChooseConfig(eglDisplay, configAttribs, &eglConfig, 1, &numOfConfigs) != EGL_TRUE) {
-            CRASH("eglChooseConfig returned with EGL_FALSE");
+            GD_CRASH("eglChooseConfig returned with EGL_FALSE");
         }
         EGLNativeWindowType window = _surface->getWindow();
         eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, window, NULL);
         if (eglSurface == EGL_NO_SURFACE) {
-            CRASH("eglCreateWindowSurface returned EGL_NO_SURFACE");
+            GD_CRASH("eglCreateWindowSurface returned EGL_NO_SURFACE");
         }
         _eglContext = eglCreateContext(eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttribs);
         if (_eglContext == EGL_NO_CONTEXT) {
-            CRASH("eglCreateContext returned EGL_NO_CONTEXT");
+            GD_CRASH("eglCreateContext returned EGL_NO_CONTEXT");
         }
         if (eglMakeCurrent(eglDisplay, eglSurface, eglSurface, _eglContext) != EGL_TRUE) {
-            CRASH("eglMakeCurrent returned EGL_FALSE");
+            GD_CRASH("eglMakeCurrent returned EGL_FALSE");
         }
 
         // Set EGL display & surface.
@@ -332,7 +332,7 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
 
     // 3. Compile shaders.
     GLuint& fillRectProgram = _programs["FillRectProgram"];
-    compileShaderProg(&fillRectProgram, "FillRectProgram", fillRectVertexShader, fillRectFragmentShader);
+    ShaderProgram::compileShaderProg(&fillRectProgram, "FillRectProgram", fillRectVertexShader, fillRectFragmentShader);
 
     // 4. Use shader programs.
     glUseProgram(fillRectProgram);
@@ -357,7 +357,6 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
 }
 
 } // namespace gles2
-
 } // namespace gepard
 
 #endif // USE_GLES2

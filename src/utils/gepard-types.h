@@ -246,10 +246,10 @@ inline std::ostream& operator<<(std::ostream& os, const BoundingBox& bb)
     return os << bb.minX << "," << bb.minY << "," << bb.maxX << "," << bb.maxY;
 }
 
-/* IVec4 */
+/* Vec4 */
 
 /*!
- * \brief The IVec4 struct
+ * \brief The Vec4 struct
  *
  * \internal
  */
@@ -300,7 +300,7 @@ struct Vec4 {
  * \brief The Color struct
  *
  * Describes a simple RGBA color chanel struct
- * where each chanel is an gepard::Float [0.0, 1.0].
+ * where each chanel is a gepard::Float [0.0, 1.0].
  *
  * \internal
  */

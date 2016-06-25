@@ -37,88 +37,11 @@
 #include <GLES2/gl2ext.h>
 
 namespace gepard {
-
 namespace gles2 {
 
-#define TEXTURE_SIZE 512
-
-void compileShaderProg(GLuint* result, const char* name, const GLchar *vertexShaderSource, const GLchar *fragmentShaderSource)
-{
-    GLuint shaderProgram = 0;
-    GLuint vertexShader = 0;
-    GLuint fragmentShader = 0;
-    GLint intValue;
-    GLchar *log = NULL;
-    GLsizei length;
-
-    if (*result)
-        return;
-
-    // Shader programs are zero terminated
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &intValue);
-    if (intValue != GL_TRUE) {
-        glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &intValue);
-        log = (GLchar*)malloc(intValue);
-        glGetShaderInfoLog(vertexShader, intValue, &length, log);
-        printf("Vertex shader compilation failed with: %s\n", log);
-        goto error;
-    }
-
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &intValue);
-    if (intValue != GL_TRUE) {
-        glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &intValue);
-        log = (GLchar*)malloc(intValue);
-        glGetShaderInfoLog(fragmentShader, intValue, &length, log);
-        printf("Fragment shader compilation failed with: %s\n", log);
-        goto error;
-    }
-
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &intValue);
-    if (intValue != GL_TRUE) {
-        GLchar *log;
-        GLsizei length = -13;
-        glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &intValue);
-        log = (GLchar*)malloc(intValue);
-        glGetProgramInfoLog(fragmentShader, intValue, &length, log);
-        printf("Shader program link failed with: %s\n", log);
-        goto error;
-    }
-
-    // According to the specification, the shaders are kept
-    // around until the program object is freed (reference counted).
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    *result = shaderProgram;
-    return;
-
-error:
-    printf("Warning: Shader program cannot be compiled!\n");
-    if (log)
-        free(log);
-    if (vertexShader)
-        glDeleteShader(vertexShader);
-    if (fragmentShader)
-        glDeleteShader(fragmentShader);
-    if (shaderProgram)
-        glDeleteProgram(shaderProgram);
-}
+#define GD_GLES2_TEXTURE_SIZE 512
 
 } // namespace gles2
-
 } // namespace gepard
 
 #endif // GEPARD_GLES2_DEFS_H

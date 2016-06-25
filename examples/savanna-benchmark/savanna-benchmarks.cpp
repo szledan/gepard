@@ -62,13 +62,13 @@ Savanna::React MonkeyMark::start()
         return Savanna::React(Savanna::MEM_LEAK);
     gepard = new gepard::Gepard(surface);
 
-    LOG("MonkeyBenchMark START.");
+    SN_LOG("MonkeyBenchMark START.");
     return Savanna::pass();
 }
 
 Savanna::React MonkeyMark::stop()
 {
-    LOG("MonkeyBenchMark STOP.");
+    SN_LOG("MonkeyBenchMark STOP.");
 
     if (gepard) {
         delete gepard;
@@ -130,13 +130,13 @@ Savanna::React SnakeMark::start()
         return Savanna::React(Savanna::MEM_LEAK);
     gepard = new gepard::Gepard(surface);
 
-    LOG("SnakeBenchMark START.");
+    SN_LOG("SnakeBenchMark START.");
     return Savanna::pass();
 }
 
 Savanna::React SnakeMark::stop()
 {
-    LOG("SnakeBenchMark STOP.");
+    SN_LOG("SnakeBenchMark STOP.");
 
     if (gepard) {
         delete gepard;

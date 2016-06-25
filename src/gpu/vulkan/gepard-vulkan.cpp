@@ -30,7 +30,6 @@
 #include <iostream>
 
 namespace gepard {
-
 namespace vulkan {
 
 GepardVulkan::GepardVulkan(Surface* surface)
@@ -49,7 +48,6 @@ void GepardVulkan::closePath()
 }
 
 } // namespace vulkan
-
 } // namespace gepard
 
 #endif // USE_VULKAN

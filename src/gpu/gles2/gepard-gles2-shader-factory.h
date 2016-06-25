@@ -1,5 +1,5 @@
-/* Copyright (C) 2015-2016, Gepard Graphics
- * Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2016, Gepard Graphics
+ * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,52 +23,41 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-types.h"
+#ifdef USE_GLES2
+
+#ifndef GEPARD_GLES2_SHADER_FACTORY_H
+#define GEPARD_GLES2_SHADER_FACTORY_H
+
+#include "gepard-gles2-defs.h"
+#include <string>
 
 namespace gepard {
+namespace gles2 {
 
-/* BoundingBox */
+/*!
+ * \brief The ShaderProgram class
+ */
+class ShaderProgram {
+public:
+    /*!
+     * \brief Static function to compile a shader program.
+     * \param result  pointer of the number of compiled program. If it's not nullptr then nothing happens.
+     * \param name  the name of the program (only for the logging at the moment).
+     * \param vertexShaderSource  vertex shader source code.
+     * \param fragmentShaderSource  fragment shader source code.
+     */
+    static void compileShaderProg(GLuint* result, const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
 
-void BoundingBox::stretchX(const Float x)
-{
-    if (x < minX) {
-        minX = x;
-    }
-    if (x > maxX) {
-        maxX = x;
-    }
-}
-void BoundingBox::stretchY(const Float y)
-{
-    if (y < minY) {
-        minY = y;
-    }
-    if (y > maxY) {
-        maxY = y;
-    }
-}
-void BoundingBox::stretch(const FloatPoint& p)
-{
-    stretchX(p.x);
-    stretchY(p.y);
-}
+protected:
+    static void logShaderCompileError(const GLuint shader);
+    static void logProgramLinkError(const GLuint program);
+    static GLuint compileShader(const GLenum type, const GLchar* shaderSource);
+    static GLuint linkPrograms(GLuint vertexShader, GLuint fragmentShader);
+};
 
-/* Vec4 */
-
-Float& Vec4::operator[](std::size_t idx)
-{
-    switch (idx) {
-    case 0: return x;
-    case 1: return y;
-    case 2: return z;
-    case 3: return w;
-    default:
-        GD_CRASH("Index out of bound!");
-    }
-}
-
-/* Color */
-
-const Color Color::WHITE(1.0f, 1.0f, 1.0f, 1.0f);
-
+} // namespace gles2
 } // namespace gepard
+
+#endif // GEPARD_GLES2_SHADER_FACTORY_H
+
+#endif // USE_GLES2
