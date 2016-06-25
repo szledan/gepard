@@ -23,23 +23,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ANTILOP_BENCHMARK_H
-#define ANTILOP_BENCHMARK_H
-
+#ifndef SAVANNA_H
+#define SAVANNA_H
 
 #include "gepard.h"
 #include "gepard-xsurface.h"
-#include <fstream>
 #include <iostream>
 #include <list>
 #include <map>
 #include <math.h>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <time.h>
 
-namespace antilop {
+namespace savanna {
 
 #ifdef LOG
 #undef LOG
@@ -57,100 +54,72 @@ T clamp(T x, const T min, const T max)
 
 typedef std::map<std::string, int> ConfigMap;
 
-/*!
- * \brief The AntilopMark class
- */
-class AntilopMark {
-public:
-    AntilopMark();
+class ZygoteMark;
 
-    virtual int init(ConfigMap& configMap, gepard::XSurface*) = 0;
-    virtual int start() = 0;
-    virtual int run() = 0;
-    virtual int stop() = 0;
+/*!
+ * \brief The Savanna class
+ */
+class Savanna {
+public:
+    typedef enum Reactions {
+        // Passes == 0.
+        PASS = 0,
+        // Controls < 0.
+        EXIT = -1,
+        // Fails > 0.
+        FAIL = 1,
+        MEM_LEAK = 1,
+    } Reactions;
+
+    struct React {
+        explicit React(Reactions ra = PASS) : _ra(ra) {}
+
+        Reactions ra() const { return _ra; }
+
+        bool isPass() const { return this->_ra == PASS; }
+        bool isControl() const { return this->_ra < PASS; }
+        bool isFail() const { return this->_ra > PASS; }
+
+    private:
+        Reactions _ra;
+    };
+
+    static React pass() { return React(); }
+
+    void init(int argc, char* argv[]);
+    void add(ZygoteMark*);
+    int run();
+
+    ConfigMap configs;
+
+private:
+    std::list<ZygoteMark*> benchMarks;
+    std::unique_ptr<gepard::XSurface> surface;
+};
+
+/*!
+ * \brief The ZygoteMark class
+ */
+class ZygoteMark {
+public:
+    explicit ZygoteMark(ConfigMap& configMap);
+
+    virtual Savanna::React init(gepard::XSurface*) = 0;
+    virtual Savanna::React start() = 0;
+    virtual Savanna::React run() = 0;
+    virtual Savanna::React stop() = 0;
 
     void step();
 
     ConfigMap configs;
-    int warmupCount;
+    int sampleCount;
+
     int steps;
     long long unsigned int sum;
     time_t currentTime;
     time_t oldTime ;
 };
 
-/*!
- * \brief The Antilop class
- */
-class Antilop {
-public:
-    typedef enum Fails {
-        // Passes <= 0.
-        PASS = 0,
-        EXIT = -1,
+} // savanna namespace
 
-        // Fails > 0.
-        MEM_LEAK = 1,
-    } Fails;
-
-    void init(int argc, char* argv[]);
-    void add(AntilopMark*);
-    int run();
-
-private:
-    std::list<AntilopMark*> benchMarks;
-    ConfigMap configs;
-    std::unique_ptr<gepard::XSurface> surface;
-};
-
-/*!
- * \brief The SnakeMark class
- */
-class SnakeMark : public AntilopMark {
-public:
-    SnakeMark()
-        : iterateCount(0)
-        , maxVelocity(0)
-        , paintRectSize(0)
-        , rectHeight(0)
-        , rectNumbers(0)
-        , rectWidth(0)
-        , windowHeight(0)
-        , windowWidth(0)
-        , maxSize2(0)
-        , maxFlet(0)
-        , ratio(0.0f)
-        , surface(nullptr)
-        , gepard(nullptr)
-    {
-    }
-
-    int init(ConfigMap& configMap, gepard::XSurface*);
-    int start();
-    int stop();
-    int run();
-
-    int iterateCount;
-    int maxVelocity;
-    int paintRectSize;
-    int rectHeight;
-    int rectNumbers;
-    int rectWidth;
-    int windowHeight;
-    int windowWidth;
-
-    int maxSize2;
-    int maxFlet;
-    float ratio;
-
-private:
-    void drawRects(int x, int y);
-    int newVelocity(int x);
-
-    gepard::XSurface* surface;
-    gepard::Gepard* gepard;
-};
-
-} // antilop namespace
-
-#endif // ANTILOP_BENCHMARK_H
+#endif // SAVANNA_H

@@ -23,16 +23,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "antilop-benchmark.h"
+#include "savanna.h"
+#include "savanna-benchmarks.h"
 #include <memory>
 
 int main(int argc, char* argv[])
 {
-    antilop::Antilop antilop;
-    antilop.init(argc, argv);
+    savanna::Savanna savanna;
+    savanna.init(argc, argv);
+    savanna::ConfigMap& configs = savanna.configs;
 
-    std::unique_ptr<antilop::AntilopMark> snake(new antilop::SnakeMark());
-    antilop.add(snake.get());
+    std::unique_ptr<savanna::MonkeyMark> monkey(new savanna::MonkeyMark(configs));
+    monkey->rectWidth = 20;
+    monkey->rectHeight = 20;
+    savanna.add(monkey.get());
 
-    return antilop.run();
+    std::unique_ptr<savanna::ZygoteMark> snake(new savanna::SnakeMark(configs));
+    savanna.add(snake.get());
+
+    return savanna.run();
 }
