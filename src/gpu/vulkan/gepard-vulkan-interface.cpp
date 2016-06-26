@@ -44,13 +44,13 @@ GepardVulkanInterface::~GepardVulkanInterface()
 }
 
 #define GD_VK_LOAD_FUNCTION(fun)\
-    fun = (PFN_##fun) vkGetInstanceProcAddr (nullptr, #fun); \
+    fun = (PFN_##fun) vkGetInstanceProcAddr (0, #fun); \
     ASSERT(fun && "Couldn't load " #fun "!"); \
 
 void GepardVulkanInterface::loadGlobalFunctions()
 {
     if (!_vulkanLibrary) {
-            GD_LOG1("Loading the Vulkan library was unsuccessfuly!\n");
+            GD_CRASH("Loading the Vulkan library was unsuccessfuly!\n");
             return;
     }
 
@@ -66,9 +66,12 @@ void GepardVulkanInterface::loadGlobalFunctions()
     fun = (PFN_##fun) vkGetInstanceProcAddr (instance, #fun); \
     ASSERT(fun && "Couldn't load " #fun "!"); \
 
-void GepardVulkanInterface::loadInstanceFunctions(VkInstance* instance)
+void GepardVulkanInterface::loadInstanceFunctions(VkInstance instance)
 {
-    GD_VK_LOAD_FUNCTION(*instance, vkDestroyInstance);
+    GD_VK_LOAD_FUNCTION(instance, vkDestroyInstance);
+    GD_VK_LOAD_FUNCTION(instance, vkEnumeratePhysicalDevices);
+    GD_VK_LOAD_FUNCTION(instance, vkGetPhysicalDeviceProperties);
+    GD_VK_LOAD_FUNCTION(instance, vkGetPhysicalDeviceQueueFamilyProperties);
 }
 
 #undef GD_VK_LOAD_FUNCTION

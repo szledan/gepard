@@ -41,8 +41,8 @@ public:
     ~GepardVulkanInterface();
 
     void loadGlobalFunctions();
-    void loadInstanceFunctions(VkInstance* instance);
-    void loadDeviceFunctions(VkDevice* device);
+    void loadInstanceFunctions(VkInstance instance);
+    void loadDeviceFunctions(VkDevice device);
 
 #define GD_VK_DECLARE_FUNCTION(fun) PFN_##fun fun
 
@@ -52,6 +52,9 @@ public:
 
     // Instance level vulkan functions
     GD_VK_DECLARE_FUNCTION(vkDestroyInstance);
+    GD_VK_DECLARE_FUNCTION(vkEnumeratePhysicalDevices);
+    GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceProperties);
+    GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties);
 
     // Device level vulkan functions
 

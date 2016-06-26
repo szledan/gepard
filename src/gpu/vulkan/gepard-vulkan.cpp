@@ -27,6 +27,8 @@
 
 #include "gepard-vulkan.h"
 
+#include <vector>
+
 namespace gepard {
 namespace vulkan {
 
@@ -37,10 +39,11 @@ GepardVulkan::GepardVulkan(Surface* surface)
 {
     GD_LOG1("GepardVulkan");
     _vk.loadGlobalFunctions();
-    GD_LOG1(" - Global functions are loaded");
+    GD_LOG2(" - Global functions are loaded");
     createDefaultInstance();
-    _vk.loadInstanceFunctions(&_vkInstance);
-    GD_LOG1(" - Instance functions are loaded");
+    _vk.loadInstanceFunctions(_vkInstance);
+    GD_LOG2(" - Instance functions are loaded");
+    chooseDefaultDevice();
 }
 
 GepardVulkan::~GepardVulkan()
@@ -78,6 +81,89 @@ void GepardVulkan::createDefaultInstance()
 
     _vk.vkCreateInstance(&instanceCreateInfo, nullptr, &_vkInstance);
 }
+
+void GepardVulkan::chooseDefaultPhysicalDevice(VkPhysicalDevice *physicalDevice)
+{
+    uint32_t deviceCount;
+    _vk.vkEnumeratePhysicalDevices(_vkInstance, &deviceCount, nullptr);
+    ASSERT(deviceCount);
+    GD_LOG2("Physical devices found: " << deviceCount);
+    std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
+    ASSERT(deviceCount && "Couldn't find any device!");
+
+    std::vector<VkPhysicalDevice> integratedDevices;
+    std::vector<VkPhysicalDevice> discreteDevices;
+    std::vector<VkPhysicalDevice> otherDevices;
+    _vk.vkEnumeratePhysicalDevices(_vkInstance, &deviceCount, physicalDevices.data());
+    for (int i = 0; i < deviceCount; i++) {
+           VkPhysicalDeviceProperties deviceProperties;
+           _vk.vkGetPhysicalDeviceProperties(physicalDevices[i], &deviceProperties);
+           GD_LOG3("device name " << deviceProperties.deviceName);
+           GD_LOG3("api version " << (deviceProperties.apiVersion >> 22) << "."
+               << ((deviceProperties.apiVersion >> 12) & 0x1ff) << "."  << (deviceProperties.apiVersion & 0x7ff));
+           if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
+               integratedDevices.push_back(physicalDevices[i]);
+               continue;
+           }
+           else if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+               discreteDevices.push_back(physicalDevices[i]);
+               continue;
+           }
+           otherDevices.push_back(physicalDevices[i]);
+    }
+
+    for (int i = 0; i < discreteDevices.size(); i++) {
+        uint32_t queueCount;
+        _vk.vkGetPhysicalDeviceQueueFamilyProperties(discreteDevices[i], &queueCount, nullptr);
+        GD_LOG3("queueCount: " << queueCount);
+        std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueCount);
+        _vk.vkGetPhysicalDeviceQueueFamilyProperties(discreteDevices[i], &queueCount, queueFamilyProperties.data());
+        for (int j = 0; j < queueCount; j++) {
+            if (queueFamilyProperties[j].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                *physicalDevice = discreteDevices[i];
+                return;
+            }
+        }
+    }
+
+    for (int i = 0; i < integratedDevices.size(); i++) {
+        uint32_t queueCount;
+        _vk.vkGetPhysicalDeviceQueueFamilyProperties(integratedDevices[i], &queueCount, nullptr);
+        GD_LOG3("queueCount: " << queueCount);
+        std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueCount);
+        _vk.vkGetPhysicalDeviceQueueFamilyProperties(integratedDevices[i], &queueCount, queueFamilyProperties.data());
+        for (int j = 0; j < queueCount; j++) {
+            if (queueFamilyProperties[j].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                *physicalDevice = integratedDevices[i];
+                return;
+            }
+        }
+    }
+
+    for (int i = 0; i < otherDevices.size(); i++) {
+        uint32_t queueCount;
+        _vk.vkGetPhysicalDeviceQueueFamilyProperties(otherDevices[i], &queueCount, nullptr);
+        GD_LOG3("queueCount: " << queueCount);
+        std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueCount);
+        _vk.vkGetPhysicalDeviceQueueFamilyProperties(otherDevices[i], &queueCount, queueFamilyProperties.data());
+        for (int j = 0; j < queueCount; j++) {
+            if (queueFamilyProperties[j].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                *physicalDevice = otherDevices[i];
+                return;
+            }
+        }
+    }
+
+    GD_CRASH("Couldn't find any feasible vulkan device!");
+}
+
+void GepardVulkan::chooseDefaultDevice()
+{
+    VkPhysicalDevice physicalDevice;
+    chooseDefaultPhysicalDevice(&physicalDevice);
+}
+
+
 
 } // namespace vulkan
 } // namespace gepard

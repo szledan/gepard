@@ -57,8 +57,11 @@ private:
     Surface* _surface;
     GepardVulkanInterface _vk;
     VkInstance _vkInstance;
+    VkDevice _vkDevice;
 
     void createDefaultInstance();
+    void chooseDefaultPhysicalDevice(VkPhysicalDevice* physicalDevice);
+    void chooseDefaultDevice();
 };
 
 } // namespace vulkan
