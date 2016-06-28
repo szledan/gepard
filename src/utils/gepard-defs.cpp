@@ -33,7 +33,7 @@ namespace gepard {
 
 void _log(unsigned int level, const std::string& msg) {
   const int max_level = LOG_LEVEL;
-  if (level <= max_level) {
+  if (level < max_level) {
     static std::string color[] = { LOG1_COLOR, LOG2_COLOR, LOG3_COLOR };
     std::cout << color[level] << msg << CLEAR_COLOR << std::endl;
   }

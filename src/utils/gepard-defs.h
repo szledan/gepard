@@ -73,7 +73,8 @@ namespace gepard {
 #define _LOG(LEVEL, MSG) do {\
   std::ostringstream os; \
   os << MSG; \
-  _log(LEVEL, os.str()); \
+  ASSERT(LEVEL > 0); \
+  _log((LEVEL) - 1, os.str()); \
 } while(false)
 
 void _log(unsigned int level, const std::string& msg);
