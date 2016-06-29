@@ -38,11 +38,11 @@ def create_options(arguments):
     opts = [
             '-DCMAKE_BUILD_TYPE=' + arguments.build_type.capitalize(),
             '-DBACKEND=' + arguments.backend.upper(),
-            '-DLOG_LEVEL=' + str(arguments.log_level)
+            '-DGD_LOG_LEVEL=' + str(arguments.log_level)
     ]
 
     if arguments.no_colored_logs:
-        opts.append('-DDISABLE_LOG_COLORS=ON')
+        opts.append('-DGD_DISABLE_LOG_COLORS=ON')
 
     return opts
 
@@ -58,7 +58,7 @@ def add_extra_build_args(parser):
     parser.add_argument('--clean', action='store_true', default=False, help='Perform clean build.')
     parser.add_argument('--examples', '-e', action='store_true', default=False, dest='build_examples', help='Build example applications.')
     parser.add_argument('--target', action='store', choices=['x86-linux', 'arm-linux'], help='Specify build target. Leave empty for native build.')
-    parser.add_argument('--log-level', action='store', type=int, choices=range(0,4), default=0, help='Set logging level.')
+    parser.add_argument('--log-level', action='store', type=int, choices=range(0,5), default=0, help='Set logging level.')
     parser.add_argument('--no-colored-logs', action='store_true', default=False, help='Disable colored log messages.')
 
 
