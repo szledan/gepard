@@ -25,67 +25,39 @@
 
 #ifdef USE_GLES2
 
-#ifndef GEPARD_GLES2_H
-#define GEPARD_GLES2_H
+#ifndef GEPARD_GLES2_SHADER_FACTORY_H
+#define GEPARD_GLES2_SHADER_FACTORY_H
 
-#include "gepard-defs.h"
-
-#include "gepard-image.h"
-#include "gepard-surface.h"
-#include "gepard-types.h"
-#include <EGL/egl.h>
-#include <map>
+#include "gepard-gles2-defs.h"
+#include <string>
 
 namespace gepard {
-
-class Image;
-class Surface;
-
 namespace gles2 {
 
-class GepardGLES2 {
+/*!
+ * \brief The ShaderProgram class
+ */
+class ShaderProgram {
 public:
-    explicit GepardGLES2(Surface* surface);
-    ~GepardGLES2();
+    /*!
+     * \brief Static function to compile a shader program.
+     * \param result  pointer of the number of compiled program. If it's not nullptr then nothing happens.
+     * \param name  the name of the program (only for the logging at the moment).
+     * \param vertexShaderSource  vertex shader source code.
+     * \param fragmentShaderSource  fragment shader source code.
+     */
+    static void compileShaderProg(GLuint* result, const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
 
-    /* 5. Building paths */
-    void closePath();
-    void moveTo(Float x, Float y);
-    void lineTo(Float x, Float y);
-    void quadraticCurveTo(Float cpx, Float cpy, Float x, Float y);
-    void bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y);
-    void arcTo(Float x1, Float y1, Float x2, Float y2, Float radius);
-    void rect(Float x, Float y, Float w, Float h);
-    void arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise = false);
-
-    /* 11. Drawing paths to the canvas */
-    void beginPath();
-    void fill();
-    void stroke();
-    void drawFocusIfNeeded(/*Element element*/);
-    void clip();
-    bool isPointInPath(Float x, Float y);
-
-    void fillRect(Float x, Float y, Float w, Float h);
-
-    /// \todo remove into a vector<GepardState> states.
-    GepardState state;
-private:
-    Surface* _surface;
-
-    EGLDisplay _eglDisplay;
-    EGLSurface _eglSurface;
-    EGLContext _eglContext;
-
-    std::map<std::string, uint> _programs;
+protected:
+    static void logShaderCompileError(const GLuint shader);
+    static void logProgramLinkError(const GLuint program);
+    static GLuint compileShader(const GLenum type, const GLchar* shaderSource);
+    static GLuint linkPrograms(GLuint vertexShader, GLuint fragmentShader);
 };
 
 } // namespace gles2
-
-typedef gles2::GepardGLES2 GepardEngineBackend;
-
 } // namespace gepard
 
-#endif // GEPARD_GLES2_H
+#endif // GEPARD_GLES2_SHADER_FACTORY_H
 
 #endif // USE_GLES2

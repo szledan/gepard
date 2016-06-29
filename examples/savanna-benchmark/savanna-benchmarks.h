@@ -1,5 +1,5 @@
 /* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
+ * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,43 +23,66 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_VULKAN
+#ifndef SAVANNA_BENCHMARKS_H
+#define SAVANNA_BENCHMARKS_H
 
-#ifndef GEPARD_VULKAN_H
-#define GEPARD_VULKAN_H
+#include "gepard.h"
+#include "gepard-xsurface.h"
+#include "savanna.h"
 
-#include "gepard-defs.h"
+namespace savanna {
 
-#include "gepard-image.h"
-#include "gepard-surface.h"
-#include "gepard-types.h"
-
-namespace gepard {
-
-class Image;
-class Surface;
-
-namespace vulkan {
-
-class GepardVulkan {
+/*!
+ * \brief The MonkeyMark class
+ */
+class MonkeyMark : public ZygoteMark {
 public:
-    explicit GepardVulkan(Surface* surface);
+    explicit MonkeyMark(ConfigMap& configMap);
 
-    void fillRect(Float x, Float y, Float w, Float h);
-    void closePath();
+    virtual Savanna::React init(gepard::XSurface*);
+    virtual Savanna::React start();
+    virtual Savanna::React stop();
+    virtual Savanna::React run();
 
-    /// \todo remove into a vector<GepardState> states.
-    GepardState state;
+    int iterateCount;
+    int rectHeight;
+    int rectNumbers;
+    int rectWidth;
+    int windowHeight;
+    int windowWidth;
+
+protected:
+    gepard::XSurface* surface;
+    gepard::Gepard* gepard;
+
 private:
-    Surface* _surface;
+    void drawRects();
 };
 
-} // namespace vulkan
+/*!
+ * \brief The SnakeMark class
+ */
+class SnakeMark : public MonkeyMark {
+public:
+    explicit SnakeMark(ConfigMap& configMap);
 
-typedef vulkan::GepardVulkan GepardEngineBackend;
+    Savanna::React init(gepard::XSurface*);
+    Savanna::React start();
+    Savanna::React stop();
+    Savanna::React run();
 
-} // namespace gepard
+    int maxVelocity;
+    int paintRectSize;
 
-#endif // GEPARD_VULKAN_H
+    int maxSize2;
+    int maxFlet;
+    float ratio;
 
-#endif // USE_VULKAN
+private:
+    void drawRects(int x, int y);
+    int newVelocity(int x);
+};
+
+} // savanna namespace
+
+#endif // SAVANNA_BENCHMARKS_H

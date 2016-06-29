@@ -1,4 +1,5 @@
 /* Copyright (C) 2016, Gepard Graphics
+ * Copyright (C) 2013, Zoltan Herczeg
  * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
@@ -28,9 +29,10 @@
 #include "gepard-gles2.h"
 
 #include "gepard-defs.h"
+#include "gepard-gles2-defs.h"
+#include "gepard-gles2-shader-factory.h"
 
 namespace gepard {
-
 namespace gles2 {
 
 GepardGLES2::GepardGLES2(Surface* surface)
@@ -67,37 +69,42 @@ GepardGLES2::GepardGLES2(Surface* surface)
 
         // Initialize EGL
         if (eglDisplay == EGL_NO_DISPLAY) {
-            //! \todo: LOG: "eglGetDisplay returned EGL_DEFAULT_DISPLAY");
-            exit(-1);
+            GD_CRASH("eglGetDisplay returned EGL_DEFAULT_DISPLAY");
         }
         if (eglInitialize(eglDisplay, NULL, NULL) != EGL_TRUE) {
-            //! \todo: LOG: "eglInitialize returned with EGL_FALSE");
-            exit(-1);
+            GD_CRASH("eglInitialize returned with EGL_FALSE");
         }
         if (eglChooseConfig(eglDisplay, configAttribs, &eglConfig, 1, &numOfConfigs) != EGL_TRUE) {
-            //! \todo: LOG: "eglChooseConfig returned with EGL_FALSE");
-            exit(-1);
+            GD_CRASH("eglChooseConfig returned with EGL_FALSE");
         }
         EGLNativeWindowType window = _surface->getWindow();
         eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, window, NULL);
         if (eglSurface == EGL_NO_SURFACE) {
-            //! \todo: LOG: "eglCreateWindowSurface returned EGL_NO_SURFACE");
-            exit(-1);
+            GD_CRASH("eglCreateWindowSurface returned EGL_NO_SURFACE");
         }
         _eglContext = eglCreateContext(eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttribs);
         if (_eglContext == EGL_NO_CONTEXT) {
-            //! \todo: LOG: "eglCreateContext returned EGL_NO_CONTEXT");
-            exit(-1);
+            GD_CRASH("eglCreateContext returned EGL_NO_CONTEXT");
         }
         if (eglMakeCurrent(eglDisplay, eglSurface, eglSurface, _eglContext) != EGL_TRUE) {
-            //! \todo: LOG: "eglMakeCurrent returned EGL_FALSE");
-            exit(-1);
+            GD_CRASH("eglMakeCurrent returned EGL_FALSE");
         }
 
         // Set EGL display & surface.
         _eglDisplay = eglDisplay;
         _eglSurface = eglSurface;
+
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
+}
+
+GepardGLES2::~GepardGLES2()
+{
+    eglMakeCurrent(_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    eglDestroyContext(_eglDisplay, _eglContext);
+    eglDestroySurface(_eglDisplay, _eglSurface);
+    eglTerminate(_eglDisplay);
 }
 
 /*!
@@ -273,7 +280,31 @@ bool GepardGLES2::isPointInPath(Float x, Float y)
     return false;
 }
 
-#include <iostream>
+//! \brief Fill rectangle vertex shader.
+static const GLchar* fillRectVertexShader = "\
+        attribute vec2 in_position;                     \
+                                                        \
+        uniform vec2 in_size;                           \
+                                                        \
+        void main(void)                                 \
+        {                                               \
+            vec2 coords = (2.0 * in_position.xy / in_size.xy) - 1.0; \
+            coords.y = -coords.y;                       \
+            gl_Position = vec4(coords, 1.0, 1.0);       \
+        }                                               \
+                                     ";
+
+//! \brief Fill rectangle fragment shader.
+static const GLchar* fillRectFragmentShader = "\
+        precision mediump float;                        \
+                                                        \
+        uniform vec4 in_color;                          \
+                                                        \
+        void main(void)                                 \
+        {                                               \
+            gl_FragColor = in_color;                    \
+        }                                               \
+                                       ";
 
 /*!
  * \brief GepardGLES2::fillRect
@@ -284,29 +315,48 @@ bool GepardGLES2::isPointInPath(Float x, Float y)
  *
  * \todo unimplemented function
  */
-void GepardGLES2::fillRect(float x, float y, float w, float h)
+void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
 {
-    //! \todo: implement fillRect with GLES2
+    // 1. Rect attributes.
+    const GLubyte rectIndexes[] = {0, 1, 2, 2, 1, 3};
+    const GLfloat attributes[] = {
+        GLfloat(x), GLfloat(y),
+        GLfloat(x + w), GLfloat(y),
+        GLfloat(x), GLfloat(y + h),
+        GLfloat(x + w), GLfloat(y + h),
+    };
 
+    // 2. Init GLES2 context.
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // 3. Compile shaders.
+    GLuint& fillRectProgram = _programs["FillRectProgram"];
+    ShaderProgram::compileShaderProg(&fillRectProgram, "FillRectProgram", fillRectVertexShader, fillRectFragmentShader);
+
+    // 4. Use shader programs.
+    glUseProgram(fillRectProgram);
+
+    // 5. Binding attributes.
+    GLint intValue = glGetAttribLocation(fillRectProgram, "in_position");
+    glEnableVertexAttribArray(intValue);
+    glVertexAttribPointer(intValue, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), attributes);
+
+    intValue = glGetUniformLocation(fillRectProgram, "in_size");
+    glUniform2f(intValue, _surface->width(), _surface->height());
+
+    const Color fillColor = state.fillColor;
+    intValue = glGetUniformLocation(fillRectProgram, "in_color");
+    glUniform4f(intValue, fillColor.r, fillColor.g, fillColor.b, fillColor.a);
+
+    // 6. Draw two triangles as rect.
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, rectIndexes);
+
+    // 7. Swap buffers.
     eglSwapBuffers(_eglDisplay, _eglSurface);
 }
 
 } // namespace gles2
-
-// GepardEngine functions
-
-void GepardEngine::engineBackendInit()
-{
-    _engineBackend = reinterpret_cast<gles2::GepardGLES2*>(new gles2::GepardGLES2(_surface));
-}
-
-void GepardEngine::engineBackendDestroy()
-{
-    if (_engineBackend) {
-        delete reinterpret_cast<gles2::GepardGLES2*>(_engineBackend);
-    }
-}
-
 } // namespace gepard
 
 #endif // USE_GLES2

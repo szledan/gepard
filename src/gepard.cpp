@@ -47,12 +47,12 @@ Gepard::~Gepard()
 
 void Gepard::save()
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
 }
 
 void Gepard::restore()
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
 }
 
 /*!
@@ -278,42 +278,44 @@ void Gepard::arc(float x, float y, float radius, float startAngle, float endAngl
 
 void Gepard::scale(float x, float y)
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
 }
 
 void Gepard::rotate(float angle)
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
 }
 
 void Gepard::translate(float x, float y)
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
 }
 
 void Gepard::transform(float a, float b, float c, float d, float e, float f)
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
 }
 
 void Gepard::setTransform(float a, float b, float c, float d, float e, float f)
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
 }
 
 void Gepard::clearRect(float x, float y, float w, float h)
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
 }
 
 void Gepard::fillRect(float x, float y, float w, float h)
 {
-    _engine->fillRect(x, y, w, h);
+    if (_engine) {
+        _engine->fillRect(x, y, w, h);
+    }
 }
 
 void Gepard::strokeRect(float x, float y, float w, float h)
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
 }
 
 /*!
@@ -505,50 +507,82 @@ bool Gepard::isPointInPath(float x, float y)
 
 void Gepard::drawImage(Image /*image*/, float dx, float dy)
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
 }
 
 void Gepard::drawImage(Image /*image*/, float dx, float dy, float dw, float dh)
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
 }
 
 void Gepard::drawImage(Image /*image*/, float sx, float sy, float sw, float sh,
     float dx, float dy, float dw, float dh)
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
 }
 
 Image Gepard::createImageData(float sw, float sh)
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
     NOT_IMPLEMENTED();
     return Image();
 }
 
 Image Gepard::createImageData(Image /*imagedata*/)
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
     NOT_IMPLEMENTED();
     return Image();
 }
 
 Image Gepard::getImageData(double sx, double sy, double sw, double sh)
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
     NOT_IMPLEMENTED();
     return Image();
 }
 
 void Gepard::putImageData(Image /*imagedata*/, double dx, double dy)
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
 }
 
 void Gepard::putImageData(Image /*imagedata*/, double dx, double dy, double dirtyX, double dirtyY,
     double dirtyWidth, double dirtyHeight)
 {
-/** @todo unimplemented function */
+/** \todo unimplemented function */
+}
+
+void Gepard::setFillColor(std::string color)
+{
+    size_t length = color.length();
+    int n;
+
+    // Convert string hex to unsgined int.
+    std::stringstream ss;
+    ss << std::hex << color.substr(1);
+    ss >> n;
+
+    if (length == 7) {
+        setFillColor((n & 0xff0000) >> 16, (n & 0x00ff00) >> 8, n & 0x0000ff);
+    } else if (length == 4) {
+        setFillColor((n & 0xf00) >> 8, (n & 0x0f0) >> 4, n & 0x00f);
+    } else {
+        setFillColor(1.0f, 1.0f, 1.0f);
+    }
+}
+
+void Gepard::setFillColor(const int red, const int green, const int blue, const int alpha)
+{
+    const float ratio = 1.0f / 255.0f;
+    setFillColor(ratio * float(red), ratio * float(green), ratio * float(blue), ratio * float(alpha));
+}
+
+void Gepard::setFillColor(const float red, const float green, const float blue, const float alpha)
+{
+    if (_engine) {
+        _engine->setFillColor(red, green, blue, alpha);
+    }
 }
 
 } // namespace gepard

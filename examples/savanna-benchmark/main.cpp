@@ -1,5 +1,5 @@
 /* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
+ * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,43 +23,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_VULKAN
+#include "savanna.h"
+#include "savanna-benchmarks.h"
+#include <memory>
 
-#ifndef GEPARD_VULKAN_H
-#define GEPARD_VULKAN_H
+int main(int argc, char* argv[])
+{
+    savanna::Savanna savanna;
+    savanna.init(argc, argv);
+    savanna::ConfigMap& configs = savanna.configs;
 
-#include "gepard-defs.h"
+    std::unique_ptr<savanna::MonkeyMark> monkey(new savanna::MonkeyMark(configs));
+    monkey->rectWidth = 20;
+    monkey->rectHeight = 20;
+    savanna.add(monkey.get());
 
-#include "gepard-image.h"
-#include "gepard-surface.h"
-#include "gepard-types.h"
+    std::unique_ptr<savanna::ZygoteMark> snake(new savanna::SnakeMark(configs));
+    savanna.add(snake.get());
 
-namespace gepard {
-
-class Image;
-class Surface;
-
-namespace vulkan {
-
-class GepardVulkan {
-public:
-    explicit GepardVulkan(Surface* surface);
-
-    void fillRect(Float x, Float y, Float w, Float h);
-    void closePath();
-
-    /// \todo remove into a vector<GepardState> states.
-    GepardState state;
-private:
-    Surface* _surface;
-};
-
-} // namespace vulkan
-
-typedef vulkan::GepardVulkan GepardEngineBackend;
-
-} // namespace gepard
-
-#endif // GEPARD_VULKAN_H
-
-#endif // USE_VULKAN
+    return savanna.run();
+}

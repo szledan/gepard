@@ -37,6 +37,15 @@ namespace gepard {
 #endif
 #define ASSERT(...) assert(__VA_ARGS__);
 
+#ifdef GD_CRASH
+#undef GD_CRASH
+#endif
+#define GD_CRASH(X) \
+    do { \
+        std::cerr << X << std::endl; \
+        abort(); \
+    } while (false)
+
 #ifdef NOT_IMPLEMENTED
 #undef NOT_IMPLEMENTED
 #endif

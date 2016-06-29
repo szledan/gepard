@@ -1,0 +1,20 @@
+# GepardGraphics, Savanna Benchmark System, 2016.
+#   A simple configuration file
+
+# Savanna
+windowWidth     = 500   # Defines the surface (window) width.
+windowHeight    = 500   # Defines the surface (window) height.
+
+# ZygoteMark
+warmupCount     = 3     # Drops the first Nth measured results.
+
+# MonkeyMark
+iterateCount    = 100
+rectNumbers     = 20
+rectWidth       = 5
+rectHeight      = 5
+seed            = 1985
+
+# SnakeMark
+maxVelocity     = 51
+paintRectSize   = 30

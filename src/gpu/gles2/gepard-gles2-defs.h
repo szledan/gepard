@@ -1,4 +1,5 @@
 /* Copyright (C) 2016, Gepard Graphics
+ * Copyright (C) 2013, Zoltan Herczeg
  * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
@@ -25,67 +26,24 @@
 
 #ifdef USE_GLES2
 
-#ifndef GEPARD_GLES2_H
-#define GEPARD_GLES2_H
+#ifndef GEPARD_GLES2_DEFS_H
+#define GEPARD_GLES2_DEFS_H
 
 #include "gepard-defs.h"
 
-#include "gepard-image.h"
-#include "gepard-surface.h"
-#include "gepard-types.h"
-#include <EGL/egl.h>
-#include <map>
+#define GL_GLEXT_PROTOTYPES 1
+
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 
 namespace gepard {
-
-class Image;
-class Surface;
-
 namespace gles2 {
 
-class GepardGLES2 {
-public:
-    explicit GepardGLES2(Surface* surface);
-    ~GepardGLES2();
-
-    /* 5. Building paths */
-    void closePath();
-    void moveTo(Float x, Float y);
-    void lineTo(Float x, Float y);
-    void quadraticCurveTo(Float cpx, Float cpy, Float x, Float y);
-    void bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y);
-    void arcTo(Float x1, Float y1, Float x2, Float y2, Float radius);
-    void rect(Float x, Float y, Float w, Float h);
-    void arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise = false);
-
-    /* 11. Drawing paths to the canvas */
-    void beginPath();
-    void fill();
-    void stroke();
-    void drawFocusIfNeeded(/*Element element*/);
-    void clip();
-    bool isPointInPath(Float x, Float y);
-
-    void fillRect(Float x, Float y, Float w, Float h);
-
-    /// \todo remove into a vector<GepardState> states.
-    GepardState state;
-private:
-    Surface* _surface;
-
-    EGLDisplay _eglDisplay;
-    EGLSurface _eglSurface;
-    EGLContext _eglContext;
-
-    std::map<std::string, uint> _programs;
-};
+#define GD_GLES2_TEXTURE_SIZE 512
 
 } // namespace gles2
-
-typedef gles2::GepardGLES2 GepardEngineBackend;
-
 } // namespace gepard
 
-#endif // GEPARD_GLES2_H
+#endif // GEPARD_GLES2_DEFS_H
 
 #endif // USE_GLES2

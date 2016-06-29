@@ -64,6 +64,11 @@ public:
         XMapWindow(_display, _window); // make the window visible on the screen
         XStoreName(_display, _window, "XSurface for gepard"); //! \todo: set title.
     }
+    ~XSurface()
+    {
+        XDestroyWindow(_display, _window);
+        XCloseDisplay(_display);
+    }
 
     virtual void* getDisplay() { return (void*)_display; }
     virtual unsigned long getWindow() { return _window; }

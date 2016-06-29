@@ -44,30 +44,18 @@ namespace gepard {
 class Image;
 class Surface;
 
-#ifdef USE_GLES2
-namespace gles2 {
-class GepardGLES2;
-} // namespace gles2
-typedef gles2::GepardGLES2 GepardEngineBackend;
-#elif defined USE_VULKAN
-namespace vulkan {
-class GepardVulkan;
-} // namespace gles2
-typedef vulkan::GepardVulkan GepardEngineBackend;
-#else
-typedef void GepardEngineBackend;
-#endif
-
 class GepardEngine {
 public:
     explicit GepardEngine(Surface* surface)
         : _surface(surface)
+        , _engineBackend(new GepardEngineBackend(surface))
     {
-        engineBackendInit();
     }
     ~GepardEngine()
     {
-        engineBackendDestroy();
+        if (_engineBackend) {
+            delete _engineBackend;
+        }
     }
 
     /* 5. Building paths */
@@ -88,13 +76,11 @@ public:
     void clip();
     bool isPointInPath(Float x, Float y);
 
-    void fillRect(float x, float y, float w, float h);
+    void fillRect(Float x, Float y, Float w, Float h);
+
+    void setFillColor(const Float red, const Float green, const Float blue, const Float alpha = 1.0f);
 
 private:
-    // These two functions should be implemented in backend dependent manner.
-    void engineBackendInit();
-    void engineBackendDestroy();
-
     Surface* _surface;
     GepardEngineBackend* _engineBackend;
 };
