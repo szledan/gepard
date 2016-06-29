@@ -35,12 +35,12 @@ GepardVulkan::GepardVulkan(Surface* surface)
     , _vk("libvulkan.so")
     , _vkInstance(0)
 {
-    LOG1("GepardVulkan");
+    GD_LOG1("GepardVulkan");
     _vk.loadGlobalFunctions();
-    LOG1(" - Global functions are loaded");
+    GD_LOG1(" - Global functions are loaded");
     createDefaultInstance();
     _vk.loadInstanceFunctions(&_vkInstance);
-    LOG1(" - Instance functions are loaded");
+    GD_LOG1(" - Instance functions are loaded");
 }
 
 GepardVulkan::~GepardVulkan()
@@ -52,12 +52,12 @@ GepardVulkan::~GepardVulkan()
 
 void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
 {
-    LOG1("fillRect");
+    GD_LOG_FUNC(" (" << x << ", " << y << ", " << w << ", " << h << " )" );
 }
 
 void GepardVulkan::closePath()
 {
-    LOG1("closePath");
+    GD_LOG_FUNC(" ()");
 }
 
 void GepardVulkan::createDefaultInstance()

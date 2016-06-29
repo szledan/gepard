@@ -50,7 +50,7 @@ GepardVulkanInterface::~GepardVulkanInterface()
 void GepardVulkanInterface::loadGlobalFunctions()
 {
     if (!_vulkanLibrary) {
-            LOG1("Loading the Vulkan library was unsuccessfuly!\n");
+            GD_LOG1("Loading the Vulkan library was unsuccessfuly!\n");
             return;
     }
 
