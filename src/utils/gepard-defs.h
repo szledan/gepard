@@ -71,9 +71,9 @@ namespace gepard {
 #ifdef GD_LOG_LEVEL
 
 #ifndef GD_DISABLE_LOG_COLORS
-#define GD_LOG1_COLOR "\033[94m"
-#define GD_LOG2_COLOR "\033[36m"
-#define GD_LOG3_COLOR "\033[93m"
+#define GD_LOG1_COLOR "\033[33m"
+#define GD_LOG2_COLOR "\033[94m"
+#define GD_LOG3_COLOR "\033[34m"
 #define GD_LOG_ERR_COLOR "\033[41m"
 #define GD_LOG_FUNC_COLOR "\033[2m"
 #define GD_CLEAR_COLOR "\033[39m \033[22m \033[49m"
