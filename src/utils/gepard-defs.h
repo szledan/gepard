@@ -28,6 +28,7 @@
 #define GEPARD_DEFS_H
 
 #include <assert.h>
+#include <iostream>
 #include <sstream>
 
 namespace gepard {

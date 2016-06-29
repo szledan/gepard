@@ -27,7 +27,6 @@
 #define GEPARD_PATH_H
 
 #include "gepard-types.h"
-#include <iostream>
 
 namespace gepard {
 

@@ -27,7 +27,6 @@
 
 #include "gepard-defs.h"
 #include "gepard-types.h"
-#include <iostream>
 #include <math.h>
 
 namespace gepard {
