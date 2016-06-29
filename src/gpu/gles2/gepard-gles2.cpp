@@ -38,6 +38,8 @@ namespace gles2 {
 GepardGLES2::GepardGLES2(Surface* surface)
     : _surface(surface)
 {
+    GD_LOG1("Create GepardGLES2 with surface: " << surface);
+
     const EGLint configAttribs[] = {
         EGL_RED_SIZE, 8,
         EGL_GREEN_SIZE, 8,
@@ -59,15 +61,17 @@ GepardGLES2::GepardGLES2(Surface* surface)
         EGL_NONE,
     };
 
+    GD_LOG2("Get and set EGL display and surface.");
     EGLDisplay eglDisplay = 0;
     EGLSurface eglSurface = 0;
     EGLint numOfConfigs = 0;
     EGLConfig eglConfig = 0;
     void* display = _surface->getDisplay();
+    GD_LOG3("Display is: " << display  << ".");
     if (display) {
+        GD_LOG2("Initialize EGL.");
         eglDisplay = eglGetDisplay((EGLNativeDisplayType) display);
 
-        // Initialize EGL
         if (eglDisplay == EGL_NO_DISPLAY) {
             GD_CRASH("eglGetDisplay returned EGL_DEFAULT_DISPLAY");
         }
@@ -93,8 +97,14 @@ GepardGLES2::GepardGLES2(Surface* surface)
         // Set EGL display & surface.
         _eglDisplay = eglDisplay;
         _eglSurface = eglSurface;
+        GD_LOG3("EGL display and surface are: " << _eglDisplay  << " and " << _eglSurface << ".");
 
-        glClearColor(0, 0, 0, 0);
+        const GLfloat red = 0.0f;
+        const GLfloat green = 0.0f;
+        const GLfloat blue = 0.0f;
+        const GLfloat alpha = 0.0f;
+        GD_LOG2("Set clear color (" << float(red) << ", " << float(green) << ", " << float(blue) << ", " << float(alpha) << ")");
+        glClearColor(red, green, blue, alpha);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 }
@@ -105,6 +115,7 @@ GepardGLES2::~GepardGLES2()
     eglDestroyContext(_eglDisplay, _eglContext);
     eglDestroySurface(_eglDisplay, _eglSurface);
     eglTerminate(_eglDisplay);
+    GD_LOG1("Destroyed GepardGLES2 (display and surface were: " << _eglDisplay  << " and " << _eglSurface << ".");
 }
 
 /*!
@@ -317,7 +328,9 @@ static const GLchar* fillRectFragmentShader = "\
  */
 void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
 {
-    // 1. Rect attributes.
+    GD_LOG1("Fill rect with GLES2 (" << x << ", " << y << ", " << w << ", " << h << ")");
+
+    // 0. Rect attributes.
     const GLubyte rectIndexes[] = {0, 1, 2, 2, 1, 3};
     const GLfloat attributes[] = {
         GLfloat(x), GLfloat(y),
@@ -326,18 +339,18 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
         GLfloat(x + w), GLfloat(y + h),
     };
 
-    // 2. Init GLES2 context.
+    GD_LOG2("1. Set and enable blending.");
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // 3. Compile shaders.
+    GD_LOG2("2. Compile shaders.");
     GLuint& fillRectProgram = _programs["FillRectProgram"];
     ShaderProgram::compileShaderProg(&fillRectProgram, "FillRectProgram", fillRectVertexShader, fillRectFragmentShader);
 
-    // 4. Use shader programs.
+    GD_LOG2("3. Use shader programs.");
     glUseProgram(fillRectProgram);
 
-    // 5. Binding attributes.
+    GD_LOG2("4. Binding attributes.");
     GLint intValue = glGetAttribLocation(fillRectProgram, "in_position");
     glEnableVertexAttribArray(intValue);
     glVertexAttribPointer(intValue, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), attributes);
@@ -349,10 +362,10 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
     intValue = glGetUniformLocation(fillRectProgram, "in_color");
     glUniform4f(intValue, fillColor.r, fillColor.g, fillColor.b, fillColor.a);
 
-    // 6. Draw two triangles as rect.
+    GD_LOG2("5. Draw two triangles as rect.");
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, rectIndexes);
 
-    // 7. Swap buffers.
+    //! Swap buffers. \todo: Temporary call here.
     eglSwapBuffers(_eglDisplay, _eglSurface);
 }
 

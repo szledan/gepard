@@ -562,6 +562,7 @@ void Gepard::setFillColor(std::string color)
     std::stringstream ss;
     ss << std::hex << color.substr(1);
     ss >> n;
+    GD_LOG3("Convert '" << color << "' string to hex number: " << std::hex << n);
 
     if (length == 7) {
         setFillColor((n & 0xff0000) >> 16, (n & 0x00ff00) >> 8, n & 0x0000ff);

@@ -46,8 +46,7 @@ void ShaderProgram::logShaderCompileError(const GLuint shader)
     GLsizei length = 0;
     glGetShaderInfoLog(shader, maxLength, &length, &errorLog[0]);
 
-    //! \todo: replace LOG2 to GD_LOG_ERR.
-    GD_LOG2("Shader compilation failed with: " << std::string(errorLog.begin(), errorLog.end()));
+    GD_LOG_ERR("Shader compilation failed with: " << std::string(errorLog.begin(), errorLog.end()));
 }
 
 void ShaderProgram::logProgramLinkError(const GLuint program)
@@ -59,12 +58,13 @@ void ShaderProgram::logProgramLinkError(const GLuint program)
     GLsizei length = 0;
     glGetProgramInfoLog(program, maxLength, &length, &errorLog[0]);
 
-    //! \todo: replace LOG2 to GD_LOG_ERR.
-    GD_LOG2("Shader program link failed with: " << std::string(errorLog.begin(), errorLog.end()));
+    GD_LOG_ERR("Shader program link failed with: " << std::string(errorLog.begin(), errorLog.end()));
 }
 
 GLuint ShaderProgram::compileShader(GLenum type, const GLchar* shaderSource)
 {
+    GD_LOG1("Compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader program.");
+
     const GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &shaderSource, NULL);
     glCompileShader(shader);
@@ -82,6 +82,7 @@ GLuint ShaderProgram::compileShader(GLenum type, const GLchar* shaderSource)
 
 GLuint ShaderProgram::linkPrograms(GLuint vertexShader, GLuint fragmentShader)
 {
+    GD_LOG1("Link shader programs; vertex shader: " << vertexShader << ", fragment shader: " << fragmentShader);
     ASSERT(vertexShader && "Vertex shader program doesn't exist!");
     ASSERT(fragmentShader && "Fragment shader program doesn't exist!");
 
@@ -105,18 +106,17 @@ void ShaderProgram::compileShaderProg(GLuint* result, const std::string& name, c
     if (*result)
         return;
 
+    GD_LOG1("Compile '" << name << "' shader program.");
+
     GLuint vertexShader = 0;
-    GD_LOG1("Compile " << name << " vertex shader program.");
     vertexShader = compileShader(GL_VERTEX_SHADER, (const GLchar*)vertexShaderSource.c_str());
 
     GLuint fragmentShader = 0;
-    GD_LOG1("Compile " << name << " fragment shader program.");
     fragmentShader = compileShader(GL_FRAGMENT_SHADER, (const GLchar*)fragmentShaderSource.c_str());
 
     if (vertexShader && fragmentShader) {
-        GD_LOG1("Link " << name << " shader programs.");
         *result = linkPrograms(vertexShader, fragmentShader);
-        GD_LOG1("The " << name << " linked program is: " << *result);
+        GD_LOG2("The " << name << " linked program is: " << *result << ".");
     }
 
     // According to the specification, the shaders are kept

@@ -61,11 +61,11 @@ namespace gepard {
 #ifdef GD_LOG3
 #undef GD_LOG3
 #endif
+#ifdef GD_LOG4
+#undef GD_LOG4
+#endif
 #ifdef GD_LOG_ERR
 #undef GD_LOG_ERR
-#endif
-#ifdef GD_LOG_FUNC
-#undef GD_LOG_FUNC
 #endif
 
 #ifdef GD_LOG_LEVEL
@@ -74,62 +74,43 @@ namespace gepard {
 #define GD_LOG1_COLOR "\033[33m"
 #define GD_LOG2_COLOR "\033[94m"
 #define GD_LOG3_COLOR "\033[34m"
+#define GD_LOG4_COLOR "\033[2m"
 #define GD_LOG_ERR_COLOR "\033[41m"
-#define GD_LOG_FUNC_COLOR "\033[2m"
 #define GD_CLEAR_COLOR "\033[39m \033[22m \033[49m"
 #else /* !GD_DISABLE_LOG_COLORS */
 #define GD_LOG1_COLOR ""
 #define GD_LOG2_COLOR ""
 #define GD_LOG3_COLOR ""
+#define GD_LOG4_COLOR ""
 #define GD_LOG_ERR_COLOR ""
-#define GD_LOG_FUNC_COLOR ""
 #define GD_CLEAR_COLOR ""
 #endif
 
 #define GD_NORMAL_LOG 0
 #define GD_ERROR_LOG 1
-#define GD_FUNCTION_LOG 2
 
 #define GD_LOG1(MSG) _GD_LOG(1, MSG, GD_LOG1_COLOR, GD_NORMAL_LOG)
 #define GD_LOG2(MSG) _GD_LOG(2, MSG, GD_LOG2_COLOR, GD_NORMAL_LOG)
 #define GD_LOG3(MSG) _GD_LOG(3, MSG, GD_LOG3_COLOR, GD_NORMAL_LOG)
+#define GD_LOG4(MSG) _GD_LOG(4, MSG, GD_LOG4_COLOR, GD_NORMAL_LOG)
 #define GD_LOG_ERR(MSG) _GD_LOG(1, MSG, GD_LOG_ERR_COLOR, GD_ERROR_LOG)
-#define GD_LOG_FUNC(MSG) _GD_LOG(4, MSG, GD_LOG_FUNC_COLOR, GD_FUNCTION_LOG)
 
 #define _GD_LOG(LEVEL, MSG, LOG_COLOR, TYPE) do {\
-  std::ostringstream os; \
-  if (TYPE == GD_FUNCTION_LOG) { \
-    os << "[FUNC] " << std::string(__func__); \
-  } else if (TYPE == GD_ERROR_LOG) { \
-    os << "[ERR] "; \
-  } else if (TYPE == GD_NORMAL_LOG) { \
-    os << "[" << LEVEL << "] "; \
-  } else { \
-    ASSERT(false && "Undefined log type."); \
-  } \
-  os << MSG; \
+  std::ostringstream oss; \
+  oss << MSG; \
   ASSERT(LEVEL > 0); \
-  _log(LEVEL - 1, os.str(), LOG_COLOR, TYPE); \
+  _log(LEVEL - 1, oss.str(), LOG_COLOR, TYPE, std::string(__FILE__), (__LINE__), std::string(__func__)); \
 } while(false)
 
-/*!
- * \brief Logging helper function.
- * \param level  defines the depth of logging
- * \param msg  log message
- * \param color  color define with escape sequence
- * \param type  defines 'normal', 'error' or 'function name' logging
- *
- * \internal
- */
-void _log(unsigned int level, const std::string& msg, const std::string& color, const int type);
+void _log(unsigned int, const std::string&, const std::string&, const int, const std::string&, const int, const std::string&);
 
 #else /* !GD_LOG_LEVEL */
 
 #define GD_LOG1(MSG)
 #define GD_LOG2(MSG)
 #define GD_LOG3(MSG)
+#define GD_LOG4(MSG)
 #define GD_LOG_ERR(MSG)
-#define GD_LOG_FUNC(MSG)
 
 #endif /* GD_LOG_LEVEL */
 
