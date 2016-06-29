@@ -1,5 +1,5 @@
 /* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
+ * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,63 +23,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_VULKAN
+#include "savanna.h"
+#include "savanna-benchmarks.h"
+#include <memory>
 
-#include "gepard-vulkan.h"
-
-namespace gepard {
-namespace vulkan {
-
-GepardVulkan::GepardVulkan(Surface* surface)
-    : _surface(surface)
-    , _vk("libvulkan.so")
-    , _vkInstance(0)
+int main(int argc, char* argv[])
 {
-    LOG1("GepardVulkan");
-    _vk.loadGlobalFunctions();
-    LOG1(" - Global functions are loaded");
-    createDefaultInstance();
-    _vk.loadInstanceFunctions(&_vkInstance);
-    LOG1(" - Instance functions are loaded");
+    savanna::Savanna savanna;
+    savanna.init(argc, argv);
+    savanna::ConfigMap& configs = savanna.configs;
+
+    std::unique_ptr<savanna::MonkeyMark> monkey(new savanna::MonkeyMark(configs));
+    monkey->rectWidth = 20;
+    monkey->rectHeight = 20;
+    savanna.add(monkey.get());
+
+    std::unique_ptr<savanna::ZygoteMark> snake(new savanna::SnakeMark(configs));
+    savanna.add(snake.get());
+
+    return savanna.run();
 }
-
-GepardVulkan::~GepardVulkan()
-{
-    if (_vkInstance) {
-        _vk.vkDestroyInstance(_vkInstance, nullptr);
-    }
-}
-
-void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
-{
-    LOG1("fillRect");
-}
-
-void GepardVulkan::closePath()
-{
-    LOG1("closePath");
-}
-
-void GepardVulkan::createDefaultInstance()
-{
-    ASSERT(!_vkInstance);
-
-    // todo: find better default arguments
-    const VkInstanceCreateInfo instanceCreateInfo = {
-        VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-        nullptr,
-        0u,
-        nullptr,
-        0u,
-        nullptr,
-        0u,
-        nullptr,
-    };
-
-    _vk.vkCreateInstance(&instanceCreateInfo, nullptr, &_vkInstance);
-}
-
-} // namespace vulkan
-} // namespace gepard
-
-#endif // USE_VULKAN

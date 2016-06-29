@@ -51,6 +51,8 @@ public:
     void fillRect(Float x, Float y, Float w, Float h);
     void closePath();
 
+    /// \todo remove into a vector<GepardState> states.
+    GepardState state;
 private:
     Surface* _surface;
     GepardVulkanInterface _vk;

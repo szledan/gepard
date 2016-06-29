@@ -29,16 +29,16 @@
 
 namespace gepard {
 
-#ifdef LOG_LEVEL
+#ifdef GD_LOG_LEVEL
 
-void _log(unsigned int level, const std::string& msg) {
-  const int max_level = LOG_LEVEL;
-  if (level <= max_level) {
-    static std::string color[] = { LOG1_COLOR, LOG2_COLOR, LOG3_COLOR };
-    std::cout << color[level] << msg << CLEAR_COLOR << std::endl;
-  }
+void _log(unsigned int level, const std::string& msg, const std::string& color, const int type)
+{
+    std::ostream& os = type == (GD_ERROR_LOG) ? std::cerr : std::cout;
+    if (level < (GD_LOG_LEVEL)) {
+        os << color << msg << GD_CLEAR_COLOR << std::endl;
+    }
 }
 
-#endif /* LOG_LEVEL */
+#endif /* GD_LOG_LEVEL */
 
 } // namespace gepard

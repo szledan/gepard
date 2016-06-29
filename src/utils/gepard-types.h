@@ -155,7 +155,7 @@ private:
  */
 struct FloatPoint {
     FloatPoint() : x(0.0), y(0.0) {}
-    FloatPoint(Float x, Float y) : x(x), y(y) {}
+    FloatPoint(Float x_, Float y_) : x(x_), y(y_) {}
 
     Float lengthSquared() const { return x * x + y * y; }
     Float dot(const FloatPoint& p) const { return x * p.x + y * p.y; }
@@ -236,7 +236,7 @@ struct BoundingBox {
 
     void stretchX(const Float x);
     void stretchY(const Float y);
-    void stretch(const FloatPoint p);
+    void stretch(const FloatPoint& p);
 
     Float minX, minY, maxX, maxY;
 };
@@ -246,30 +246,87 @@ inline std::ostream& operator<<(std::ostream& os, const BoundingBox& bb)
     return os << bb.minX << "," << bb.minY << "," << bb.maxX << "," << bb.maxY;
 }
 
+/* Vec4 */
+
+/*!
+ * \brief The Vec4 struct
+ *
+ * \internal
+ */
+struct Vec4 {
+    Vec4() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
+    Vec4(Float x_, Float y_, Float z_, Float w_) : x(x_), y(y_), z(z_), w(w_) {}
+    Vec4(const Vec4& vec4) : x(vec4.x), y(vec4.y), z(vec4.z), w(vec4.w) {}
+
+    Float& operator[](std::size_t idx);
+
+    /*!
+     * \brief The x/r/s component union
+     */
+    union {
+        Float x; /*!< the x coordinate */
+        Float r; /*!< red channel */
+        Float s; /*!< the s parameter */
+    };
+    /*!
+     * \brief The y/g/t component union
+     */
+    union {
+        Float y; /*!< the y coordinate */
+        Float g; /*!< green channel */
+        Float t; /*!< the t parameter */
+    };
+    /*!
+     * \brief The z/b/p component union
+     */
+    union {
+        Float z; /*!< the z coordinate */
+        Float b; /*!< blue channel */
+        Float p; /*!< the p parameter */
+    };
+    /*!
+     * \brief The w/a/q component union
+     */
+    union {
+        Float w; /*!< the w coordinate */
+        Float a; /*!< alpha channel */
+        Float q; /*!< the q parameter */
+    };
+};
+
 /* Color */
 
 /*!
  * \brief The Color struct
  *
  * Describes a simple RGBA color chanel struct
- * where each chanel is an unsigned byte (0-255).
+ * where each chanel is a gepard::Float [0.0, 1.0].
  *
  * \internal
  */
-struct Color {
-    Color() : r(0), g(0), b(0), a(0) {}
-    Color(const int red, const int green, const int blue, const int alpha)
-        : r(clamp(red, 0, 255))
-        , g(clamp(green, 0, 255))
-        , b(clamp(blue, 0, 255))
-        , a(clamp(alpha, 0, 1))
+struct Color : public Vec4 {
+    Color() : Vec4() {}
+    Color(const Float red, const Float green, const Float blue, const Float alpha)
+        : Vec4(clamp(red, Float(0.0f), Float(1.0f)), clamp(green, Float(0.0f), Float(1.0f)), clamp(blue, Float(0.0f), Float(1.0f)), clamp(alpha, Float(0.0f), Float(1.0f)))
     {
     }
+    Color(const Color& color) : Color(color.r, color.g, color.b, color.a) {}
 
-    uint8_t r; /*!< red chanel */
-    uint8_t g; /*!< green chanel */
-    uint8_t b; /*!< blue chanel */
-    uint8_t a; /*!< alpha chanel */
+    static const Color WHITE;
+};
+
+/* GepardState */
+
+/*!
+ * \brief The GepardState struct
+ *
+ * Describes the Drawing state.
+ * -- <a href="https://www.w3.org/TR/2dcontext/#the-canvas-state">[W3C-2DContext]</a>
+ *
+ * \internal
+ */
+struct GepardState {
+    Color fillColor = Color(Color::WHITE);
 };
 
 } // namespace gepard

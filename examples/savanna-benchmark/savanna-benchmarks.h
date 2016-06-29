@@ -1,5 +1,5 @@
 /* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
+ * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,63 +23,66 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_VULKAN
+#ifndef SAVANNA_BENCHMARKS_H
+#define SAVANNA_BENCHMARKS_H
 
-#include "gepard-vulkan.h"
+#include "gepard.h"
+#include "gepard-xsurface.h"
+#include "savanna.h"
 
-namespace gepard {
-namespace vulkan {
+namespace savanna {
 
-GepardVulkan::GepardVulkan(Surface* surface)
-    : _surface(surface)
-    , _vk("libvulkan.so")
-    , _vkInstance(0)
-{
-    LOG1("GepardVulkan");
-    _vk.loadGlobalFunctions();
-    LOG1(" - Global functions are loaded");
-    createDefaultInstance();
-    _vk.loadInstanceFunctions(&_vkInstance);
-    LOG1(" - Instance functions are loaded");
-}
+/*!
+ * \brief The MonkeyMark class
+ */
+class MonkeyMark : public ZygoteMark {
+public:
+    explicit MonkeyMark(ConfigMap& configMap);
 
-GepardVulkan::~GepardVulkan()
-{
-    if (_vkInstance) {
-        _vk.vkDestroyInstance(_vkInstance, nullptr);
-    }
-}
+    virtual Savanna::React init(gepard::XSurface*);
+    virtual Savanna::React start();
+    virtual Savanna::React stop();
+    virtual Savanna::React run();
 
-void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
-{
-    LOG1("fillRect");
-}
+    int iterateCount;
+    int rectHeight;
+    int rectNumbers;
+    int rectWidth;
+    int windowHeight;
+    int windowWidth;
 
-void GepardVulkan::closePath()
-{
-    LOG1("closePath");
-}
+protected:
+    gepard::XSurface* surface;
+    gepard::Gepard* gepard;
 
-void GepardVulkan::createDefaultInstance()
-{
-    ASSERT(!_vkInstance);
+private:
+    void drawRects();
+};
 
-    // todo: find better default arguments
-    const VkInstanceCreateInfo instanceCreateInfo = {
-        VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-        nullptr,
-        0u,
-        nullptr,
-        0u,
-        nullptr,
-        0u,
-        nullptr,
-    };
+/*!
+ * \brief The SnakeMark class
+ */
+class SnakeMark : public MonkeyMark {
+public:
+    explicit SnakeMark(ConfigMap& configMap);
 
-    _vk.vkCreateInstance(&instanceCreateInfo, nullptr, &_vkInstance);
-}
+    Savanna::React init(gepard::XSurface*);
+    Savanna::React start();
+    Savanna::React stop();
+    Savanna::React run();
 
-} // namespace vulkan
-} // namespace gepard
+    int maxVelocity;
+    int paintRectSize;
 
-#endif // USE_VULKAN
+    int maxSize2;
+    int maxFlet;
+    float ratio;
+
+private:
+    void drawRects(int x, int y);
+    int newVelocity(int x);
+};
+
+} // savanna namespace
+
+#endif // SAVANNA_BENCHMARKS_H

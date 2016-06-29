@@ -47,10 +47,28 @@ void BoundingBox::stretchY(const Float y)
         maxY = y;
     }
 }
-void BoundingBox::stretch(const FloatPoint p)
+void BoundingBox::stretch(const FloatPoint& p)
 {
     stretchX(p.x);
     stretchY(p.y);
 }
+
+/* Vec4 */
+
+Float& Vec4::operator[](std::size_t idx)
+{
+    switch (idx) {
+    case 0: return x;
+    case 1: return y;
+    case 2: return z;
+    case 3: return w;
+    default:
+        GD_CRASH("Index out of bound!");
+    }
+}
+
+/* Color */
+
+const Color Color::WHITE(1.0f, 1.0f, 1.0f, 1.0f);
 
 } // namespace gepard

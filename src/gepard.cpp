@@ -308,7 +308,9 @@ void Gepard::clearRect(float x, float y, float w, float h)
 
 void Gepard::fillRect(float x, float y, float w, float h)
 {
-    _engine->fillRect(x, y, w, h);
+    if (_engine) {
+        _engine->fillRect(x, y, w, h);
+    }
 }
 
 void Gepard::strokeRect(float x, float y, float w, float h)
@@ -549,6 +551,38 @@ void Gepard::putImageData(Image /*imagedata*/, double dx, double dy, double dirt
     double dirtyWidth, double dirtyHeight)
 {
 /** \todo unimplemented function */
+}
+
+void Gepard::setFillColor(std::string color)
+{
+    size_t length = color.length();
+    int n;
+
+    // Convert string hex to unsgined int.
+    std::stringstream ss;
+    ss << std::hex << color.substr(1);
+    ss >> n;
+
+    if (length == 7) {
+        setFillColor((n & 0xff0000) >> 16, (n & 0x00ff00) >> 8, n & 0x0000ff);
+    } else if (length == 4) {
+        setFillColor((n & 0xf00) >> 8, (n & 0x0f0) >> 4, n & 0x00f);
+    } else {
+        setFillColor(1.0f, 1.0f, 1.0f);
+    }
+}
+
+void Gepard::setFillColor(const int red, const int green, const int blue, const int alpha)
+{
+    const float ratio = 1.0f / 255.0f;
+    setFillColor(ratio * float(red), ratio * float(green), ratio * float(blue), ratio * float(alpha));
+}
+
+void Gepard::setFillColor(const float red, const float green, const float blue, const float alpha)
+{
+    if (_engine) {
+        _engine->setFillColor(red, green, blue, alpha);
+    }
 }
 
 } // namespace gepard

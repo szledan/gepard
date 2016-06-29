@@ -78,6 +78,8 @@ public:
 
     void fillRect(Float x, Float y, Float w, Float h);
 
+    void setFillColor(const Float red, const Float green, const Float blue, const Float alpha = 1.0f);
+
 private:
     Surface* _surface;
     GepardEngineBackend* _engineBackend;
