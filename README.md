@@ -48,6 +48,9 @@ After you _fork_ and _clone_ the Gepard repository, you will need to install mor
 ./tools/scripts/install-deps.sh --developer
 ```
 
+If you are looking for easy tasks, please check the [low hanging fruits](https://github.com/GepardGraphics/gepard/issues/48) (LHF).
+Otherwise, feel free to browse other [issues](https://github.com/GepardGraphics/gepard/issues) as well.
+
 #### Our contributing process is:
 
 1. Create a branch with a name like: `fix-min-compute`, `15-canvas2d-path`, etc.
