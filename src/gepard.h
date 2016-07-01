@@ -269,6 +269,11 @@ public:
     /// \{
 
     /*!
+     * \brief Flush the command queue and start rendering.
+     */
+    void render();
+
+    /*!
      * \brief Set fill color with red, green, blue and alpha components
      * \param red  the red channel in range [0, 255]
      * \param green  the green channel in range [0, 255]

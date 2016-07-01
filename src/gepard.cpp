@@ -544,13 +544,21 @@ Image Gepard::getImageData(double sx, double sy, double sw, double sh)
 
 void Gepard::putImageData(Image /*imagedata*/, double dx, double dy)
 {
-/** \todo unimplemented function */
+    /*! \todo unimplemented function */
+    NOT_IMPLEMENTED();
 }
 
 void Gepard::putImageData(Image /*imagedata*/, double dx, double dy, double dirtyX, double dirtyY,
     double dirtyWidth, double dirtyHeight)
 {
-/** \todo unimplemented function */
+    /*! \todo unimplemented function */
+    NOT_IMPLEMENTED();
+}
+
+void Gepard::render()
+{
+    /*! \todo unimplemented function */
+    NOT_IMPLEMENTED();
 }
 
 void Gepard::setFillColor(std::string color)
