@@ -385,6 +385,56 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
     eglSwapBuffers(_eglDisplay, _eglSurface);
 }
 
+// GepardGLES2::CommandQueue
+
+GepardGLES2::CommandQueue::CommandQueue()
+    : nextAttribute(attributes)
+    , numberOfAttributes(0)
+{
+}
+
+void GepardGLES2::CommandQueue::addAttribute(GLfloat x0, GLfloat y0, GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, GLfloat x3, GLfloat y3)
+{
+    GLfloat* attribute = nextAttribute;
+    attribute[0] = x0;
+    attribute[1] = y0;
+    attribute += numberOfAttributes;
+    attribute[0] = x1;
+    attribute[1] = y1;
+    attribute += numberOfAttributes;
+    attribute[0] = x2;
+    attribute[1] = y2;
+    attribute += numberOfAttributes;
+    attribute[0] = x3;
+    attribute[1] = y3;
+    nextAttribute += 2;
+}
+
+void GepardGLES2::CommandQueue::addAttribute(GLfloat x0, GLfloat y0, GLfloat z0, GLfloat w0, GLfloat x1, GLfloat y1, GLfloat z1, GLfloat w1, GLfloat x2, GLfloat y2, GLfloat z2, GLfloat w2, GLfloat x3, GLfloat y3, GLfloat z3, GLfloat w3)
+{
+    GLfloat* attribute = nextAttribute;
+    attribute[0] = x0;
+    attribute[1] = y0;
+    attribute[2] = z0;
+    attribute[3] = w0;
+    attribute += numberOfAttributes;
+    attribute[0] = x1;
+    attribute[1] = y1;
+    attribute[2] = z1;
+    attribute[3] = w1;
+    attribute += numberOfAttributes;
+    attribute[0] = x2;
+    attribute[1] = y2;
+    attribute[2] = z2;
+    attribute[3] = w2;
+    attribute += numberOfAttributes;
+    attribute[0] = x3;
+    attribute[1] = y3;
+    attribute[2] = z3;
+    attribute[3] = w3;
+    nextAttribute += 4;
+}
+
 } // namespace gles2
 } // namespace gepard
 

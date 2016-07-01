@@ -30,10 +30,10 @@
 
 #include "gepard-defs.h"
 
+#include "gepard-gles2-defs.h"
 #include "gepard-image.h"
 #include "gepard-surface.h"
 #include "gepard-types.h"
-#include <EGL/egl.h>
 #include <map>
 
 namespace gepard {
@@ -71,6 +71,22 @@ public:
     /// \todo remove into a vector<GepardState> states.
     GepardState state;
 private:
+    struct CommandQueue {
+        static const int kMaximumNumberOfAttributes = 65536;
+
+        CommandQueue();
+
+        inline void addAttribute(GLfloat x0, GLfloat y0, GLfloat x1, GLfloat y1,
+                                 GLfloat x2, GLfloat y2, GLfloat x3, GLfloat y3);
+        inline void addAttribute(GLfloat x0, GLfloat y0, GLfloat z0, GLfloat w0,
+                                 GLfloat x1, GLfloat y1, GLfloat z1, GLfloat w1,
+                                 GLfloat x2, GLfloat y2, GLfloat z2, GLfloat w2,
+                                 GLfloat x3, GLfloat y3, GLfloat z3, GLfloat w3);
+
+        GLfloat attributes[kMaximumNumberOfAttributes];
+        GLfloat* nextAttribute;
+        int numberOfAttributes;
+    };
     Surface* _surface;
 
     EGLDisplay _eglDisplay;
