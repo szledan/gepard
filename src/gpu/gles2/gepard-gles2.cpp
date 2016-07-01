@@ -293,12 +293,16 @@ bool GepardGLES2::isPointInPath(Float x, Float y)
 
 //! \brief Fill rectangle vertex shader.
 static const GLchar* fillRectVertexShader = "\
-        attribute vec2 in_position;                     \
-                                                        \
         uniform vec2 in_size;                           \
+                                                        \
+        attribute vec2 in_position;                     \
+        attribute vec4 in_color;                        \
+                                                        \
+        varying vec4 v_color;                           \
                                                         \
         void main(void)                                 \
         {                                               \
+            v_color = in_color;                         \
             vec2 coords = (2.0 * in_position.xy / in_size.xy) - 1.0; \
             coords.y = -coords.y;                       \
             gl_Position = vec4(coords, 1.0, 1.0);       \
@@ -307,13 +311,13 @@ static const GLchar* fillRectVertexShader = "\
 
 //! \brief Fill rectangle fragment shader.
 static const GLchar* fillRectFragmentShader = "\
-        precision mediump float;                        \
+        precision highp float;                          \
                                                         \
-        uniform vec4 in_color;                          \
+        varying vec4 v_color;                           \
                                                         \
         void main(void)                                 \
         {                                               \
-            gl_FragColor = in_color;                    \
+            gl_FragColor = v_color;                     \
         }                                               \
                                        ";
 
@@ -331,12 +335,13 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
     GD_LOG1("Fill rect with GLES2 (" << x << ", " << y << ", " << w << ", " << h << ")");
 
     // 0. Rect attributes.
+    const Color fillColor = state.fillColor;
     const GLubyte rectIndexes[] = {0, 1, 2, 2, 1, 3};
     const GLfloat attributes[] = {
-        GLfloat(x), GLfloat(y),
-        GLfloat(x + w), GLfloat(y),
-        GLfloat(x), GLfloat(y + h),
-        GLfloat(x + w), GLfloat(y + h),
+        GLfloat(x), GLfloat(y), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
+        GLfloat(x + w), GLfloat(y), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
+        GLfloat(x), GLfloat(y + h), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
+        GLfloat(x + w), GLfloat(y + h), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
     };
 
     GD_LOG2("1. Set and enable blending.");
@@ -351,16 +356,27 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
     glUseProgram(fillRectProgram);
 
     GD_LOG2("4. Binding attributes.");
-    GLint intValue = glGetAttribLocation(fillRectProgram, "in_position");
-    glEnableVertexAttribArray(intValue);
-    glVertexAttribPointer(intValue, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), attributes);
+    {
+        GLuint index = glGetUniformLocation(fillRectProgram, "in_size");
+        glUniform2f(index, _surface->width(), _surface->height());
+    }
 
-    intValue = glGetUniformLocation(fillRectProgram, "in_size");
-    glUniform2f(intValue, _surface->width(), _surface->height());
+    const GLsizei stride = 6 * sizeof(GL_FLOAT);
+    int offset = 0;
+    {
+        const GLint size = 2;
+        GLuint index = glGetAttribLocation(fillRectProgram, "in_position");
+        glEnableVertexAttribArray(index);
+        glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, attributes + offset);
+        offset = size;
+    }
 
-    const Color fillColor = state.fillColor;
-    intValue = glGetUniformLocation(fillRectProgram, "in_color");
-    glUniform4f(intValue, fillColor.r, fillColor.g, fillColor.b, fillColor.a);
+    {
+        const GLint size = 4;
+        GLuint index = glGetAttribLocation(fillRectProgram, "in_color");
+        glEnableVertexAttribArray(index);
+        glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, attributes + offset);
+    }
 
     GD_LOG2("5. Draw two triangles as rect.");
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, rectIndexes);
