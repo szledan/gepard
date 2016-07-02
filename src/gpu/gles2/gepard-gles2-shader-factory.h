@@ -37,17 +37,31 @@ namespace gles2 {
 /*!
  * \brief The ShaderProgram class
  */
-class ShaderProgram {
-public:
+struct ShaderProgram {
+    ShaderProgram()
+        : id(0)
+    {
+    }
     /*!
      * \brief Static function to compile a shader program.
      * \param result  pointer of the number of compiled program. If it's not nullptr then nothing happens.
      * \param name  the name of the program (only for the logging at the moment).
      * \param vertexShaderSource  vertex shader source code.
      * \param fragmentShaderSource  fragment shader source code.
+     *
+     * \internal
      */
-    static void compileShaderProg(GLuint* result, const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
+    static void compileShaderProgram(GLuint* result, const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
 
+    /*!
+     * \brief createShaderProgram
+     * \return
+     *
+     * \internal
+     */
+    static ShaderProgram createShaderProgram();
+
+    uint id;
 protected:
     static void logShaderCompileError(const GLuint shader);
     static void logProgramLinkError(const GLuint program);

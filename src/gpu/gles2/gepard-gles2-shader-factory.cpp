@@ -101,7 +101,7 @@ GLuint ShaderProgram::linkPrograms(GLuint vertexShader, GLuint fragmentShader)
     return program;
 }
 
-void ShaderProgram::compileShaderProg(GLuint* result, const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource)
+void ShaderProgram::compileShaderProgram(GLuint* result, const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource)
 {
     if (*result)
         return;
@@ -127,6 +127,11 @@ void ShaderProgram::compileShaderProg(GLuint* result, const std::string& name, c
     if (fragmentShader) {
         glDeleteShader(fragmentShader);
     }
+}
+
+ShaderProgram ShaderProgram::createShaderProgram()
+{
+    return ShaderProgram();
 }
 
 } // namespace gles2

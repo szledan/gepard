@@ -349,15 +349,16 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     GD_LOG2("2. Compile shaders.");
-    GLuint& fillRectProgram = _programs["FillRectProgram"];
-    ShaderProgram::compileShaderProg(&fillRectProgram, "FillRectProgram", fillRectVertexShader, fillRectFragmentShader);
+    ShaderProgram& fillRectProgram = _programs["FillRectProgram"];
+    ShaderProgram::compileShaderProgram(&fillRectProgram.id, "FillRectProgram", fillRectVertexShader, fillRectFragmentShader);
+    uint fillRectProgramId = fillRectProgram.id;
 
     GD_LOG2("3. Use shader programs.");
-    glUseProgram(fillRectProgram);
+    glUseProgram(fillRectProgramId);
 
     GD_LOG2("4. Binding attributes.");
     {
-        GLuint index = glGetUniformLocation(fillRectProgram, "in_size");
+        GLuint index = glGetUniformLocation(fillRectProgramId, "in_size");
         glUniform2f(index, _surface->width(), _surface->height());
     }
 
@@ -365,7 +366,7 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
     int offset = 0;
     {
         const GLint size = 2;
-        GLuint index = glGetAttribLocation(fillRectProgram, "in_position");
+        GLuint index = glGetAttribLocation(fillRectProgramId, "in_position");
         glEnableVertexAttribArray(index);
         glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, attributes + offset);
         offset = size;
@@ -373,10 +374,17 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
 
     {
         const GLint size = 4;
-        GLuint index = glGetAttribLocation(fillRectProgram, "in_color");
+        GLuint index = glGetAttribLocation(fillRectProgramId, "in_color");
         glEnableVertexAttribArray(index);
         glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, attributes + offset);
     }
+
+    commandQueue.beginAttributeAdding(fillRectProgramId);
+    commandQueue.addAttribute(GLfloat(x), GLfloat(y), GLfloat(x + w), GLfloat(y), GLfloat(x), GLfloat(y + h), GLfloat(x + w), GLfloat(y + h));
+    commandQueue.addAttribute(GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
+                              GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
+                              GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
+                              GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a));
 
     GD_LOG2("5. Draw two triangles as rect.");
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, rectIndexes);
@@ -391,6 +399,20 @@ GepardGLES2::CommandQueue::CommandQueue()
     : nextAttribute(attributes)
     , numberOfAttributes(0)
 {
+}
+
+void GepardGLES2::CommandQueue::beginAttributeAdding(uint newProgramId)
+{
+    if (newProgramId == programId) {
+        GD_LOG2("Batching.");
+        return;
+    }
+
+    GD_LOG2("1. Draw batched commands.");
+    //! \todo (szledan) unimplemented.
+
+    GD_LOG2("2. Restart batching with: " << newProgramId);
+    //! \todo (szledan) unimplemented.
 }
 
 void GepardGLES2::CommandQueue::addAttribute(GLfloat x0, GLfloat y0, GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, GLfloat x3, GLfloat y3)

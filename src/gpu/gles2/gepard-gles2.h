@@ -31,6 +31,7 @@
 #include "gepard-defs.h"
 
 #include "gepard-gles2-defs.h"
+#include "gepard-gles2-shader-factory.h"
 #include "gepard-image.h"
 #include "gepard-surface.h"
 #include "gepard-types.h"
@@ -72,10 +73,11 @@ public:
     GepardState state;
 private:
     struct CommandQueue {
-        static const int kMaximumNumberOfAttributes = 65536;
+        static const int kMaximumNumberOfAttributes = GLushort(-1);
 
         CommandQueue();
 
+        inline void beginAttributeAdding(uint newProgramId);
         inline void addAttribute(GLfloat x0, GLfloat y0, GLfloat x1, GLfloat y1,
                                  GLfloat x2, GLfloat y2, GLfloat x3, GLfloat y3);
         inline void addAttribute(GLfloat x0, GLfloat y0, GLfloat z0, GLfloat w0,
@@ -86,6 +88,8 @@ private:
         GLfloat attributes[kMaximumNumberOfAttributes];
         GLfloat* nextAttribute;
         int numberOfAttributes;
+
+        uint programId;
     };
     Surface* _surface;
 
@@ -93,7 +97,8 @@ private:
     EGLSurface _eglSurface;
     EGLContext _eglContext;
 
-    std::map<std::string, uint> _programs;
+    std::map<std::string, ShaderProgram> _programs;
+    CommandQueue commandQueue;
 };
 
 } // namespace gles2
