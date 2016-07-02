@@ -101,22 +101,22 @@ GLuint ShaderProgram::linkPrograms(GLuint vertexShader, GLuint fragmentShader)
     return program;
 }
 
-void ShaderProgram::compileShaderProgram(GLuint* result, const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource)
+void ShaderProgram::compileShaderProgram()
 {
-    if (*result)
+    if (id)
         return;
 
-    GD_LOG1("Compile '" << name << "' shader program.");
+    GD_LOG1("Compile '" << _name << "' shader program.");
 
     GLuint vertexShader = 0;
-    vertexShader = compileShader(GL_VERTEX_SHADER, (const GLchar*)vertexShaderSource.c_str());
+    vertexShader = compileShader(GL_VERTEX_SHADER, (const GLchar*)_vertexShaderSource.c_str());
 
     GLuint fragmentShader = 0;
-    fragmentShader = compileShader(GL_FRAGMENT_SHADER, (const GLchar*)fragmentShaderSource.c_str());
+    fragmentShader = compileShader(GL_FRAGMENT_SHADER, (const GLchar*)_fragmentShaderSource.c_str());
 
     if (vertexShader && fragmentShader) {
-        *result = linkPrograms(vertexShader, fragmentShader);
-        GD_LOG2("The " << name << " linked program is: " << *result << ".");
+        id = linkPrograms(vertexShader, fragmentShader);
+        GD_LOG2("The " << _name << " linked program is: " << id << ".");
     }
 
     // According to the specification, the shaders are kept
@@ -127,11 +127,6 @@ void ShaderProgram::compileShaderProgram(GLuint* result, const std::string& name
     if (fragmentShader) {
         glDeleteShader(fragmentShader);
     }
-}
-
-ShaderProgram ShaderProgram::createShaderProgram()
-{
-    return ShaderProgram();
 }
 
 } // namespace gles2

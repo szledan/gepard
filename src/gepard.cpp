@@ -557,8 +557,9 @@ void Gepard::putImageData(Image /*imagedata*/, double dx, double dy, double dirt
 
 void Gepard::render()
 {
-    /*! \todo unimplemented function */
-    NOT_IMPLEMENTED();
+    if (_engine) {
+        _engine->render();
+    }
 }
 
 void Gepard::setFillColor(std::string color)

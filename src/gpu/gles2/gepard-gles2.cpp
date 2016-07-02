@@ -99,6 +99,9 @@ GepardGLES2::GepardGLES2(Surface* surface)
         _eglSurface = eglSurface;
         GD_LOG3("EGL display and surface are: " << _eglDisplay  << " and " << _eglSurface << ".");
 
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
         const GLfloat red = 0.0f;
         const GLfloat green = 0.0f;
         const GLfloat blue = 0.0f;
@@ -106,11 +109,17 @@ GepardGLES2::GepardGLES2(Surface* surface)
         GD_LOG2("Set clear color (" << float(red) << ", " << float(green) << ", " << float(blue) << ", " << float(alpha) << ")");
         glClearColor(red, green, blue, alpha);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_BLEND);
     }
+
+    commandQueue = new CommandQueue(this);
 }
 
 GepardGLES2::~GepardGLES2()
 {
+    if (commandQueue) {
+        delete commandQueue;
+    }
     eglMakeCurrent(_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglDestroyContext(_eglDisplay, _eglContext);
     eglDestroySurface(_eglDisplay, _eglSurface);
@@ -292,7 +301,7 @@ bool GepardGLES2::isPointInPath(Float x, Float y)
 }
 
 //! \brief Fill rectangle vertex shader.
-static const GLchar* fillRectVertexShader = "\
+static const std::string s_fillRectVertexShader = "\
         uniform vec2 in_size;                           \
                                                         \
         attribute vec2 in_position;                     \
@@ -310,7 +319,7 @@ static const GLchar* fillRectVertexShader = "\
                                      ";
 
 //! \brief Fill rectangle fragment shader.
-static const GLchar* fillRectFragmentShader = "\
+static const std::string s_fillRectFragmentShader = "\
         precision highp float;                          \
                                                         \
         varying vec4 v_color;                           \
@@ -320,6 +329,8 @@ static const GLchar* fillRectFragmentShader = "\
             gl_FragColor = v_color;                     \
         }                                               \
                                        ";
+
+static ShaderProgram s_fillRectProgram(s_fillRectVertexShader, s_fillRectFragmentShader);
 
 /*!
  * \brief GepardGLES2::fillRect
@@ -334,85 +345,80 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
 {
     GD_LOG1("Fill rect with GLES2 (" << x << ", " << y << ", " << w << ", " << h << ")");
 
-    // 0. Rect attributes.
     const Color fillColor = state.fillColor;
-    const GLubyte rectIndexes[] = {0, 1, 2, 2, 1, 3};
-    const GLfloat attributes[] = {
-        GLfloat(x), GLfloat(y), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
-        GLfloat(x + w), GLfloat(y), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
-        GLfloat(x), GLfloat(y + h), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
-        GLfloat(x + w), GLfloat(y + h), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
-    };
 
-    GD_LOG2("1. Set and enable blending.");
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    GD_LOG2("2. Compile shaders.");
-    ShaderProgram& fillRectProgram = _programs["FillRectProgram"];
-    ShaderProgram::compileShaderProgram(&fillRectProgram.id, "FillRectProgram", fillRectVertexShader, fillRectFragmentShader);
-    uint fillRectProgramId = fillRectProgram.id;
-
-    GD_LOG2("3. Use shader programs.");
-    glUseProgram(fillRectProgramId);
-
-    GD_LOG2("4. Binding attributes.");
-    {
-        GLuint index = glGetUniformLocation(fillRectProgramId, "in_size");
-        glUniform2f(index, _surface->width(), _surface->height());
-    }
-
-    const GLsizei stride = 6 * sizeof(GL_FLOAT);
-    int offset = 0;
-    {
-        const GLint size = 2;
-        GLuint index = glGetAttribLocation(fillRectProgramId, "in_position");
-        glEnableVertexAttribArray(index);
-        glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, attributes + offset);
-        offset = size;
-    }
-
-    {
-        const GLint size = 4;
-        GLuint index = glGetAttribLocation(fillRectProgramId, "in_color");
-        glEnableVertexAttribArray(index);
-        glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, attributes + offset);
-    }
-
-    commandQueue.beginAttributeAdding(fillRectProgramId);
-    commandQueue.addAttribute(GLfloat(x), GLfloat(y), GLfloat(x + w), GLfloat(y), GLfloat(x), GLfloat(y + h), GLfloat(x + w), GLfloat(y + h));
-    commandQueue.addAttribute(GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
+    commandQueue->beginAttributeAdding(&s_fillRectProgram);
+    commandQueue->addAttribute(GLfloat(x), GLfloat(y), GLfloat(x + w), GLfloat(y), GLfloat(x), GLfloat(y + h), GLfloat(x + w), GLfloat(y + h));
+    commandQueue->addAttribute(GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
                               GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
                               GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
                               GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a));
+    commandQueue->endAttributeAdding();
+}
 
-    GD_LOG2("5. Draw two triangles as rect.");
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, rectIndexes);
-
-    //! Swap buffers. \todo: Temporary call here.
-    eglSwapBuffers(_eglDisplay, _eglSurface);
+void GepardGLES2::render()
+{
+    if (commandQueue && commandQueue->program && commandQueue->attributes != commandQueue->nextAttribute) {
+        commandQueue->flushCommandQueue();
+    }
 }
 
 // GepardGLES2::CommandQueue
 
-GepardGLES2::CommandQueue::CommandQueue()
+GepardGLES2::CommandQueue::CommandQueue(GepardGLES2* gepard)
     : nextAttribute(attributes)
     , numberOfAttributes(0)
+    , quadCount(0)
+    , program(nullptr)
+    , _gepard(gepard)
 {
+    GLushort* quadIndexes;
+    int bufferSize = kMaximumNumberOfUshortQuads * 6;
+
+    quadIndexes = reinterpret_cast<GLushort*>(malloc(bufferSize * sizeof(GLushort)));
+
+    GLushort* currentQuad = quadIndexes;
+    GLushort* currentQuadEnd = quadIndexes + bufferSize;
+
+    GLushort index = 0;
+    while (currentQuad < currentQuadEnd) {
+        currentQuad[0] = index;
+        currentQuad[1] = index + 1;
+        currentQuad[2] = index + 2;
+        currentQuad[3] = index + 2;
+        currentQuad[4] = index + 1;
+        currentQuad[5] = index + 3;
+        currentQuad += 6;
+        index += 4;
+    }
+
+    glGenBuffers(1, &s_indexBufferObject);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_indexBufferObject);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize * sizeof(GLushort), quadIndexes, GL_STATIC_DRAW);
+
+    free(quadIndexes);
 }
 
-void GepardGLES2::CommandQueue::beginAttributeAdding(uint newProgramId)
+void GepardGLES2::CommandQueue::beginAttributeAdding(ShaderProgram* newProgram)
 {
-    if (newProgramId == programId) {
+    if (newProgram == program
+        && hasFreeSpace()) {
         GD_LOG2("Batching.");
         return;
     }
 
-    GD_LOG2("1. Draw batched commands.");
-    //! \todo (szledan) unimplemented.
+    if (program) {
+        GD_LOG2("0. Draw batched commands.");
+        flushCommandQueue();
+    }
 
-    GD_LOG2("2. Restart batching with: " << newProgramId);
-    //! \todo (szledan) unimplemented.
+    GD_LOG2("1. Compile shaders.");
+    newProgram->compileShaderProgram();
+
+    GD_LOG2("2. Start batching with: " << newProgram->id << ".");
+
+    numberOfAttributes = 6;
+    program = newProgram;
 }
 
 void GepardGLES2::CommandQueue::addAttribute(GLfloat x0, GLfloat y0, GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, GLfloat x3, GLfloat y3)
@@ -455,6 +461,76 @@ void GepardGLES2::CommandQueue::addAttribute(GLfloat x0, GLfloat y0, GLfloat z0,
     attribute[2] = z3;
     attribute[3] = w3;
     nextAttribute += 4;
+}
+
+void GepardGLES2::CommandQueue::endAttributeAdding()
+{
+    nextAttribute += numberOfAttributes * 3;
+    quadCount++;
+    GD_LOG3("quadCount: " << quadCount << ".");
+    ASSERT((nextAttribute <= attributes + kMaximumNumberOfAttributes) && quadCount <= kMaximumNumberOfUshortQuads);
+}
+
+
+void GepardGLES2::CommandQueue::flushCommandQueue()
+{
+    GD_LOG2("1. Set blending.");
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    GD_LOG2("3. Use shader programs.");
+    glUseProgram(program->id);
+
+    GD_LOG2("4. Binding attributes.");
+    {
+        GLuint index = glGetUniformLocation(program->id, "in_size");
+        glUniform2f(index, _gepard->_surface->width(), _gepard->_surface->height());
+    }
+
+    const GLsizei stride = numberOfAttributes * sizeof(GL_FLOAT);
+    int offset = 0;
+    {
+        const GLint size = 2;
+        GLuint index = glGetAttribLocation(program->id, "in_position");
+        glEnableVertexAttribArray(index);
+        glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, attributes + offset);
+        offset = size;
+    }
+
+    {
+        const GLint size = 4;
+        GLuint index = glGetAttribLocation(program->id, "in_color");
+        glEnableVertexAttribArray(index);
+        glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, attributes + offset);
+    }
+
+//    GD_LOG3("attributes: ");
+//#ifdef GD_LOG_LEVEL
+//    for (int i = 0; i < quadCount * numberOfAttributes * 4;) {
+//        for (int j = 0; j < 4; ++j) {
+//            GD_LOG3(attributes[i + 0] << " " <<  attributes[i + 1] << " | " <<  attributes[i + 2] << " " <<  attributes[i + 3] << " " <<  attributes[i + 4] << " " << attributes[i + 5]);
+//            i += numberOfAttributes;
+//        }
+//    }
+//#endif
+
+    GD_LOG2("5. Draw triangles in pairs as quads.");
+    ASSERT(quadCount <= kMaximumNumberOfUshortQuads);
+    if (quadCount == 1) {
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    } else {
+        glDrawElements(GL_TRIANGLES, quadCount * 6, GL_UNSIGNED_SHORT, nullptr);
+    }
+
+    eglSwapBuffers(_gepard->_eglDisplay, _gepard->_eglSurface);
+
+    quadCount = 0;
+    nextAttribute = attributes;
+
+    if (program && program->id) {
+        glDeleteProgram(program->id);
+        program->id = 0;
+        program = nullptr;
+    }
 }
 
 } // namespace gles2

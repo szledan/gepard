@@ -222,4 +222,11 @@ void GepardEngine::setFillColor(const Float red, const Float green, const Float 
     _engineBackend->state.fillColor = Color(red, green, blue, alpha);
 }
 
+void GepardEngine::render()
+{
+     if (_engineBackend) {
+         _engineBackend->render();
+     }
+}
+
 } // namespace gepard
