@@ -25,8 +25,6 @@
 
 #include "gepard-defs.h"
 
-#include <iostream>
-
 namespace gepard {
 
 #ifdef GD_LOG_LEVEL
