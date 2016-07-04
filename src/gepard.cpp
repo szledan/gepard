@@ -555,11 +555,13 @@ void Gepard::putImageData(Image /*imagedata*/, double dx, double dy, double dirt
     NOT_IMPLEMENTED();
 }
 
-void Gepard::render()
+int Gepard::draw()
 {
+    int renderedTriangles = -1;
     if (_engine) {
-        _engine->render();
+        renderedTriangles = _engine->draw();
     }
+    return renderedTriangles;
 }
 
 void Gepard::setFillColor(std::string color)

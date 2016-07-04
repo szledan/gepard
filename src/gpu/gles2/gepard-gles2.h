@@ -69,7 +69,7 @@ public:
 
     void fillRect(Float x, Float y, Float w, Float h);
 
-    void render();
+    int draw();
 
     /// \todo remove into a vector<GepardState> states.
     GepardState state;
@@ -91,7 +91,7 @@ private:
                                  GLfloat x3, GLfloat y3, GLfloat z3, GLfloat w3);
         void endAttributeAdding();
 
-        void flushCommandQueue();
+        uint flushCommandQueue();
 
         inline bool hasFreeSpace(int neededSpace = 0)
         {

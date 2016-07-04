@@ -28,7 +28,9 @@
 #include "gepard.h"
 #include "gepard-xsurface.h"
 #include "savanna.h"
+#include <chrono>
 #include <math.h>
+#include <thread>
 
 namespace savanna {
 
@@ -84,6 +86,7 @@ Savanna::React MonkeyMark::run()
     for (int i = 0; i <= iterateCount; ++i) {
         drawRects();
 
+        std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.
         if (XCheckWindowEvent((Display*)surface->getDisplay(), (Window)surface->getWindow(), KeyPress | ClientMessage, &e)) {
             if (e.type == KeyPress && XLookupKeysym(&e.xkey, 0) == XK_Escape) {
                 return Savanna::React(Savanna::EXIT);
@@ -171,6 +174,7 @@ Savanna::React SnakeMark::run()
 
         drawRects(x, y);
 
+        std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.
         if (XCheckWindowEvent((Display*)surface->getDisplay(), (Window)surface->getWindow(), KeyPress | ClientMessage, &e)) {
             if (e.type == KeyPress && XLookupKeysym(&e.xkey, 0) == XK_Escape) {
                 return Savanna::React(Savanna::EXIT);

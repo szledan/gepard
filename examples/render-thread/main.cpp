@@ -31,75 +31,147 @@
 #include <random>
 #include <thread>
 
-static const int64_t secondInMillisec = 1000;
-static const float millisecFactor = float(1.0f) / float(5.0f);
-bool g_rendering = false;
-std::mutex g_mutex;
 
-void renderScheduler()
+std::mutex g_mutex;
+static const int64_t g_waitSecondsInMillisec = 1000;
+int64_t g_drawingPerSec = 25;
+bool g_drawing = false;
+
+void drawScheduler()
 {
     do {
-        std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(secondInMillisec * millisecFactor)));
-
-        {
+        int64_t ms = 1;
+        { // lock
             std::lock_guard<std::mutex> guard(g_mutex);
-            g_rendering = true;
-        }
+            g_drawing = true;
+            ms = g_waitSecondsInMillisec / g_drawingPerSec;
+        } // unlock
+        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
     } while (true);
+}
+
+void showHelp()
+{
+    std::cout << "Keys:" << std::endl;
+    std::cout << " [Esc|q]      - exit." << std::endl;
+    std::cout << " [h]          - show this help." << std::endl;
+    std::cout << " [Up|Down]    - inc/dec draw() call per scheduler time." << std::endl;
+    std::cout << "Columns:" << std::endl;
+    std::cout << " d/s    - draw() call per sec in [1-1000]." << std::endl;
+    std::cout << " r/d    - avarage number of rectangles per draw() call. In parenthesis: (max - avg)." << std::endl;
+    std::cout << " r/s    - number of rectangles per second." << std::endl;
+    std::cout << " r(d)/s - number of rectangles in the last second after call draw()." << std::endl;
+    std::cout << " r(f)/s - number of rectangles in the last second after buffer was full. (r/s = r(d)/s + r(f)/s)" << std::endl;
+    std::cout << " S(r)   - number of all drawn rectangles." << std::endl;
 }
 
 int main()
 {
+    std::cout << "*** Thread driven drawing Gepard, 2016. ***" << std::endl;
+
     const int width = 500;
     const int height = 500;
     gepard::XSurface surface(width, height);
     gepard::Gepard gepard(&surface);
-    std::thread renderThread(renderScheduler);
+    std::thread drawThread(drawScheduler);
     std::srand(1985);
 
+    showHelp();
+
     XEvent e;
-    long long unsigned int rectCount = 0;
-    long long unsigned int lastRectCount = 0;
-    float secPartCounter = 0.0f;
-    long long unsigned int oneSecRectCount = 0;
+    long long int sumRects = 0;
+    long long int lastSumRects = 0;
+    long long int rectsPerSec = 0;
+    long long int rectsFromDrawCall = 0;
+    int drawPerSec = 0;
+    int drawingPerSec = 0;
+
+    int rectsPerDrawingAvg = 0;
+    int rectsPerDrawingDev = 0;
     do {
-        std::this_thread::sleep_for(std::chrono::nanoseconds(1));
+        std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.
 
-        bool rendering;
-        {
-            std::lock_guard<std::mutex> guard(g_mutex);
-            rendering = g_rendering;
-        }
-
+        // Create a colored fillRect.
         gepard.setFillColor(std::rand() % 256, std::rand() % 256, std::rand() % 256, std::rand() % 256);
         gepard.fillRect(std::rand() % width, std::rand() % height, std::rand() % 100, std::rand() % 100);
-        rectCount++;
+        sumRects++;
 
-        if (rendering) {
-            secPartCounter += millisecFactor;
-            gepard.render();
-            {
+        // Check drawScheduler.
+        bool drawing;
+        { // lock
+            std::lock_guard<std::mutex> guard(g_mutex);
+            drawing = g_drawing;
+        } // unlock
+
+        // Call drawing function.
+        if (drawing) {
+            rectsFromDrawCall += gepard.draw() / 2;
+            { // lock
                 std::lock_guard<std::mutex> guard(g_mutex);
-                g_rendering = false;
+                g_drawing = false;
+                drawingPerSec = g_drawingPerSec;
+                drawPerSec++;
+            } // unlock
+
+            int currentRectsPerDraw = sumRects - lastSumRects;
+            rectsPerDrawingDev = std::max(currentRectsPerDraw, rectsPerDrawingDev);
+            rectsPerDrawingAvg += currentRectsPerDraw;
+
+            if (drawPerSec >= drawingPerSec) {
+                std::cout << drawPerSec << " d/s  ";
+                std::cout << "~" << rectsPerDrawingAvg / drawPerSec << "(+";
+                std::cout << rectsPerDrawingDev - rectsPerDrawingAvg / drawPerSec << ") r/d  ";
+                std::cout << sumRects - rectsPerSec << " r/s  ";
+                std::cout << rectsFromDrawCall << " r(d)/s  ";
+                std::cout << (sumRects - rectsPerSec) - rectsFromDrawCall << " r(f)/s  ";
+                std::cout << sumRects << " S(r)  ";
+                std::cout << std::endl;
+                rectsPerSec = sumRects;
+                lastSumRects = 0;
+                drawPerSec = 0;
+                rectsFromDrawCall = 0;
+                rectsPerDrawingAvg = 0;
+                rectsPerDrawingDev = 0;
             }
-            std::cout << "\rRectangles: " << rectCount << ", from last rendering: " << rectCount - lastRectCount;
-            if (secPartCounter >= 1) {
-                std::cout << ", from last one second: " << rectCount - oneSecRectCount;
-                oneSecRectCount = rectCount;
-                secPartCounter = 0.0f;
-            }
-            std::cout << std::flush;
-            lastRectCount = rectCount;
+            lastSumRects = sumRects;
         }
 
         if (XCheckWindowEvent((Display*)surface.getDisplay(), (Window)surface.getWindow(), KeyPress | ClientMessage, &e)) {
-            if (e.type == KeyPress && XLookupKeysym(&e.xkey, 0) == XK_Escape) {
-                break;
+            if (e.type == KeyPress) {
+                if (XLookupKeysym(&e.xkey, 0) == XK_Escape
+                    || XLookupKeysym(&e.xkey, 0) == XK_q
+                    || XLookupKeysym(&e.xkey, 0) == XK_Q) {
+                    break;
+                }
+
+                bool wasRenderingDensityChanged = false;
+                switch (XLookupKeysym(&e.xkey, 0)) {
+                case XK_Up:
+                    drawingPerSec++;
+                    drawingPerSec = std::min(drawingPerSec, 1000);
+                    wasRenderingDensityChanged = true;
+                    break;
+                case XK_Down:
+                    drawingPerSec--;
+                    drawingPerSec = std::max(drawingPerSec, 1);
+                    wasRenderingDensityChanged = true;
+                    break;
+                case XK_H:
+                case XK_h:
+                    showHelp();
+                    break;
+                default:
+                    break;
+                };
+                if (wasRenderingDensityChanged) { // lock
+                    std::lock_guard<std::mutex> guard(g_mutex);
+                    g_drawingPerSec = drawingPerSec;
+                } // unlock
             }
         }
     } while (true);
 
-    renderThread.detach();
+    drawThread.detach();
     std::cout << std::endl;
 
     return 0;

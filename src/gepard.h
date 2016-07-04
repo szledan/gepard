@@ -270,8 +270,9 @@ public:
 
     /*!
      * \brief Flush the command queue and start rendering.
+     * \return  the number of rendered triangles, the -1 value means warning.
      */
-    void render();
+    int draw();
 
     /*!
      * \brief Set fill color with red, green, blue and alpha components

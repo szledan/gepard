@@ -27,7 +27,9 @@
 #include "gepard.h"
 #include "gepard-xsurface.h"
 #include "gepard-memory-buffer-surface.h"
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 int main()
 {
@@ -56,8 +58,12 @@ int main()
     gepard.setFillColor(220, 180, 40);
     gepard.fillRect(330, 320, 160, 60);
 
+    //! \todo: eliminate.
+    gepard.draw();
+
     XEvent xEvent;
     while (true) {
+        std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.
         if (XCheckWindowEvent((Display*)surface.getDisplay(), (Window)surface.getWindow(), KeyPress | ClientMessage, &xEvent)) {
             break;
         }

@@ -356,11 +356,12 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
     commandQueue->endAttributeAdding();
 }
 
-void GepardGLES2::render()
+int GepardGLES2::draw()
 {
     if (commandQueue && commandQueue->program && commandQueue->attributes != commandQueue->nextAttribute) {
-        commandQueue->flushCommandQueue();
+        return commandQueue->flushCommandQueue();
     }
+    return (-1);
 }
 
 // GepardGLES2::CommandQueue
@@ -472,15 +473,15 @@ void GepardGLES2::CommandQueue::endAttributeAdding()
 }
 
 
-void GepardGLES2::CommandQueue::flushCommandQueue()
+uint GepardGLES2::CommandQueue::flushCommandQueue()
 {
     GD_LOG2("1. Set blending.");
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    GD_LOG2("3. Use shader programs.");
+    GD_LOG2("2. Use shader programs.");
     glUseProgram(program->id);
 
-    GD_LOG2("4. Binding attributes.");
+    GD_LOG2("3. Binding attributes.");
     {
         GLuint index = glGetUniformLocation(program->id, "in_size");
         glUniform2f(index, _gepard->_surface->width(), _gepard->_surface->height());
@@ -503,34 +504,30 @@ void GepardGLES2::CommandQueue::flushCommandQueue()
         glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, attributes + offset);
     }
 
-//    GD_LOG3("attributes: ");
-//#ifdef GD_LOG_LEVEL
-//    for (int i = 0; i < quadCount * numberOfAttributes * 4;) {
-//        for (int j = 0; j < 4; ++j) {
-//            GD_LOG3(attributes[i + 0] << " " <<  attributes[i + 1] << " | " <<  attributes[i + 2] << " " <<  attributes[i + 3] << " " <<  attributes[i + 4] << " " << attributes[i + 5]);
-//            i += numberOfAttributes;
-//        }
-//    }
-//#endif
-
-    GD_LOG2("5. Draw triangles in pairs as quads.");
+    GD_LOG2("4. Draw triangles in pairs as quads.");
     ASSERT(quadCount <= kMaximumNumberOfUshortQuads);
     if (quadCount == 1) {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     } else {
         glDrawElements(GL_TRIANGLES, quadCount * 6, GL_UNSIGNED_SHORT, nullptr);
     }
+    GD_LOG3("Was drawn: " << quadCount << ".");
 
     eglSwapBuffers(_gepard->_eglDisplay, _gepard->_eglSurface);
 
+    GD_LOG2("5. Reset command queue.");
+    float renderedTriangles = quadCount * 2;
     quadCount = 0;
     nextAttribute = attributes;
 
+    //! \todo: it will be chashed in general.
     if (program && program->id) {
         glDeleteProgram(program->id);
         program->id = 0;
         program = nullptr;
     }
+
+    return renderedTriangles;
 }
 
 } // namespace gles2

@@ -45,8 +45,9 @@ class GepardVulkan {
 public:
     explicit GepardVulkan(Surface* surface);
 
-    void fillRect(Float x, Float y, Float w, Float h);
     void closePath();
+    void fillRect(Float x, Float y, Float w, Float h);
+    int draw();
 
     /// \todo remove into a vector<GepardState> states.
     GepardState state;
