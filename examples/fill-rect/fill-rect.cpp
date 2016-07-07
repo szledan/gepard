@@ -58,9 +58,6 @@ int main()
     gepard.setFillColor(220, 180, 40);
     gepard.fillRect(330, 320, 160, 60);
 
-    //! \todo: eliminate.
-    gepard.draw();
-
     XEvent xEvent;
     while (true) {
         std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.

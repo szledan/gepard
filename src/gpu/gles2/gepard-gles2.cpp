@@ -99,7 +99,6 @@ GepardGLES2::GepardGLES2(Surface* surface)
         _eglSurface = eglSurface;
         GD_LOG3("EGL display and surface are: " << _eglDisplay  << " and " << _eglSurface << ".");
 
-
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         const GLfloat red = 0.0f;
@@ -118,6 +117,7 @@ GepardGLES2::GepardGLES2(Surface* surface)
 GepardGLES2::~GepardGLES2()
 {
     if (commandQueue) {
+        commandQueue->flushCommandQueue();
         delete commandQueue;
     }
     eglMakeCurrent(_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -131,6 +131,8 @@ GepardGLES2::~GepardGLES2()
  * \brief GepardGLES2::closePath
  *
  * \todo unimplemented function
+ *
+ * \internal
  */
 void GepardGLES2::closePath()
 {
@@ -143,6 +145,8 @@ void GepardGLES2::closePath()
  * \param y  Y-axis value of _end_ point
  *
  * \todo unimplemented function
+ *
+ * \internal
  */
 void GepardGLES2::moveTo(Float x, Float y)
 {
@@ -155,6 +159,8 @@ void GepardGLES2::moveTo(Float x, Float y)
  * \param y  Y-axis value of _end_ point
  *
  * \todo unimplemented function
+ *
+ * \internal
  */
 void GepardGLES2::lineTo(Float x, Float y)
 {
@@ -169,6 +175,8 @@ void GepardGLES2::lineTo(Float x, Float y)
  * \param y  Y-axis value of _end_ point
  *
  * \todo unimplemented function
+ *
+ * \internal
  */
 void GepardGLES2::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
 {
@@ -185,6 +193,8 @@ void GepardGLES2::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
  * \param y  Y-axis value of _end_ point
  *
  * \todo unimplemented function
+ *
+ * \internal
  */
 void GepardGLES2::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y)
 {
@@ -200,6 +210,8 @@ void GepardGLES2::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, 
  * \param radius  size of arc
  *
  * \todo unimplemented function
+ *
+ * \internal
  */
 void GepardGLES2::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
 {
@@ -214,6 +226,8 @@ void GepardGLES2::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
  * \param h  size on Y-axis
  *
  * \todo unimplemented function
+ *
+ * \internal
  */
 void GepardGLES2::rect(Float x, Float y, Float w, Float h)
 {
@@ -230,6 +244,8 @@ void GepardGLES2::rect(Float x, Float y, Float w, Float h)
  * \param counterclockwise  specify the draw direction on arc
  *
  * \todo unimplemented function
+ *
+ * \internal
  */
 void GepardGLES2::arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise)
 {
@@ -240,6 +256,8 @@ void GepardGLES2::arc(Float x, Float y, Float radius, Float startAngle, Float en
  * \brief GepardGLES2::beginPath
  *
  * \todo unimplemented function
+ *
+ * \internal
  */
 void GepardGLES2::beginPath()
 {
@@ -250,6 +268,8 @@ void GepardGLES2::beginPath()
  * \brief GepardGLES2::fill
  *
  * \todo unimplemented function
+ *
+ * \internal
  */
 void GepardGLES2::fill()
 {
@@ -260,6 +280,8 @@ void GepardGLES2::fill()
  * \brief GepardGLES2::stroke
  *
  * \todo unimplemented function
+ *
+ * \internal
  */
 void GepardGLES2::stroke()
 {
@@ -270,6 +292,8 @@ void GepardGLES2::stroke()
  * \brief GepardGLES2::drawFocusIfNeeded
  *
  * \todo unimplemented function
+ *
+ * \internal
  */
 void GepardGLES2::drawFocusIfNeeded(/*Element element*/)
 {
@@ -280,6 +304,8 @@ void GepardGLES2::drawFocusIfNeeded(/*Element element*/)
  * \brief GepardGLES2::clip
  *
  * \todo unimplemented function
+ *
+ * \internal
  */
 void GepardGLES2::clip()
 {
@@ -293,6 +319,8 @@ void GepardGLES2::clip()
  * \return  true if the given _point_ is in the current path
  *
  * \todo unimplemented function
+ *
+ * \internal
  */
 bool GepardGLES2::isPointInPath(Float x, Float y)
 {
@@ -333,13 +361,13 @@ static const std::string s_fillRectFragmentShader = "\
 static ShaderProgram s_fillRectProgram(s_fillRectVertexShader, s_fillRectFragmentShader);
 
 /*!
- * \brief GepardGLES2::fillRect
+ * \brief Fill rect with GLES2 backend.
  * \param x  X-axis value of _start_ and _end_ point
  * \param y  Y-axis value of _start_ and _end_ point
  * \param w  size on X-axis
  * \param h  size on Y-axis
  *
- * \todo unimplemented function
+ * \internal
  */
 void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
 {
@@ -350,18 +378,26 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
     commandQueue->beginAttributeAdding(&s_fillRectProgram);
     commandQueue->addAttribute(GLfloat(x), GLfloat(y), GLfloat(x + w), GLfloat(y), GLfloat(x), GLfloat(y + h), GLfloat(x + w), GLfloat(y + h));
     commandQueue->addAttribute(GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
-                              GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
-                              GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
-                              GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a));
+                               GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
+                               GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
+                               GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a));
     commandQueue->endAttributeAdding();
 }
 
+/*!
+ * \brief Call a draw command to flush the command queue.
+ * \return  the number of rendered triangles
+ *
+ * \internal
+ */
 int GepardGLES2::draw()
 {
-    if (commandQueue && commandQueue->program && commandQueue->attributes != commandQueue->nextAttribute) {
-        return commandQueue->flushCommandQueue();
-    }
-    return (-1);
+    if (!commandQueue
+        || !commandQueue->program
+        || commandQueue->attributes == commandQueue->nextAttribute)
+        return -1;
+
+    return commandQueue->flushCommandQueue();
 }
 
 // GepardGLES2::CommandQueue
@@ -403,6 +439,7 @@ GepardGLES2::CommandQueue::CommandQueue(GepardGLES2* gepard)
 void GepardGLES2::CommandQueue::beginAttributeAdding(ShaderProgram* newProgram)
 {
     if (newProgram == program
+        && attributes != nextAttribute
         && hasFreeSpace()) {
         GD_LOG2("Batching.");
         return;
@@ -472,7 +509,6 @@ void GepardGLES2::CommandQueue::endAttributeAdding()
     ASSERT((nextAttribute <= attributes + kMaximumNumberOfAttributes) && quadCount <= kMaximumNumberOfUshortQuads);
 }
 
-
 uint GepardGLES2::CommandQueue::flushCommandQueue()
 {
     GD_LOG2("1. Set blending.");
@@ -516,7 +552,7 @@ uint GepardGLES2::CommandQueue::flushCommandQueue()
     eglSwapBuffers(_gepard->_eglDisplay, _gepard->_eglSurface);
 
     GD_LOG2("5. Reset command queue.");
-    float renderedTriangles = quadCount * 2;
+    const float renderedTriangles = quadCount * 2;
     quadCount = 0;
     nextAttribute = attributes;
 

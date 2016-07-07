@@ -306,11 +306,22 @@ void Gepard::clearRect(float x, float y, float w, float h)
 /** \todo unimplemented function */
 }
 
+/*!
+ * \brief Gepard::fillRect
+ *
+ *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
+ *
+ * The fillRect(x, y, w, h) method must paint the specified rectangular area
+ * using the fillStyle. If either height or width are zero, this method has no
+ * effect.
+ *
+ * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-fillrect">[W3C-2DContext]</a>
+ *   </blockquote>
+ */
 void Gepard::fillRect(float x, float y, float w, float h)
 {
-    if (_engine) {
-        _engine->fillRect(x, y, w, h);
-    }
+    ASSERT(_engine);
+    _engine->fillRect(x, y, w, h);
 }
 
 void Gepard::strokeRect(float x, float y, float w, float h)
@@ -557,11 +568,8 @@ void Gepard::putImageData(Image /*imagedata*/, double dx, double dy, double dirt
 
 int Gepard::draw()
 {
-    int renderedTriangles = -1;
-    if (_engine) {
-        renderedTriangles = _engine->draw();
-    }
-    return renderedTriangles;
+    ASSERT(_engine);
+    return _engine->draw();
 }
 
 void Gepard::setFillColor(std::string color)
@@ -592,9 +600,8 @@ void Gepard::setFillColor(const int red, const int green, const int blue, const 
 
 void Gepard::setFillColor(const float red, const float green, const float blue, const float alpha)
 {
-    if (_engine) {
-        _engine->setFillColor(red, green, blue, alpha);
-    }
+    ASSERT(_engine);
+    _engine->setFillColor(red, green, blue, alpha);
 }
 
 } // namespace gepard

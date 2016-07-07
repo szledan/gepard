@@ -32,9 +32,8 @@ namespace gepard {
  */
 void GepardEngine::closePath()
 {
-    if (_engineBackend) {
-        _engineBackend->closePath();
-    }
+    ASSERT(_engineBackend);
+    _engineBackend->closePath();
 }
 
 /*!
@@ -211,24 +210,21 @@ bool GepardEngine::isPointInPath(Float x, Float y)
  */
 void GepardEngine::fillRect(Float x, Float y, Float w, Float h)
 {
-    if (_engineBackend) {
-        _engineBackend->fillRect(x, y, w, h);
-    }
+    ASSERT(_engineBackend);
+    _engineBackend->fillRect(x, y, w, h);
 }
 
 void GepardEngine::setFillColor(const Float red, const Float green, const Float blue, const Float alpha)
 {
     GD_LOG1("Set fill color (" << red << ", " << green << ", " << blue << ", " << alpha << ")");
+    ASSERT(_engineBackend);
     _engineBackend->state.fillColor = Color(red, green, blue, alpha);
 }
 
 int GepardEngine::draw()
 {
-    int renderedTriangles = -1;
-    if (_engineBackend) {
-        renderedTriangles = _engineBackend->draw();
-    }
-    return renderedTriangles;
+    ASSERT(_engineBackend);
+    return _engineBackend->draw();
 }
 
 } // namespace gepard
