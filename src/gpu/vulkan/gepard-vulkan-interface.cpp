@@ -43,12 +43,12 @@ GepardVulkanInterface::~GepardVulkanInterface()
     dlclose(_vulkanLibrary);
 }
 
-#define GD_VK_LOAD_FUNCTION(fun)\
-    fun = (PFN_##fun) vkGetInstanceProcAddr (0, #fun); \
-    ASSERT(fun && "Couldn't load " #fun "!"); \
-
 void GepardVulkanInterface::loadGlobalFunctions()
 {
+#define GD_VK_LOAD_FUNCTION(fun)\
+    fun = (PFN_##fun) vkGetInstanceProcAddr (0, #fun); \
+    ASSERT(fun && "Couldn't load " #fun "!");
+
     if (!_vulkanLibrary) {
             GD_CRASH("Loading the Vulkan library was unsuccessfuly!\n");
             return;
@@ -58,23 +58,38 @@ void GepardVulkanInterface::loadGlobalFunctions()
     ASSERT(vkGetInstanceProcAddr && "Couldn't load the vkGetInstanceProcAddr function!");
 
     GD_VK_LOAD_FUNCTION (vkCreateInstance);
-}
 
 #undef GD_VK_LOAD_FUNCTION
-
-#define GD_VK_LOAD_FUNCTION(instance, fun)\
-    fun = (PFN_##fun) vkGetInstanceProcAddr (instance, #fun); \
-    ASSERT(fun && "Couldn't load " #fun "!"); \
+}
 
 void GepardVulkanInterface::loadInstanceFunctions(VkInstance instance)
 {
-    GD_VK_LOAD_FUNCTION(instance, vkDestroyInstance);
-    GD_VK_LOAD_FUNCTION(instance, vkEnumeratePhysicalDevices);
-    GD_VK_LOAD_FUNCTION(instance, vkGetPhysicalDeviceProperties);
-    GD_VK_LOAD_FUNCTION(instance, vkGetPhysicalDeviceQueueFamilyProperties);
-}
+#define GD_VK_LOAD_FUNCTION(fun)\
+    fun = (PFN_##fun) vkGetInstanceProcAddr (instance, #fun); \
+    ASSERT(fun && "Couldn't load " #fun "!");
+
+    GD_VK_LOAD_FUNCTION(vkDestroyInstance);
+    GD_VK_LOAD_FUNCTION(vkEnumeratePhysicalDevices);
+    GD_VK_LOAD_FUNCTION(vkGetPhysicalDeviceProperties);
+    GD_VK_LOAD_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties);
+    GD_VK_LOAD_FUNCTION(vkCreateDevice);
+    GD_VK_LOAD_FUNCTION(vkGetDeviceProcAddr);
 
 #undef GD_VK_LOAD_FUNCTION
+}
+
+void GepardVulkanInterface::loadDeviceFunctions(VkDevice device)
+{
+#define GD_VK_LOAD_FUNCTION(fun)\
+    fun = (PFN_##fun) vkGetDeviceProcAddr (device, #fun); \
+    ASSERT(fun && "Couldn't load " #fun "!");
+
+    GD_VK_LOAD_FUNCTION(vkDestroyDevice);
+    GD_VK_LOAD_FUNCTION(vkGetDeviceQueue);
+
+#undef GD_VK_LOAD_FUNCTION
+}
+
 
 
 } // namespace vulkan

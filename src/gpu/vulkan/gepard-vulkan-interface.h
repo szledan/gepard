@@ -55,8 +55,12 @@ public:
     GD_VK_DECLARE_FUNCTION(vkEnumeratePhysicalDevices);
     GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceProperties);
     GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties);
+    GD_VK_DECLARE_FUNCTION(vkCreateDevice);
+    GD_VK_DECLARE_FUNCTION(vkGetDeviceProcAddr);
 
     // Device level vulkan functions
+    GD_VK_DECLARE_FUNCTION(vkDestroyDevice);
+    GD_VK_DECLARE_FUNCTION(vkGetDeviceQueue);
 
 #undef GD_VK_DECLARE_FUNCTION
 

@@ -36,12 +36,15 @@
 
 #include "gepard-vulkan-interface.h"
 
+#include <vector>
+
 namespace gepard {
 
 class Image;
 class Surface;
 
 namespace vulkan {
+
 
 class GepardVulkan {
 public:
@@ -56,12 +59,15 @@ public:
 private:
     Surface* _surface;
     GepardVulkanInterface _vk;
-    VkInstance _vkInstance;
-    VkDevice _vkDevice;
+    VkInstance _instance;
+    VkPhysicalDevice _physicalDevice;
+    VkDevice _device;
+    uint32_t _queueFamilyIndex;
 
     void createDefaultInstance();
-    void chooseDefaultPhysicalDevice(VkPhysicalDevice* physicalDevice);
+    void chooseDefaultPhysicalDevice();
     void chooseDefaultDevice();
+    bool findGraphicsQueue(std::vector<VkPhysicalDevice> devices);
 };
 
 } // namespace vulkan
