@@ -31,7 +31,6 @@
 #include <random>
 #include <thread>
 
-
 std::mutex g_mutex;
 static const int64_t g_waitSecondsInMillisec = 1000;
 int64_t g_drawingPerSec = 25;
@@ -118,13 +117,13 @@ int main()
             rectsPerDrawingAvg += currentRectsPerDraw;
 
             if (drawPerSec >= drawingPerSec) {
-                std::cout << drawPerSec << " d/s  ";
+                std::cout << drawPerSec << " d/s \t";
                 std::cout << "~" << rectsPerDrawingAvg / drawPerSec << "(+";
-                std::cout << rectsPerDrawingDev - rectsPerDrawingAvg / drawPerSec << ") r/d  ";
-                std::cout << sumRects - rectsPerSec << " r/s  ";
-                std::cout << rectsFromDrawCall << " r(d)/s  ";
-                std::cout << (sumRects - rectsPerSec) - rectsFromDrawCall << " r(f)/s  ";
-                std::cout << sumRects << " S(r)  ";
+                std::cout << rectsPerDrawingDev - rectsPerDrawingAvg / drawPerSec << ") r/d \t";
+                std::cout << sumRects - rectsPerSec << " r/s \t";
+                std::cout << rectsFromDrawCall << " r(d)/s \t";
+                std::cout << (sumRects - rectsPerSec) - rectsFromDrawCall << " r(f)/s \t";
+                std::cout << sumRects << " S(r) \t";
                 std::cout << std::endl;
                 rectsPerSec = sumRects;
                 lastSumRects = 0;
