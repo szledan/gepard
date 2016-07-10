@@ -36,6 +36,7 @@ GepardVulkan::GepardVulkan(Surface* surface)
     : _surface(surface)
     , _vk("libvulkan.so")
     , _instance(0)
+    , _allocator(nullptr)
 {
     GD_LOG1("GepardVulkan");
     _vk.loadGlobalFunctions();
@@ -51,10 +52,10 @@ GepardVulkan::GepardVulkan(Surface* surface)
 GepardVulkan::~GepardVulkan()
 {
     if (_device) {
-        _vk.vkDestroyDevice(_device, nullptr);
+        _vk.vkDestroyDevice(_device, _allocator);
     }
     if (_instance) {
-        _vk.vkDestroyInstance(_instance, nullptr);
+        _vk.vkDestroyInstance(_instance, _allocator);
     }
 }
 
@@ -74,17 +75,17 @@ void GepardVulkan::createDefaultInstance()
 
     // todo: find better default arguments
     const VkInstanceCreateInfo instanceCreateInfo = {
-        VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-        nullptr,
-        0u,
-        nullptr,
-        0u,
-        nullptr,
-        0u,
-        nullptr,
+        VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO, // VkStructureType             sType;
+        nullptr,                                // const void*                 pNext;
+        0u,                                     // VkInstanceCreateFlags       flags;
+        nullptr,                                // const VkApplicationInfo*    pApplicationInfo;
+        0u,                                     // uint32_t                    enabledLayerCount;
+        nullptr,                                // const char* const*          ppEnabledLayerNames;
+        0u,                                     // uint32_t                    enabledExtensionCount;
+        nullptr,                                // const char* const*          ppEnabledExtensionNames;
     };
 
-    _vk.vkCreateInstance(&instanceCreateInfo, nullptr, &_instance);
+    _vk.vkCreateInstance(&instanceCreateInfo, _allocator, &_instance);
 }
 
 void GepardVulkan::chooseDefaultPhysicalDevice()
@@ -100,7 +101,7 @@ void GepardVulkan::chooseDefaultPhysicalDevice()
     std::vector<VkPhysicalDevice> discreteDevices;
     std::vector<VkPhysicalDevice> otherDevices;
     _vk.vkEnumeratePhysicalDevices(_instance, &deviceCount, physicalDevices.data());
-    for (int i = 0; i < deviceCount; i++) {
+    for (uint32_t i = 0; i < deviceCount; i++) {
            VkPhysicalDeviceProperties deviceProperties;
            _vk.vkGetPhysicalDeviceProperties(physicalDevices[i], &deviceProperties);
            GD_LOG3("device name " << deviceProperties.deviceName);
@@ -131,12 +132,12 @@ void GepardVulkan::chooseDefaultPhysicalDevice()
 
 bool GepardVulkan::findGraphicsQueue(std::vector<VkPhysicalDevice> devices)
 {
-    for (int i = 0; i < devices.size(); i++) {
+    for (uint32_t i = 0; i < devices.size(); i++) {
         uint32_t queueCount;
         _vk.vkGetPhysicalDeviceQueueFamilyProperties(devices[i], &queueCount, nullptr);
         std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueCount);
         _vk.vkGetPhysicalDeviceQueueFamilyProperties(devices[i], &queueCount, queueFamilyProperties.data());
-        for (int j = 0; j < queueCount; j++) {
+        for (uint32_t j = 0; j < queueCount; j++) {
             if (queueFamilyProperties[j].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
                 _physicalDevice = devices[i];
                 _queueFamilyIndex = j;
@@ -177,7 +178,7 @@ void GepardVulkan::chooseDefaultDevice()
         nullptr,                                // const VkPhysicalDeviceFeatures*  pEnabledFeatures;
     };
 
-    vkResult = _vk.vkCreateDevice(_physicalDevice, &deviceCreateInfo, nullptr, &_device);
+    vkResult = _vk.vkCreateDevice(_physicalDevice, &deviceCreateInfo, _allocator, &_device);
     ASSERT(vkResult == VK_SUCCESS && "Logical device creation is failed!");
 }
 

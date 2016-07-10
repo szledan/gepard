@@ -63,6 +63,7 @@ private:
     VkPhysicalDevice _physicalDevice;
     VkDevice _device;
     uint32_t _queueFamilyIndex;
+    VkAllocationCallbacks* _allocator;
 
     void createDefaultInstance();
     void chooseDefaultPhysicalDevice();
