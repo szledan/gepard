@@ -61,6 +61,11 @@ public:
     // Device level vulkan functions
     GD_VK_DECLARE_FUNCTION(vkDestroyDevice);
     GD_VK_DECLARE_FUNCTION(vkGetDeviceQueue);
+    GD_VK_DECLARE_FUNCTION(vkCreateCommandPool);
+    GD_VK_DECLARE_FUNCTION(vkResetCommandPool);
+    GD_VK_DECLARE_FUNCTION(vkDestroyCommandPool);
+    GD_VK_DECLARE_FUNCTION(vkAllocateCommandBuffers);
+    GD_VK_DECLARE_FUNCTION(vkFreeCommandBuffers);
 
 #undef GD_VK_DECLARE_FUNCTION
 

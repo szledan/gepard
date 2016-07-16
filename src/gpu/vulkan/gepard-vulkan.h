@@ -59,16 +59,20 @@ public:
 private:
     Surface* _surface;
     GepardVulkanInterface _vk;
+    VkAllocationCallbacks* _allocator;
     VkInstance _instance;
     VkPhysicalDevice _physicalDevice;
     VkDevice _device;
     uint32_t _queueFamilyIndex;
-    VkAllocationCallbacks* _allocator;
+    VkCommandPool _commandPool;
+    std::vector<VkCommandBuffer> _primaryCommandBuffers;
+    std::vector<VkCommandBuffer> _secondaryCommandBuffers;
 
     void createDefaultInstance();
     void chooseDefaultPhysicalDevice();
     void chooseDefaultDevice();
     bool findGraphicsQueue(std::vector<VkPhysicalDevice> devices);
+    void createCommandPool();
 };
 
 } // namespace vulkan

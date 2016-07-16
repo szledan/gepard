@@ -35,8 +35,8 @@ namespace vulkan {
 GepardVulkan::GepardVulkan(Surface* surface)
     : _surface(surface)
     , _vk("libvulkan.so")
-    , _instance(0)
     , _allocator(nullptr)
+    , _instance(0)
 {
     GD_LOG1("GepardVulkan");
     _vk.loadGlobalFunctions();
@@ -47,10 +47,15 @@ GepardVulkan::GepardVulkan(Surface* surface)
     chooseDefaultDevice();
     _vk.loadDeviceFunctions(_device);
     GD_LOG2(" - Device functions are loaded");
+
+    createCommandPool();
 }
 
 GepardVulkan::~GepardVulkan()
 {
+    if (_commandPool) {
+        _vk.vkDestroyCommandPool(_device, _commandPool, _allocator);
+    }
     if (_device) {
         _vk.vkDestroyDevice(_device, _allocator);
     }
@@ -183,6 +188,20 @@ void GepardVulkan::chooseDefaultDevice()
 }
 
 
+void GepardVulkan::createCommandPool()
+{
+    struct VkCommandPoolCreateInfo commandPoolCreateInfo = {
+        VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,         // VkStructureType sType;
+        nullptr,                                            // const void* pNext;
+        VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,    // VkCommandPoolCreateFlags flags;
+        _queueFamilyIndex,                                  // uint32_t queueFamilyIndex;
+    };
+
+    VkResult vkResult;
+    vkResult = _vk.vkCreateCommandPool(_device, &commandPoolCreateInfo, _allocator, &_commandPool);
+
+    ASSERT(vkResult == VK_SUCCESS && "Command pool creation is failed!");
+}
 
 
 } // namespace vulkan
