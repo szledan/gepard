@@ -49,10 +49,17 @@ GepardVulkan::GepardVulkan(Surface* surface)
     GD_LOG2(" - Device functions are loaded");
 
     createCommandPool();
+    allocatePrimaryCommandBuffer();
 }
 
 GepardVulkan::~GepardVulkan()
 {
+    if (_secondaryCommandBuffers.size()) {
+        _vk.vkFreeCommandBuffers(_device, _commandPool, _secondaryCommandBuffers.size(), _secondaryCommandBuffers.data());
+    }
+    if (_primaryCommandBuffers.size()) {
+        _vk.vkFreeCommandBuffers(_device, _commandPool, _primaryCommandBuffers.size(), _primaryCommandBuffers.data());
+    }
     if (_commandPool) {
         _vk.vkDestroyCommandPool(_device, _commandPool, _allocator);
     }
@@ -190,17 +197,35 @@ void GepardVulkan::chooseDefaultDevice()
 
 void GepardVulkan::createCommandPool()
 {
-    struct VkCommandPoolCreateInfo commandPoolCreateInfo = {
-        VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,         // VkStructureType sType;
-        nullptr,                                            // const void* pNext;
+    VkCommandPoolCreateInfo commandPoolCreateInfo = {
+        VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,         // VkStructureType          sType;
+        nullptr,                                            // const void*              pNext;
         VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,    // VkCommandPoolCreateFlags flags;
-        _queueFamilyIndex,                                  // uint32_t queueFamilyIndex;
+        _queueFamilyIndex,                                  // uint32_t                 queueFamilyIndex;
     };
 
     VkResult vkResult;
     vkResult = _vk.vkCreateCommandPool(_device, &commandPoolCreateInfo, _allocator, &_commandPool);
 
     ASSERT(vkResult == VK_SUCCESS && "Command pool creation is failed!");
+}
+
+void GepardVulkan::allocatePrimaryCommandBuffer()
+{
+    VkCommandBufferAllocateInfo commandBufferAllocateInfo = {
+        VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, // VkStructureType         sType;
+        nullptr,                                        // const void*             pNext;
+        _commandPool,                                   // VkCommandPool           commandPool;
+        VK_COMMAND_BUFFER_LEVEL_PRIMARY,                // VkCommandBufferLevel    level;
+        1,                                              // uint32_t                commandBufferCount;
+    };
+
+    VkResult vkResult;
+    VkCommandBuffer commandBuffer;
+    vkResult = _vk.vkAllocateCommandBuffers(_device, &commandBufferAllocateInfo, &commandBuffer);
+
+    ASSERT(vkResult == VK_SUCCESS && "Command buffer allocation is failed!");
+    _primaryCommandBuffers.push_back(commandBuffer);
 }
 
 

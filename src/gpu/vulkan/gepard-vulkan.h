@@ -73,6 +73,7 @@ private:
     void chooseDefaultDevice();
     bool findGraphicsQueue(std::vector<VkPhysicalDevice> devices);
     void createCommandPool();
+    void allocatePrimaryCommandBuffer();
 };
 
 } // namespace vulkan
