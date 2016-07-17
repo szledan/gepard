@@ -47,12 +47,12 @@ Gepard::~Gepard()
 
 void Gepard::save()
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
 }
 
 void Gepard::restore()
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
 }
 
 /*!
@@ -278,34 +278,35 @@ void Gepard::arc(float x, float y, float radius, float startAngle, float endAngl
 
 void Gepard::scale(float x, float y)
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
 }
 
 void Gepard::rotate(float angle)
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
 }
 
 void Gepard::translate(float x, float y)
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
 }
 
 void Gepard::transform(float a, float b, float c, float d, float e, float f)
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
 }
 
 void Gepard::setTransform(float a, float b, float c, float d, float e, float f)
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
 }
 
 void Gepard::clearRect(float x, float y, float w, float h)
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
 }
 
+/*! \todo missing doc */
 void Gepard::fillRect(float x, float y, float w, float h)
 {
     if (_engine) {
@@ -315,7 +316,7 @@ void Gepard::fillRect(float x, float y, float w, float h)
 
 void Gepard::strokeRect(float x, float y, float w, float h)
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
 }
 
 /*!
@@ -507,50 +508,50 @@ bool Gepard::isPointInPath(float x, float y)
 
 void Gepard::drawImage(Image /*image*/, float dx, float dy)
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
 }
 
 void Gepard::drawImage(Image /*image*/, float dx, float dy, float dw, float dh)
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
 }
 
 void Gepard::drawImage(Image /*image*/, float sx, float sy, float sw, float sh,
     float dx, float dy, float dw, float dh)
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
 }
 
 Image Gepard::createImageData(float sw, float sh)
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
     GD_NOT_IMPLEMENTED();
     return Image();
 }
 
 Image Gepard::createImageData(Image /*imagedata*/)
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
     GD_NOT_IMPLEMENTED();
     return Image();
 }
 
 Image Gepard::getImageData(double sx, double sy, double sw, double sh)
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
     GD_NOT_IMPLEMENTED();
     return Image();
 }
 
 void Gepard::putImageData(Image /*imagedata*/, double dx, double dy)
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
 }
 
 void Gepard::putImageData(Image /*imagedata*/, double dx, double dy, double dirtyX, double dirtyY,
     double dirtyWidth, double dirtyHeight)
 {
-/** \todo unimplemented function */
+/*! \todo unimplemented function */
 }
 
 void Gepard::setFillColor(std::string color)
