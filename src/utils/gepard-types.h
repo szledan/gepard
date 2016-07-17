@@ -205,7 +205,7 @@ inline FloatPoint operator-(const FloatPoint& lhs, const FloatPoint& rhs)
 
 inline FloatPoint operator/(const FloatPoint& fp, const Float& f)
 {
-    ASSERT(f);
+    GD_ASSERT(f);
     return FloatPoint(fp.x / f, fp.y / f);
 }
 

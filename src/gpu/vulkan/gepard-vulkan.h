@@ -23,7 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_VULKAN
+#ifdef GD_USE_VULKAN
 
 #ifndef GEPARD_VULKAN_H
 #define GEPARD_VULKAN_H
@@ -62,4 +62,4 @@ typedef vulkan::GepardVulkan GepardEngineBackend;
 
 #endif // GEPARD_VULKAN_H
 
-#endif // USE_VULKAN
+#endif // GD_USE_VULKAN

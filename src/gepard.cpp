@@ -78,7 +78,7 @@ void Gepard::restore()
  */
 void Gepard::closePath()
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -101,7 +101,7 @@ void Gepard::closePath()
  */
 void Gepard::moveTo(float x, float y)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -121,7 +121,7 @@ void Gepard::moveTo(float x, float y)
  */
 void Gepard::lineTo(float x, float y)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -141,7 +141,7 @@ void Gepard::lineTo(float x, float y)
  */
 void Gepard::quadraticCurveTo(float cpx, float cpy, float x, float y)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -162,7 +162,7 @@ void Gepard::quadraticCurveTo(float cpx, float cpy, float x, float y)
  */
 void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -207,7 +207,7 @@ void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float
  */
 void Gepard::arcTo(float x1, float y1, float x2, float y2, float radius)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -228,7 +228,7 @@ void Gepard::arcTo(float x1, float y1, float x2, float y2, float radius)
  */
 void Gepard::rect(float x, float y, float w, float h)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -273,7 +273,7 @@ void Gepard::rect(float x, float y, float w, float h)
  */
 void Gepard::arc(float x, float y, float radius, float startAngle, float endAngle, bool counterclockwise)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 void Gepard::scale(float x, float y)
@@ -333,7 +333,7 @@ void Gepard::strokeRect(float x, float y, float w, float h)
  */
 void Gepard::beginPath()
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -360,7 +360,7 @@ void Gepard::beginPath()
  */
 void Gepard::fill()
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -393,7 +393,7 @@ void Gepard::fill()
  */
 void Gepard::stroke()
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -452,7 +452,7 @@ void Gepard::stroke()
  */
 void Gepard::drawFocusIfNeeded(/*Element element*/)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -478,7 +478,7 @@ void Gepard::drawFocusIfNeeded(/*Element element*/)
  */
 void Gepard::clip()
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -501,7 +501,7 @@ void Gepard::clip()
  */
 bool Gepard::isPointInPath(float x, float y)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
     return false;
 }
 
@@ -524,21 +524,21 @@ void Gepard::drawImage(Image /*image*/, float sx, float sy, float sw, float sh,
 Image Gepard::createImageData(float sw, float sh)
 {
 /** \todo unimplemented function */
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
     return Image();
 }
 
 Image Gepard::createImageData(Image /*imagedata*/)
 {
 /** \todo unimplemented function */
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
     return Image();
 }
 
 Image Gepard::getImageData(double sx, double sy, double sw, double sh)
 {
 /** \todo unimplemented function */
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
     return Image();
 }
 

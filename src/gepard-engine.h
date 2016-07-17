@@ -31,13 +31,13 @@
 #include "gepard-image.h"
 #include "gepard-surface.h"
 #include "gepard-types.h"
-#ifdef USE_GLES2
+#ifdef GD_USE_GLES2
 #include "gepard-gles2.h"
-#endif // USE_GLES2
+#endif // GD_USE_GLES2
 
-#ifdef USE_VULKAN
+#ifdef GD_USE_VULKAN
 #include "gepard-vulkan.h"
-#endif // USE_VULKAN
+#endif // GD_USE_VULKAN
 
 namespace gepard {
 
