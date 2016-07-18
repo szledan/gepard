@@ -25,8 +25,8 @@
  */
 
 #include "gepard.h"
-#include "gepard-xsurface.h"
-#include "gepard-memory-buffer-surface.h"
+#include "surfaces/gepard-xsurface.h"
+#include "surfaces/gepard-memory-buffer-surface.h"
 #include <iostream>
 
 int main()

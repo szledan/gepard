@@ -29,7 +29,6 @@
 #include "gepard-defs.h"
 
 #include "gepard-image.h"
-#include "gepard-surface.h"
 #include "gepard-types.h"
 
 // Include engine backend.

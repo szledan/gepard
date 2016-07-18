@@ -27,7 +27,7 @@
 #define SAVANNA_BENCHMARKS_H
 
 #include "gepard.h"
-#include "gepard-xsurface.h"
+#include "surfaces/gepard-xsurface.h"
 #include "savanna.h"
 
 namespace savanna {

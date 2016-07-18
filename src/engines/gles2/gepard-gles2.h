@@ -30,8 +30,8 @@
 
 #include "gepard-defs.h"
 
+#include "gepard.h"
 #include "gepard-image.h"
-#include "gepard-surface.h"
 #include "gepard-types.h"
 #include <EGL/egl.h>
 #include <map>
