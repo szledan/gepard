@@ -67,6 +67,7 @@ private:
     VkCommandPool _commandPool;
     std::vector<VkCommandBuffer> _primaryCommandBuffers;
     std::vector<VkCommandBuffer> _secondaryCommandBuffers;
+    VkRenderPass _renderPass;
 
     void createDefaultInstance();
     void chooseDefaultPhysicalDevice();
@@ -74,6 +75,7 @@ private:
     bool findGraphicsQueue(std::vector<VkPhysicalDevice> devices);
     void createCommandPool();
     void allocatePrimaryCommandBuffer();
+    void createDefaultRenderPass();
 };
 
 } // namespace vulkan

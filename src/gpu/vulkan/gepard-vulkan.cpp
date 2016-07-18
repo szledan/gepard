@@ -47,13 +47,18 @@ GepardVulkan::GepardVulkan(Surface* surface)
     chooseDefaultDevice();
     _vk.loadDeviceFunctions(_device);
     GD_LOG2(" - Device functions are loaded");
-
     createCommandPool();
     allocatePrimaryCommandBuffer();
+    GD_LOG2(" - Command buffer is allocated");
+    createDefaultRenderPass();
+    GD_LOG2(" - Default render pass is created");
 }
 
 GepardVulkan::~GepardVulkan()
 {
+    if (_renderPass) {
+        _vk.vkDestroyRenderPass(_device, _renderPass, _allocator);
+    }
     if (_secondaryCommandBuffers.size()) {
         _vk.vkFreeCommandBuffers(_device, _commandPool, _secondaryCommandBuffers.size(), _secondaryCommandBuffers.data());
     }
@@ -226,6 +231,56 @@ void GepardVulkan::allocatePrimaryCommandBuffer()
 
     ASSERT(vkResult == VK_SUCCESS && "Command buffer allocation is failed!");
     _primaryCommandBuffers.push_back(commandBuffer);
+}
+
+void GepardVulkan::createDefaultRenderPass()
+{
+    VkResult vkResult;
+
+    VkAttachmentDescription attachmentDescription = {
+        0,                                          // VkAttachmentDescriptionFlags flags;
+        VK_FORMAT_R8G8B8A8_UNORM,                   // VkFormat                     format;
+        VK_SAMPLE_COUNT_1_BIT,                      // VkSampleCountFlagBits        samples;
+        VK_ATTACHMENT_LOAD_OP_CLEAR,                // VkAttachmentLoadOp           loadOp;
+        VK_ATTACHMENT_STORE_OP_STORE,               // VkAttachmentStoreOp          storeOp;
+        VK_ATTACHMENT_LOAD_OP_DONT_CARE,            // VkAttachmentLoadOp           stencilLoadOp;
+        VK_ATTACHMENT_STORE_OP_DONT_CARE,           // VkAttachmentStoreOp          stencilStoreOp;
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout                initialLayout;
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout                finalLayout;
+    };
+
+    VkAttachmentReference colorAttachment = {
+        0,                                          // uint32_t         attachment;
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout    layout;
+    };
+
+    VkSubpassDescription subpassDescription = {
+        0u,                                 // VkSubpassDescriptionFlags       flags;
+        VK_PIPELINE_BIND_POINT_GRAPHICS,    // VkPipelineBindPoint             pipelineBindPoint;
+        0u,                                 // uint32_t                        inputAttachmentCount;
+        nullptr,                            // const VkAttachmentReference*    pInputAttachments;
+        1u,                                 // uint32_t                        colorAttachmentCount;
+        &colorAttachment,                   // const VkAttachmentReference*    pColorAttachments;
+        nullptr,                            // const VkAttachmentReference*    pResolveAttachments;
+        nullptr,                            // const VkAttachmentReference*    pDepthStencilAttachment;
+        0u,                                 // uint32_t                        preserveAttachmentCount;
+        nullptr,                            // const uint32_t*                 pPreserveAttachments;
+    };
+
+    VkRenderPassCreateInfo renderPassCreateInfo = {
+        VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,  // VkStructureType                   sType;
+        nullptr,                                    // const void*                       pNext;
+        0u,                                         // VkRenderPassCreateFlags           flags;
+        1u,                                         // uint32_t                          attachmentCount;
+        &attachmentDescription,                     // const VkAttachmentDescription*    pAttachments;
+        1u,                                         // uint32_t                          subpassCount;
+        &subpassDescription,                        // const VkSubpassDescription*       pSubpasses;
+        0u,                                         // uint32_t                          dependencyCount;
+        nullptr,                                    // const VkSubpassDependency*        pDependencies;
+    };
+
+    vkResult = _vk.vkCreateRenderPass(_device, &renderPassCreateInfo, _allocator, &_renderPass);
+    ASSERT(vkResult == VK_SUCCESS && "Creating the default render pass is failed!");
 }
 
 

@@ -69,6 +69,8 @@ public:
     GD_VK_DECLARE_FUNCTION(vkBeginCommandBuffer);
     GD_VK_DECLARE_FUNCTION(vkEndCommandBuffer);
     GD_VK_DECLARE_FUNCTION(vkQueueSubmit);
+    GD_VK_DECLARE_FUNCTION(vkCreateRenderPass);
+    GD_VK_DECLARE_FUNCTION(vkDestroyRenderPass);
 
 #undef GD_VK_DECLARE_FUNCTION
 
