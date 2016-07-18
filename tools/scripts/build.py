@@ -94,6 +94,16 @@ def configure(arguments):
     return subprocess.call(['cmake', '-B' + build_path, '-H' + get_base_path()] + create_options(arguments))
 
 
+# Clean build directory
+def run_clean(arguments):
+    build_path = get_build_path(arguments)
+
+    if not path.isfile(path.join(build_path, 'Makefile')):
+        return 0
+
+    return subprocess.call(['make', '-s', '-C', build_path, 'clean'])
+
+
 # Build unit tests
 def build_unit(arguments):
     build_path = get_build_path(arguments)
@@ -121,9 +131,6 @@ def build_gepard(arguments):
     if not path.isfile(path.join(build_path, 'Makefile')):
         raise RuntimeError('Build is not configured.')
 
-    if arguments.clean:
-        subprocess.call(['make', '-s', '-C', build_path, 'clean'])
-
     return subprocess.call(['make', '-s', '-C', build_path])
 
 
@@ -143,6 +150,9 @@ def main():
     ret = configure(arguments)
 
     if not ret:
+        if arguments.clean:
+            run_clean(arguments)
+
         if arguments.build_examples:
             ret = build_examples(arguments)
         else:
