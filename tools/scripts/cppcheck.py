@@ -28,6 +28,7 @@
 import argparse
 import subprocess
 import sys
+import util
 from os import chdir
 from os import errno
 from os import getcwd
@@ -35,7 +36,7 @@ from os import path
 
 
 def run_cppcheck():
-    basedir = path.abspath(path.join(path.dirname(__file__), '..', '..'))
+    basedir = util.get_base_path()
     cmd = [
         'cppcheck',
         '--enable=all',
@@ -49,31 +50,23 @@ def run_cppcheck():
 
     try:
         chdir(basedir)
-        return subprocess.call(cmd)
+        util.call_cmd(cmd)
     except OSError as e:
         if e.errno == errno.ENOENT:
-            print("Error: cppcheck is not installed.")
-            return 1
+            raise OSError("Cppcheck is not installed.")
         else:
             raise
 
 
-def print_result(ret):
-    print('')
-    print('-' * 30)
-    if ret:
-        print('There were some issues.\nPlease check the log above.')
-    else:
-        print('All checks passed.')
-
-    print('-' * 30)
-
-
 def main():
-    ret = run_cppcheck()
+    try:
+        run_cppcheck()
+    except RuntimeError:
+        util.print_test_fail()
+        sys.exit(1)
 
-    print_result(ret)
-    sys.exit(ret)
+    util.print_test_success()
+    sys.exit(0)
 
 
 if __name__ == "__main__":

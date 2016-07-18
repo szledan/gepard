@@ -28,6 +28,7 @@
 import argparse
 import subprocess
 import sys
+import util
 from os import path
 from os import getcwd
 from os import makedirs
@@ -71,39 +72,21 @@ def get_args():
     return parser.parse_args()
 
 
-# Get base path
-def get_base_path():
-    return path.abspath(path.join(path.dirname(__file__), '..', '..'))
-
-
-# Get build path
-def get_build_path(arguments):
-    basedir = get_base_path()
-    return path.join(basedir, 'build', arguments.build_type)
-
-
-# Command wrapper
-def call_cmd(command):
-    ret = subprocess.call(command)
-    if ret:
-        raise RuntimeError("Command failed with exit code: %d.\n%s" % (ret, " ".join(command)))
-
-
 # Generate build config
 def configure(arguments):
-    build_path = get_build_path(arguments)
+    build_path = util.get_build_path(arguments)
 
     try:
         makedirs(build_path)
     except OSError:
         pass
 
-    call_cmd(['cmake', '-B' + build_path, '-H' + get_base_path()] + create_options(arguments))
+    util.call_cmd(['cmake', '-B' + build_path, '-H' + util.get_base_path()] + create_options(arguments))
 
 
 # Check if build is configured
 def check_configured(arguments):
-    build_path = get_build_path(arguments)
+    build_path = util.get_build_path(arguments)
 
     if not path.isfile(path.join(build_path, 'Makefile')):
         raise RuntimeError('Build is not configured.')
@@ -111,38 +94,38 @@ def check_configured(arguments):
 
 # Clean build directory
 def run_clean(arguments):
-    build_path = get_build_path(arguments)
+    build_path = util.get_build_path(arguments)
 
     try:
         check_configured(arguments)
     except Error:
         return 0
 
-    call_cmd(['make', '-s', '-C', build_path, 'clean'])
+    util.call_cmd(['make', '-s', '-C', build_path, 'clean'])
 
 
 # Build unit tests
 def build_unit(arguments):
-    build_path = get_build_path(arguments)
+    build_path = util.get_build_path(arguments)
     check_configured(arguments)
 
-    call_cmd(['make', '-s', '-C', build_path, 'unit'])
+    util.call_cmd(['make', '-s', '-C', build_path, 'unit'])
 
 
 # Build examples
 def build_examples(arguments):
-    build_path = get_build_path(arguments)
+    build_path = util.get_build_path(arguments)
     check_configured(arguments)
 
-    call_cmd(['make', '-s', '-C', build_path, 'examples'])
+    util.call_cmd(['make', '-s', '-C', build_path, 'examples'])
 
 
 # Perform the build
 def build_gepard(arguments):
-    build_path = get_build_path(arguments)
+    build_path = util.get_build_path(arguments)
     check_configured(arguments)
 
-    call_cmd(['make', '-s', '-C', build_path])
+    util.call_cmd(['make', '-s', '-C', build_path])
 
 
 # Print success message

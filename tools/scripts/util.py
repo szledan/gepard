@@ -25,39 +25,37 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import argparse
-import build
+import subprocess
 import sys
-import util
-from cppcheck import run_cppcheck
-from unittest import run_unittest
+from os import path
 
-def main():
-    parser = argparse.ArgumentParser()
-    build.add_base_args(parser)
-    arguments = parser.parse_args()
-
-    error = False
-
-    print("Running cppcheck.")
-    try:
-        run_cppcheck()
-    except RuntimeError:
-        error = True
-
-    print("\nRunning unit-tests.")
-    try:
-        run_unittest(arguments)
-    except RuntimeError:
-        error = True
-
-    if error:
-        util.print_test_fail()
-        sys.exit(1)
-
-    util.print_test_success()
-    sys.exit(0)
+# Get base path
+def get_base_path():
+    return path.abspath(path.join(path.dirname(__file__), '..', '..'))
 
 
-if __name__ == "__main__":
-    main()
+# Get build path
+def get_build_path(arguments):
+    basedir = get_base_path()
+    return path.join(basedir, 'build', arguments.build_type)
+
+
+# Command wrapper
+def call_cmd(command):
+    ret = subprocess.call(command)
+    if ret:
+        raise RuntimeError("Command failed with exit code: %d.\n%s" % (ret, " ".join(command)))
+
+
+def print_test_success():
+    print('')
+    print('-' * 30)
+    print('All checks passed.')
+    print('-' * 30)
+
+
+def print_test_fail():
+    print('')
+    print('-' * 30)
+    print('Some checks have failed, please see the log.')
+    print('-' * 30)
