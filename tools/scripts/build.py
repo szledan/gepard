@@ -56,7 +56,7 @@ def add_base_args(parser):
 
 # Extra build arguments
 def add_extra_build_args(parser):
-    parser.add_argument('--clean', action='store_true', default=False, help='Perform clean build.')
+    parser.add_argument('--clean', '-c', action='store_true', default=False, help='Perform clean build.')
     parser.add_argument('--examples', '-e', action='store_true', default=False, dest='build_examples', help='Build example applications.')
     parser.add_argument('--target', action='store', choices=['x86-linux', 'arm-linux'], help='Specify build target. Leave empty for native build.')
     parser.add_argument('--log-level', action='store', type=int, choices=range(0,5), default=0, help='Set logging level.')
@@ -99,7 +99,7 @@ def run_clean(arguments):
     try:
         check_configured(arguments)
     except Error:
-        return 0
+        return
 
     util.call_cmd(['make', '-s', '-C', build_path, 'clean'])
 
@@ -144,9 +144,9 @@ def main():
         run_clean(arguments)
 
     if arguments.build_examples:
-        ret = build_examples(arguments)
+        build_examples(arguments)
     else:
-        ret = build_gepard(arguments)
+        build_gepard(arguments)
 
     print_success()
     sys.exit(0)
