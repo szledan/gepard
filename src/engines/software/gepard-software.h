@@ -23,8 +23,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GEPARD_ENGINE_H
-#define GEPARD_ENGINE_H
+#ifdef GD_USE_SOFTWARE
+
+#ifndef GEPARD_SOFTWARE_H
+#define GEPARD_SOFTWARE_H
 
 #include "gepard-defs.h"
 
@@ -32,35 +34,17 @@
 #include "gepard-surface.h"
 #include "gepard-types.h"
 
-// Include engine backend.
-#if defined(GD_USE_GLES2)
-#include "gepard-gles2.h"
-#elif defined(GD_USE_SOFTWARE)
-#include "gepard-software.h"
-#elif defined(GD_USE_VULKAN)
-#include "gepard-vulkan.h"
-#else
-#error "No engine backend defined!"
-#endif // Include engine backend.
-
 namespace gepard {
 
 class Image;
 class Surface;
 
-class GepardEngine {
+namespace software {
+
+class GepardSoftware {
 public:
-    explicit GepardEngine(Surface* surface)
-        : _surface(surface)
-        , _engineBackend(new GepardEngineBackend(surface))
-    {
-    }
-    ~GepardEngine()
-    {
-        if (_engineBackend) {
-            delete _engineBackend;
-        }
-    }
+    explicit GepardSoftware(Surface* surface);
+    ~GepardSoftware();
 
     /* 5. Building paths */
     void closePath();
@@ -82,13 +66,18 @@ public:
 
     void fillRect(Float x, Float y, Float w, Float h);
 
-    void setFillColor(const Float red, const Float green, const Float blue, const Float alpha = 1.0f);
-
+    /// \todo remove into a vector<GepardState> states.
+    GepardState state;
 private:
     Surface* _surface;
-    GepardEngineBackend* _engineBackend;
 };
+
+} // namespace software
+
+typedef software::GepardSoftware GepardEngineBackend;
 
 } // namespace gepard
 
-#endif // GEPARD_ENGINE_H
+#endif // GEPARD_SOFTWARE_H
+
+#endif // GD_USE_SOFTWARE
