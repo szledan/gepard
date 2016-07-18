@@ -23,7 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_VULKAN
+#ifdef GD_USE_VULKAN
 
 #include "gepard-vulkan.h"
 
@@ -50,4 +50,4 @@ void GepardVulkan::closePath()
 } // namespace vulkan
 } // namespace gepard
 
-#endif // USE_VULKAN
+#endif // GD_USE_VULKAN

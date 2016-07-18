@@ -46,7 +46,7 @@ void GepardEngine::closePath()
  */
 void GepardEngine::moveTo(Float x, Float y)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -58,7 +58,7 @@ void GepardEngine::moveTo(Float x, Float y)
  */
 void GepardEngine::lineTo(Float x, Float y)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -72,7 +72,7 @@ void GepardEngine::lineTo(Float x, Float y)
  */
 void GepardEngine::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -88,7 +88,7 @@ void GepardEngine::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
  */
 void GepardEngine::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -103,7 +103,7 @@ void GepardEngine::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y,
  */
 void GepardEngine::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -117,7 +117,7 @@ void GepardEngine::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
  */
 void GepardEngine::rect(Float x, Float y, Float w, Float h)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -133,7 +133,7 @@ void GepardEngine::rect(Float x, Float y, Float w, Float h)
  */
 void GepardEngine::arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -143,7 +143,7 @@ void GepardEngine::arc(Float x, Float y, Float radius, Float startAngle, Float e
  */
 void GepardEngine::beginPath()
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -153,7 +153,7 @@ void GepardEngine::beginPath()
  */
 void GepardEngine::fill()
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -163,7 +163,7 @@ void GepardEngine::fill()
  */
 void GepardEngine::stroke()
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -173,7 +173,7 @@ void GepardEngine::stroke()
  */
 void GepardEngine::drawFocusIfNeeded(/*Element element*/)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -183,7 +183,7 @@ void GepardEngine::drawFocusIfNeeded(/*Element element*/)
  */
 void GepardEngine::clip()
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -196,7 +196,7 @@ void GepardEngine::clip()
  */
 bool GepardEngine::isPointInPath(Float x, Float y)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
     return false;
 }
 

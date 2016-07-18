@@ -23,7 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_GLES2
+#ifdef GD_USE_GLES2
 
 #ifndef GEPARD_GLES2_H
 #define GEPARD_GLES2_H
@@ -88,4 +88,4 @@ typedef gles2::GepardGLES2 GepardEngineBackend;
 
 #endif // GEPARD_GLES2_H
 
-#endif // USE_GLES2
+#endif // GD_USE_GLES2
