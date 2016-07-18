@@ -38,11 +38,11 @@ def create_options(arguments):
     opts = [
             '-DCMAKE_BUILD_TYPE=' + arguments.build_type.capitalize(),
             '-DBACKEND=' + arguments.backend.upper(),
-            '-DGD_LOG_LEVEL=' + str(arguments.log_level)
+            '-DLOG_LEVEL=' + str(arguments.log_level)
     ]
 
     if arguments.no_colored_logs:
-        opts.append('-DGD_DISABLE_LOG_COLORS=ON')
+        opts.append('-DDISABLE_LOG_COLORS=ON')
 
     return opts
 
