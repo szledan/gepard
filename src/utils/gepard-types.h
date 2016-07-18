@@ -63,17 +63,17 @@ static inline const T& clamp(const T& value, const T& min, const T& max)
 /* Region */
 
 /*!
- * \brief REGION_BLOCK_SIZE
- * REGION_BLOCK_SIZE = 2048 bytes minus size of a pointer
+ * \brief GD_REGION_BLOCK_SIZE
+ * GD_REGION_BLOCK_SIZE = 2048 bytes minus size of a pointer
  *
  * \internal
  */
-#define REGION_BLOCK_SIZE (2048 - (int)sizeof(void*))
+#define GD_REGION_BLOCK_SIZE (2048 - (int)sizeof(void*))
 
 /*!
  * \brief The Region class
  * \tparam BLOCK_SIZE  defines the region size; the default size is the
- * REGION_BLOCK_SIZE = 2048 bytes minus size of a pointer.
+ * GD_REGION_BLOCK_SIZE = 2048 bytes minus size of a pointer.
  *
  * This is a simple class for memory allocation.  It doesn't have free() or
  * realloc(), only alloc() for allocation.  It's used to allocate lots of
@@ -85,7 +85,7 @@ static inline const T& clamp(const T& value, const T& min, const T& max)
  *
  * \internal
  */
-template<const uint32_t BLOCK_SIZE = REGION_BLOCK_SIZE>
+template<const uint32_t BLOCK_SIZE = GD_REGION_BLOCK_SIZE>
 class Region {
 public:
     Region()
