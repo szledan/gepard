@@ -26,9 +26,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import argparse
-import subprocess
-import sys
 import build
+import sys
 from os import path
 from os import getcwd
 
@@ -38,15 +37,9 @@ def run_unittest(args):
 
     print("Building unit-tests...")
     # We use the argument parser from the main build script here to initialize all required members of the argument structure.
-    ret = build.configure(build.get_args())
-
-    if not ret:
-      ret = build.build_unit(args)
-
-    if not ret:
-      ret = subprocess.call([path.join(build_path, 'bin', 'unit')])
-
-    return ret
+    build.configure(build.get_args())
+    build.build_unit(args)
+    build.call_cmd([path.join(build_path, 'bin', 'unit')])
 
 
 def main():
@@ -54,9 +47,12 @@ def main():
     build.add_base_args(parser)
     arguments = parser.parse_args()
 
-    ret = run_unittest(arguments)
+    try:
+        run_unittest(arguments)
+    except RuntimeError:
+        sys.exit(1)
 
-    sys.exit(ret)
+    sys.exit(0)
 
 
 if __name__ == "__main__":

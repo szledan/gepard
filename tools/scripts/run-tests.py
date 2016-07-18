@@ -38,9 +38,9 @@ def main():
     arguments = parser.parse_args()
 
     print("Running cppcheck.")
-    ret = run_cppcheck()
+    run_cppcheck()
     print("\nRunning unit-tests.")
-    ret += run_unittest(arguments)
+    run_unittest(arguments)
 
     print_result(ret)
     sys.exit(ret)

@@ -82,6 +82,13 @@ def get_build_path(arguments):
     return path.join(basedir, 'build', arguments.build_type)
 
 
+# Command wrapper
+def call_cmd(command):
+    ret = subprocess.call(command)
+    if ret:
+        raise RuntimeError("Command failed with exit code: %d.\n%s" % (ret, " ".join(command)))
+
+
 # Generate build config
 def configure(arguments):
     build_path = get_build_path(arguments)
@@ -91,75 +98,75 @@ def configure(arguments):
     except OSError:
         pass
 
-    return subprocess.call(['cmake', '-B' + build_path, '-H' + get_base_path()] + create_options(arguments))
+    call_cmd(['cmake', '-B' + build_path, '-H' + get_base_path()] + create_options(arguments))
+
+
+# Check if build is configured
+def check_configured(arguments):
+    build_path = get_build_path(arguments)
+
+    if not path.isfile(path.join(build_path, 'Makefile')):
+        raise RuntimeError('Build is not configured.')
 
 
 # Clean build directory
 def run_clean(arguments):
     build_path = get_build_path(arguments)
 
-    if not path.isfile(path.join(build_path, 'Makefile')):
+    try:
+        check_configured(arguments)
+    except Error:
         return 0
 
-    return subprocess.call(['make', '-s', '-C', build_path, 'clean'])
+    call_cmd(['make', '-s', '-C', build_path, 'clean'])
 
 
 # Build unit tests
 def build_unit(arguments):
     build_path = get_build_path(arguments)
+    check_configured(arguments)
 
-    if not path.isfile(path.join(build_path, 'Makefile')):
-        raise RuntimeError('Build is not configured.')
-
-    return subprocess.call(['make', '-s', '-C', build_path, 'unit'])
+    call_cmd(['make', '-s', '-C', build_path, 'unit'])
 
 
 # Build examples
 def build_examples(arguments):
     build_path = get_build_path(arguments)
+    check_configured(arguments)
 
-    if not path.isfile(path.join(build_path, 'Makefile')):
-        raise RuntimeError('Build is not configured.')
-
-    return subprocess.call(['make', '-s', '-C', build_path, 'examples'])
+    call_cmd(['make', '-s', '-C', build_path, 'examples'])
 
 
 # Perform the build
 def build_gepard(arguments):
     build_path = get_build_path(arguments)
+    check_configured(arguments)
 
-    if not path.isfile(path.join(build_path, 'Makefile')):
-        raise RuntimeError('Build is not configured.')
-
-    return subprocess.call(['make', '-s', '-C', build_path])
+    call_cmd(['make', '-s', '-C', build_path])
 
 
-# Print build result
-def print_result(ret):
+# Print success message
+def print_success():
     print('')
     print('-' * 30)
-    if ret:
-        print('Build failed with exit code: %s' % (ret))
-    else:
-        print('Build succeeded!')
+    print('Build succeeded!')
     print('-' * 30)
 
 
 def main():
     arguments = get_args()
-    ret = configure(arguments)
+    configure(arguments)
 
-    if not ret:
-        if arguments.clean:
-            run_clean(arguments)
+    if arguments.clean:
+        run_clean(arguments)
 
-        if arguments.build_examples:
-            ret = build_examples(arguments)
-        else:
-            ret = build_gepard(arguments)
+    if arguments.build_examples:
+        ret = build_examples(arguments)
+    else:
+        ret = build_gepard(arguments)
 
-    print_result(ret)
-    sys.exit(ret)
+    print_success()
+    sys.exit(0)
 
 
 if __name__ == "__main__":
