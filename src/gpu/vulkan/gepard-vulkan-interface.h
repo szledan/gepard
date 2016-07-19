@@ -57,6 +57,7 @@ public:
     GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties);
     GD_VK_DECLARE_FUNCTION(vkCreateDevice);
     GD_VK_DECLARE_FUNCTION(vkGetDeviceProcAddr);
+    GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceMemoryProperties);
 
     // Device level vulkan functions
     GD_VK_DECLARE_FUNCTION(vkDestroyDevice);
@@ -77,6 +78,12 @@ public:
     GD_VK_DECLARE_FUNCTION(vkDestroyImage);
     GD_VK_DECLARE_FUNCTION(vkCreateImageView);
     GD_VK_DECLARE_FUNCTION(vkDestroyImageView);
+    GD_VK_DECLARE_FUNCTION(vkGetBufferMemoryRequirements);
+    GD_VK_DECLARE_FUNCTION(vkGetImageMemoryRequirements);
+    GD_VK_DECLARE_FUNCTION(vkBindBufferMemory);
+    GD_VK_DECLARE_FUNCTION(vkBindImageMemory);
+    GD_VK_DECLARE_FUNCTION(vkAllocateMemory);
+    GD_VK_DECLARE_FUNCTION(vkFreeMemory);
 
 #undef GD_VK_DECLARE_FUNCTION
 

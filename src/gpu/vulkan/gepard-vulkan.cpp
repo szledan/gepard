@@ -38,8 +38,6 @@ GepardVulkan::GepardVulkan(Surface* surface)
     , _allocator(nullptr)
     , _instance(0)
     , _imageFormat(VK_FORMAT_R8G8B8A8_UNORM)
-    , _surfaceImage(0)
-    , _frameBufferColorAttachmentImageView(0)
 {
     GD_LOG1("GepardVulkan");
     _vk.loadGlobalFunctions();
@@ -80,6 +78,9 @@ GepardVulkan::~GepardVulkan()
     }
     if (_primaryCommandBuffers.size()) {
         _vk.vkFreeCommandBuffers(_device, _commandPool, _primaryCommandBuffers.size(), _primaryCommandBuffers.data());
+    }
+    for (uint32_t i = 0; i < _memoryAllocations.size(); i++) {
+        _vk.vkFreeMemory(_device, _memoryAllocations[i], _allocator);
     }
     if (_commandPool) {
         _vk.vkDestroyCommandPool(_device, _commandPool, _allocator);
@@ -185,6 +186,7 @@ bool GepardVulkan::findGraphicsQueue(std::vector<VkPhysicalDevice> devices)
 void GepardVulkan::chooseDefaultDevice()
 {
     chooseDefaultPhysicalDevice();
+    _vk.vkGetPhysicalDeviceMemoryProperties(_physicalDevice, &_physicalDeviceMemoryProperties);
 
     VkResult vkResult;
     const float queuePriorities[] = { 1.0f };
@@ -214,7 +216,6 @@ void GepardVulkan::chooseDefaultDevice()
     vkResult = _vk.vkCreateDevice(_physicalDevice, &deviceCreateInfo, _allocator, &_device);
     ASSERT(vkResult == VK_SUCCESS && "Logical device creation is failed!");
 }
-
 
 void GepardVulkan::createCommandPool()
 {
@@ -325,11 +326,30 @@ void GepardVulkan::createSurfaceImage()
         VK_SHARING_MODE_EXCLUSIVE,                  // VkSharingMode            sharingMode;
         1u,                                         // uint32_t                 queueFamilyIndexCount;
         &_queueFamilyIndex,                         // const uint32_t*          pQueueFamilyIndices;
-        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout            initialLayout;
+        VK_IMAGE_LAYOUT_UNDEFINED,                  // VkImageLayout            initialLayout;
     };
 
     vkResult = _vk.vkCreateImage(_device, &imageCreateInfo, _allocator, &_surfaceImage);
     ASSERT(vkResult == VK_SUCCESS && "Creating the surface backing image is failed!");
+
+    VkMemoryRequirements memoryRequirements;
+    _vk.vkGetImageMemoryRequirements(_device, _surfaceImage, &memoryRequirements);
+
+    VkMemoryAllocateInfo memoryAllocateInfo = {
+        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,                                         // VkStructureType    sType;
+        nullptr,                                                                        // const void*        pNext;
+        memoryRequirements.size,                                                        // VkDeviceSize       allocationSize;
+        getMemoryTypeIndex(memoryRequirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),    // uint32_t           memoryTypeIndex;
+    };
+
+    VkDeviceMemory deviceMemory;
+    vkResult = _vk.vkAllocateMemory(_device, &memoryAllocateInfo, _allocator, &deviceMemory);
+    ASSERT(vkResult == VK_SUCCESS && "Memory allocation is failed!");
+
+    _memoryAllocations.push_back(deviceMemory);
+
+    vkResult = _vk.vkBindImageMemory(_device, _surfaceImage, deviceMemory, static_cast<VkDeviceSize>(0u));
+    ASSERT(vkResult == VK_SUCCESS && "Memory bind is failed!");
 }
 
 void GepardVulkan::createDefaultFrameBuffer()
@@ -358,6 +378,9 @@ void GepardVulkan::createDefaultFrameBuffer()
         },                                          // VkImageSubresourceRange    subresourceRange;
     };
 
+    vkResult = _vk.vkCreateImageView(_device, &imageViewCreateInfo, _allocator, &_frameBufferColorAttachmentImageView);
+    ASSERT(vkResult == VK_SUCCESS && "Creating the default frame buffer is failed!");
+
     std::vector<VkImageView> attachments;
     attachments.push_back(_frameBufferColorAttachmentImageView);
 
@@ -377,6 +400,19 @@ void GepardVulkan::createDefaultFrameBuffer()
     ASSERT(vkResult == VK_SUCCESS && "Creating the default frame buffer is failed!");
 }
 
+uint32_t GepardVulkan::getMemoryTypeIndex(VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags properties)
+{
+    /* Algorithm copied from Vulkan specification */
+    for (int32_t i = 0; i < _physicalDeviceMemoryProperties.memoryTypeCount; ++i)
+    {
+        if ((memoryRequirements.memoryTypeBits & (1 << i)) &&
+            ((_physicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & properties) == properties))
+            return i;
+    }
+
+    ASSERT(false && "No feasible memory type index!");
+    return -1;
+}
 
 } // namespace vulkan
 } // namespace gepard

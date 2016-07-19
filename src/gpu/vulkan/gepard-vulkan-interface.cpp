@@ -74,6 +74,7 @@ void GepardVulkanInterface::loadInstanceFunctions(VkInstance instance)
     GD_VK_LOAD_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties);
     GD_VK_LOAD_FUNCTION(vkCreateDevice);
     GD_VK_LOAD_FUNCTION(vkGetDeviceProcAddr);
+    GD_VK_LOAD_FUNCTION(vkGetPhysicalDeviceMemoryProperties);
 
 #undef GD_VK_LOAD_FUNCTION
 }
@@ -102,6 +103,12 @@ void GepardVulkanInterface::loadDeviceFunctions(VkDevice device)
     GD_VK_LOAD_FUNCTION(vkDestroyImage);
     GD_VK_LOAD_FUNCTION(vkCreateImageView);
     GD_VK_LOAD_FUNCTION(vkDestroyImageView);
+    GD_VK_LOAD_FUNCTION(vkGetBufferMemoryRequirements);
+    GD_VK_LOAD_FUNCTION(vkGetImageMemoryRequirements);
+    GD_VK_LOAD_FUNCTION(vkBindBufferMemory);
+    GD_VK_LOAD_FUNCTION(vkBindImageMemory);
+    GD_VK_LOAD_FUNCTION(vkAllocateMemory);
+    GD_VK_LOAD_FUNCTION(vkFreeMemory);
 
 #undef GD_VK_LOAD_FUNCTION
 }
