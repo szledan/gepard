@@ -71,6 +71,12 @@ public:
     GD_VK_DECLARE_FUNCTION(vkQueueSubmit);
     GD_VK_DECLARE_FUNCTION(vkCreateRenderPass);
     GD_VK_DECLARE_FUNCTION(vkDestroyRenderPass);
+    GD_VK_DECLARE_FUNCTION(vkCreateFramebuffer);
+    GD_VK_DECLARE_FUNCTION(vkDestroyFramebuffer);
+    GD_VK_DECLARE_FUNCTION(vkCreateImage);
+    GD_VK_DECLARE_FUNCTION(vkDestroyImage);
+    GD_VK_DECLARE_FUNCTION(vkCreateImageView);
+    GD_VK_DECLARE_FUNCTION(vkDestroyImageView);
 
 #undef GD_VK_DECLARE_FUNCTION
 

@@ -96,6 +96,12 @@ void GepardVulkanInterface::loadDeviceFunctions(VkDevice device)
     GD_VK_LOAD_FUNCTION(vkQueueSubmit);
     GD_VK_LOAD_FUNCTION(vkCreateRenderPass);
     GD_VK_LOAD_FUNCTION(vkDestroyRenderPass);
+    GD_VK_LOAD_FUNCTION(vkCreateFramebuffer);
+    GD_VK_LOAD_FUNCTION(vkDestroyFramebuffer);
+    GD_VK_LOAD_FUNCTION(vkCreateImage);
+    GD_VK_LOAD_FUNCTION(vkDestroyImage);
+    GD_VK_LOAD_FUNCTION(vkCreateImageView);
+    GD_VK_LOAD_FUNCTION(vkDestroyImageView);
 
 #undef GD_VK_LOAD_FUNCTION
 }

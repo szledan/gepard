@@ -68,6 +68,10 @@ private:
     std::vector<VkCommandBuffer> _primaryCommandBuffers;
     std::vector<VkCommandBuffer> _secondaryCommandBuffers;
     VkRenderPass _renderPass;
+    VkFormat _imageFormat;
+    VkImage _surfaceImage;
+    VkImageView _frameBufferColorAttachmentImageView;
+    VkFramebuffer _frameBuffer;
 
     void createDefaultInstance();
     void chooseDefaultPhysicalDevice();
@@ -76,6 +80,8 @@ private:
     void createCommandPool();
     void allocatePrimaryCommandBuffer();
     void createDefaultRenderPass();
+    void createSurfaceImage();
+    void createDefaultFrameBuffer();
 };
 
 } // namespace vulkan

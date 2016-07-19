@@ -37,6 +37,9 @@ GepardVulkan::GepardVulkan(Surface* surface)
     , _vk("libvulkan.so")
     , _allocator(nullptr)
     , _instance(0)
+    , _imageFormat(VK_FORMAT_R8G8B8A8_UNORM)
+    , _surfaceImage(0)
+    , _frameBufferColorAttachmentImageView(0)
 {
     GD_LOG1("GepardVulkan");
     _vk.loadGlobalFunctions();
@@ -52,10 +55,23 @@ GepardVulkan::GepardVulkan(Surface* surface)
     GD_LOG2(" - Command buffer is allocated");
     createDefaultRenderPass();
     GD_LOG2(" - Default render pass is created");
+    createSurfaceImage();
+    GD_LOG2(" - Surface backing image is created");
+    createDefaultFrameBuffer();
+    GD_LOG2(" - Default frame buffer is created");
 }
 
 GepardVulkan::~GepardVulkan()
 {
+    if (_frameBuffer) {
+        _vk.vkDestroyFramebuffer(_device, _frameBuffer, _allocator);
+    }
+    if (_frameBufferColorAttachmentImageView) {
+        _vk.vkDestroyImageView(_device, _frameBufferColorAttachmentImageView, _allocator);
+    }
+    if (_surfaceImage) {
+        _vk.vkDestroyImage(_device, _surfaceImage, _allocator);
+    }
     if (_renderPass) {
         _vk.vkDestroyRenderPass(_device, _renderPass, _allocator);
     }
@@ -178,7 +194,7 @@ void GepardVulkan::chooseDefaultDevice()
         nullptr,                                    // const void*                 pNext;
         0u,                                         // VkDeviceQueueCreateFlags    flags;
         _queueFamilyIndex,                          // uint32_t                    queueFamilyIndex;
-        1,                                          // uint32_t                    queueCount;
+        1u,                                         // uint32_t                    queueCount;
         queuePriorities                             // const float*                pQueuePriorities;
     };
 
@@ -186,7 +202,7 @@ void GepardVulkan::chooseDefaultDevice()
         VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,   // VkStructureType                  sType;
         nullptr,                                // const void*                      pNext;
         0u,                                     // VkDeviceCreateFlags              flags;
-        1,                                      // uint32_t                         queueCreateInfoCount;
+        1u,                                     // uint32_t                         queueCreateInfoCount;
         &deviceQueueCreateInfo,                 // const VkDeviceQueueCreateInfo*   pQueueCreateInfos;
         0u,                                     // uint32_t                         enabledLayerCount;
         nullptr,                                // const char* const*               ppEnabledLayerNames;
@@ -238,8 +254,8 @@ void GepardVulkan::createDefaultRenderPass()
     VkResult vkResult;
 
     VkAttachmentDescription attachmentDescription = {
-        0,                                          // VkAttachmentDescriptionFlags flags;
-        VK_FORMAT_R8G8B8A8_UNORM,                   // VkFormat                     format;
+        0u,                                         // VkAttachmentDescriptionFlags flags;
+        _imageFormat,                               // VkFormat                     format;
         VK_SAMPLE_COUNT_1_BIT,                      // VkSampleCountFlagBits        samples;
         VK_ATTACHMENT_LOAD_OP_CLEAR,                // VkAttachmentLoadOp           loadOp;
         VK_ATTACHMENT_STORE_OP_STORE,               // VkAttachmentStoreOp          storeOp;
@@ -250,7 +266,7 @@ void GepardVulkan::createDefaultRenderPass()
     };
 
     VkAttachmentReference colorAttachment = {
-        0,                                          // uint32_t         attachment;
+        0u,                                         // uint32_t         attachment;
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout    layout;
     };
 
@@ -281,6 +297,84 @@ void GepardVulkan::createDefaultRenderPass()
 
     vkResult = _vk.vkCreateRenderPass(_device, &renderPassCreateInfo, _allocator, &_renderPass);
     ASSERT(vkResult == VK_SUCCESS && "Creating the default render pass is failed!");
+}
+
+void GepardVulkan::createSurfaceImage()
+{
+    VkResult vkResult;
+
+    VkExtent3D imageSize = {
+        _surface->width(),  // uint32_t    width;
+        _surface->height(), // uint32_t    height;
+        1,                  // uint32_t    depth;
+    };
+
+    VkImageCreateInfo imageCreateInfo = {
+        VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,        // VkStructureType          sType;
+        nullptr,                                    // const void*              pNext;
+        0u,                                         // VkImageCreateFlags       flags;
+        VK_IMAGE_TYPE_2D,                           // VkImageType              imageType;
+        _imageFormat,                               // VkFormat                 format;
+        imageSize,                                  // VkExtent3D               extent;
+        1u,                                         // uint32_t                 mipLevels;
+        1u,                                         // uint32_t                 arrayLayers;
+        VK_SAMPLE_COUNT_1_BIT,                      // VkSampleCountFlagBits    samples;
+        VK_IMAGE_TILING_OPTIMAL,                    // VkImageTiling            tiling;
+        VK_IMAGE_USAGE_TRANSFER_SRC_BIT
+            | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,  // VkImageUsageFlags        usage;
+        VK_SHARING_MODE_EXCLUSIVE,                  // VkSharingMode            sharingMode;
+        1u,                                         // uint32_t                 queueFamilyIndexCount;
+        &_queueFamilyIndex,                         // const uint32_t*          pQueueFamilyIndices;
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout            initialLayout;
+    };
+
+    vkResult = _vk.vkCreateImage(_device, &imageCreateInfo, _allocator, &_surfaceImage);
+    ASSERT(vkResult == VK_SUCCESS && "Creating the surface backing image is failed!");
+}
+
+void GepardVulkan::createDefaultFrameBuffer()
+{
+    VkResult vkResult;
+
+    VkImageViewCreateInfo imageViewCreateInfo = {
+        VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,   // VkStructureType            sType;
+        nullptr,                                    // const void*                pNext;
+        0,                                          // VkImageViewCreateFlags     flags;
+        _surfaceImage,                              // VkImage                    image;
+        VK_IMAGE_VIEW_TYPE_2D,                      // VkImageViewType            viewType;
+        _imageFormat,                               // VkFormat                   format;
+        {
+            VK_COMPONENT_SWIZZLE_IDENTITY, // swizzle r
+            VK_COMPONENT_SWIZZLE_IDENTITY, // swizzle g
+            VK_COMPONENT_SWIZZLE_IDENTITY, // swizzle b
+            VK_COMPONENT_SWIZZLE_IDENTITY, // swizzle a
+        },                                          // VkComponentMapping         components;
+        {
+            VK_IMAGE_ASPECT_COLOR_BIT,  // VkImageAspectFlags    aspectMask;
+            0u,                         // uint32_t              baseMipLevel;
+            1u,                         // uint32_t              levelCount;
+            0u,                         // uint32_t              baseArrayLayer;
+            1u,                         // uint32_t              layerCount;
+        },                                          // VkImageSubresourceRange    subresourceRange;
+    };
+
+    std::vector<VkImageView> attachments;
+    attachments.push_back(_frameBufferColorAttachmentImageView);
+
+    VkFramebufferCreateInfo frameBufferCreateInfo = {
+        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,  // VkStructureType             sType;
+        nullptr,                                    // const void*                 pNext;
+        0u,                                         // VkFramebufferCreateFlags    flags;
+        _renderPass,                                // VkRenderPass                renderPass;
+        static_cast<uint32_t>(attachments.size()),  // uint32_t                    attachmentCount;
+        attachments.data(),                         // const VkImageView*          pAttachments;
+        _surface->width(),                          // uint32_t                    width;
+        _surface->height(),                         // uint32_t                    height;
+        1u,                                         // uint32_t                    layers;
+    };
+
+    vkResult = _vk.vkCreateFramebuffer(_device, &frameBufferCreateInfo, _allocator, &_frameBuffer);
+    ASSERT(vkResult == VK_SUCCESS && "Creating the default frame buffer is failed!");
 }
 
 
