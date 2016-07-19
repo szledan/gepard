@@ -41,24 +41,24 @@ namespace gepard {
 class MemoryBufferSurface : public Surface {
 public:
     MemoryBufferSurface(uint32_t width = 0, uint32_t height = 0)
-        : Surface(width, height)
+        : Surface(width, height, true)
     {
-        buffer = std::malloc(width * height * 4);
+        _buffer = std::malloc(width * height * 4);
     }
 
     virtual ~MemoryBufferSurface()
     {
-        if (buffer) {
-            std::free(buffer);
+        if (_buffer) {
+            std::free(_buffer);
         }
     }
 
     virtual void* getDisplay() { return nullptr; }
     virtual unsigned long getWindow() { return 0; }
-    virtual void* getBuffer() { return buffer; }
+    virtual void* getBuffer() { return _buffer; }
 
 private:
-    void* buffer;
+    void* _buffer;
 };
 
 } // namespace gepard

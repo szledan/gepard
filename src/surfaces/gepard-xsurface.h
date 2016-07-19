@@ -28,9 +28,11 @@
 #define GEPARD_XSURFACE_H
 
 #include "gepard.h"
+
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <string>
 
 namespace gepard {
 
@@ -41,7 +43,7 @@ namespace gepard {
  */
 class XSurface : public Surface {
 public:
-    XSurface(uint32_t width = 0, uint32_t height = 0)
+    XSurface(uint32_t width = 0, uint32_t height = 0, std::string windowTitle = "XSurface for gepard")
         : Surface(width, height)
     {
         XSetWindowAttributes windowAttributes;
@@ -62,7 +64,7 @@ public:
         XSetWMHints(_display, _window, &hints);
 
         XMapWindow(_display, _window); // make the window visible on the screen
-        XStoreName(_display, _window, "XSurface for gepard"); //! \todo: set title.
+        XStoreName(_display, _window, windowTitle.c_str()); //! \todo: set title.
     }
     ~XSurface()
     {
