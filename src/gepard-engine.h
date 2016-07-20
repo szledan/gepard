@@ -29,15 +29,18 @@
 #include "gepard-defs.h"
 
 #include "gepard-image.h"
-#include "gepard-surface.h"
 #include "gepard-types.h"
-#ifdef GD_USE_GLES2
-#include "gepard-gles2.h"
-#endif // GD_USE_GLES2
 
-#ifdef GD_USE_VULKAN
+// Include engine backend.
+#if defined(GD_USE_GLES2)
+#include "gepard-gles2.h"
+#elif defined(GD_USE_SOFTWARE)
+#include "gepard-software.h"
+#elif defined(GD_USE_VULKAN)
 #include "gepard-vulkan.h"
-#endif // GD_USE_VULKAN
+#else
+#error "No engine backend defined!"
+#endif // Include engine backend.
 
 namespace gepard {
 

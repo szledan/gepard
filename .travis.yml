@@ -38,6 +38,19 @@ matrix:
             - libgles2-mesa-dev
 
     - script:
+        - python tools/scripts/build.py --backend=software
+      env:
+        - CMD=build
+        - TYPE=release
+        - BACKEND=software
+      addons:
+        apt:
+          packages:
+            - freeglut3-dev
+            - libegl1-mesa-dev
+            - libgles2-mesa-dev
+
+    - script:
         - python tools/scripts/build.py --backend=vulkan
       env:
         - CMD=build
@@ -64,6 +77,19 @@ matrix:
             - libgles2-mesa-dev
 
     - script:
+        - python tools/scripts/build.py --debug --backend=software
+      env:
+        - CMD=build
+        - TYPE=debug
+        - BACKEND=software
+      addons:
+        apt:
+          packages:
+            - freeglut3-dev
+            - libegl1-mesa-dev
+            - libgles2-mesa-dev
+
+    - script:
         - python tools/scripts/build.py --debug --backend=vulkan
       env:
         - CMD=build
@@ -81,6 +107,21 @@ matrix:
       env:
         - CMD=unittest
         - BACKEND=gles2
+      addons:
+        apt:
+          packages:
+            - freeglut3-dev
+            - libegl1-mesa-dev
+            - libgles2-mesa-dev
+      cache:
+        directories:
+          - tools/frameworks
+
+    - script:
+        - python tools/scripts/unittest.py --debug --backend=software
+      env:
+        - CMD=unittest
+        - BACKEND=software
       addons:
         apt:
           packages:

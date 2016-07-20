@@ -29,7 +29,6 @@
 #include "gepard-defs.h"
 #include "gepard-engine.h"
 #include "gepard-image.h"
-#include "gepard-surface.h"
 
 namespace gepard {
 

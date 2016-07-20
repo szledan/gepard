@@ -1,5 +1,4 @@
 /* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
  * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
@@ -24,43 +23,61 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GEPARD_MEMORY_BUFFER_SURFACE_H
-#define GEPARD_MEMORY_BUFFER_SURFACE_H
+#ifdef GD_USE_SOFTWARE
 
-#include "gepard-surface.h"
+#ifndef GEPARD_SOFTWARE_H
+#define GEPARD_SOFTWARE_H
 
-#include <cstdlib>
+#include "gepard-defs.h"
+
+#include "gepard.h"
+#include "gepard-image.h"
+#include "gepard-types.h"
 
 namespace gepard {
 
-/*!
- * \brief A simple memory buffer surface class for _Gepard_
- *
- * \todo: documentation is missing.
- */
-class MemoryBufferSurface : public Surface {
+class Image;
+class Surface;
+
+namespace software {
+
+class GepardSoftware {
 public:
-    MemoryBufferSurface(uint32_t width = 0, uint32_t height = 0)
-        : Surface(width, height)
-    {
-        buffer = std::malloc(width * height * 4);
-    }
+    explicit GepardSoftware(Surface* surface);
+    ~GepardSoftware();
 
-    virtual ~MemoryBufferSurface()
-    {
-        if (buffer) {
-            std::free(buffer);
-        }
-    }
+    /* 5. Building paths */
+    void closePath();
+    void moveTo(Float x, Float y);
+    void lineTo(Float x, Float y);
+    void quadraticCurveTo(Float cpx, Float cpy, Float x, Float y);
+    void bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y);
+    void arcTo(Float x1, Float y1, Float x2, Float y2, Float radius);
+    void rect(Float x, Float y, Float w, Float h);
+    void arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise = false);
 
-    virtual void* getDisplay() { return nullptr; }
-    virtual unsigned long getWindow() { return 0; }
-    virtual void* getBuffer() { return buffer; }
+    /* 11. Drawing paths to the canvas */
+    void beginPath();
+    void fill();
+    void stroke();
+    void drawFocusIfNeeded(/*Element element*/);
+    void clip();
+    bool isPointInPath(Float x, Float y);
 
+    void fillRect(Float x, Float y, Float w, Float h);
+
+    /// \todo remove into a vector<GepardState> states.
+    GepardState state;
 private:
-    void* buffer;
+    Surface* _surface;
 };
+
+} // namespace software
+
+typedef software::GepardSoftware GepardEngineBackend;
 
 } // namespace gepard
 
-#endif // GEPARD_MEMORY_BUFFER_SURFACE_H
+#endif // GEPARD_SOFTWARE_H
+
+#endif // GD_USE_SOFTWARE

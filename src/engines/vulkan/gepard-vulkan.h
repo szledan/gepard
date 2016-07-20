@@ -1,6 +1,5 @@
-/* Copyright (C) 2015-2016, Gepard Graphics
+/* Copyright (C) 2016, Gepard Graphics
  * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
- * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,53 +23,43 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GEPARD_SURFACE_H
-#define GEPARD_SURFACE_H
+#ifdef GD_USE_VULKAN
 
-#include <stdint.h>
+#ifndef GEPARD_VULKAN_H
+#define GEPARD_VULKAN_H
+
+#include "gepard-defs.h"
+
+#include "gepard.h"
+#include "gepard-image.h"
+#include "gepard-types.h"
 
 namespace gepard {
 
-class Gepard;
+class Image;
+class Surface;
 
-/*!
- * \brief The basic Surface class for _Gepard_
- *
- * \todo: documentation is missing.
- */
-class Surface {
+namespace vulkan {
+
+class GepardVulkan {
 public:
-    Surface(Gepard* gepard = nullptr, uint32_t width = 0, uint32_t height = 0);
-    Surface(uint32_t width = 0, uint32_t height = 0)
-        : _gepard(nullptr)
-        , _width(width)
-        , _height(height)
-    {
-    }
+    explicit GepardVulkan(Surface* surface);
 
-    virtual void* getDisplay() = 0;
-    virtual unsigned long getWindow() = 0;
-    virtual void* getBuffer() = 0;
+    void fillRect(Float x, Float y, Float w, Float h);
+    void closePath();
 
-    const Gepard* gepard() const { return _gepard; }
-    const uint32_t width() const { return _width; }
-    const uint32_t height() const { return _height; }
-
-    // \deprecated: use 'static connect(Surface, Gepard)'
-    void setGepard(Gepard* gepard)
-    {
-        if (!this->_gepard) {
-            _gepard = gepard;
-        }
-    }
-
-protected:
-    Gepard* _gepard;
-
-    uint32_t _width;
-    uint32_t _height;
+    /// \todo remove into a vector<GepardState> states.
+    GepardState state;
+private:
+    Surface* _surface;
 };
+
+} // namespace vulkan
+
+typedef vulkan::GepardVulkan GepardEngineBackend;
 
 } // namespace gepard
 
-#endif // GEPARD_SURFACE_H
+#endif // GEPARD_VULKAN_H
+
+#endif // GD_USE_VULKAN

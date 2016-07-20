@@ -26,7 +26,7 @@
 #include "savanna.h"
 
 #include "gepard.h"
-#include "gepard-xsurface.h"
+#include "surfaces/gepard-xsurface.h"
 #include <algorithm>
 #include <fstream>
 #include <iostream>
