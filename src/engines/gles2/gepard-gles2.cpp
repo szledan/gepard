@@ -429,6 +429,9 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
                                GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
                                GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a));
     commandQueue->endAttributeAdding();
+
+    //! This call disabled the command batching, please remove in the future.
+    commandQueue->flushCommandQueue();
 }
 
 /*!
@@ -558,6 +561,9 @@ void GepardGLES2::CommandQueue::endAttributeAdding()
 
 uint GepardGLES2::CommandQueue::flushCommandQueue()
 {
+    if (!program)
+        return 0;
+
     GD_LOG2("1. Set blending.");
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
