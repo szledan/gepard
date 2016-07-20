@@ -24,7 +24,7 @@
  */
 
 #include "gepard.h"
-#include "gepard-xsurface.h"
+#include "surfaces/gepard-xsurface.h"
 #include <chrono>
 #include <iostream>
 #include <mutex>
@@ -104,7 +104,9 @@ int main()
 
         // Call drawing function.
         if (drawing) {
+            // Call draw().
             rectsFromDrawCall += gepard.draw() / 2;
+
             { // lock
                 std::lock_guard<std::mutex> guard(g_mutex);
                 g_drawing = false;

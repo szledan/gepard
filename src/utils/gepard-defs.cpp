@@ -48,7 +48,7 @@ void _log(unsigned int level, const std::string& msg, const std::string& color, 
     } else if (type == (GD_NORMAL_LOG)) {
         oss << "[" << level + 1 << "] ";
     } else {
-        ASSERT(false && "Undefined log type.");
+        GD_ASSERT(false && "Undefined log type.");
     }
     if (level < (GD_LOG_LEVEL)) {
         oss  << msg;

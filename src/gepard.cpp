@@ -319,7 +319,7 @@ void Gepard::clearRect(float x, float y, float w, float h)
  */
 void Gepard::fillRect(float x, float y, float w, float h)
 {
-    ASSERT(_engine);
+    GD_ASSERT(_engine);
     _engine->fillRect(x, y, w, h);
 }
 
@@ -560,7 +560,13 @@ void Gepard::putImageData(Image /*imagedata*/, double dx, double dy)
 void Gepard::putImageData(Image /*imagedata*/, double dx, double dy, double dirtyX, double dirtyY,
     double dirtyWidth, double dirtyHeight)
 {
-/*! \todo unimplemented function */
+    /*! \todo unimplemented function */
+}
+
+int Gepard::draw()
+{
+    GD_ASSERT(_engine);
+    return _engine->draw();
 }
 
 void Gepard::setFillColor(std::string color)
@@ -591,7 +597,7 @@ void Gepard::setFillColor(const int red, const int green, const int blue, const 
 
 void Gepard::setFillColor(const float red, const float green, const float blue, const float alpha)
 {
-    ASSERT(_engine);
+    GD_ASSERT(_engine);
     _engine->setFillColor(red, green, blue, alpha);
 }
 

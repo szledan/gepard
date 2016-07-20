@@ -553,7 +553,7 @@ void GepardGLES2::CommandQueue::endAttributeAdding()
     nextAttribute += numberOfAttributes * 3;
     quadCount++;
     GD_LOG3("quadCount: " << quadCount << ".");
-    ASSERT((nextAttribute <= attributes + kMaximumNumberOfAttributes) && quadCount <= kMaximumNumberOfUshortQuads);
+    GD_ASSERT((nextAttribute <= attributes + kMaximumNumberOfAttributes) && quadCount <= kMaximumNumberOfUshortQuads);
 }
 
 uint GepardGLES2::CommandQueue::flushCommandQueue()
@@ -588,7 +588,7 @@ uint GepardGLES2::CommandQueue::flushCommandQueue()
     }
 
     GD_LOG2("4. Draw triangles in pairs as quads.");
-    ASSERT(quadCount <= kMaximumNumberOfUshortQuads);
+    GD_ASSERT(quadCount <= kMaximumNumberOfUshortQuads);
     if (quadCount == 1) {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     } else {
@@ -596,11 +596,11 @@ uint GepardGLES2::CommandQueue::flushCommandQueue()
     }
     GD_LOG3("Was drawn: " << quadCount << ".");
 
-    if (_surface->getDisplay()) {
-        eglSwapBuffers(_eglDisplay, _eglSurface);
+    if (_gepard->_surface->getDisplay()) {
+        eglSwapBuffers(_gepard->_eglDisplay, _gepard->_eglSurface);
     } else {
-        GD_ASSERT(_surface->getBuffer());
-        glReadPixels(0, 0, _surface->width(), _surface->height(), GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) _surface->getBuffer());
+        GD_ASSERT(_gepard->_surface->getBuffer());
+        glReadPixels(0, 0, _gepard->_surface->width(), _gepard->_surface->height(), GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) _gepard->_surface->getBuffer());
     }
 
     GD_LOG2("5. Reset command queue.");
