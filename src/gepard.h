@@ -277,12 +277,6 @@ public:
     /// \{
 
     /*!
-     * \brief Flush the command queue and start rendering.
-     * \return  the number of rendered triangles, the -1 value means warning.
-     */
-    int draw();
-
-    /*!
      * \brief Set fill color with red, green, blue and alpha components
      * \param red  the red channel in range [0, 255]
      * \param green  the green channel in range [0, 255]

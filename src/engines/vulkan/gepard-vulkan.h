@@ -47,7 +47,6 @@ public:
 
     void closePath();
     void fillRect(Float x, Float y, Float w, Float h);
-    int draw();
 
     //! \todo remove into a vector<GepardState> states.
     GepardState state;

@@ -227,11 +227,6 @@ void GepardSoftware::fillRect(Float x, Float y, Float w, Float h)
 {
 }
 
-int GepardSoftware::draw()
-{
-    return -1;
-}
-
 } // namespace software
 } // namespace gepard
 

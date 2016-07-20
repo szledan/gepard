@@ -563,12 +563,6 @@ void Gepard::putImageData(Image /*imagedata*/, double dx, double dy, double dirt
     /*! \todo unimplemented function */
 }
 
-int Gepard::draw()
-{
-    GD_ASSERT(_engine);
-    return _engine->draw();
-}
-
 void Gepard::setFillColor(std::string color)
 {
     size_t length = color.length();

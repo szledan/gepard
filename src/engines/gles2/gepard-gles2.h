@@ -48,6 +48,9 @@ namespace gles2 {
 
 class GepardGLES2 {
 public:
+    static const int kMaximumNumberOfAttributes = GLushort(-1) + 1;
+    static const int kMaximumNumberOfUshortQuads = kMaximumNumberOfAttributes / 6;
+
     explicit GepardGLES2(Surface* surface);
     ~GepardGLES2();
 
@@ -71,53 +74,17 @@ public:
 
     void fillRect(Float x, Float y, Float w, Float h);
 
-    int draw();
-
     //! \todo remove into a vector<GepardState> states.
     GepardState state;
 
 private:
-    struct CommandQueue {
-        static const int kMaximumNumberOfAttributes = GLushort(-1) + 1;
-        static const int kMaximumNumberOfUshortQuads = kMaximumNumberOfAttributes / 6;
-
-        GLuint s_indexBufferObject;
-
-        CommandQueue(GepardGLES2* gepard);
-
-        inline void beginAttributeAdding(ShaderProgram* newProgramId);
-        inline void addAttribute(GLfloat x0, GLfloat y0, GLfloat x1, GLfloat y1,
-                                 GLfloat x2, GLfloat y2, GLfloat x3, GLfloat y3);
-        inline void addAttribute(GLfloat x0, GLfloat y0, GLfloat z0, GLfloat w0,
-                                 GLfloat x1, GLfloat y1, GLfloat z1, GLfloat w1,
-                                 GLfloat x2, GLfloat y2, GLfloat z2, GLfloat w2,
-                                 GLfloat x3, GLfloat y3, GLfloat z3, GLfloat w3);
-        void endAttributeAdding();
-
-        uint flushCommandQueue();
-
-        inline bool hasFreeSpace(int neededSpace = 0)
-        {
-            return nextAttribute + (numberOfAttributes * 4) * (neededSpace + 1) <= attributes + kMaximumNumberOfAttributes
-                    && quadCount + neededSpace < kMaximumNumberOfUshortQuads;
-        }
-
-        GLfloat attributes[kMaximumNumberOfAttributes];
-        GLfloat* nextAttribute;
-        int numberOfAttributes;
-        int quadCount;
-
-        ShaderProgram* program;
-        GepardGLES2* _gepard;
-    };
+    GLuint _indexBufferObject;
 
     Surface* _surface;
 
     EGLDisplay _eglDisplay;
     EGLSurface _eglSurface;
     EGLContext _eglContext;
-
-    CommandQueue* commandQueue;
 
     GLuint _fboId;
     GLuint _textureId;

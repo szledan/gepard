@@ -47,11 +47,6 @@ void GepardVulkan::closePath()
 {
 }
 
-int GepardVulkan::draw()
-{
-    return -1;
-}
-
 } // namespace vulkan
 } // namespace gepard
 

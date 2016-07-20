@@ -153,16 +153,35 @@ GepardGLES2::GepardGLES2(Surface* surface)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_BLEND);
 
-    commandQueue = new CommandQueue(this);
+    GLushort* quadIndexes;
+    int bufferSize = kMaximumNumberOfUshortQuads * 6;
+
+    quadIndexes = reinterpret_cast<GLushort*>(malloc(bufferSize * sizeof(GLushort)));
+
+    GLushort* currentQuad = quadIndexes;
+    GLushort* currentQuadEnd = quadIndexes + bufferSize;
+
+    GLushort index = 0;
+    while (currentQuad < currentQuadEnd) {
+        currentQuad[0] = index;
+        currentQuad[1] = index + 1;
+        currentQuad[2] = index + 2;
+        currentQuad[3] = index + 2;
+        currentQuad[4] = index + 1;
+        currentQuad[5] = index + 3;
+        currentQuad += 6;
+        index += 4;
+    }
+
+    glGenBuffers(1, &_indexBufferObject);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBufferObject);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize * sizeof(GLushort), quadIndexes, GL_STATIC_DRAW);
+
+    free(quadIndexes);
 }
 
 GepardGLES2::~GepardGLES2()
 {
-    if (commandQueue) {
-        commandQueue->flushCommandQueue();
-        delete commandQueue;
-    }
-
     if (_eglDisplay != EGL_NO_DISPLAY) {
         eglMakeCurrent(_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
         eglDestroyContext(_eglDisplay, _eglContext);
@@ -421,166 +440,37 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
     GD_LOG1("Fill rect with GLES2 (" << x << ", " << y << ", " << w << ", " << h << ")");
 
     const Color fillColor = state.fillColor;
-
-    commandQueue->beginAttributeAdding(&s_fillRectProgram);
-    commandQueue->addAttribute(GLfloat(x), GLfloat(y), GLfloat(x + w), GLfloat(y), GLfloat(x), GLfloat(y + h), GLfloat(x + w), GLfloat(y + h));
-    commandQueue->addAttribute(GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
-                               GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
-                               GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
-                               GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a));
-    commandQueue->endAttributeAdding();
-
-    //! This call disabled the command batching, please remove in the future.
-    commandQueue->flushCommandQueue();
-}
-
-/*!
- * \brief Call a draw command to flush the command queue.
- * \return  the number of rendered triangles
- *
- * \internal
- */
-int GepardGLES2::draw()
-{
-    if (!commandQueue
-        || !commandQueue->program
-        || commandQueue->attributes == commandQueue->nextAttribute)
-        return -1;
-
-    return commandQueue->flushCommandQueue();
-}
-
-// GepardGLES2::CommandQueue
-
-GepardGLES2::CommandQueue::CommandQueue(GepardGLES2* gepard)
-    : nextAttribute(attributes)
-    , numberOfAttributes(0)
-    , quadCount(0)
-    , program(nullptr)
-    , _gepard(gepard)
-{
-    GLushort* quadIndexes;
-    int bufferSize = kMaximumNumberOfUshortQuads * 6;
-
-    quadIndexes = reinterpret_cast<GLushort*>(malloc(bufferSize * sizeof(GLushort)));
-
-    GLushort* currentQuad = quadIndexes;
-    GLushort* currentQuadEnd = quadIndexes + bufferSize;
-
-    GLushort index = 0;
-    while (currentQuad < currentQuadEnd) {
-        currentQuad[0] = index;
-        currentQuad[1] = index + 1;
-        currentQuad[2] = index + 2;
-        currentQuad[3] = index + 2;
-        currentQuad[4] = index + 1;
-        currentQuad[5] = index + 3;
-        currentQuad += 6;
-        index += 4;
-    }
-
-    glGenBuffers(1, &s_indexBufferObject);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_indexBufferObject);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize * sizeof(GLushort), quadIndexes, GL_STATIC_DRAW);
-
-    free(quadIndexes);
-}
-
-void GepardGLES2::CommandQueue::beginAttributeAdding(ShaderProgram* newProgram)
-{
-    if (newProgram == program
-        && attributes != nextAttribute
-        && hasFreeSpace()) {
-        GD_LOG2("Batching.");
-        return;
-    }
-
-    if (program) {
-        GD_LOG2("0. Draw batched commands.");
-        flushCommandQueue();
-    }
+    const int quadCount = 2;
+    const int numberOfAttributes = 3 * quadCount;
 
     GD_LOG2("1. Compile shaders.");
-    newProgram->compileShaderProgram();
+    ShaderProgram& program = s_fillRectProgram;
+    program.compileShaderProgram();
 
-    GD_LOG2("2. Start batching with: " << newProgram->id << ".");
-
-    numberOfAttributes = 6;
-    program = newProgram;
-}
-
-void GepardGLES2::CommandQueue::addAttribute(GLfloat x0, GLfloat y0, GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, GLfloat x3, GLfloat y3)
-{
-    GLfloat* attribute = nextAttribute;
-    attribute[0] = x0;
-    attribute[1] = y0;
-    attribute += numberOfAttributes;
-    attribute[0] = x1;
-    attribute[1] = y1;
-    attribute += numberOfAttributes;
-    attribute[0] = x2;
-    attribute[1] = y2;
-    attribute += numberOfAttributes;
-    attribute[0] = x3;
-    attribute[1] = y3;
-    nextAttribute += 2;
-}
-
-void GepardGLES2::CommandQueue::addAttribute(GLfloat x0, GLfloat y0, GLfloat z0, GLfloat w0, GLfloat x1, GLfloat y1, GLfloat z1, GLfloat w1, GLfloat x2, GLfloat y2, GLfloat z2, GLfloat w2, GLfloat x3, GLfloat y3, GLfloat z3, GLfloat w3)
-{
-    GLfloat* attribute = nextAttribute;
-    attribute[0] = x0;
-    attribute[1] = y0;
-    attribute[2] = z0;
-    attribute[3] = w0;
-    attribute += numberOfAttributes;
-    attribute[0] = x1;
-    attribute[1] = y1;
-    attribute[2] = z1;
-    attribute[3] = w1;
-    attribute += numberOfAttributes;
-    attribute[0] = x2;
-    attribute[1] = y2;
-    attribute[2] = z2;
-    attribute[3] = w2;
-    attribute += numberOfAttributes;
-    attribute[0] = x3;
-    attribute[1] = y3;
-    attribute[2] = z3;
-    attribute[3] = w3;
-    nextAttribute += 4;
-}
-
-void GepardGLES2::CommandQueue::endAttributeAdding()
-{
-    nextAttribute += numberOfAttributes * 3;
-    quadCount++;
-    GD_LOG3("quadCount: " << quadCount << ".");
-    GD_ASSERT((nextAttribute <= attributes + kMaximumNumberOfAttributes) && quadCount <= kMaximumNumberOfUshortQuads);
-}
-
-uint GepardGLES2::CommandQueue::flushCommandQueue()
-{
-    if (!program)
-        return 0;
+    GLfloat attributes[] = {
+        GLfloat(x), GLfloat(y), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
+        GLfloat(x + w), GLfloat(y), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
+        GLfloat(x), GLfloat(y + h), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
+        GLfloat(x + w), GLfloat(y + h), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
+    };
 
     GD_LOG2("1. Set blending.");
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     GD_LOG2("2. Use shader programs.");
-    glUseProgram(program->id);
+    glUseProgram(program.id);
 
     GD_LOG2("3. Binding attributes.");
     {
-        GLuint index = glGetUniformLocation(program->id, "in_size");
-        glUniform2f(index, _gepard->_surface->width(), _gepard->_surface->height());
+        GLuint index = glGetUniformLocation(program.id, "in_size");
+        glUniform2f(index, _surface->width(), _surface->height());
     }
 
     const GLsizei stride = numberOfAttributes * sizeof(GL_FLOAT);
     int offset = 0;
     {
         const GLint size = 2;
-        GLuint index = glGetAttribLocation(program->id, "in_position");
+        GLuint index = glGetAttribLocation(program.id, "in_position");
         glEnableVertexAttribArray(index);
         glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, attributes + offset);
         offset = size;
@@ -588,40 +478,24 @@ uint GepardGLES2::CommandQueue::flushCommandQueue()
 
     {
         const GLint size = 4;
-        GLuint index = glGetAttribLocation(program->id, "in_color");
+        GLuint index = glGetAttribLocation(program.id, "in_color");
         glEnableVertexAttribArray(index);
         glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, attributes + offset);
     }
 
     GD_LOG2("4. Draw triangles in pairs as quads.");
-    GD_ASSERT(quadCount <= kMaximumNumberOfUshortQuads);
-    if (quadCount == 1) {
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glDrawElements(GL_TRIANGLES, quadCount * 6, GL_UNSIGNED_SHORT, nullptr);
+
+    if (_surface->getDisplay()) {
+        eglSwapBuffers(_eglDisplay, _eglSurface);
     } else {
-        glDrawElements(GL_TRIANGLES, quadCount * 6, GL_UNSIGNED_SHORT, nullptr);
-    }
-    GD_LOG3("Was drawn: " << quadCount << ".");
-
-    if (_gepard->_surface->getDisplay()) {
-        eglSwapBuffers(_gepard->_eglDisplay, _gepard->_eglSurface);
-    } else {
-        GD_ASSERT(_gepard->_surface->getBuffer());
-        glReadPixels(0, 0, _gepard->_surface->width(), _gepard->_surface->height(), GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) _gepard->_surface->getBuffer());
+        GD_ASSERT(_surface->getBuffer());
+        glReadPixels(0, 0, _surface->width(), _surface->height(), GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) _surface->getBuffer());
     }
 
-    GD_LOG2("5. Reset command queue.");
-    const float renderedTriangles = quadCount * 2;
-    quadCount = 0;
-    nextAttribute = attributes;
-
-    //! \todo: it will be chashed in general.
-    if (program && program->id) {
-        glDeleteProgram(program->id);
-        program->id = 0;
-        program = nullptr;
-    }
-
-    return renderedTriangles;
+    //! \todo: fix id = 0;
+    glDeleteProgram(s_fillRectProgram.id);
+    s_fillRectProgram.id = 0;
 }
 
 } // namespace gles2

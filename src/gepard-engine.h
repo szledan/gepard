@@ -82,8 +82,6 @@ public:
 
     void setFillColor(const Float red, const Float green, const Float blue, const Float alpha = 1.0f);
 
-    int draw();
-
 private:
     GepardEngineBackend* _engineBackend;
 };
