@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_GLES2
+#ifdef GD_USE_GLES2
 
 #include "gepard-gles2.h"
 
@@ -68,6 +68,8 @@ GepardGLES2::GepardGLES2(Surface* surface)
     EGLConfig eglConfig = 0;
     void* display = _surface->getDisplay();
     GD_LOG3("Display is: " << display  << ".");
+
+    //! \todo the GLES2 backend rendering into 'fbo' in the future, so this separation is temporary.
     if (display) {
         GD_LOG2("Initialize EGL.");
         eglDisplay = eglGetDisplay((EGLNativeDisplayType) display);
@@ -81,7 +83,7 @@ GepardGLES2::GepardGLES2(Surface* surface)
         if (eglChooseConfig(eglDisplay, configAttribs, &eglConfig, 1, &numOfConfigs) != EGL_TRUE) {
             GD_CRASH("eglChooseConfig returned with EGL_FALSE");
         }
-        EGLNativeWindowType window = _surface->getWindow();
+        EGLNativeWindowType window = surface->getWindow();
         eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, window, NULL);
         if (eglSurface == EGL_NO_SURFACE) {
             GD_CRASH("eglCreateWindowSurface returned EGL_NO_SURFACE");
@@ -100,16 +102,56 @@ GepardGLES2::GepardGLES2(Surface* surface)
         GD_LOG3("EGL display and surface are: " << _eglDisplay  << " and " << _eglSurface << ".");
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    } else {
+        // 1. Get the default display.
+        eglDisplay = eglGetDisplay((EGLNativeDisplayType) 0);
 
-        const GLfloat red = 0.0f;
-        const GLfloat green = 0.0f;
-        const GLfloat blue = 0.0f;
-        const GLfloat alpha = 0.0f;
-        GD_LOG2("Set clear color (" << float(red) << ", " << float(green) << ", " << float(blue) << ", " << float(alpha) << ")");
-        glClearColor(red, green, blue, alpha);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_BLEND);
+        // 2. Initialize EGL.
+        eglInitialize(eglDisplay, 0, 0);
+
+        // 3. Make OpenGL ES the current API.
+        eglBindAPI(EGL_OPENGL_ES_API);
+
+        // 4. Find a config that matches all requirements.
+        int iConfigs;
+        eglChooseConfig(eglDisplay, configAttribs, &eglConfig, 1, &iConfigs);
+
+        if (iConfigs != 1) {
+            GD_CRASH("Error: eglChooseConfig(): config not found.");
+        }
+
+        // 5. Create a surface to draw to.
+        eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, (EGLNativeWindowType)NULL, NULL);
+
+        // 6. Create a context.
+        _eglContext = eglCreateContext(eglDisplay, eglConfig, NULL, contextAttribs);
+
+        // 7. Bind the context to the current thread
+        eglMakeCurrent(eglDisplay, eglSurface, eglSurface, _eglContext);
+
+        glGenFramebuffers(1, &_fboId);
+        glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
+
+        glGenTextures(1, &_textureId);
+        glBindTexture(GL_TEXTURE_2D, _textureId);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->width(), surface->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _textureId, 0);
     }
+
+    const GLfloat red = 0.0f;
+    const GLfloat green = 0.0f;
+    const GLfloat blue = 0.0f;
+    const GLfloat alpha = 0.0f;
+    GD_LOG2("Set clear color (" << float(red) << ", " << float(green) << ", " << float(blue) << ", " << float(alpha) << ")");
+    glClearColor(red, green, blue, alpha);
+    glViewport(0, 0, surface->width(), surface->height());
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_BLEND);
 
     commandQueue = new CommandQueue(this);
 }
@@ -120,11 +162,16 @@ GepardGLES2::~GepardGLES2()
         commandQueue->flushCommandQueue();
         delete commandQueue;
     }
-    eglMakeCurrent(_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    eglDestroyContext(_eglDisplay, _eglContext);
-    eglDestroySurface(_eglDisplay, _eglSurface);
-    eglTerminate(_eglDisplay);
-    GD_LOG1("Destroyed GepardGLES2 (display and surface were: " << _eglDisplay  << " and " << _eglSurface << ".");
+
+    if (_eglDisplay != EGL_NO_DISPLAY) {
+        eglMakeCurrent(_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        eglDestroyContext(_eglDisplay, _eglContext);
+        eglDestroySurface(_eglDisplay, _eglSurface);
+        eglTerminate(_eglDisplay);
+        GD_LOG1("Destroyed GepardGLES2 (display and surface were: " << _eglDisplay  << " and " << _eglSurface << ".");
+    } else if (_eglContext != EGL_NO_CONTEXT) {
+        //! \todo destroy EGL Context
+    }
 }
 
 /*!
@@ -136,7 +183,7 @@ GepardGLES2::~GepardGLES2()
  */
 void GepardGLES2::closePath()
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -150,7 +197,7 @@ void GepardGLES2::closePath()
  */
 void GepardGLES2::moveTo(Float x, Float y)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -164,7 +211,7 @@ void GepardGLES2::moveTo(Float x, Float y)
  */
 void GepardGLES2::lineTo(Float x, Float y)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -180,7 +227,7 @@ void GepardGLES2::lineTo(Float x, Float y)
  */
 void GepardGLES2::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -198,7 +245,7 @@ void GepardGLES2::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
  */
 void GepardGLES2::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -215,7 +262,7 @@ void GepardGLES2::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, 
  */
 void GepardGLES2::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -231,7 +278,7 @@ void GepardGLES2::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
  */
 void GepardGLES2::rect(Float x, Float y, Float w, Float h)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -249,7 +296,7 @@ void GepardGLES2::rect(Float x, Float y, Float w, Float h)
  */
 void GepardGLES2::arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -261,7 +308,7 @@ void GepardGLES2::arc(Float x, Float y, Float radius, Float startAngle, Float en
  */
 void GepardGLES2::beginPath()
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -273,7 +320,7 @@ void GepardGLES2::beginPath()
  */
 void GepardGLES2::fill()
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -285,7 +332,7 @@ void GepardGLES2::fill()
  */
 void GepardGLES2::stroke()
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -297,7 +344,7 @@ void GepardGLES2::stroke()
  */
 void GepardGLES2::drawFocusIfNeeded(/*Element element*/)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -309,7 +356,7 @@ void GepardGLES2::drawFocusIfNeeded(/*Element element*/)
  */
 void GepardGLES2::clip()
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -324,7 +371,7 @@ void GepardGLES2::clip()
  */
 bool GepardGLES2::isPointInPath(Float x, Float y)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
     return false;
 }
 
@@ -549,7 +596,12 @@ uint GepardGLES2::CommandQueue::flushCommandQueue()
     }
     GD_LOG3("Was drawn: " << quadCount << ".");
 
-    eglSwapBuffers(_gepard->_eglDisplay, _gepard->_eglSurface);
+    if (_surface->getDisplay()) {
+        eglSwapBuffers(_eglDisplay, _eglSurface);
+    } else {
+        GD_ASSERT(_surface->getBuffer());
+        glReadPixels(0, 0, _surface->width(), _surface->height(), GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) _surface->getBuffer());
+    }
 
     GD_LOG2("5. Reset command queue.");
     const float renderedTriangles = quadCount * 2;
@@ -569,4 +621,4 @@ uint GepardGLES2::CommandQueue::flushCommandQueue()
 } // namespace gles2
 } // namespace gepard
 
-#endif // USE_GLES2
+#endif // GD_USE_GLES2

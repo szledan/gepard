@@ -25,18 +25,14 @@
  */
 
 #include "gepard.h"
-#include "gepard-xsurface.h"
-#include "gepard-memory-buffer-surface.h"
+#include "surfaces/gepard-xsurface.h"
+#include "surfaces/gepard-png-surface.h"
 #include <chrono>
 #include <iostream>
 #include <thread>
 
-int main()
+void gShape(gepard::Gepard& gepard)
 {
-    // Draw on XWindow
-    gepard::XSurface surface(600, 600);
-    gepard::Gepard gepard(&surface);
-
     gepard.setFillColor(0.5f, 0.4f, 0.1f, 0.2f);
     gepard.fillRect(50, 50, 500, 500);
 
@@ -57,6 +53,15 @@ int main()
 
     gepard.setFillColor(220, 180, 40);
     gepard.fillRect(330, 320, 160, 60);
+}
+
+int main()
+{
+    // Draw on XWindow.
+    gepard::XSurface surface(600, 600);
+    gepard::Gepard gepard(&surface);
+
+    gShape(gepard);
 
     XEvent xEvent;
     while (true) {
@@ -66,11 +71,13 @@ int main()
         }
     }
 
-    // Draw to memory buffer
-    gepard::MemoryBufferSurface s2(500, 500);
-    gepard::Gepard g2(&s2);
+    // Draw to PNG file.
+    gepard::PNGSurface pngSurface(600, 600, "fillRect.png");
+    gepard::Gepard pngGepard(&pngSurface);
 
-    g2.fillRect(100, 100, 400, 300);
+    gShape(pngGepard);
+
+    pngSurface.save();
 
     return 0;
 }

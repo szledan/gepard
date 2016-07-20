@@ -317,6 +317,31 @@ private:
     GepardEngine* _engine;
 };
 
+/*!
+ * \brief The basic Surface class for _Gepard_
+ *
+ * \todo: documentation is missing.
+ */
+class Surface {
+public:
+    Surface(uint32_t width = 0, uint32_t height = 0)
+        : _width(width)
+        , _height(height)
+    {
+    }
+
+    virtual void* getDisplay() = 0;
+    virtual unsigned long getWindow() = 0;
+    virtual void* getBuffer() = 0;
+
+    const uint32_t width() const { return _width; }
+    const uint32_t height() const { return _height; }
+
+protected:
+    uint32_t _width;
+    uint32_t _height;
+};
+
 } // namespace gepard
 
 #endif // GEPARD_H

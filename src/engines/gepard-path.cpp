@@ -127,14 +127,14 @@ void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAn
             if (startAngle > endAngle || (startAngle == endAngle && !equal)) {
                 endAngle += twoPiFloat;
             }
-            ASSERT(0 <= startAngle && startAngle <= twoPiFloat);
-            ASSERT(startAngle <= endAngle && endAngle - startAngle <= twoPiFloat);
+            GD_ASSERT(0 <= startAngle && startAngle <= twoPiFloat);
+            GD_ASSERT(startAngle <= endAngle && endAngle - startAngle <= twoPiFloat);
         } else {
             if (startAngle < endAngle || (startAngle == endAngle && !equal)) {
                 endAngle -= twoPiFloat;
             }
-            ASSERT(0 <= startAngle && startAngle <= twoPiFloat);
-            ASSERT(endAngle <= startAngle && startAngle - endAngle <= twoPiFloat);
+            GD_ASSERT(0 <= startAngle && startAngle <= twoPiFloat);
+            GD_ASSERT(endAngle <= startAngle && startAngle - endAngle <= twoPiFloat);
         }
     }
 
@@ -161,7 +161,7 @@ void PathData::addArcToElement(const FloatPoint& control, const FloatPoint& end,
     Float delta2Length = sqrtf(delta2.lengthSquared());
 
     // Normalized dot product.
-    ASSERT(delta1Length && delta2Length);
+    GD_ASSERT(delta1Length && delta2Length);
     Float cosPhi = delta1.dot(delta2) / (delta1Length * delta2Length);
 
     // All three points are on the same straight line (HTML5, 4.8.11.1.8).
@@ -178,7 +178,7 @@ void PathData::addArcToElement(const FloatPoint& control, const FloatPoint& end,
     Float orthoStartPointLength = sqrtf(orthoStartPoint.lengthSquared());
     Float radiusFactor = radius / orthoStartPointLength;
 
-    ASSERT(orthoStartPointLength);
+    GD_ASSERT(orthoStartPointLength);
     Float cosAlpha = (orthoStartPoint.x * delta2.x + orthoStartPoint.y * delta2.y) / (orthoStartPointLength * delta2Length);
     if (cosAlpha < 0.0)
         orthoStartPoint = FloatPoint(-orthoStartPoint.x, -orthoStartPoint.y);
@@ -224,7 +224,7 @@ void PathData::addCloseSubpathElement()
     _lastElement = _lastElement->next;
 }
 
-#ifndef NDEBUG
+#ifdef GD_LOG_LEVEL
 void PathData::dump()
 {
     PathElement* element = _firstElement;
@@ -239,18 +239,18 @@ void PathData::dump()
     }
     std::cout << std::endl;
 }
-#endif
+#endif // GD_LOG_LEVEL
 
 /* Path */
 
 void Path::fillPath()
 {
-    ASSERT(_pathData.lastElement()->isCloseSubpath());
+    GD_ASSERT(_pathData.lastElement()->isCloseSubpath());
 
-#ifndef NDEBUG
+#ifdef GD_LOG_LEVEL
     // TODO(@szledan): For testing.
     _pathData.dump();
-#endif
+#endif // GD_LOG_LEVEL
 
     // Choose a GPU_BACK_END.
     // TODO(szledan): GLESV2

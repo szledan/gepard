@@ -30,72 +30,72 @@ namespace {
 
 TEST(GepardGLES2Test, ClosePath)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 TEST(GepardGLES2Test, MoveTo)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 TEST(GepardGLES2Test, LineTo)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 TEST(GepardGLES2Test, QuadraticCurveTo)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 TEST(GepardGLES2Test, BezierCurveTo)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 TEST(GepardGLES2Test, ArcTo)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 TEST(GepardGLES2Test, Rect)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 TEST(GepardGLES2Test, Arc)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 TEST(GepardGLES2Test, BeginPath)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 TEST(GepardGLES2Test, Fill)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 TEST(GepardGLES2Test, Stroke)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 TEST(GepardGLES2Test, DrawFocusIfNeeded)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 TEST(GepardGLES2Test, Clip)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 TEST(GepardGLES2Test, IsPointInPath)
 {
-    NOT_IMPLEMENTED();
+    GD_NOT_IMPLEMENTED();
 }
 
 } // anonymous namespace

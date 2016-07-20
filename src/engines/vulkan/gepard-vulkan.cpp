@@ -23,44 +23,36 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_VULKAN
+#ifdef GD_USE_VULKAN
 
-#ifndef GEPARD_VULKAN_H
-#define GEPARD_VULKAN_H
+#include "gepard-vulkan.h"
 
-#include "gepard-defs.h"
-
-#include "gepard-image.h"
-#include "gepard-surface.h"
-#include "gepard-types.h"
+#include <iostream>
 
 namespace gepard {
-
-class Image;
-class Surface;
-
 namespace vulkan {
 
-class GepardVulkan {
-public:
-    explicit GepardVulkan(Surface* surface);
+GepardVulkan::GepardVulkan(Surface* surface)
+    : _surface(surface)
+{
+    std::cout << "GepardVulkan" << std::endl;
+}
 
-    void closePath();
-    void fillRect(Float x, Float y, Float w, Float h);
-    int draw();
+void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
+{
+    std::cout << "fillrect: " << x << " " <<  x << " " <<  x << " " <<  x << std::endl;
+}
 
-    /// \todo remove into a vector<GepardState> states.
-    GepardState state;
-private:
-    Surface* _surface;
-};
+void GepardVulkan::closePath()
+{
+}
+
+int GepardVulkan::draw()
+{
+    return -1;
+}
 
 } // namespace vulkan
-
-typedef vulkan::GepardVulkan GepardEngineBackend;
-
 } // namespace gepard
 
-#endif // GEPARD_VULKAN_H
-
-#endif // USE_VULKAN
+#endif // GD_USE_VULKAN

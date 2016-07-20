@@ -1,5 +1,5 @@
 /* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2013, Zoltan Herczeg
+ * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
  * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
@@ -24,27 +24,43 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_GLES2
+#ifndef GEPARD_MEMORY_BUFFER_SURFACE_H
+#define GEPARD_MEMORY_BUFFER_SURFACE_H
 
-#ifndef GEPARD_GLES2_DEFS_H
-#define GEPARD_GLES2_DEFS_H
+#include "gepard.h"
 
-#include "gepard-defs.h"
-
-#define GL_GLEXT_PROTOTYPES 1
-
-#include <EGL/egl.h>
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+#include <cstdlib>
 
 namespace gepard {
-namespace gles2 {
 
-#define GD_GLES2_TEXTURE_SIZE 512
+/*!
+ * \brief A simple memory buffer surface class for _Gepard_
+ *
+ * \todo: documentation is missing.
+ */
+class MemoryBufferSurface : public Surface {
+public:
+    MemoryBufferSurface(uint32_t width = 0, uint32_t height = 0)
+        : Surface(width, height, true)
+    {
+        _buffer = std::malloc(width * height * 4);
+    }
 
-} // namespace gles2
+    virtual ~MemoryBufferSurface()
+    {
+        if (_buffer) {
+            std::free(_buffer);
+        }
+    }
+
+    virtual void* getDisplay() { return nullptr; }
+    virtual unsigned long getWindow() { return 0; }
+    virtual void* getBuffer() { return _buffer; }
+
+private:
+    void* _buffer;
+};
+
 } // namespace gepard
 
-#endif // GEPARD_GLES2_DEFS_H
-
-#endif // USE_GLES2
+#endif // GEPARD_MEMORY_BUFFER_SURFACE_H

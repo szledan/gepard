@@ -1,5 +1,5 @@
-/* Copyright (C) 2015-2016, Gepard Graphics
- * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
+/* Copyright (C) 2016, Gepard Graphics
+ * Copyright (C) 2013, Zoltan Herczeg
  * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
@@ -24,15 +24,27 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-surface.h"
+#ifdef GD_USE_GLES2
+
+#ifndef GEPARD_GLES2_DEFS_H
+#define GEPARD_GLES2_DEFS_H
+
+#include "gepard-defs.h"
+
+#define GL_GLEXT_PROTOTYPES 1
+
+#include <EGL/egl.h>
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 
 namespace gepard {
+namespace gles2 {
 
-Surface::Surface(Gepard* gepard, uint32_t width, uint32_t height)
-    : _gepard(gepard)
-    , _width(width)
-    , _height(height)
-{
-}
+#define GD_GLES2_TEXTURE_SIZE 512
 
+} // namespace gles2
 } // namespace gepard
+
+#endif // GEPARD_GLES2_DEFS_H
+
+#endif // GD_USE_GLES2

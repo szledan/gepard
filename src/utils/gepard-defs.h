@@ -33,10 +33,10 @@
 
 namespace gepard {
 
-#ifdef ASSERT
-#undef ASSERT
+#ifdef GD_ASSERT
+#undef GD_ASSERT
 #endif
-#define ASSERT(...) assert(__VA_ARGS__);
+#define GD_ASSERT(...) assert(__VA_ARGS__);
 
 #ifdef GD_CRASH
 #undef GD_CRASH
@@ -47,10 +47,10 @@ namespace gepard {
         abort(); \
     } while (false)
 
-#ifdef NOT_IMPLEMENTED
-#undef NOT_IMPLEMENTED
+#ifdef GD_NOT_IMPLEMENTED
+#undef GD_NOT_IMPLEMENTED
 #endif
-#define NOT_IMPLEMENTED(...) ASSERT(0 && "Unimplemented function!")
+#define GD_NOT_IMPLEMENTED(...) GD_ASSERT(0 && "Unimplemented function!")
 
 #ifdef GD_LOG1
 #undef GD_LOG1
@@ -98,7 +98,7 @@ namespace gepard {
 #define _GD_LOG(LEVEL, MSG, LOG_COLOR, TYPE) do {\
   std::ostringstream oss; \
   oss << MSG; \
-  ASSERT(LEVEL > 0); \
+  GD_ASSERT(LEVEL > 0); \
   _log(LEVEL - 1, oss.str(), LOG_COLOR, TYPE, std::string(__FILE__), (__LINE__), std::string(__func__)); \
 } while(false)
 

@@ -26,7 +26,7 @@
 #include "savanna-benchmarks.h"
 
 #include "gepard.h"
-#include "gepard-xsurface.h"
+#include "surfaces/gepard-xsurface.h"
 #include "savanna.h"
 #include <chrono>
 #include <math.h>

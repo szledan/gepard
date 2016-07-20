@@ -1,5 +1,5 @@
 /* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
+ * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,36 +23,62 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_VULKAN
+#ifdef GD_USE_SOFTWARE
 
-#include "gepard-vulkan.h"
+#ifndef GEPARD_SOFTWARE_H
+#define GEPARD_SOFTWARE_H
 
-#include <iostream>
+#include "gepard-defs.h"
+
+#include "gepard.h"
+#include "gepard-image.h"
+#include "gepard-types.h"
 
 namespace gepard {
-namespace vulkan {
 
-GepardVulkan::GepardVulkan(Surface* surface)
-    : _surface(surface)
-{
-    std::cout << "GepardVulkan" << std::endl;
-}
+class Image;
+class Surface;
 
-void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
-{
-    std::cout << "fillrect: " << x << " " <<  x << " " <<  x << " " <<  x << std::endl;
-}
+namespace software {
 
-void GepardVulkan::closePath()
-{
-}
+class GepardSoftware {
+public:
+    explicit GepardSoftware(Surface* surface);
+    ~GepardSoftware();
 
-int GepardVulkan::draw()
-{
-    return -1;
-}
+    /* 5. Building paths */
+    void closePath();
+    void moveTo(Float x, Float y);
+    void lineTo(Float x, Float y);
+    void quadraticCurveTo(Float cpx, Float cpy, Float x, Float y);
+    void bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y);
+    void arcTo(Float x1, Float y1, Float x2, Float y2, Float radius);
+    void rect(Float x, Float y, Float w, Float h);
+    void arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise = false);
 
-} // namespace vulkan
+    /* 11. Drawing paths to the canvas */
+    void beginPath();
+    void fill();
+    void stroke();
+    void drawFocusIfNeeded(/*Element element*/);
+    void clip();
+    bool isPointInPath(Float x, Float y);
+
+    void fillRect(Float x, Float y, Float w, Float h);
+
+    //! \todo remove into a vector<GepardState> states.
+    GepardState state;
+
+private:
+    Surface* _surface;
+};
+
+} // namespace software
+
+typedef software::GepardSoftware GepardEngineBackend;
+
 } // namespace gepard
 
-#endif // USE_VULKAN
+#endif // GEPARD_SOFTWARE_H
+
+#endif // GD_USE_SOFTWARE

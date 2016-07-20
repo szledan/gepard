@@ -23,45 +23,60 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-engine.h"
+#ifdef GD_USE_SOFTWARE
+
+#include "gepard-software.h"
+
+#include "gepard-defs.h"
 
 namespace gepard {
+namespace software {
 
-/*!
- * \brief GepardEngine::closePath
- */
-void GepardEngine::closePath()
+GepardSoftware::GepardSoftware(Surface* surface)
+    : _surface(surface)
 {
-    ASSERT(_engineBackend);
-    _engineBackend->closePath();
+}
+
+GepardSoftware::~GepardSoftware()
+{
 }
 
 /*!
- * \brief GepardEngine::moveTo
- * \param x  X-axis value of _end_ point
- * \param y  Y-axis value of _end_ point
+ * \brief GepardSoftware::closePath
  *
  * \todo unimplemented function
  */
-void GepardEngine::moveTo(Float x, Float y)
+void GepardSoftware::closePath()
 {
     GD_NOT_IMPLEMENTED();
 }
 
 /*!
- * \brief GepardEngine::lineTo
+ * \brief GepardSoftware::moveTo
  * \param x  X-axis value of _end_ point
  * \param y  Y-axis value of _end_ point
  *
  * \todo unimplemented function
  */
-void GepardEngine::lineTo(Float x, Float y)
+void GepardSoftware::moveTo(Float x, Float y)
 {
     GD_NOT_IMPLEMENTED();
 }
 
 /*!
- * \brief GepardEngine::quadraticCurveTo
+ * \brief GepardSoftware::lineTo
+ * \param x  X-axis value of _end_ point
+ * \param y  Y-axis value of _end_ point
+ *
+ * \todo unimplemented function
+ */
+void GepardSoftware::lineTo(Float x, Float y)
+{
+    GD_NOT_IMPLEMENTED();
+}
+
+/*!
+ * \brief GepardSoftware::quadraticCurveTo
  * \param cpx  X-axis value of _control_ poin
  * \param cpy  Y-axis value of _control_ poin
  * \param x  X-axis value of _end_ point
@@ -69,13 +84,13 @@ void GepardEngine::lineTo(Float x, Float y)
  *
  * \todo unimplemented function
  */
-void GepardEngine::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
+void GepardSoftware::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
 {
     GD_NOT_IMPLEMENTED();
 }
 
 /*!
- * \brief GepardEngine::bezierCurveTo
+ * \brief GepardSoftware::bezierCurveTo
  * \param cp1x  X-axis value of _first control_ point
  * \param cp1y  Y-axis value of _first control_ point
  * \param cp2x  X-axis value of _second control_ point
@@ -85,13 +100,13 @@ void GepardEngine::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
  *
  * \todo unimplemented function
  */
-void GepardEngine::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y)
+void GepardSoftware::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y)
 {
     GD_NOT_IMPLEMENTED();
 }
 
 /*!
- * \brief GepardEngine::arcTo
+ * \brief GepardSoftware::arcTo
  * \param x1  X-axis value of _tangent_ point
  * \param y1  Y-axis value of _tangent_ point
  * \param x2  X-axis value of _end_ point
@@ -100,13 +115,13 @@ void GepardEngine::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y,
  *
  * \todo unimplemented function
  */
-void GepardEngine::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
+void GepardSoftware::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
 {
     GD_NOT_IMPLEMENTED();
 }
 
 /*!
- * \brief GepardEngine::rect
+ * \brief GepardSoftware::rect
  * \param x  X-axis value of _start_ and _end_ point
  * \param y  Y-axis value of _start_ and _end_ point
  * \param w  size on X-axis
@@ -114,13 +129,13 @@ void GepardEngine::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
  *
  * \todo unimplemented function
  */
-void GepardEngine::rect(Float x, Float y, Float w, Float h)
+void GepardSoftware::rect(Float x, Float y, Float w, Float h)
 {
     GD_NOT_IMPLEMENTED();
 }
 
 /*!
- * \brief GepardEngine::arc
+ * \brief GepardSoftware::arc
  * \param x  X-axis value of _center_ point
  * \param y  Y-axis value of _center_ point
  * \param radius  size of arc
@@ -130,101 +145,89 @@ void GepardEngine::rect(Float x, Float y, Float w, Float h)
  *
  * \todo unimplemented function
  */
-void GepardEngine::arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise)
+void GepardSoftware::arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise)
 {
     GD_NOT_IMPLEMENTED();
 }
 
 /*!
- * \brief GepardEngine::beginPath
+ * \brief GepardSoftware::beginPath
  *
  * \todo unimplemented function
  */
-void GepardEngine::beginPath()
+void GepardSoftware::beginPath()
 {
     GD_NOT_IMPLEMENTED();
 }
 
 /*!
- * \brief GepardEngine::fill
+ * \brief GepardSoftware::fill
  *
  * \todo unimplemented function
  */
-void GepardEngine::fill()
+void GepardSoftware::fill()
 {
     GD_NOT_IMPLEMENTED();
 }
 
 /*!
- * \brief GepardEngine::stroke
+ * \brief GepardSoftware::stroke
  *
  * \todo unimplemented function
  */
-void GepardEngine::stroke()
+void GepardSoftware::stroke()
 {
     GD_NOT_IMPLEMENTED();
 }
 
 /*!
- * \brief GepardEngine::drawFocusIfNeeded
+ * \brief GepardSoftware::drawFocusIfNeeded
  *
  * \todo unimplemented function
  */
-void GepardEngine::drawFocusIfNeeded(/*Element element*/)
+void GepardSoftware::drawFocusIfNeeded(/*Element element*/)
 {
     GD_NOT_IMPLEMENTED();
 }
 
 /*!
- * \brief GepardEngine::clip
+ * \brief GepardSoftware::clip
  *
  * \todo unimplemented function
  */
-void GepardEngine::clip()
+void GepardSoftware::clip()
 {
     GD_NOT_IMPLEMENTED();
 }
 
 /*!
- * \brief GepardEngine::isPointInPath
+ * \brief GepardSoftware::isPointInPath
  * \param x  X-axis value of the given point
  * \param y  Y-axis value of the given point
  * \return  true if the given _point_ is in the current path
  *
  * \todo unimplemented function
  */
-bool GepardEngine::isPointInPath(Float x, Float y)
+bool GepardSoftware::isPointInPath(Float x, Float y)
 {
     GD_NOT_IMPLEMENTED();
     return false;
 }
 
 /*!
- * \brief GepardEngine::fillRect
+ * \brief GepardSoftware::fillRect
  * \param x  X-axis value of _start_ and _end_ point
  * \param y  Y-axis value of _start_ and _end_ point
  * \param w  size on X-axis
  * \param h  size on Y-axis
  *
- * \todo documentation is missing
+ * \todo unimplemented function
  */
-void GepardEngine::fillRect(Float x, Float y, Float w, Float h)
+void GepardSoftware::fillRect(Float x, Float y, Float w, Float h)
 {
-    ASSERT(_engineBackend);
-    _engineBackend->fillRect(x, y, w, h);
 }
 
-void GepardEngine::setFillColor(const Float red, const Float green, const Float blue, const Float alpha)
-{
-    GD_LOG1("Set fill color (" << red << ", " << green << ", " << blue << ", " << alpha << ")");
-    ASSERT(_engineBackend);
-    _engineBackend->state.fillColor = Color(red, green, blue, alpha);
-}
-
-int GepardEngine::draw()
-{
-    ASSERT(_engineBackend);
-    return _engineBackend->draw();
-}
-
+} // namespace software
 } // namespace gepard
+
+#endif // GD_USE_SOFTWARE

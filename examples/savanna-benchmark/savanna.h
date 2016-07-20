@@ -27,7 +27,7 @@
 #define SAVANNA_H
 
 #include "gepard.h"
-#include "gepard-xsurface.h"
+#include "surfaces/gepard-xsurface.h"
 #include <iostream>
 #include <list>
 #include <map>

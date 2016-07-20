@@ -23,18 +23,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_GLES2
+#ifdef GD_USE_GLES2
 
 #ifndef GEPARD_GLES2_H
 #define GEPARD_GLES2_H
 
 #include "gepard-defs.h"
 
+#include "gepard.h"
 #include "gepard-gles2-defs.h"
 #include "gepard-gles2-shader-factory.h"
 #include "gepard-image.h"
-#include "gepard-surface.h"
 #include "gepard-types.h"
+#include <EGL/egl.h>
+#include <GLES2/gl2.h>
 #include <map>
 
 namespace gepard {
@@ -69,10 +71,9 @@ public:
 
     void fillRect(Float x, Float y, Float w, Float h);
 
-    int draw();
-
-    /// \todo remove into a vector<GepardState> states.
+    //! \todo remove into a vector<GepardState> states.
     GepardState state;
+
 private:
     struct CommandQueue {
         static const int kMaximumNumberOfAttributes = GLushort(-1) + 1;
@@ -115,6 +116,11 @@ private:
     EGLContext _eglContext;
 
     CommandQueue* commandQueue;
+
+    GLuint _fboId;
+    GLuint _textureId;
+
+    std::map<std::string, uint> _programs;
 };
 
 } // namespace gles2
@@ -125,4 +131,4 @@ typedef gles2::GepardGLES2 GepardEngineBackend;
 
 #endif // GEPARD_GLES2_H
 
-#endif // USE_GLES2
+#endif // GD_USE_GLES2
