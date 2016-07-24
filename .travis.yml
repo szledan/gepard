@@ -51,6 +51,7 @@ matrix:
             - libgles2-mesa-dev
 
     - script:
+        - tools/scripts/vulkan-deps.sh
         - python tools/scripts/build.py --backend=vulkan
       env:
         - CMD=build
@@ -90,6 +91,7 @@ matrix:
             - libgles2-mesa-dev
 
     - script:
+        - tools/scripts/vulkan-deps.sh
         - python tools/scripts/build.py --debug --backend=vulkan
       env:
         - CMD=build
@@ -133,6 +135,7 @@ matrix:
           - tools/frameworks
 
     - script:
+        - tools/scripts/vulkan-deps.sh
         - python tools/scripts/unittest.py --debug --backend=vulkan
       env:
         - CMD=unittest
