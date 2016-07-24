@@ -23,7 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_VULKAN
+#ifdef GD_USE_VULKAN
 
 #include "gepard-vulkan-interface.h"
 
@@ -47,7 +47,7 @@ void GepardVulkanInterface::loadGlobalFunctions()
 {
 #define GD_VK_LOAD_FUNCTION(fun)\
     fun = (PFN_##fun) vkGetInstanceProcAddr (0, #fun); \
-    ASSERT(fun && "Couldn't load " #fun "!");
+    GD_ASSERT(fun && "Couldn't load " #fun "!");
 
     if (!_vulkanLibrary) {
             GD_CRASH("Loading the Vulkan library was unsuccessfuly!\n");
@@ -55,7 +55,7 @@ void GepardVulkanInterface::loadGlobalFunctions()
     }
 
     vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)dlsym(_vulkanLibrary, "vkGetInstanceProcAddr");
-    ASSERT(vkGetInstanceProcAddr && "Couldn't load the vkGetInstanceProcAddr function!");
+    GD_ASSERT(vkGetInstanceProcAddr && "Couldn't load the vkGetInstanceProcAddr function!");
 
     GD_VK_LOAD_FUNCTION (vkCreateInstance);
 
@@ -66,7 +66,7 @@ void GepardVulkanInterface::loadInstanceFunctions(VkInstance instance)
 {
 #define GD_VK_LOAD_FUNCTION(fun)\
     fun = (PFN_##fun) vkGetInstanceProcAddr (instance, #fun); \
-    ASSERT(fun && "Couldn't load " #fun "!");
+    GD_ASSERT(fun && "Couldn't load " #fun "!");
 
     GD_VK_LOAD_FUNCTION(vkDestroyInstance);
     GD_VK_LOAD_FUNCTION(vkEnumeratePhysicalDevices);
@@ -83,7 +83,7 @@ void GepardVulkanInterface::loadDeviceFunctions(VkDevice device)
 {
 #define GD_VK_LOAD_FUNCTION(fun)\
     fun = (PFN_##fun) vkGetDeviceProcAddr (device, #fun); \
-    ASSERT(fun && "Couldn't load " #fun "!");
+    GD_ASSERT(fun && "Couldn't load " #fun "!");
 
     GD_VK_LOAD_FUNCTION(vkDestroyDevice);
     GD_VK_LOAD_FUNCTION(vkGetDeviceQueue);

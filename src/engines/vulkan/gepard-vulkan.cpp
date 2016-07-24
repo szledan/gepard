@@ -105,7 +105,7 @@ void GepardVulkan::closePath()
 
 void GepardVulkan::createDefaultInstance()
 {
-    ASSERT(!_instance);
+    GD_ASSERT(!_instance);
 
     // todo: find better default arguments
     const VkInstanceCreateInfo instanceCreateInfo = {
@@ -126,10 +126,10 @@ void GepardVulkan::chooseDefaultPhysicalDevice()
 {
     uint32_t deviceCount;
     _vk.vkEnumeratePhysicalDevices(_instance, &deviceCount, nullptr);
-    ASSERT(deviceCount);
+    GD_ASSERT(deviceCount);
     GD_LOG3("Physical devices found: " << deviceCount);
     std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
-    ASSERT(deviceCount && "Couldn't find any device!");
+    GD_ASSERT(deviceCount && "Couldn't find any device!");
 
     std::vector<VkPhysicalDevice> integratedDevices;
     std::vector<VkPhysicalDevice> discreteDevices;
@@ -214,7 +214,7 @@ void GepardVulkan::chooseDefaultDevice()
     };
 
     vkResult = _vk.vkCreateDevice(_physicalDevice, &deviceCreateInfo, _allocator, &_device);
-    ASSERT(vkResult == VK_SUCCESS && "Logical device creation is failed!");
+    GD_ASSERT(vkResult == VK_SUCCESS && "Logical device creation is failed!");
 }
 
 void GepardVulkan::createCommandPool()
@@ -229,7 +229,7 @@ void GepardVulkan::createCommandPool()
     VkResult vkResult;
     vkResult = _vk.vkCreateCommandPool(_device, &commandPoolCreateInfo, _allocator, &_commandPool);
 
-    ASSERT(vkResult == VK_SUCCESS && "Command pool creation is failed!");
+    GD_ASSERT(vkResult == VK_SUCCESS && "Command pool creation is failed!");
 }
 
 void GepardVulkan::allocatePrimaryCommandBuffer()
@@ -246,7 +246,7 @@ void GepardVulkan::allocatePrimaryCommandBuffer()
     VkCommandBuffer commandBuffer;
     vkResult = _vk.vkAllocateCommandBuffers(_device, &commandBufferAllocateInfo, &commandBuffer);
 
-    ASSERT(vkResult == VK_SUCCESS && "Command buffer allocation is failed!");
+    GD_ASSERT(vkResult == VK_SUCCESS && "Command buffer allocation is failed!");
     _primaryCommandBuffers.push_back(commandBuffer);
 }
 
@@ -297,7 +297,7 @@ void GepardVulkan::createDefaultRenderPass()
     };
 
     vkResult = _vk.vkCreateRenderPass(_device, &renderPassCreateInfo, _allocator, &_renderPass);
-    ASSERT(vkResult == VK_SUCCESS && "Creating the default render pass is failed!");
+    GD_ASSERT(vkResult == VK_SUCCESS && "Creating the default render pass is failed!");
 }
 
 void GepardVulkan::createSurfaceImage()
@@ -330,7 +330,7 @@ void GepardVulkan::createSurfaceImage()
     };
 
     vkResult = _vk.vkCreateImage(_device, &imageCreateInfo, _allocator, &_surfaceImage);
-    ASSERT(vkResult == VK_SUCCESS && "Creating the surface backing image is failed!");
+    GD_ASSERT(vkResult == VK_SUCCESS && "Creating the surface backing image is failed!");
 
     VkMemoryRequirements memoryRequirements;
     _vk.vkGetImageMemoryRequirements(_device, _surfaceImage, &memoryRequirements);
@@ -344,12 +344,12 @@ void GepardVulkan::createSurfaceImage()
 
     VkDeviceMemory deviceMemory;
     vkResult = _vk.vkAllocateMemory(_device, &memoryAllocateInfo, _allocator, &deviceMemory);
-    ASSERT(vkResult == VK_SUCCESS && "Memory allocation is failed!");
+    GD_ASSERT(vkResult == VK_SUCCESS && "Memory allocation is failed!");
 
     _memoryAllocations.push_back(deviceMemory);
 
     vkResult = _vk.vkBindImageMemory(_device, _surfaceImage, deviceMemory, static_cast<VkDeviceSize>(0u));
-    ASSERT(vkResult == VK_SUCCESS && "Memory bind is failed!");
+    GD_ASSERT(vkResult == VK_SUCCESS && "Memory bind is failed!");
 }
 
 void GepardVulkan::createDefaultFrameBuffer()
@@ -379,7 +379,7 @@ void GepardVulkan::createDefaultFrameBuffer()
     };
 
     vkResult = _vk.vkCreateImageView(_device, &imageViewCreateInfo, _allocator, &_frameBufferColorAttachmentImageView);
-    ASSERT(vkResult == VK_SUCCESS && "Creating the default frame buffer is failed!");
+    GD_ASSERT(vkResult == VK_SUCCESS && "Creating the default frame buffer is failed!");
 
     std::vector<VkImageView> attachments;
     attachments.push_back(_frameBufferColorAttachmentImageView);
@@ -397,20 +397,20 @@ void GepardVulkan::createDefaultFrameBuffer()
     };
 
     vkResult = _vk.vkCreateFramebuffer(_device, &frameBufferCreateInfo, _allocator, &_frameBuffer);
-    ASSERT(vkResult == VK_SUCCESS && "Creating the default frame buffer is failed!");
+    GD_ASSERT(vkResult == VK_SUCCESS && "Creating the default frame buffer is failed!");
 }
 
 uint32_t GepardVulkan::getMemoryTypeIndex(VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags properties)
 {
     /* Algorithm copied from Vulkan specification */
-    for (int32_t i = 0; i < _physicalDeviceMemoryProperties.memoryTypeCount; ++i)
+    for (uint32_t i = 0; i < _physicalDeviceMemoryProperties.memoryTypeCount; ++i)
     {
         if ((memoryRequirements.memoryTypeBits & (1 << i)) &&
             ((_physicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & properties) == properties))
             return i;
     }
 
-    ASSERT(false && "No feasible memory type index!");
+    GD_ASSERT(false && "No feasible memory type index!");
     return -1;
 }
 

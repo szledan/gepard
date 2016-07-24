@@ -6,6 +6,6 @@ if (${GD_USE_GLES2})
   find_package(GLES2 REQUIRED)
 endif ()
 
-if (${USE_VULKAN})
+if (${GD_USE_VULKAN})
     find_package(VULKAN REQUIRED)
 endif ()
