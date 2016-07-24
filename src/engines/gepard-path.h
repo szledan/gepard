@@ -123,7 +123,7 @@ struct ArcElement : public PathElement {
         , endAngle(endAngle)
         , antiClockwise(antiClockwise)
     {
-        ASSERT(radius.x >= 0 && radius.y >= 0);
+        GD_ASSERT(radius.x >= 0 && radius.y >= 0);
     }
 
     std::ostream& output(std::ostream& os) const
@@ -154,9 +154,9 @@ struct PathData {
     void addArcElement(FloatPoint, FloatPoint, Float, Float, bool = true);
     void addArcToElement(const FloatPoint&, const FloatPoint&, const Float&);
     void addCloseSubpathElement();
-#ifndef NDEBUG
+#ifdef GD_LOG_LEVEL
     void dump();
-#endif
+#endif // GD_LOG_LEVEL
 
     PathElement* firstElement() const { return _firstElement; }
     PathElement* lastElement() const { return _lastElement; }

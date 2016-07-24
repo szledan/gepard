@@ -23,7 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_GLES2
+#ifdef GD_USE_GLES2
 
 #include "gepard-gles2-shader-factory.h"
 
@@ -82,8 +82,8 @@ GLuint ShaderProgram::compileShader(GLenum type, const GLchar* shaderSource)
 
 GLuint ShaderProgram::linkPrograms(GLuint vertexShader, GLuint fragmentShader)
 {
-    ASSERT(vertexShader && "Vertex shader program doesn't exist!");
-    ASSERT(fragmentShader && "Fragment shader program doesn't exist!");
+    GD_ASSERT(vertexShader && "Vertex shader program doesn't exist!");
+    GD_ASSERT(fragmentShader && "Fragment shader program doesn't exist!");
 
     const GLuint program = glCreateProgram();
     glAttachShader(program, vertexShader);
@@ -132,4 +132,4 @@ void ShaderProgram::compileShaderProg(GLuint* result, const std::string& name, c
 } // namespace gles2
 } // namespace gepard
 
-#endif // USE_GLES2
+#endif // GD_USE_GLES2

@@ -24,7 +24,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-surface.h"
+#include "gepard.h"
 
 namespace gepard {
 

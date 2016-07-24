@@ -97,15 +97,15 @@ TEST(BasicMathFuncTest, Clamp)
 
 TEST(RegionTest, SizeTooBig)
 {
-    gepard::Region<REGION_BLOCK_SIZE> region;
-    void* ptr = region.alloc(REGION_BLOCK_SIZE + 1);
+    gepard::Region<GD_REGION_BLOCK_SIZE> region;
+    void* ptr = region.alloc(GD_REGION_BLOCK_SIZE + 1);
 
     EXPECT_EQ(nullptr, ptr) << "The alloc() doesn't return 'nullptr' when 'size' is bigger than REGION_BLOCK_SIZE.";
 }
 
 TEST(RegionTest, SizeIsZero)
 {
-    gepard::Region<REGION_BLOCK_SIZE> region;
+    gepard::Region<GD_REGION_BLOCK_SIZE> region;
     void* ptr1 = region.alloc(0);
     void* ptr2 = region.alloc(0);
 

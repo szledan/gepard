@@ -1,5 +1,5 @@
 /* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
+ * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,76 +23,69 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_VULKAN
+#ifdef GD_USE_GLES2
 
-#ifndef GEPARD_VULKAN_H
-#define GEPARD_VULKAN_H
+#ifndef GEPARD_GLES2_H
+#define GEPARD_GLES2_H
 
 #include "gepard-defs.h"
 
+#include "gepard.h"
 #include "gepard-image.h"
-#include "gepard-surface.h"
 #include "gepard-types.h"
-
-#include "gepard-vulkan-interface.h"
-
-#include <vector>
+#include <EGL/egl.h>
+#include <map>
 
 namespace gepard {
 
 class Image;
 class Surface;
 
-namespace vulkan {
+namespace gles2 {
 
-
-class GepardVulkan {
+class GepardGLES2 {
 public:
-    explicit GepardVulkan(Surface* surface);
-    ~GepardVulkan();
+    explicit GepardGLES2(Surface* surface);
+    ~GepardGLES2();
+
+    /* 5. Building paths */
+    void closePath();
+    void moveTo(Float x, Float y);
+    void lineTo(Float x, Float y);
+    void quadraticCurveTo(Float cpx, Float cpy, Float x, Float y);
+    void bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y);
+    void arcTo(Float x1, Float y1, Float x2, Float y2, Float radius);
+    void rect(Float x, Float y, Float w, Float h);
+    void arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise = false);
+
+    /* 11. Drawing paths to the canvas */
+    void beginPath();
+    void fill();
+    void stroke();
+    void drawFocusIfNeeded(/*Element element*/);
+    void clip();
+    bool isPointInPath(Float x, Float y);
 
     void fillRect(Float x, Float y, Float w, Float h);
-    void closePath();
 
     /// \todo remove into a vector<GepardState> states.
     GepardState state;
 private:
     Surface* _surface;
-    GepardVulkanInterface _vk;
-    VkAllocationCallbacks* _allocator;
-    VkInstance _instance;
-    VkPhysicalDevice _physicalDevice;
-    VkDevice _device;
-    uint32_t _queueFamilyIndex;
-    VkCommandPool _commandPool;
-    std::vector<VkCommandBuffer> _primaryCommandBuffers;
-    std::vector<VkCommandBuffer> _secondaryCommandBuffers;
-    std::vector<VkDeviceMemory> _memoryAllocations;
-    VkRenderPass _renderPass;
-    VkFormat _imageFormat;
-    VkImage _surfaceImage;
-    VkImageView _frameBufferColorAttachmentImageView;
-    VkFramebuffer _frameBuffer;
-    VkPhysicalDeviceMemoryProperties _physicalDeviceMemoryProperties;
 
-    void createDefaultInstance();
-    void chooseDefaultPhysicalDevice();
-    void chooseDefaultDevice();
-    bool findGraphicsQueue(std::vector<VkPhysicalDevice> devices);
-    void createCommandPool();
-    void allocatePrimaryCommandBuffer();
-    void createDefaultRenderPass();
-    void createSurfaceImage();
-    void createDefaultFrameBuffer();
-    uint32_t getMemoryTypeIndex(VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags properties);
+    EGLDisplay _eglDisplay;
+    EGLSurface _eglSurface;
+    EGLContext _eglContext;
+
+    std::map<std::string, uint> _programs;
 };
 
-} // namespace vulkan
+} // namespace gles2
 
-typedef vulkan::GepardVulkan GepardEngineBackend;
+typedef gles2::GepardGLES2 GepardEngineBackend;
 
 } // namespace gepard
 
-#endif // GEPARD_VULKAN_H
+#endif // GEPARD_GLES2_H
 
-#endif // USE_VULKAN
+#endif // GD_USE_GLES2

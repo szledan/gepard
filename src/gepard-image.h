@@ -23,17 +23,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GEPARDIMAGE_H
-#define GEPARDIMAGE_H
+#ifndef GEPARD_IMAGE_H
+#define GEPARD_IMAGE_H
 
 #include "gepard-defs.h"
 
 namespace gepard {
 
 class Image {
-/** @todo Implement Image */
+/*! \todo Implement Image */
 };
 
 } // namespace gepard
 
-#endif // GEPARDIMAGE_H
+#endif // GEPARD_IMAGE_H

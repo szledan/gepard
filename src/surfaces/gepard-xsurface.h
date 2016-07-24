@@ -27,7 +27,7 @@
 #ifndef GEPARD_XSURFACE_H
 #define GEPARD_XSURFACE_H
 
-#include "gepard-surface.h"
+#include "gepard.h"
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>

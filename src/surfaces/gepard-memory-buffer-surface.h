@@ -1,4 +1,5 @@
 /* Copyright (C) 2016, Gepard Graphics
+ * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
  * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
@@ -23,69 +24,43 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef USE_GLES2
+#ifndef GEPARD_MEMORY_BUFFER_SURFACE_H
+#define GEPARD_MEMORY_BUFFER_SURFACE_H
 
-#ifndef GEPARD_GLES2_H
-#define GEPARD_GLES2_H
+#include "gepard.h"
 
-#include "gepard-defs.h"
-
-#include "gepard-image.h"
-#include "gepard-surface.h"
-#include "gepard-types.h"
-#include <EGL/egl.h>
-#include <map>
+#include <cstdlib>
 
 namespace gepard {
 
-class Image;
-class Surface;
-
-namespace gles2 {
-
-class GepardGLES2 {
+/*!
+ * \brief A simple memory buffer surface class for _Gepard_
+ *
+ * \todo: documentation is missing.
+ */
+class MemoryBufferSurface : public Surface {
 public:
-    explicit GepardGLES2(Surface* surface);
-    ~GepardGLES2();
+    MemoryBufferSurface(uint32_t width = 0, uint32_t height = 0)
+        : Surface(width, height)
+    {
+        buffer = std::malloc(width * height * 4);
+    }
 
-    /* 5. Building paths */
-    void closePath();
-    void moveTo(Float x, Float y);
-    void lineTo(Float x, Float y);
-    void quadraticCurveTo(Float cpx, Float cpy, Float x, Float y);
-    void bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y);
-    void arcTo(Float x1, Float y1, Float x2, Float y2, Float radius);
-    void rect(Float x, Float y, Float w, Float h);
-    void arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise = false);
+    virtual ~MemoryBufferSurface()
+    {
+        if (buffer) {
+            std::free(buffer);
+        }
+    }
 
-    /* 11. Drawing paths to the canvas */
-    void beginPath();
-    void fill();
-    void stroke();
-    void drawFocusIfNeeded(/*Element element*/);
-    void clip();
-    bool isPointInPath(Float x, Float y);
+    virtual void* getDisplay() { return nullptr; }
+    virtual unsigned long getWindow() { return 0; }
+    virtual void* getBuffer() { return buffer; }
 
-    void fillRect(Float x, Float y, Float w, Float h);
-
-    /// \todo remove into a vector<GepardState> states.
-    GepardState state;
 private:
-    Surface* _surface;
-
-    EGLDisplay _eglDisplay;
-    EGLSurface _eglSurface;
-    EGLContext _eglContext;
-
-    std::map<std::string, uint> _programs;
+    void* buffer;
 };
-
-} // namespace gles2
-
-typedef gles2::GepardGLES2 GepardEngineBackend;
 
 } // namespace gepard
 
-#endif // GEPARD_GLES2_H
-
-#endif // USE_GLES2
+#endif // GEPARD_MEMORY_BUFFER_SURFACE_H
