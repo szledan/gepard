@@ -75,6 +75,7 @@ void GepardVulkanInterface::loadInstanceFunctions(VkInstance instance)
     GD_VK_LOAD_FUNCTION(vkCreateDevice);
     GD_VK_LOAD_FUNCTION(vkGetDeviceProcAddr);
     GD_VK_LOAD_FUNCTION(vkGetPhysicalDeviceMemoryProperties);
+    GD_VK_LOAD_FUNCTION(vkGetPhysicalDeviceFeatures);
 
 #undef GD_VK_LOAD_FUNCTION
 }
@@ -109,6 +110,38 @@ void GepardVulkanInterface::loadDeviceFunctions(VkDevice device)
     GD_VK_LOAD_FUNCTION(vkBindImageMemory);
     GD_VK_LOAD_FUNCTION(vkAllocateMemory);
     GD_VK_LOAD_FUNCTION(vkFreeMemory);
+    GD_VK_LOAD_FUNCTION(vkCreateGraphicsPipelines);
+    GD_VK_LOAD_FUNCTION(vkDestroyPipeline);
+    GD_VK_LOAD_FUNCTION(vkCreateShaderModule);
+    GD_VK_LOAD_FUNCTION(vkDestroyShaderModule);
+    GD_VK_LOAD_FUNCTION(vkCreatePipelineLayout);
+    GD_VK_LOAD_FUNCTION(vkDestroyPipelineLayout);
+    GD_VK_LOAD_FUNCTION(vkCmdBeginRenderPass);
+    GD_VK_LOAD_FUNCTION(vkCmdEndRenderPass);
+    GD_VK_LOAD_FUNCTION(vkCreateBuffer);
+    GD_VK_LOAD_FUNCTION(vkDestroyBuffer);
+    GD_VK_LOAD_FUNCTION(vkMapMemory);
+    GD_VK_LOAD_FUNCTION(vkFlushMappedMemoryRanges);
+    GD_VK_LOAD_FUNCTION(vkInvalidateMappedMemoryRanges);
+    GD_VK_LOAD_FUNCTION(vkUnmapMemory);
+    GD_VK_LOAD_FUNCTION(vkCmdBindPipeline);
+    GD_VK_LOAD_FUNCTION(vkCmdDraw);
+    GD_VK_LOAD_FUNCTION(vkCmdDrawIndexed);
+    GD_VK_LOAD_FUNCTION(vkCmdDrawIndirect);
+    GD_VK_LOAD_FUNCTION(vkCmdDrawIndexedIndirect);
+    GD_VK_LOAD_FUNCTION(vkCreateFence);
+    GD_VK_LOAD_FUNCTION(vkDestroyFence);
+    GD_VK_LOAD_FUNCTION(vkWaitForFences);
+    GD_VK_LOAD_FUNCTION(vkCmdBindVertexBuffers);
+    GD_VK_LOAD_FUNCTION(vkCmdBindIndexBuffer);
+    GD_VK_LOAD_FUNCTION(vkCmdPipelineBarrier);
+    GD_VK_LOAD_FUNCTION(vkCmdCopyBuffer);
+    GD_VK_LOAD_FUNCTION(vkCmdCopyBufferToImage);
+    GD_VK_LOAD_FUNCTION(vkCmdCopyImageToBuffer);
+    GD_VK_LOAD_FUNCTION(vkCmdCopyImage);
+    GD_VK_LOAD_FUNCTION(vkCmdBlitImage);
+    GD_VK_LOAD_FUNCTION(vkCmdClearColorImage);
+    GD_VK_LOAD_FUNCTION(vkCmdClearAttachments);
 
 #undef GD_VK_LOAD_FUNCTION
 }

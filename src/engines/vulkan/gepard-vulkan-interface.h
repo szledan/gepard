@@ -58,6 +58,7 @@ public:
     GD_VK_DECLARE_FUNCTION(vkCreateDevice);
     GD_VK_DECLARE_FUNCTION(vkGetDeviceProcAddr);
     GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceMemoryProperties);
+    GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceFeatures);
 
     // Device level vulkan functions
     GD_VK_DECLARE_FUNCTION(vkDestroyDevice);
@@ -84,6 +85,38 @@ public:
     GD_VK_DECLARE_FUNCTION(vkBindImageMemory);
     GD_VK_DECLARE_FUNCTION(vkAllocateMemory);
     GD_VK_DECLARE_FUNCTION(vkFreeMemory);
+    GD_VK_DECLARE_FUNCTION(vkCreateGraphicsPipelines);
+    GD_VK_DECLARE_FUNCTION(vkDestroyPipeline);
+    GD_VK_DECLARE_FUNCTION(vkCreateShaderModule);
+    GD_VK_DECLARE_FUNCTION(vkDestroyShaderModule);
+    GD_VK_DECLARE_FUNCTION(vkCreatePipelineLayout);
+    GD_VK_DECLARE_FUNCTION(vkDestroyPipelineLayout);
+    GD_VK_DECLARE_FUNCTION(vkCmdBeginRenderPass);
+    GD_VK_DECLARE_FUNCTION(vkCmdEndRenderPass);
+    GD_VK_DECLARE_FUNCTION(vkCreateBuffer);
+    GD_VK_DECLARE_FUNCTION(vkDestroyBuffer);
+    GD_VK_DECLARE_FUNCTION(vkMapMemory);
+    GD_VK_DECLARE_FUNCTION(vkFlushMappedMemoryRanges);
+    GD_VK_DECLARE_FUNCTION(vkInvalidateMappedMemoryRanges);
+    GD_VK_DECLARE_FUNCTION(vkUnmapMemory);
+    GD_VK_DECLARE_FUNCTION(vkCmdBindPipeline);
+    GD_VK_DECLARE_FUNCTION(vkCmdDraw);
+    GD_VK_DECLARE_FUNCTION(vkCmdDrawIndexed);
+    GD_VK_DECLARE_FUNCTION(vkCmdDrawIndirect);
+    GD_VK_DECLARE_FUNCTION(vkCmdDrawIndexedIndirect);
+    GD_VK_DECLARE_FUNCTION(vkCreateFence);
+    GD_VK_DECLARE_FUNCTION(vkDestroyFence);
+    GD_VK_DECLARE_FUNCTION(vkWaitForFences);
+    GD_VK_DECLARE_FUNCTION(vkCmdBindVertexBuffers);
+    GD_VK_DECLARE_FUNCTION(vkCmdBindIndexBuffer);
+    GD_VK_DECLARE_FUNCTION(vkCmdPipelineBarrier);
+    GD_VK_DECLARE_FUNCTION(vkCmdCopyBuffer);
+    GD_VK_DECLARE_FUNCTION(vkCmdCopyBufferToImage);
+    GD_VK_DECLARE_FUNCTION(vkCmdCopyImageToBuffer);
+    GD_VK_DECLARE_FUNCTION(vkCmdCopyImage);
+    GD_VK_DECLARE_FUNCTION(vkCmdBlitImage);
+    GD_VK_DECLARE_FUNCTION(vkCmdClearColorImage);
+    GD_VK_DECLARE_FUNCTION(vkCmdClearAttachments);
 
 #undef GD_VK_DECLARE_FUNCTION
 

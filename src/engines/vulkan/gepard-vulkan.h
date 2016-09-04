@@ -74,6 +74,7 @@ private:
     VkImageView _frameBufferColorAttachmentImageView;
     VkFramebuffer _frameBuffer;
     VkPhysicalDeviceMemoryProperties _physicalDeviceMemoryProperties;
+    VkPhysicalDeviceFeatures _physicalDeviceFeatures;
 
     void createDefaultInstance();
     void chooseDefaultPhysicalDevice();
@@ -85,6 +86,8 @@ private:
     void createSurfaceImage();
     void createDefaultFrameBuffer();
     uint32_t getMemoryTypeIndex(VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags properties);
+
+    void logImage(VkImage image, VkExtent3D imageSize);
 };
 
 } // namespace vulkan
