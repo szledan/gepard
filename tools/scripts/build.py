@@ -81,7 +81,7 @@ def configure(arguments):
     except OSError:
         pass
 
-    util.call_cmd(['cmake', '-B' + build_path, '-H' + util.get_base_path()] + create_options(arguments))
+    util.call(['cmake', '-B' + build_path, '-H' + util.get_base_path()] + create_options(arguments))
 
 
 # Check if build is configured
@@ -101,7 +101,7 @@ def run_clean(arguments):
     except Error:
         return
 
-    util.call_cmd(['make', '-s', '-C', build_path, 'clean'])
+    util.call(['make', '-s', '-C', build_path, 'clean'])
 
 
 # Build unit tests
@@ -109,7 +109,7 @@ def build_unit(arguments):
     build_path = util.get_build_path(arguments)
     check_configured(arguments)
 
-    util.call_cmd(['make', '-s', '-C', build_path, 'unit'])
+    util.call(['make', '-s', '-C', build_path, 'unit'])
 
 
 # Build examples
@@ -117,7 +117,7 @@ def build_examples(arguments):
     build_path = util.get_build_path(arguments)
     check_configured(arguments)
 
-    util.call_cmd(['make', '-s', '-C', build_path, 'examples'])
+    util.call(['make', '-s', '-C', build_path, 'examples'])
 
 
 # Perform the build
@@ -125,7 +125,7 @@ def build_gepard(arguments):
     build_path = util.get_build_path(arguments)
     check_configured(arguments)
 
-    util.call_cmd(['make', '-s', '-C', build_path])
+    util.call(['make', '-s', '-C', build_path])
 
 
 # Print success message
@@ -138,15 +138,20 @@ def print_success():
 
 def main():
     arguments = get_args()
-    configure(arguments)
 
-    if arguments.clean:
-        run_clean(arguments)
+    try:
+        configure(arguments)
 
-    if arguments.build_examples:
-        build_examples(arguments)
-    else:
-        build_gepard(arguments)
+        if arguments.clean:
+            run_clean(arguments)
+
+        if arguments.build_examples:
+            build_examples(arguments)
+        else:
+            build_gepard(arguments)
+    except util.CommandError as e:
+        print("Build failed: %s" % e)
+        sys.exit(e.code)
 
     print_success()
     sys.exit(0)

@@ -41,21 +41,33 @@ def get_build_path(arguments):
 
 
 # Command wrapper
-def call_cmd(command):
+def call(command, throw=True):
     ret = subprocess.call(command)
-    if ret:
-        raise RuntimeError("Command failed with exit code: %d.\n%s" % (ret, " ".join(command)))
+    if ret and throw:
+        raise CommandError(ret, command)
+
+    return ret
 
 
-def print_test_success():
+def print_success():
     print('')
     print('-' * 30)
-    print('All checks passed.')
+    print('Everything passed.')
     print('-' * 30)
 
 
-def print_test_fail():
+def print_fail():
     print('')
     print('-' * 30)
-    print('Some checks have failed, please see the log.')
+    print('Something failed, please see the log.')
     print('-' * 30)
+
+
+class CommandError(BaseException):
+    def __init__(self, code, cmd):
+        super(CommandError, self).__init__(code, cmd)
+        self.code = code
+        self.cmd = cmd
+
+    def __str__(self):
+        return "Command \"%s\" failed with exit code: %d" % (" ".join(self.cmd), self.code)

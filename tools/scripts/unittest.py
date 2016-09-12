@@ -40,7 +40,7 @@ def run_unittest(args):
     # We use the argument parser from the main build script here to initialize all required members of the argument structure.
     build.configure(build.get_args())
     build.build_unit(args)
-    util.call_cmd([path.join(build_path, 'bin', 'unit')])
+    util.call([path.join(build_path, 'bin', 'unit')])
 
 
 def main():
@@ -50,9 +50,12 @@ def main():
 
     try:
         run_unittest(arguments)
-    except RuntimeError:
+    except util.CommandError as e:
+        util.print_fail()
+        print(e)
         sys.exit(1)
 
+    util.print_success()
     sys.exit(0)
 
 

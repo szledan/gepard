@@ -50,7 +50,7 @@ def run_cppcheck():
 
     try:
         chdir(basedir)
-        util.call_cmd(cmd)
+        util.call(cmd)
     except OSError as e:
         if e.errno == errno.ENOENT:
             raise OSError("Cppcheck is not installed.")
@@ -61,11 +61,11 @@ def run_cppcheck():
 def main():
     try:
         run_cppcheck()
-    except RuntimeError:
-        util.print_test_fail()
-        sys.exit(1)
+    except util.CommandError as e:
+        util.print_fail()
+        sys.exit(e.code)
 
-    util.print_test_success()
+    util.print_success()
     sys.exit(0)
 
 

@@ -32,31 +32,50 @@ import util
 from cppcheck import run_cppcheck
 from unittest import run_unittest
 
+def print_results(result):
+    longest = 0
+    ret = 0
+    for name, _ in result:
+        if len(name) > longest:
+            longest = len(name)
+
+    for (name, code) in result:
+        if code:
+            msg = "\033[1;31mFAIL\033[0m"
+            ret = 1
+        else:
+            msg = "\033[1;32mPASS\033[0m"
+
+        print("".join([name, ':', ' ' * (longest - len(name) + 1), msg]))
+
+    return ret
+
+
 def main():
     parser = argparse.ArgumentParser()
     build.add_base_args(parser)
     arguments = parser.parse_args()
-
-    error = False
+    result = []
 
     print("Running cppcheck.")
     try:
         run_cppcheck()
-    except RuntimeError:
-        error = True
+        result.append(("Cppcheck", 0))
+    except util.CommandError as e:
+        print(e)
+        result.append(("Cppcheck", e.code))
 
-    print("\nRunning unit-tests.")
+    print("\n")
+    print("Running unit-tests.")
     try:
         run_unittest(arguments)
-    except RuntimeError:
-        error = True
+        result.append(("Unit-tests", 0))
+    except util.CommandError as e:
+        print(e)
+        result.append(("Unit-tests", e.code))
 
-    if error:
-        util.print_test_fail()
-        sys.exit(1)
-
-    util.print_test_success()
-    sys.exit(0)
+    print("\n")
+    sys.exit(print_results(result))
 
 
 if __name__ == "__main__":
