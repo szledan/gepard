@@ -58,21 +58,11 @@ def main():
     result = []
 
     print("Running cppcheck.")
-    try:
-        run_cppcheck()
-        result.append(("Cppcheck", 0))
-    except util.CommandError as e:
-        print(e)
-        result.append(("Cppcheck", e.code))
+    result.append(("Cppcheck", run_cppcheck(throw=False)))
 
     print("\n")
     print("Running unit-tests.")
-    try:
-        run_unittest(arguments)
-        result.append(("Unit-tests", 0))
-    except util.CommandError as e:
-        print(e)
-        result.append(("Unit-tests", e.code))
+    result.append(("Unit-tests", run_unittest(arguments, throw=False)))
 
     print("\n")
     sys.exit(print_results(result))

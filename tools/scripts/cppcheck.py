@@ -35,7 +35,7 @@ from os import getcwd
 from os import path
 
 
-def run_cppcheck():
+def run_cppcheck(throw=True):
     basedir = util.get_base_path()
     cmd = [
         'cppcheck',
@@ -50,7 +50,7 @@ def run_cppcheck():
 
     try:
         chdir(basedir)
-        util.call(cmd)
+        return util.call(cmd, throw)
     except OSError as e:
         if e.errno == errno.ENOENT:
             raise OSError("Cppcheck is not installed.")

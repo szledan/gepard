@@ -33,14 +33,14 @@ from os import path
 from os import getcwd
 
 
-def run_unittest(args):
+def run_unittest(args, throw=True):
     build_path = util.get_build_path(args)
 
     print("Building unit-tests...")
     # We use the argument parser from the main build script here to initialize all required members of the argument structure.
     build.configure(build.get_args())
     build.build_unit(args)
-    util.call([path.join(build_path, 'bin', 'unit')])
+    return util.call([path.join(build_path, 'bin', 'unit')], throw)
 
 
 def main():
