@@ -29,19 +29,19 @@ import subprocess
 import sys
 from os import path
 
-# Get base path
 def get_base_path():
+    """ Returns the base path to the project """
     return path.abspath(path.join(path.dirname(__file__), '..', '..'))
 
 
-# Get build path
 def get_build_path(arguments):
+    """ Returns build direcotry """
     basedir = get_base_path()
     return path.join(basedir, 'build', arguments.build_type)
 
 
-# Command wrapper
 def call(command, throw=True):
+    """ Wrapper for subprocess call """
     ret = subprocess.call(command)
     if ret and throw:
         raise CommandError(ret, command)

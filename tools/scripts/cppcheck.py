@@ -36,6 +36,7 @@ from os import path
 
 
 def run_cppcheck(throw=True):
+    """ Runs cppcheck """
     basedir = util.get_base_path()
     cmd = [
         'cppcheck',
