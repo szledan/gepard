@@ -40,7 +40,7 @@ def run_unittest(args, throw=True):
     print('')
     print("Building unit-tests...")
     # We use the argument parser from the main build script here to initialize all required members of the argument structure.
-    build.configure(build.get_args())
+    build.configure(build.get_args(skip_unknown=True))
     build.build_unit(args)
 
     print('')

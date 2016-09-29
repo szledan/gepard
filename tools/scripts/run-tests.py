@@ -50,11 +50,21 @@ def print_results(result):
 def main():
     parser = argparse.ArgumentParser()
     build.add_base_args(parser)
+    parser.add_argument('--all', '-a', action='store_true', default=False, dest='all', help='Run tests for every backend.')
     arguments = parser.parse_args()
     result = []
 
     result.append((run_cppcheck(throw=False), "Cppcheck"))
-    result.append((run_unittest(arguments, throw=False), "Unit-tests"))
+
+    if not arguments.all:
+        result.append((run_unittest(arguments, throw=False), "Unit-tests"))
+    else:
+        arguments.backend="gles2"
+        result.append((run_unittest(arguments, throw=False), "Unit-tests GLES2"))
+        arguments.backend="vulkan"
+        result.append((run_unittest(arguments, throw=False), "Unit-tests VULKAN"))
+        arguments.backend="software"
+        result.append((run_unittest(arguments, throw=False), "Unit-tests SOFTWARE"))
 
     print('')
     sys.exit(print_results(result))

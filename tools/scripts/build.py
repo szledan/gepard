@@ -63,13 +63,18 @@ def add_extra_build_args(parser):
     parser.add_argument('--no-colored-logs', action='store_true', default=False, help='Disable colored log messages.')
 
 
-def get_args():
+def get_args(skip_unknown=False):
     """ Parses input arguments """
     parser = argparse.ArgumentParser()
     add_base_args(parser)
     add_extra_build_args(parser)
 
-    return parser.parse_args()
+    if skip_unknown:
+        args, _ = parser.parse_known_args()
+    else:
+        args = parser.parse_args()
+
+    return args
 
 
 def configure(arguments):
