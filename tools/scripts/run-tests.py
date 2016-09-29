@@ -33,20 +33,16 @@ from cppcheck import run_cppcheck
 from unittest import run_unittest
 
 def print_results(result):
-    longest = 0
     ret = 0
-    for name, _ in result:
-        if len(name) > longest:
-            longest = len(name)
 
-    for (name, code) in result:
+    for (code, name) in result:
         if code:
             msg = "\033[1;31mFAIL\033[0m"
             ret = 1
         else:
             msg = "\033[1;32mPASS\033[0m"
 
-        print("".join([name, ':', ' ' * (longest - len(name) + 1), msg]))
+        print("%s %s" % (msg, name))
 
     return ret
 
@@ -57,14 +53,10 @@ def main():
     arguments = parser.parse_args()
     result = []
 
-    print("Running cppcheck.")
-    result.append(("Cppcheck", run_cppcheck(throw=False)))
+    result.append((run_cppcheck(throw=False), "Cppcheck"))
+    result.append((run_unittest(arguments, throw=False), "Unit-tests"))
 
-    print("\n")
-    print("Running unit-tests.")
-    result.append(("Unit-tests", run_unittest(arguments, throw=False)))
-
-    print("\n")
+    print('')
     sys.exit(print_results(result))
 
 

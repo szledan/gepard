@@ -33,6 +33,5 @@ else
         type="--debug "
     fi
 
-    command="python tools/scripts/$CMD.py $type--backend=$BACKEND"
-    $command
+    python tools/scripts/$CMD.py $type--backend=$BACKEND
 fi

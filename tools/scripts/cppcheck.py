@@ -48,6 +48,9 @@ def run_cppcheck(throw=True):
         'examples',
     ]
 
+    print('')
+    print("Running cppcheck...")
+
     try:
         chdir(basedir)
         return util.call(cmd, throw)
@@ -63,10 +66,10 @@ def main():
         run_cppcheck()
     except util.CommandError as e:
         util.print_fail()
+        print(e)
         sys.exit(e.code)
 
     util.print_success()
-    sys.exit(0)
 
 
 if __name__ == "__main__":
