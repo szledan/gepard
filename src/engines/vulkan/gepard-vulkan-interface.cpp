@@ -57,7 +57,8 @@ void GepardVulkanInterface::loadGlobalFunctions()
     vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)dlsym(_vulkanLibrary, "vkGetInstanceProcAddr");
     GD_ASSERT(vkGetInstanceProcAddr && "Couldn't load the vkGetInstanceProcAddr function!");
 
-    GD_VK_LOAD_FUNCTION (vkCreateInstance);
+    GD_VK_LOAD_FUNCTION(vkCreateInstance);
+    GD_VK_LOAD_FUNCTION(vkEnumerateInstanceExtensionProperties);
 
 #undef GD_VK_LOAD_FUNCTION
 }
@@ -76,6 +77,15 @@ void GepardVulkanInterface::loadInstanceFunctions(VkInstance instance)
     GD_VK_LOAD_FUNCTION(vkGetDeviceProcAddr);
     GD_VK_LOAD_FUNCTION(vkGetPhysicalDeviceMemoryProperties);
     GD_VK_LOAD_FUNCTION(vkGetPhysicalDeviceFeatures);
+
+    // WSI functions
+    GD_VK_LOAD_FUNCTION(vkDestroySurfaceKHR);
+#ifdef VK_USE_PLATFORM_XLIB_KHR
+    GD_VK_LOAD_FUNCTION(vkCreateXlibSurfaceKHR);
+#endif
+    GD_VK_LOAD_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR);
+    GD_VK_LOAD_FUNCTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
+    GD_VK_LOAD_FUNCTION(vkGetPhysicalDeviceSurfacePresentModesKHR);
 
 #undef GD_VK_LOAD_FUNCTION
 }
@@ -142,6 +152,13 @@ void GepardVulkanInterface::loadDeviceFunctions(VkDevice device)
     GD_VK_LOAD_FUNCTION(vkCmdBlitImage);
     GD_VK_LOAD_FUNCTION(vkCmdClearColorImage);
     GD_VK_LOAD_FUNCTION(vkCmdClearAttachments);
+
+    // WSI functions
+    GD_VK_LOAD_FUNCTION(vkCreateSwapchainKHR);
+    GD_VK_LOAD_FUNCTION(vkDestroySwapchainKHR);
+    GD_VK_LOAD_FUNCTION(vkGetSwapchainImagesKHR);
+    GD_VK_LOAD_FUNCTION(vkAcquireNextImageKHR);
+    GD_VK_LOAD_FUNCTION(vkQueuePresentKHR);
 
 #undef GD_VK_LOAD_FUNCTION
 }

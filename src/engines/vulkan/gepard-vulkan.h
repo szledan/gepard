@@ -75,6 +75,9 @@ private:
     VkFramebuffer _frameBuffer;
     VkPhysicalDeviceMemoryProperties _physicalDeviceMemoryProperties;
     VkPhysicalDeviceFeatures _physicalDeviceFeatures;
+    VkSurfaceKHR _wsiSurface;
+    VkSwapchainKHR _wsiSwapChain;
+    std::vector<VkImage> _wsiSwapChainImages;
 
     void createDefaultInstance();
     void chooseDefaultPhysicalDevice();
@@ -86,8 +89,8 @@ private:
     void createSurfaceImage();
     void createDefaultFrameBuffer();
     uint32_t getMemoryTypeIndex(VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags properties);
-
-    void logImage(VkImage image, VkExtent3D imageSize);
+    void createSwapChain();
+    void presentImage();
 };
 
 } // namespace vulkan

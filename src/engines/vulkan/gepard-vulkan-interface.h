@@ -30,6 +30,9 @@
 
 #include "gepard-defs.h"
 
+// TODO: move this define to the build system
+#define VK_USE_PLATFORM_XLIB_KHR
+
 #include <vulkan/vulkan.h>
 
 namespace gepard {
@@ -49,6 +52,7 @@ public:
     // Global level vulkan functions
     GD_VK_DECLARE_FUNCTION(vkGetInstanceProcAddr);
     GD_VK_DECLARE_FUNCTION(vkCreateInstance);
+    GD_VK_DECLARE_FUNCTION(vkEnumerateInstanceExtensionProperties);
 
     // Instance level vulkan functions
     GD_VK_DECLARE_FUNCTION(vkDestroyInstance);
@@ -59,6 +63,14 @@ public:
     GD_VK_DECLARE_FUNCTION(vkGetDeviceProcAddr);
     GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceMemoryProperties);
     GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceFeatures);
+    // WSI functions
+    GD_VK_DECLARE_FUNCTION(vkDestroySurfaceKHR);
+#ifdef VK_USE_PLATFORM_XLIB_KHR
+    GD_VK_DECLARE_FUNCTION(vkCreateXlibSurfaceKHR);
+#endif
+    GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR);
+    GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
+    GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceSurfacePresentModesKHR);
 
     // Device level vulkan functions
     GD_VK_DECLARE_FUNCTION(vkDestroyDevice);
@@ -117,6 +129,12 @@ public:
     GD_VK_DECLARE_FUNCTION(vkCmdBlitImage);
     GD_VK_DECLARE_FUNCTION(vkCmdClearColorImage);
     GD_VK_DECLARE_FUNCTION(vkCmdClearAttachments);
+    // WSI functions
+    GD_VK_DECLARE_FUNCTION(vkCreateSwapchainKHR);
+    GD_VK_DECLARE_FUNCTION(vkDestroySwapchainKHR);
+    GD_VK_DECLARE_FUNCTION(vkGetSwapchainImagesKHR);
+    GD_VK_DECLARE_FUNCTION(vkAcquireNextImageKHR);
+    GD_VK_DECLARE_FUNCTION(vkQueuePresentKHR);
 
 #undef GD_VK_DECLARE_FUNCTION
 
