@@ -34,6 +34,7 @@
 #include "gepard-image.h"
 #include "gepard-types.h"
 #include <EGL/egl.h>
+#include <GLES2/gl2.h>
 #include <map>
 
 namespace gepard {
@@ -68,14 +69,18 @@ public:
 
     void fillRect(Float x, Float y, Float w, Float h);
 
-    /// \todo remove into a vector<GepardState> states.
+    //! \todo remove into a vector<GepardState> states.
     GepardState state;
+
 private:
     Surface* _surface;
 
     EGLDisplay _eglDisplay;
     EGLSurface _eglSurface;
     EGLContext _eglContext;
+
+    GLuint _fboId;
+    GLuint _textureId;
 
     std::map<std::string, uint> _programs;
 };

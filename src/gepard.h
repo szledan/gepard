@@ -310,10 +310,8 @@ private:
  */
 class Surface {
 public:
-    Surface(Gepard* gepard = nullptr, uint32_t width = 0, uint32_t height = 0);
     Surface(uint32_t width = 0, uint32_t height = 0)
-        : _gepard(nullptr)
-        , _width(width)
+        : _width(width)
         , _height(height)
     {
     }
@@ -322,21 +320,10 @@ public:
     virtual unsigned long getWindow() = 0;
     virtual void* getBuffer() = 0;
 
-    const Gepard* gepard() const { return _gepard; }
     const uint32_t width() const { return _width; }
     const uint32_t height() const { return _height; }
 
-    // \deprecated: use 'static connect(Surface, Gepard)'
-    void setGepard(Gepard* gepard)
-    {
-        if (!this->_gepard) {
-            _gepard = gepard;
-        }
-    }
-
 protected:
-    Gepard* _gepard;
-
     uint32_t _width;
     uint32_t _height;
 };

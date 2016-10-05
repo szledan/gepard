@@ -66,8 +66,9 @@ public:
 
     void fillRect(Float x, Float y, Float w, Float h);
 
-    /// \todo remove into a vector<GepardState> states.
+    //! \todo remove into a vector<GepardState> states.
     GepardState state;
+
 private:
     Surface* _surface;
 };

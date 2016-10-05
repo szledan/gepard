@@ -63,7 +63,9 @@ GepardGLES2::GepardGLES2(Surface* surface)
     EGLSurface eglSurface = 0;
     EGLint numOfConfigs = 0;
     EGLConfig eglConfig = 0;
-    void* display = _surface->getDisplay();
+    void* display = surface->getDisplay();
+
+    //! \todo the GLES2 backend rendering into 'fbo' in the future, so this separation is temporary.
     if (display) {
         eglDisplay = eglGetDisplay((EGLNativeDisplayType) display);
 
@@ -77,7 +79,7 @@ GepardGLES2::GepardGLES2(Surface* surface)
         if (eglChooseConfig(eglDisplay, configAttribs, &eglConfig, 1, &numOfConfigs) != EGL_TRUE) {
             GD_CRASH("eglChooseConfig returned with EGL_FALSE");
         }
-        EGLNativeWindowType window = _surface->getWindow();
+        EGLNativeWindowType window = surface->getWindow();
         eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, window, NULL);
         if (eglSurface == EGL_NO_SURFACE) {
             GD_CRASH("eglCreateWindowSurface returned EGL_NO_SURFACE");
@@ -93,18 +95,62 @@ GepardGLES2::GepardGLES2(Surface* surface)
         // Set EGL display & surface.
         _eglDisplay = eglDisplay;
         _eglSurface = eglSurface;
+    } else {
+        // 1. Get the default display.
+        eglDisplay = eglGetDisplay((EGLNativeDisplayType) 0);
 
-        glClearColor(0, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // 2. Initialize EGL.
+        eglInitialize(eglDisplay, 0, 0);
+
+        // 3. Make OpenGL ES the current API.
+        eglBindAPI(EGL_OPENGL_ES_API);
+
+        // 4. Find a config that matches all requirements.
+        int iConfigs;
+        eglChooseConfig(eglDisplay, configAttribs, &eglConfig, 1, &iConfigs);
+
+        if (iConfigs != 1) {
+            GD_CRASH("Error: eglChooseConfig(): config not found.");
+        }
+
+        // 5. Create a surface to draw to.
+        eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, (EGLNativeWindowType)NULL, NULL);
+
+        // 6. Create a context.
+        _eglContext = eglCreateContext(eglDisplay, eglConfig, NULL, contextAttribs);
+
+        // 7. Bind the context to the current thread
+        eglMakeCurrent(eglDisplay, eglSurface, eglSurface, _eglContext);
+
+        glGenFramebuffers(1, &_fboId);
+        glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
+
+        glGenTextures(1, &_textureId);
+        glBindTexture(GL_TEXTURE_2D, _textureId);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->width(), surface->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _textureId, 0);
     }
+
+    glClearColor(0, 0, 0, 0);
+    glViewport(0, 0, surface->width(), surface->height());
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 GepardGLES2::~GepardGLES2()
 {
-    eglMakeCurrent(_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    eglDestroyContext(_eglDisplay, _eglContext);
-    eglDestroySurface(_eglDisplay, _eglSurface);
-    eglTerminate(_eglDisplay);
+    if (_eglDisplay != EGL_NO_DISPLAY) {
+        eglMakeCurrent(_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        eglDestroyContext(_eglDisplay, _eglContext);
+        eglDestroySurface(_eglDisplay, _eglSurface);
+        eglTerminate(_eglDisplay);
+    } else if (_eglContext != EGL_NO_CONTEXT) {
+        //! \todo destroy EGL Context
+    }
 }
 
 /*!
@@ -352,8 +398,13 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
     // 6. Draw two triangles as rect.
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, rectIndexes);
 
-    // 7. Swap buffers.
-    eglSwapBuffers(_eglDisplay, _eglSurface);
+    if (_surface->getDisplay()) {
+        // 7. Swap buffers.
+        eglSwapBuffers(_eglDisplay, _eglSurface);
+    } else {
+        GD_ASSERT(_surface->getBuffer());
+        glReadPixels(0, 0, _surface->width(), _surface->height(), GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) _surface->getBuffer());
+    }
 }
 
 } // namespace gles2

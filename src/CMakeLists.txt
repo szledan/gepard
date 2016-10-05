@@ -2,7 +2,6 @@ set(COMMON_SOURCES
     engines/gepard-path.cpp
     gepard.cpp
     gepard-engine.cpp
-    gepard-surface.cpp
     utils/gepard-types.cpp
     utils/gepard-defs.cpp
 )
