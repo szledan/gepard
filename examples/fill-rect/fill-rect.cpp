@@ -72,12 +72,12 @@ int main()
     }
 
     // Draw to PNG file.
-    gepard::PNGSurface pngSurface(600, 600, "fillRect.png");
+    gepard::PNGSurface pngSurface(600, 600);
     gepard::Gepard pngGepard(&pngSurface);
 
     gShape(pngGepard);
 
-    pngSurface.save();
+    pngSurface.save("fillRect.png");
 
     return 0;
 }

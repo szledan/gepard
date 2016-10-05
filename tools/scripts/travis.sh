@@ -1,7 +1,6 @@
-#! /usr/bin/python -B
-# -*- coding: utf-8 -*-
-#
-# Copyright (C) 2015-2016, Gepard Graphics
+#!/bin/bash
+
+# Copyright (C) 2016, Gepard Graphics
 # Copyright (C) 2016, Dániel Bátyai <dbatyai@inf.u-szeged.hu>
 # All rights reserved.
 #
@@ -25,43 +24,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import argparse
-import build
-import sys
-import util
-from os import path
-from os import getcwd
+if [ "$CMD" == "cppcheck" ]
+then
+    python tools/scripts/cppcheck.py
+else
+    if [ "$TYPE" == "debug" ]
+    then
+        type="--debug "
+    fi
 
-
-def run_unittest(args, throw=True):
-    """ Runs unit-tests. """
-    build_path = util.get_build_path(args)
-
-    print('')
-    print("Building unit-tests...")
-    # We use the argument parser from the main build script here to initialize all required members of the argument structure.
-    build.configure(build.get_args(skip_unknown=True))
-    build.build_unit(args)
-
-    print('')
-    print("Running unit-tests...")
-    return util.call([path.join(build_path, 'bin', 'unit')], throw)
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    build.add_base_args(parser)
-    arguments = parser.parse_args()
-
-    try:
-        run_unittest(arguments)
-    except util.CommandError as e:
-        util.print_fail()
-        print(e)
-        sys.exit(e.code)
-
-    util.print_success()
-
-
-if __name__ == "__main__":
-    main()
+    python tools/scripts/$CMD.py $type--backend=$BACKEND
+fi
