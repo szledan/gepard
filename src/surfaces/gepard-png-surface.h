@@ -41,10 +41,9 @@ namespace gepard {
  */
 class PNGSurface : public Surface {
 public:
-    PNGSurface(uint32_t width = 0, uint32_t height = 0, std::string fileName = "gepard.png", std::string title = "Rendered with Gepard")
+    PNGSurface(uint32_t width = 0, uint32_t height = 0, std::string title = "Rendered with Gepard")
         : Surface(width, height)
         , _buffer(malloc(width * height * sizeof(uint32_t)))
-        , _fileName(fileName)
         , _title(title)
     {
     }
@@ -68,12 +67,8 @@ public:
      *  // http://www.labbookpages.co.uk
      * Link: http://www.labbookpages.co.uk/software/imgProc/libPNG.html
      */
-    const bool save(std::string fileName = "")
+    const bool save(std::string fileName = "gepard.png")
     {
-        if (!fileName.empty()) {
-            _fileName = fileName;
-        }
-
         const int formatSize = 4;
         uint32_t* buffer = (uint32_t*)_buffer;
         FILE *fp = NULL;    //! \todo use 'std::fstream' instead of 'FILE' if possible
@@ -83,9 +78,9 @@ public:
         png_bytep row = NULL;
 
         // Open file for writing (binary mode)
-        fp = fopen(_fileName.c_str(), "wb");
+        fp = fopen(fileName.c_str(), "wb");
         if (fp == NULL) {
-            fprintf(stderr, "Could not open file %s for writing\n", _fileName.c_str());     //! \todo use 'std::cout/std::clog' instead of 'fprintf'
+            fprintf(stderr, "Could not open file %s for writing\n", fileName.c_str());     //! \todo use 'std::cout/std::clog' instead of 'fprintf'
             code = false;
             goto finalise;  //! \todo ignore 'goto'
         }
@@ -168,7 +163,6 @@ public:
 private:
     void* _buffer;
 
-    std::string _fileName;
     std::string _title;
 };
 

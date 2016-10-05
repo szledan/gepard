@@ -64,7 +64,7 @@ public:
         XSetWMHints(_display, _window, &hints);
 
         XMapWindow(_display, _window); // make the window visible on the screen
-        XStoreName(_display, _window, windowTitle.c_str()); //! \todo: set title.
+        XStoreName(_display, _window, windowTitle.c_str());
     }
     ~XSurface()
     {
