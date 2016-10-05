@@ -25,43 +25,49 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import argparse
-import build
+import subprocess
 import sys
-import util
 from os import path
-from os import getcwd
+
+def get_base_path():
+    """ Returns the base path to the project. """
+    return path.abspath(path.join(path.dirname(__file__), '..', '..'))
 
 
-def run_unittest(args, throw=True):
-    """ Runs unit-tests. """
-    build_path = util.get_build_path(args)
+def get_build_path(arguments):
+    """ Returns build direcotry. """
+    basedir = get_base_path()
+    return path.join(basedir, 'build', arguments.build_type)
 
+
+def call(command, throw=True):
+    """ Wrapper for subprocess call. """
+    ret = subprocess.call(command)
+    if ret and throw:
+        raise CommandError(ret, command)
+
+    return ret
+
+
+def print_success():
     print('')
-    print("Building unit-tests...")
-    # We use the argument parser from the main build script here to initialize all required members of the argument structure.
-    build.configure(build.get_args(skip_unknown=True))
-    build.build_unit(args)
+    print('-' * 30)
+    print('Everything passed.')
+    print('-' * 30)
 
+
+def print_fail():
     print('')
-    print("Running unit-tests...")
-    return util.call([path.join(build_path, 'bin', 'unit')], throw)
+    print('-' * 30)
+    print('Something failed, please see the log.')
+    print('-' * 30)
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    build.add_base_args(parser)
-    arguments = parser.parse_args()
+class CommandError(BaseException):
+    def __init__(self, code, cmd):
+        super(CommandError, self).__init__(code, cmd)
+        self.code = code
+        self.cmd = cmd
 
-    try:
-        run_unittest(arguments)
-    except util.CommandError as e:
-        util.print_fail()
-        print(e)
-        sys.exit(e.code)
-
-    util.print_success()
-
-
-if __name__ == "__main__":
-    main()
+    def __str__(self):
+        return 'Command "%s" failed with exit code: %d' % (" ".join(self.cmd), self.code)

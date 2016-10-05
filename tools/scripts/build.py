@@ -28,128 +28,137 @@
 import argparse
 import subprocess
 import sys
+import util
 from os import path
 from os import getcwd
 from os import makedirs
 
 
-# Create cmake option list from parsed arguments
 def create_options(arguments):
+    """ Create a CMake option list from parsed arguments. """
     opts = [
             '-DCMAKE_BUILD_TYPE=' + arguments.build_type.capitalize(),
             '-DBACKEND=' + arguments.backend.upper(),
-            '-DGD_LOG_LEVEL=' + str(arguments.log_level)
+            '-DLOG_LEVEL=' + str(arguments.log_level)
     ]
 
     if arguments.no_colored_logs:
-        opts.append('-DGD_DISABLE_LOG_COLORS=ON')
+        opts.append('-DDISABLE_LOG_COLORS=ON')
 
     return opts
 
 
-# Base arguments
 def add_base_args(parser):
+    """ Adds base arguments to the parser. """
     parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='build_type', help='Build debug.')
     parser.add_argument('--backend', action='store', choices=['gles2', 'software', 'vulkan'], default='gles2', help='Specify which graphics back-end to use.')
 
 
-# Extra build arguments
 def add_extra_build_args(parser):
-    parser.add_argument('--clean', action='store_true', default=False, help='Perform clean build.')
+    """ Adds extra build arguments to the parser. """
+    parser.add_argument('--clean', '-c', action='store_true', default=False, help='Perform clean build.')
     parser.add_argument('--examples', '-e', action='store_true', default=False, dest='build_examples', help='Build example applications.')
     parser.add_argument('--target', action='store', choices=['x86-linux', 'arm-linux'], help='Specify build target. Leave empty for native build.')
     parser.add_argument('--log-level', action='store', type=int, choices=range(0,5), default=0, help='Set logging level.')
     parser.add_argument('--no-colored-logs', action='store_true', default=False, help='Disable colored log messages.')
 
 
-# Parse build args
-def get_args():
+def get_args(skip_unknown=False):
+    """ Parses input arguments. """
     parser = argparse.ArgumentParser()
     add_base_args(parser)
     add_extra_build_args(parser)
 
-    return parser.parse_args()
+    if skip_unknown:
+        args, _ = parser.parse_known_args()
+    else:
+        args = parser.parse_args()
+
+    return args
 
 
-# Get base path
-def get_base_path():
-    return path.abspath(path.join(path.dirname(__file__), '..', '..'))
-
-
-# Get build path
-def get_build_path(arguments):
-    basedir = get_base_path()
-    return path.join(basedir, 'build', arguments.build_type)
-
-
-# Generate build config
 def configure(arguments):
-    build_path = get_build_path(arguments)
+    """ Configures the build based on the supplied arguments. """
+    build_path = util.get_build_path(arguments)
 
     try:
         makedirs(build_path)
     except OSError:
         pass
 
-    return subprocess.call(['cmake', '-B' + build_path, '-H' + get_base_path()] + create_options(arguments))
+    util.call(['cmake', '-B' + build_path, '-H' + util.get_base_path()] + create_options(arguments))
 
 
-# Build unit tests
+def check_configured(arguments):
+    """ Checks if the build is configured. """
+    build_path = util.get_build_path(arguments)
+
+    if not path.isfile(path.join(build_path, 'Makefile')):
+        raise RuntimeError('Build is not configured.')
+
+
+def run_clean(arguments):
+    """ Cleans the build directory. """
+    build_path = util.get_build_path(arguments)
+
+    try:
+        check_configured(arguments)
+    except Error:
+        return
+
+    util.call(['make', '-s', '-C', build_path, 'clean'])
+
+
 def build_unit(arguments):
-    build_path = get_build_path(arguments)
+    """ Builds unit-tests. """
+    build_path = util.get_build_path(arguments)
+    check_configured(arguments)
 
-    if not path.isfile(path.join(build_path, 'Makefile')):
-        raise RuntimeError('Build is not configured.')
-
-    return subprocess.call(['make', '-s', '-C', build_path, 'unit'])
+    util.call(['make', '-s', '-C', build_path, 'unit'])
 
 
-# Build examples
 def build_examples(arguments):
-    build_path = get_build_path(arguments)
+    """ Builds examples. """
+    build_path = util.get_build_path(arguments)
+    check_configured(arguments)
 
-    if not path.isfile(path.join(build_path, 'Makefile')):
-        raise RuntimeError('Build is not configured.')
-
-    return subprocess.call(['make', '-s', '-C', build_path, 'examples'])
+    util.call(['make', '-s', '-C', build_path, 'examples'])
 
 
-# Perform the build
 def build_gepard(arguments):
-    build_path = get_build_path(arguments)
+    """ Runs the build. """
+    build_path = util.get_build_path(arguments)
+    check_configured(arguments)
 
-    if not path.isfile(path.join(build_path, 'Makefile')):
-        raise RuntimeError('Build is not configured.')
-
-    if arguments.clean:
-        subprocess.call(['make', '-s', '-C', build_path, 'clean'])
-
-    return subprocess.call(['make', '-s', '-C', build_path])
+    util.call(['make', '-s', '-C', build_path])
 
 
-# Print build result
-def print_result(ret):
+def print_success():
+    """ Prints the 'Build succeeded' message. """
     print('')
     print('-' * 30)
-    if ret:
-        print('Build failed with exit code: %s' % (ret))
-    else:
-        print('Build succeeded!')
+    print('Build succeeded!')
     print('-' * 30)
 
 
 def main():
     arguments = get_args()
-    ret = configure(arguments)
 
-    if not ret:
+    try:
+        configure(arguments)
+
+        if arguments.clean:
+            run_clean(arguments)
+
         if arguments.build_examples:
-            ret = build_examples(arguments)
+            build_examples(arguments)
         else:
-            ret = build_gepard(arguments)
+            build_gepard(arguments)
+    except util.CommandError as e:
+        print("Build failed: %s" % e)
+        sys.exit(e.code)
 
-    print_result(ret)
-    sys.exit(ret)
+    print_success()
 
 
 if __name__ == "__main__":
