@@ -34,7 +34,7 @@ from os import getcwd
 
 
 def run_unittest(args, throw=True):
-    """ Runs unit-tests """
+    """ Runs unit-tests. """
     build_path = util.get_build_path(args)
 
     print('')

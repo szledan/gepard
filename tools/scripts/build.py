@@ -35,7 +35,7 @@ from os import makedirs
 
 
 def create_options(arguments):
-    """ Create a CMake option list from parsed arguments """
+    """ Create a CMake option list from parsed arguments. """
     opts = [
             '-DCMAKE_BUILD_TYPE=' + arguments.build_type.capitalize(),
             '-DBACKEND=' + arguments.backend.upper(),
@@ -49,13 +49,13 @@ def create_options(arguments):
 
 
 def add_base_args(parser):
-    """ Adds base arguments to the parser """
+    """ Adds base arguments to the parser. """
     parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='build_type', help='Build debug.')
     parser.add_argument('--backend', action='store', choices=['gles2', 'software', 'vulkan'], default='gles2', help='Specify which graphics back-end to use.')
 
 
 def add_extra_build_args(parser):
-    """ Adds extra build arguments to the parser """
+    """ Adds extra build arguments to the parser. """
     parser.add_argument('--clean', '-c', action='store_true', default=False, help='Perform clean build.')
     parser.add_argument('--examples', '-e', action='store_true', default=False, dest='build_examples', help='Build example applications.')
     parser.add_argument('--target', action='store', choices=['x86-linux', 'arm-linux'], help='Specify build target. Leave empty for native build.')
@@ -64,7 +64,7 @@ def add_extra_build_args(parser):
 
 
 def get_args(skip_unknown=False):
-    """ Parses input arguments """
+    """ Parses input arguments. """
     parser = argparse.ArgumentParser()
     add_base_args(parser)
     add_extra_build_args(parser)
@@ -78,7 +78,7 @@ def get_args(skip_unknown=False):
 
 
 def configure(arguments):
-    """ Configures the build based on the supplied arguments """
+    """ Configures the build based on the supplied arguments. """
     build_path = util.get_build_path(arguments)
 
     try:
@@ -90,7 +90,7 @@ def configure(arguments):
 
 
 def check_configured(arguments):
-    """ Checks if the build is configured """
+    """ Checks if the build is configured. """
     build_path = util.get_build_path(arguments)
 
     if not path.isfile(path.join(build_path, 'Makefile')):
@@ -98,7 +98,7 @@ def check_configured(arguments):
 
 
 def run_clean(arguments):
-    """ Cleans the build directory """
+    """ Cleans the build directory. """
     build_path = util.get_build_path(arguments)
 
     try:
@@ -110,7 +110,7 @@ def run_clean(arguments):
 
 
 def build_unit(arguments):
-    """ Builds unit-tests """
+    """ Builds unit-tests. """
     build_path = util.get_build_path(arguments)
     check_configured(arguments)
 
@@ -118,7 +118,7 @@ def build_unit(arguments):
 
 
 def build_examples(arguments):
-    """ Builds examples """
+    """ Builds examples. """
     build_path = util.get_build_path(arguments)
     check_configured(arguments)
 
@@ -126,7 +126,7 @@ def build_examples(arguments):
 
 
 def build_gepard(arguments):
-    """ Runs the build """
+    """ Runs the build. """
     build_path = util.get_build_path(arguments)
     check_configured(arguments)
 
@@ -134,7 +134,7 @@ def build_gepard(arguments):
 
 
 def print_success():
-    """ Prints the 'Build succeeded' message' """
+    """ Prints the 'Build succeeded' message. """
     print('')
     print('-' * 30)
     print('Build succeeded!')
