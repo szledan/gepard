@@ -27,7 +27,9 @@
 #include "gepard.h"
 #include "surfaces/gepard-xsurface.h"
 #include "surfaces/gepard-png-surface.h"
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 void gShape(gepard::Gepard& gepard)
 {
@@ -63,6 +65,7 @@ int main()
 
     XEvent xEvent;
     while (true) {
+        std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.
         if (XCheckWindowEvent((Display*)surface.getDisplay(), (Window)surface.getWindow(), KeyPress | ClientMessage, &xEvent)) {
             break;
         }

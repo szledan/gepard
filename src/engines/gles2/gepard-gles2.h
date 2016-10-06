@@ -31,11 +31,12 @@
 #include "gepard-defs.h"
 
 #include "gepard.h"
+#include "gepard-gles2-defs.h"
+#include "gepard-gles2-shader-factory.h"
 #include "gepard-image.h"
 #include "gepard-types.h"
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
-#include <map>
 
 namespace gepard {
 
@@ -46,34 +47,18 @@ namespace gles2 {
 
 class GepardGLES2 {
 public:
-    explicit GepardGLES2(Surface* surface);
+    static const int kMaximumNumberOfAttributes = GLushort(-1) + 1;
+    static const int kMaximumNumberOfUshortQuads = kMaximumNumberOfAttributes / 6;
+
+    explicit GepardGLES2(GepardContext&);
     ~GepardGLES2();
-
-    /* 5. Building paths */
-    void closePath();
-    void moveTo(Float x, Float y);
-    void lineTo(Float x, Float y);
-    void quadraticCurveTo(Float cpx, Float cpy, Float x, Float y);
-    void bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y);
-    void arcTo(Float x1, Float y1, Float x2, Float y2, Float radius);
-    void rect(Float x, Float y, Float w, Float h);
-    void arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise = false);
-
-    /* 11. Drawing paths to the canvas */
-    void beginPath();
-    void fill();
-    void stroke();
-    void drawFocusIfNeeded(/*Element element*/);
-    void clip();
-    bool isPointInPath(Float x, Float y);
 
     void fillRect(Float x, Float y, Float w, Float h);
 
-    //! \todo remove into a vector<GepardState> states.
-    GepardState state;
-
 private:
-    Surface* _surface;
+    GepardContext& _context;
+
+    GLuint _indexBufferObject;
 
     EGLDisplay _eglDisplay;
     EGLSurface _eglSurface;
@@ -81,8 +66,6 @@ private:
 
     GLuint _fboId;
     GLuint _textureId;
-
-    std::map<std::string, uint> _programs;
 };
 
 } // namespace gles2

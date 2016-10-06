@@ -305,12 +305,22 @@ void Gepard::clearRect(float x, float y, float w, float h)
 /*! \todo unimplemented function */
 }
 
-/*! \todo missing doc */
+/*!
+ * \brief Gepard::fillRect
+ *
+ *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
+ *
+ * The fillRect(x, y, w, h) method must paint the specified rectangular area
+ * using the fillStyle. If either height or width are zero, this method has no
+ * effect.
+ *
+ * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-fillrect">[W3C-2DContext]</a>
+ *   </blockquote>
+ */
 void Gepard::fillRect(float x, float y, float w, float h)
 {
-    if (_engine) {
-        _engine->fillRect(x, y, w, h);
-    }
+    GD_ASSERT(_engine);
+    _engine->fillRect(x, y, w, h);
 }
 
 void Gepard::strokeRect(float x, float y, float w, float h)
@@ -550,7 +560,7 @@ void Gepard::putImageData(Image /*imagedata*/, double dx, double dy)
 void Gepard::putImageData(Image /*imagedata*/, double dx, double dy, double dirtyX, double dirtyY,
     double dirtyWidth, double dirtyHeight)
 {
-/*! \todo unimplemented function */
+    /*! \todo unimplemented function */
 }
 
 void Gepard::setFillColor(std::string color)
@@ -562,6 +572,7 @@ void Gepard::setFillColor(std::string color)
     std::stringstream ss;
     ss << std::hex << color.substr(1);
     ss >> n;
+    GD_LOG3("Convert '" << color << "' string to hex number: " << std::hex << n);
 
     if (length == 7) {
         setFillColor((n & 0xff0000) >> 16, (n & 0x00ff00) >> 8, n & 0x0000ff);
@@ -580,9 +591,8 @@ void Gepard::setFillColor(const int red, const int green, const int blue, const 
 
 void Gepard::setFillColor(const float red, const float green, const float blue, const float alpha)
 {
-    if (_engine) {
-        _engine->setFillColor(red, green, blue, alpha);
-    }
+    GD_ASSERT(_engine);
+    _engine->setFillColor(red, green, blue, alpha);
 }
 
 } // namespace gepard

@@ -178,6 +178,14 @@ public:
     /// \{
 
     void clearRect(float x, float y, float w, float h);
+    /*!
+     * \brief Paints the given rectangle onto the canvas, using the current fill style.
+     *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-fillrect">[W3C-2DContext]</a>
+     * \param x  coordinates of the left of the rectangle
+     * \param y  coordinates of the top of the rectangle
+     * \param w  width of the rectangle
+     * \param h  height of the rectangle
+     */
     void fillRect(float x, float y, float w, float h);
     void strokeRect(float x, float y, float w, float h);
     /// \} 9. CanvasAPI Rectangles

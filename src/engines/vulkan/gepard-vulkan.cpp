@@ -27,13 +27,14 @@
 
 #include "gepard-vulkan.h"
 
+#include "gepard-types.h"
 #include <iostream>
 
 namespace gepard {
 namespace vulkan {
 
-GepardVulkan::GepardVulkan(Surface* surface)
-    : _surface(surface)
+GepardVulkan::GepardVulkan(GepardContext& context)
+    : _context(context)
 {
     std::cout << "GepardVulkan" << std::endl;
 }
@@ -41,10 +42,6 @@ GepardVulkan::GepardVulkan(Surface* surface)
 void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
 {
     std::cout << "fillrect: " << x << " " <<  x << " " <<  x << " " <<  x << std::endl;
-}
-
-void GepardVulkan::closePath()
-{
 }
 
 } // namespace vulkan

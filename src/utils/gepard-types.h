@@ -28,8 +28,11 @@
 
 #include "gepard-defs.h"
 #include <math.h>
+#include <vector>
 
 namespace gepard {
+
+class Surface;
 
 /* Float */
 
@@ -326,6 +329,28 @@ struct Color : public Vec4 {
  */
 struct GepardState {
     Color fillColor = Color(Color::WHITE);
+};
+
+/* GepardContext */
+
+/*!
+ * \brief The GepardContext struct
+ *
+ * Describes the Drawing context.
+ *
+ * \internal
+ */
+struct GepardContext {
+    GepardContext(Surface* surface_)
+        : surface(surface_)
+    {
+        states.push_back(GepardState());
+    }
+
+    GepardState& currentState() { return states.back(); }
+
+    Surface* surface;
+    std::vector<GepardState> states;
 };
 
 } // namespace gepard
