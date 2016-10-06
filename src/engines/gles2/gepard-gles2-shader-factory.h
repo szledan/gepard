@@ -72,6 +72,71 @@ private:
     const std::string _name;
 };
 
+#if 0
+class ShaderProgramManager {
+public:
+    static int kMaxActiveProgram = 16;
+
+    ShaderProgramManager()
+        : _first(_actives)
+        , _numberOfActives(0)
+        , _newHash(1)
+    {
+        _actives[0].hash = _newHash++;
+        _actives[0].id = 0;
+    }
+
+    int addAndUse(const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource)
+    {
+        uint32_t& hash = &(_programs[name]);
+        if (!hash) {
+            hash = _newHash++;
+            GD_LOG2("Add new shader program: " << name << " with hash: " << hash);
+        }
+
+        if ()
+
+        return 0;
+    }
+
+private:
+    struct ActiveProgram {
+        ActiveProgram(uint h = 0, uint i = 0) : hash(h), id(i), index(0) {}
+
+        uint32_t hash;
+        union {
+            uint32_t id : 16;
+            uint32_t index : 16;
+        };
+    };
+
+    struct ActiveProgramCache {
+        ActiveProgramCache() : first(0) {}
+
+        uint32_t operator[](uint32_t hash)
+        {
+            uint32_t index = first;
+            GD_ASSERT(index < kMaxActiveProgram);
+            do {
+                if (!actives[index].hash) {
+                    ;
+                }
+
+                //! \todo next
+
+            } while (actives[index].hash);
+        }
+
+        ActiveProgram actives[kMaxActiveProgram];
+        uint32_t first;
+    };
+
+    std::map<std::string, ShaderProgram&> _programs;
+    ActiveProgramCache _actives;
+    uint32_t _newHash;
+};
+#endif
+
 } // namespace gles2
 } // namespace gepard
 
