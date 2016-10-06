@@ -59,6 +59,7 @@ def main():
     if not arguments.all:
         result.append((run_unittest(arguments, throw=False), "Unit-tests"))
     else:
+        arguments.build_type='debug'
         arguments.backend="gles2"
         result.append((run_unittest(arguments, throw=False), "Unit-tests GLES2"))
         arguments.backend="vulkan"
