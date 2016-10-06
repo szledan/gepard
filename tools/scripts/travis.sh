@@ -30,8 +30,13 @@ then
 else
     if [ "$TYPE" == "debug" ]
     then
-        type="--debug "
+        type="--debug"
     fi
 
-    python tools/scripts/$CMD.py $type--backend=$BACKEND
+    if [ $BACKEND ]
+    then
+        backend="--backend=$BACKEND"
+    fi
+
+    python tools/scripts/$CMD.py $type $backend $ARGS
 fi

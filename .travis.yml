@@ -23,6 +23,7 @@ env:
   - CMD=build TYPE=debug BACKEND=vulkan
   - CMD=build TYPE=release BACKEND=software
   - CMD=build TYPE=debug BACKEND=software
+  - CMD=build ARGS="--examples"
 
 addons:
   apt:
