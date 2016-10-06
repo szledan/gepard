@@ -75,6 +75,10 @@ public:
     virtual void* getDisplay() { return (void*)_display; }
     virtual unsigned long getWindow() { return _window; }
     virtual void* getBuffer() { return nullptr; }
+    virtual void drawBuffer(void*)
+    {
+        //! TODO: not implemented: use buffer and copy to display.
+    }
 
 private:
     Display* _display;

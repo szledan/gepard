@@ -314,8 +314,57 @@ struct Color : public Vec4 {
     }
     Color(const Color& color) : Color(color.r, color.g, color.b, color.a) {}
 
+    /*!
+     * \brief fromRawDataABGR
+     * \param raw
+     * \return
+     *
+     * \internal
+     * \todo doc missing
+     * \todo unit-test missing
+     */
+    static Color fromRawDataABGR(uint32_t raw);
+    /*!
+     * \brief toRawDataABGR
+     * \param color
+     * \return
+     *
+     * \internal
+     * \todo doc missing
+     * \todo unit-test missing
+     */
+    static uint32_t toRawDataABGR(Color color);
+
+    /*!
+     * \brief operator *=
+     * \param rhs
+     * \return
+     *
+     * \internal
+     * \todo doc missing
+     * \todo unit-test missing
+     */
+    Color& operator*=(const Float& rhs)
+    {
+        this->r *= rhs;
+        this->g *= rhs;
+        this->b *= rhs;
+        this->a *= rhs;
+
+        return *this;
+    }
+
     static const Color WHITE;
 };
+
+/*!
+ * \internal
+ * \todo unit-test missing
+ */
+inline Color operator+(const Color& lhs, const Color& rhs)
+{
+    return Color(lhs.r + rhs.r, lhs.g + rhs.g, lhs.b + rhs.b, lhs.a + rhs.a);
+}
 
 /* GepardState */
 

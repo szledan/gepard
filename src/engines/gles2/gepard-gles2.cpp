@@ -207,7 +207,6 @@ static const std::string s_fillRectVertexShader = "\
         {                                               \
             v_color = in_color;                         \
             vec2 coords = (2.0 * in_position.xy / in_size.xy) - 1.0; \
-            coords.y = -coords.y;                       \
             gl_Position = vec4(coords, 1.0, 1.0);       \
         }                                               \
                                      ";
@@ -240,6 +239,8 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
     GD_LOG1("Fill rect with GLES2 (" << x << ", " << y << ", " << w << ", " << h << ")");
 
     const Color fillColor = _context.currentState().fillColor;
+    const uint32_t width = _context.surface->width();
+    const uint32_t height = _context.surface->height();
     const int quadCount = 2;
     const int numberOfAttributes = 3 * quadCount;
 
@@ -263,7 +264,7 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
     GD_LOG2("3. Binding attributes.");
     {
         GLuint index = glGetUniformLocation(program.id, "in_size");
-        glUniform2f(index, _context.surface->width(), _context.surface->height());
+        glUniform2f(index, width, height);
     }
 
     const GLsizei stride = numberOfAttributes * sizeof(GL_FLOAT);
@@ -288,9 +289,13 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
 
     if (_context.surface->getDisplay()) {
         eglSwapBuffers(_eglDisplay, _eglSurface);
+    } else if (_context.surface->getBuffer()) {
+        glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) _context.surface->getBuffer());
     } else {
-        GD_ASSERT(_context.surface->getBuffer());
-        glReadPixels(0, 0, _context.surface->width(), _context.surface->height(), GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) _context.surface->getBuffer());
+        const uint32_t clearColor = 0u;
+        std::vector<uint32_t> buffer(width * height, clearColor);
+        glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) buffer.data());
+        _context.surface->drawBuffer(buffer.data());
     }
 
     //! \todo: fix id = 0;

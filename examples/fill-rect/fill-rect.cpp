@@ -36,10 +36,10 @@ void gShape(gepard::Gepard& gepard)
     gepard.setFillColor(0.5f, 0.4f, 0.1f, 0.2f);
     gepard.fillRect(50, 50, 500, 500);
 
-    gepard.setFillColor(0.0f, 0.8f, 0.3f);
-    gepard.fillRect(100, 100, 80, 320);
+    gepard.setFillColor(0.0f, 0.8f, 0.3f, 0.8f);
+    gepard.fillRect(100, 100, 80, 400);
 
-    gepard.setFillColor(0.0f, 0.0f, 1.0f);
+    gepard.setFillColor(0.0f, 0.0f, 1.0f, 0.8f);
     gepard.fillRect(100, 420, 280, 80);
 
     gepard.setFillColor(0.3f, 0.0f, 0.7f);
