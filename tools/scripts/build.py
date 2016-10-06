@@ -36,13 +36,21 @@ from os import makedirs
 
 def create_options(arguments):
     """ Create a CMake option list from parsed arguments. """
+
+    if not hasattr(arguments, 'build_type') or not hasattr(arguments, 'backend'):
+        raise AttributeError("Argument object isn't configured correctly.")
+
     opts = [
             '-DCMAKE_BUILD_TYPE=' + arguments.build_type.capitalize(),
             '-DBACKEND=' + arguments.backend.upper(),
-            '-DLOG_LEVEL=' + str(arguments.log_level)
     ]
 
-    if arguments.no_colored_logs:
+    log_level = getattr(arguments, 'log_level', 0)
+    if log_level:
+        opts.append('-DLOG_LEVEL=' + str(log_level))
+
+    no_colored_logs = getattr(arguments, 'no_colored_logs', False)
+    if no_colored_logs:
         opts.append('-DDISABLE_LOG_COLORS=ON')
 
     return opts
