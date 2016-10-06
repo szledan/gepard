@@ -28,7 +28,10 @@
 #ifndef GEPARD_GLES2_SHADER_FACTORY_H
 #define GEPARD_GLES2_SHADER_FACTORY_H
 
+#include "gepard-defs.h"
+
 #include "gepard-gles2-defs.h"
+#include <map>
 #include <string>
 
 namespace gepard {
@@ -56,7 +59,8 @@ struct ShaderProgram {
      */
     void compileShaderProgram();
 
-    uint id;
+    uint32_t hash;
+    uint32_t id;
 protected:
     static void logShaderCompileError(const GLuint shader);
     static void logProgramLinkError(const GLuint program);

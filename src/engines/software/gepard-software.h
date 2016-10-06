@@ -43,34 +43,13 @@ namespace software {
 
 class GepardSoftware {
 public:
-    explicit GepardSoftware(Surface* surface);
+    explicit GepardSoftware(GepardContext&);
     ~GepardSoftware();
-
-    /* 5. Building paths */
-    void closePath();
-    void moveTo(Float x, Float y);
-    void lineTo(Float x, Float y);
-    void quadraticCurveTo(Float cpx, Float cpy, Float x, Float y);
-    void bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y);
-    void arcTo(Float x1, Float y1, Float x2, Float y2, Float radius);
-    void rect(Float x, Float y, Float w, Float h);
-    void arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise = false);
-
-    /* 11. Drawing paths to the canvas */
-    void beginPath();
-    void fill();
-    void stroke();
-    void drawFocusIfNeeded(/*Element element*/);
-    void clip();
-    bool isPointInPath(Float x, Float y);
 
     void fillRect(Float x, Float y, Float w, Float h);
 
-    //! \todo remove into a vector<GepardState> states.
-    GepardState state;
-
 private:
-    Surface* _surface;
+    GepardContext& _context;
 };
 
 } // namespace software

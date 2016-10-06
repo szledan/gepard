@@ -43,16 +43,12 @@ namespace vulkan {
 
 class GepardVulkan {
 public:
-    explicit GepardVulkan(Surface* surface);
+    explicit GepardVulkan(GepardContext&);
 
-    void closePath();
     void fillRect(Float x, Float y, Float w, Float h);
 
-    //! \todo remove into a vector<GepardState> states.
-    GepardState state;
-
 private:
-    Surface* _surface;
+    GepardContext& _context;
 };
 
 } // namespace vulkan

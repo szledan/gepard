@@ -32,8 +32,7 @@ namespace gepard {
  */
 void GepardEngine::closePath()
 {
-    GD_ASSERT(_engineBackend);
-    _engineBackend->closePath();
+    GD_NOT_IMPLEMENTED();
 }
 
 /*!
@@ -217,8 +216,7 @@ void GepardEngine::fillRect(Float x, Float y, Float w, Float h)
 void GepardEngine::setFillColor(const Float red, const Float green, const Float blue, const Float alpha)
 {
     GD_LOG1("Set fill color (" << red << ", " << green << ", " << blue << ", " << alpha << ")");
-    GD_ASSERT(_engineBackend);
-    _engineBackend->state.fillColor = Color(red, green, blue, alpha);
+    _context.currentState().fillColor = Color(red, green, blue, alpha);
 }
 
 } // namespace gepard
