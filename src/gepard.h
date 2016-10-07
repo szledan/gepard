@@ -333,6 +333,7 @@ public:
     const uint32_t height() const { return _height; }
 
 protected:
+    static const uint32_t kR8G8B8A8FormatSize = 4;
     uint32_t _width;
     uint32_t _height;
 };

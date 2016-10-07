@@ -75,9 +75,29 @@ public:
     virtual void* getDisplay() { return (void*)_display; }
     virtual unsigned long getWindow() { return _window; }
     virtual void* getBuffer() { return nullptr; }
-    virtual void drawBuffer(void*)
+    virtual void drawBuffer(void* rgba)
     {
-        //! TODO: not implemented: use buffer and copy to display.
+        Pixmap pixMap = XCreatePixmapFromBitmapData(_display, _window, (char *)rgba, width(), height(), 0x01, 0x00, 1);
+
+        GC gc = XCreateGC(_display, _window, 0, NULL);
+        XSetClipMask(_display, gc, pixMap);
+        XSetClipOrigin(_display, gc, 0*width(), 0*height());
+
+//        XImage* xImage = XGetImage(_display, _window, 0, 0, width(), height(), AllPlanes, XYPixmap);
+        XImage* image = image = XCreateImage(_display, g_visual, 1, XYBitmap,
+                                             0, (char *)bitmap, 256, 256, 32, 0);XGetImage(_display, _window, 0, 0, width(), height(), AllPlanes, XYPixmap);
+        image->width = width();
+        image->height = height();
+        image->data = (char *)rgba;
+
+        for (uint32_t left_x = 0; left_x < width() / 2; ++left_x)
+            for (uint32_t y = 0; y < height(); ++y) {
+                int right_x = width() - left_x;
+                if (left_x != right_x)
+                    XPutPixel(xImage, left_x, y, XGetPixel(image, right_x, y));
+                XPutPixel(xImage, right_x, y, XGetPixel(image, left_x, y));
+            }
+        XPutImage(_display, _window, gc, xImage, 0, 0, 0, 0, width(), height());
     }
 
 private:
