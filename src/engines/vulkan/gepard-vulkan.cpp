@@ -27,6 +27,8 @@
 
 #include "gepard-vulkan.h"
 
+#include "gepard-types.h"
+
 #include <cstring>
 #include <fstream>
 #include <string>
@@ -41,8 +43,8 @@
 namespace gepard {
 namespace vulkan {
 
-GepardVulkan::GepardVulkan(Surface* surface)
-    : _surface(surface)
+GepardVulkan::GepardVulkan(GepardContext& context)
+    : _context(context)
     , _vk("libvulkan.so")
     , _allocator(nullptr)
     , _instance(0)
@@ -68,7 +70,7 @@ GepardVulkan::GepardVulkan(Surface* surface)
     GD_LOG2(" - Surface backing image is created");
     createDefaultFrameBuffer();
     GD_LOG2(" - Default frame buffer is created");
-    if (_surface->getDisplay())
+    if (_context.surface->getDisplay())
         createSwapChain();
 }
 
@@ -115,27 +117,25 @@ GepardVulkan::~GepardVulkan()
 
 void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
 {
-    GD_LOG_FUNC(" (" << x << ", " << y << ", " << w << ", " << h << " )" );
-
     // Vertex data setup
-    float r = state.fillColor.r;
-    float g = state.fillColor.g;
-    float b = state.fillColor.b;
-    float a = state.fillColor.a;
+    const float r = _context.currentState().fillColor.r;
+    const float g = _context.currentState().fillColor.g;
+    const float b = _context.currentState().fillColor.b;
+    const float a = _context.currentState().fillColor.a;
 
-    float left = (float)((2.0 * x / (float)_surface->width()) - 1.0);
-    float right = (float)((2.0 * (x + w) / (float)_surface->width()) - 1.0);
-    float top = (float)((2.0 * y / (float)_surface->height()) - 1.0);
-    float bottom = (float)((2.0 * (y + h) / (float)_surface->height()) - 1.0);
+    const float left = (float)((2.0 * x / (float)_context.surface->width()) - 1.0);
+    const float right = (float)((2.0 * (x + w) / (float)_context.surface->width()) - 1.0);
+    const float top = (float)((2.0 * y / (float)_context.surface->height()) - 1.0);
+    const float bottom = (float)((2.0 * (y + h) / (float)_context.surface->height()) - 1.0);
 
-    float vertexData[] = {
+    const float vertexData[] = {
         left, top, 1.0, 1.0, r, g, b, a,
         right, top, 1.0, 1.0, r, g, b, a,
         left, bottom, 1.0, 1.0, r, g, b, a,
         right, bottom, 1.0, 1.0, r, g, b, a,
     };
 
-    uint32_t rectIndicies[] = {0, 1, 2, 2, 1, 3};
+    const uint32_t rectIndicies[] = {0, 1, 2, 2, 1, 3};
 
     VkBufferCreateInfo vertexBufferInfo = {
         VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,   // VkStructureType        sType;
@@ -322,26 +322,28 @@ void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
         VK_FALSE,                                                       // VkBool32                                 primitiveRestartEnable
     };
 
+    const uint32_t width = _context.surface->width();
+    const uint32_t height = _context.surface->height();
     const VkViewport viewports[] = {
         {
-            0.0f,                       // float    x;
-            0.0f,                       // float    y;
-            (float)_surface->width(),   // float    width;
-            (float)_surface->height(),  // float    height;
-            0.0f,                       // float    minDepth;
-            1.0f,                       // float    maxDepth;
+            0.0f,           // float    x;
+            0.0f,           // float    y;
+            (float)width,   // float    width;
+            (float)height,  // float    height;
+            0.0f,           // float    minDepth;
+            1.0f,           // float    maxDepth;
         }
     };
 
     const VkRect2D scissors[] = {
         {
             {
-                0,  // int32_t x
-                0,  // int32_t y
+                0,      // int32_t x
+                0,      // int32_t y
             },  // VkOffset2D    offset;
             {
-                _surface->width(),  // uint32_t    width
-                _surface->height(), // uint32_t    height
+                width,  // uint32_t    width
+                height, // uint32_t    height
             }, // VkExtent2D    extent;
         }
     };
@@ -517,7 +519,7 @@ void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
     uint64_t timeout = (uint64_t)16 * 1000000; // 16 ms
     _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
 
-    if(_surface->getDisplay()) {
+    if(_context.surface->getDisplay()) {
         presentImage();
     }
 
@@ -535,11 +537,6 @@ void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
 
     _vk.vkFreeMemory(_device, vertexBufferMemory, _allocator);
     _vk.vkFreeMemory(_device, indexBufferMemory, _allocator);
-}
-
-void GepardVulkan::closePath()
-{
-    GD_LOG_FUNC(" ()");
 }
 
 void GepardVulkan::createDefaultInstance()
@@ -653,7 +650,7 @@ void GepardVulkan::chooseDefaultDevice()
 
     enabledInstanceLayers.push_back("VK_LAYER_LUNARG_standard_validation");
 
-    if (_surface->getDisplay())
+    if (_context.surface->getDisplay())
         enabledInstanceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
     VkDeviceCreateInfo deviceCreateInfo = {
@@ -761,9 +758,9 @@ void GepardVulkan::createSurfaceImage()
     VkResult vkResult;
 
     VkExtent3D imageSize = {
-        _surface->width(),  // uint32_t    width;
-        _surface->height(), // uint32_t    height;
-        1,                  // uint32_t    depth;
+        _context.surface->width(),  // uint32_t    width;
+        _context.surface->height(), // uint32_t    height;
+        1,                          // uint32_t    depth;
     };
 
     VkImageCreateInfo imageCreateInfo = {
@@ -907,8 +904,8 @@ void GepardVulkan::createDefaultFrameBuffer()
         _renderPass,                                // VkRenderPass                renderPass;
         static_cast<uint32_t>(attachments.size()),  // uint32_t                    attachmentCount;
         attachments.data(),                         // const VkImageView*          pAttachments;
-        _surface->width(),                          // uint32_t                    width;
-        _surface->height(),                         // uint32_t                    height;
+        _context.surface->width(),                  // uint32_t                    width;
+        _context.surface->height(),                 // uint32_t                    height;
         1u,                                         // uint32_t                    layers;
     };
 
@@ -932,18 +929,18 @@ uint32_t GepardVulkan::getMemoryTypeIndex(VkMemoryRequirements memoryRequirement
 
 void GepardVulkan::createSwapChain()
 {
-    GD_ASSERT(_surface->getDisplay());
+    GD_ASSERT(_context.surface->getDisplay());
     GD_ASSERT(!_wsiSurface);
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     // Todo: check if this could be moved in to gepard-xsurface
-    XSync((Display*)_surface->getDisplay(), false);
+    XSync((Display*)_context.surface->getDisplay(), false);
 
     VkXlibSurfaceCreateInfoKHR surfaceCreateInfo = {
         VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, // VkStructureType                sType;
         nullptr,                                        // const void*                    pNext;
         0,                                              // VkXlibSurfaceCreateFlagsKHR    flags;
-        (Display*)_surface->getDisplay(),               // Display*                       dpy;
-        (Window)_surface->getWindow(),                  // Window                         window;
+        (Display*)_context.surface->getDisplay(),               // Display*                       dpy;
+        (Window)_context.surface->getWindow(),                  // Window                         window;
     };
 
     _vk.vkCreateXlibSurfaceKHR(_instance, &surfaceCreateInfo, _allocator, &_wsiSurface);
@@ -967,8 +964,8 @@ void GepardVulkan::createSwapChain()
     VkColorSpaceKHR swapchainColorSpace = surfaceFormats[0].colorSpace;
 
     VkExtent2D imageSize = {
-        _surface->width(),  // uint32_t    width;
-        _surface->height(), // uint32_t    height;
+        _context.surface->width(),  // uint32_t    width;
+        _context.surface->height(), // uint32_t    height;
     };
 
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
@@ -1060,8 +1057,8 @@ void GepardVulkan::presentImage()
 
     const VkOffset3D offset_1 = { 0, 0, 0 };
     const VkOffset3D offset_2 = {
-        (int32_t)_surface->width(),
-        (int32_t)_surface->height(),
+        (int32_t)_context.surface->width(),
+        (int32_t)_context.surface->height(),
         1,
     };
 

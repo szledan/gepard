@@ -29,11 +29,30 @@ namespace gepard {
 
 #ifdef GD_LOG_LEVEL
 
-void _log(unsigned int level, const std::string& msg, const std::string& color, const int type)
+/*!
+ * \brief Logging helper function.
+ * \param level  defines the depth of logging
+ * \param msg  log message
+ * \param color  color define with escape sequence
+ * \param type  defines 'normal', 'error' logging
+ * \param file  filename where calls log
+ * \param line  line where calls log
+ * \param function  function name where calls log
+ */
+void _log(unsigned int level, const std::string& msg, const std::string& color, const int type, const std::string& file, const int line, const std::string& function)
 {
-    std::ostream& os = type == (GD_ERROR_LOG) ? std::cerr : std::cout;
+    std::ostringstream oss;
+    std::ostream& os = (type == (GD_ERROR_LOG)) ? std::cerr : std::cout;
+    if (type == (GD_ERROR_LOG)) {
+        oss << "[ERR] ";
+    } else if (type == (GD_NORMAL_LOG)) {
+        oss << "[" << level + 1 << "] ";
+    } else {
+        GD_ASSERT(false && "Undefined log type.");
+    }
     if (level < (GD_LOG_LEVEL)) {
-        os << color << msg << GD_CLEAR_COLOR << std::endl;
+        oss  << msg;
+        os << color << oss.str() << GD_LOG4_COLOR << "  (in " << function << "() at "<< file.substr(file.rfind("/") + 1) << ":" << line << ")" << GD_CLEAR_COLOR << std::endl;
     }
 }
 

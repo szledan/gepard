@@ -26,27 +26,25 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import argparse
-import subprocess
-import sys
 import build
+import sys
+import util
 from os import path
 from os import getcwd
 
 
-def run_unittest(args):
-    build_path = build.get_build_path(args)
+def run_unittest(args, throw=True):
+    """ Runs unit-tests. """
+    build_path = util.get_build_path(args)
 
+    print('')
     print("Building unit-tests...")
-    # We use the argument parser from the main build script here to initialize all required members of the argument structure.
-    ret = build.configure(build.get_args())
+    build.configure(args)
+    build.build_unit(args)
 
-    if not ret:
-      ret = build.build_unit(args)
-
-    if not ret:
-      ret = subprocess.call([path.join(build_path, 'bin', 'unit')])
-
-    return ret
+    print('')
+    print("Running unit-tests...")
+    return util.call([path.join(build_path, 'bin', 'unit')], throw)
 
 
 def main():
@@ -54,9 +52,14 @@ def main():
     build.add_base_args(parser)
     arguments = parser.parse_args()
 
-    ret = run_unittest(arguments)
+    try:
+        run_unittest(arguments)
+    except util.CommandError as e:
+        util.print_fail()
+        print(e)
+        sys.exit(e.code)
 
-    sys.exit(ret)
+    util.print_success()
 
 
 if __name__ == "__main__":

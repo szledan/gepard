@@ -1,7 +1,6 @@
-#! /usr/bin/python -B
-# -*- coding: utf-8 -*-
-#
-# Copyright (C) 2015-2016, Gepard Graphics
+#!/bin/bash
+
+# Copyright (C) 2016, Gepard Graphics
 # Copyright (C) 2016, Dániel Bátyai <dbatyai@inf.u-szeged.hu>
 # All rights reserved.
 #
@@ -25,53 +24,19 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import argparse
-import subprocess
-import sys
-import util
-from os import chdir
-from os import errno
-from os import getcwd
-from os import path
+if [ "$CMD" == "cppcheck" ]
+then
+    python tools/scripts/cppcheck.py
+else
+    if [ "$TYPE" == "debug" ]
+    then
+        type="--debug"
+    fi
 
+    if [ $BACKEND ]
+    then
+        backend="--backend=$BACKEND"
+    fi
 
-def run_cppcheck(throw=True):
-    """ Runs cppcheck. """
-    basedir = util.get_base_path()
-    cmd = [
-        'cppcheck',
-        '--enable=all',
-#        '--error-exitcode=2', # Uncomment when cppcheck issues are fixed
-        '-UGD_LOG_LEVEL', '-UGD_DISABLE_LOG_COLORS',
-        '--suppressions-list=%s' % (path.join('tools', 'cppcheck-suppr-list')),
-        '--includes-file=%s' % (path.join('tools', 'cppcheck-incl-list')),
-        'src',
-        'examples',
-    ]
-
-    print('')
-    print("Running cppcheck...")
-
-    try:
-        chdir(basedir)
-        return util.call(cmd, throw)
-    except OSError as e:
-        if e.errno == errno.ENOENT:
-            raise OSError("Cppcheck is not installed.")
-        else:
-            raise
-
-
-def main():
-    try:
-        run_cppcheck()
-    except util.CommandError as e:
-        util.print_fail()
-        print(e)
-        sys.exit(e.code)
-
-    util.print_success()
-
-
-if __name__ == "__main__":
-    main()
+    python tools/scripts/$CMD.py $type $backend $ARGS
+fi

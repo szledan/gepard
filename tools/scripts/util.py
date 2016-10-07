@@ -25,53 +25,49 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import argparse
 import subprocess
 import sys
-import util
-from os import chdir
-from os import errno
-from os import getcwd
 from os import path
 
+def get_base_path():
+    """ Returns the base path to the project. """
+    return path.abspath(path.join(path.dirname(__file__), '..', '..'))
 
-def run_cppcheck(throw=True):
-    """ Runs cppcheck. """
-    basedir = util.get_base_path()
-    cmd = [
-        'cppcheck',
-        '--enable=all',
-#        '--error-exitcode=2', # Uncomment when cppcheck issues are fixed
-        '-UGD_LOG_LEVEL', '-UGD_DISABLE_LOG_COLORS',
-        '--suppressions-list=%s' % (path.join('tools', 'cppcheck-suppr-list')),
-        '--includes-file=%s' % (path.join('tools', 'cppcheck-incl-list')),
-        'src',
-        'examples',
-    ]
 
+def get_build_path(arguments):
+    """ Returns build direcotry. """
+    basedir = get_base_path()
+    return path.join(basedir, 'build', arguments.build_type)
+
+
+def call(command, throw=True):
+    """ Wrapper for subprocess call. """
+    ret = subprocess.call(command)
+    if ret and throw:
+        raise CommandError(ret, command)
+
+    return ret
+
+
+def print_success():
     print('')
-    print("Running cppcheck...")
-
-    try:
-        chdir(basedir)
-        return util.call(cmd, throw)
-    except OSError as e:
-        if e.errno == errno.ENOENT:
-            raise OSError("Cppcheck is not installed.")
-        else:
-            raise
+    print('-' * 30)
+    print('Everything passed.')
+    print('-' * 30)
 
 
-def main():
-    try:
-        run_cppcheck()
-    except util.CommandError as e:
-        util.print_fail()
-        print(e)
-        sys.exit(e.code)
-
-    util.print_success()
+def print_fail():
+    print('')
+    print('-' * 30)
+    print('Something failed, please see the log.')
+    print('-' * 30)
 
 
-if __name__ == "__main__":
-    main()
+class CommandError(BaseException):
+    def __init__(self, code, cmd):
+        super(CommandError, self).__init__(code, cmd)
+        self.code = code
+        self.cmd = cmd
+
+    def __str__(self):
+        return 'Command "%s" failed with exit code: %d' % (" ".join(self.cmd), self.code)

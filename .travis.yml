@@ -1,151 +1,41 @@
 language: cpp
 os: linux
+sudo: required
+dist: trusty
 
 before_script:
-  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
   - sudo add-apt-repository -y ppa:andykimpe/cmake
   - sudo apt-get -qq update
-  - sudo apt-get -qq install g++-4.8 gcc-4.8
   - sudo apt-get -qq install cmake
-  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90
-  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
+  - tools/scripts/vulkan-deps.sh
 
-env: CMD=cppcheck
+fast_finish: true
+
+env:
+  - CMD=cppcheck
+  - CMD=unittest TYPE=debug BACKEND=gles2
+  - CMD=unittest TYPE=debug BACKEND=vulkan
+  - CMD=unittest TYPE=debug BACKEND=software
+  - CMD=build TYPE=release BACKEND=gles2
+  - CMD=build TYPE=debug BACKEND=gles2
+  - CMD=build TYPE=release BACKEND=vulkan
+  - CMD=build TYPE=debug BACKEND=vulkan
+  - CMD=build TYPE=release BACKEND=software
+  - CMD=build TYPE=debug BACKEND=software
+  - CMD=build ARGS="--examples"
 
 addons:
   apt:
     packages:
       - cppcheck
+      - freeglut3-dev
+      - libegl1-mesa-dev
+      - libgles2-mesa-dev
+
+cache:
+  directories:
+    - tools/frameworks
 
 script:
-  - tools/scripts/cppcheck.py
+  - tools/scripts/travis.sh
 
-matrix:
-  fast_finish: true
-
-  include:
-    - script:
-        - python tools/scripts/build.py --backend=gles2
-      env:
-        - CMD=build
-        - TYPE=release
-        - BACKEND=gles2
-      addons:
-        apt:
-          packages:
-            - freeglut3-dev
-            - libegl1-mesa-dev
-            - libgles2-mesa-dev
-
-    - script:
-        - python tools/scripts/build.py --backend=software
-      env:
-        - CMD=build
-        - TYPE=release
-        - BACKEND=software
-      addons:
-        apt:
-          packages:
-            - freeglut3-dev
-            - libegl1-mesa-dev
-            - libgles2-mesa-dev
-
-    - script:
-        - tools/scripts/vulkan-deps.sh
-        - python tools/scripts/build.py --backend=vulkan
-      env:
-        - CMD=build
-        - TYPE=release
-        - BACKEND=vulkan
-      addons:
-        apt:
-          packages:
-            - freeglut3-dev
-            - libegl1-mesa-dev
-            - libgles2-mesa-dev
-
-    - script:
-        - python tools/scripts/build.py --debug --backend=gles2
-      env:
-        - CMD=build
-        - TYPE=debug
-        - BACKEND=gles2
-      addons:
-        apt:
-          packages:
-            - freeglut3-dev
-            - libegl1-mesa-dev
-            - libgles2-mesa-dev
-
-    - script:
-        - python tools/scripts/build.py --debug --backend=software
-      env:
-        - CMD=build
-        - TYPE=debug
-        - BACKEND=software
-      addons:
-        apt:
-          packages:
-            - freeglut3-dev
-            - libegl1-mesa-dev
-            - libgles2-mesa-dev
-
-    - script:
-        - tools/scripts/vulkan-deps.sh
-        - python tools/scripts/build.py --debug --backend=vulkan
-      env:
-        - CMD=build
-        - TYPE=debug
-        - BACKEND=vulkan
-      addons:
-        apt:
-          packages:
-            - freeglut3-dev
-            - libegl1-mesa-dev
-            - libgles2-mesa-dev
-
-    - script:
-        - python tools/scripts/unittest.py --debug --backend=gles2
-      env:
-        - CMD=unittest
-        - BACKEND=gles2
-      addons:
-        apt:
-          packages:
-            - freeglut3-dev
-            - libegl1-mesa-dev
-            - libgles2-mesa-dev
-      cache:
-        directories:
-          - tools/frameworks
-
-    - script:
-        - python tools/scripts/unittest.py --debug --backend=software
-      env:
-        - CMD=unittest
-        - BACKEND=software
-      addons:
-        apt:
-          packages:
-            - freeglut3-dev
-            - libegl1-mesa-dev
-            - libgles2-mesa-dev
-      cache:
-        directories:
-          - tools/frameworks
-
-    - script:
-        - tools/scripts/vulkan-deps.sh
-        - python tools/scripts/unittest.py --debug --backend=vulkan
-      env:
-        - CMD=unittest
-        - BACKEND=vulkan
-      addons:
-        apt:
-          packages:
-            - freeglut3-dev
-            - libegl1-mesa-dev
-            - libgles2-mesa-dev
-      cache:
-        directories:
-          - tools/frameworks

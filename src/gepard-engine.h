@@ -50,8 +50,8 @@ class Surface;
 class GepardEngine {
 public:
     explicit GepardEngine(Surface* surface)
-        : _surface(surface)
-        , _engineBackend(new GepardEngineBackend(surface))
+        : _context(surface)
+        , _engineBackend(new GepardEngineBackend(_context))
     {
     }
     ~GepardEngine()
@@ -83,8 +83,10 @@ public:
 
     void setFillColor(const Float red, const Float green, const Float blue, const Float alpha = 1.0f);
 
+    GepardContext& context() { return _context; }
+
 private:
-    Surface* _surface;
+    GepardContext _context;
     GepardEngineBackend* _engineBackend;
 };
 

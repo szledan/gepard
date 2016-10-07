@@ -28,7 +28,10 @@
 #ifndef GEPARD_GLES2_SHADER_FACTORY_H
 #define GEPARD_GLES2_SHADER_FACTORY_H
 
+#include "gepard-defs.h"
+
 #include "gepard-gles2-defs.h"
+#include <map>
 #include <string>
 
 namespace gepard {
@@ -37,22 +40,36 @@ namespace gles2 {
 /*!
  * \brief The ShaderProgram class
  */
-class ShaderProgram {
-public:
+struct ShaderProgram {
+    ShaderProgram(const std::string& vertexShaderSource, const std::string& fragmentShaderSource, const std::string& name = "")
+        : id(0)
+        , _vertexShaderSource(vertexShaderSource)
+        , _fragmentShaderSource(fragmentShaderSource)
+        , _name(name)
+    {
+    }
     /*!
-     * \brief Static function to compile a shader program.
+     * \brief Function to compile a shader program.
      * \param result  pointer of the number of compiled program. If it's not nullptr then nothing happens.
      * \param name  the name of the program (only for the logging at the moment).
      * \param vertexShaderSource  vertex shader source code.
      * \param fragmentShaderSource  fragment shader source code.
+     *
+     * \internal
      */
-    static void compileShaderProg(GLuint* result, const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
+    void compileShaderProgram();
 
+    uint32_t hash;
+    uint32_t id;
 protected:
     static void logShaderCompileError(const GLuint shader);
     static void logProgramLinkError(const GLuint program);
     static GLuint compileShader(const GLenum type, const GLchar* shaderSource);
     static GLuint linkPrograms(GLuint vertexShader, GLuint fragmentShader);
+private:
+    const std::string _vertexShaderSource;
+    const std::string _fragmentShaderSource;
+    const std::string _name;
 };
 
 } // namespace gles2
