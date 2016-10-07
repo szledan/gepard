@@ -88,6 +88,7 @@ private:
     uint32_t getMemoryTypeIndex(VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags properties);
     void createSwapChain();
     void presentImage();
+    void readImage();
 };
 
 } // namespace vulkan

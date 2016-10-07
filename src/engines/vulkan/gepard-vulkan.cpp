@@ -521,6 +521,8 @@ void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
 
     if(_context.surface->getDisplay()) {
         presentImage();
+    } else if(_context.surface->getBuffer()) {
+        readImage();
     }
 
     // Clean up
@@ -810,10 +812,10 @@ void GepardVulkan::createSurfaceImage()
     VkCommandBuffer commandBuffer = _primaryCommandBuffers[0];
 
     VkCommandBufferBeginInfo commandBufferBeginInfo = {
-        VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        nullptr,
-        VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-        nullptr,
+       VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, // VkStructureType                          sType;
+       nullptr,                                     // const void*                              pNext;
+       VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, // VkCommandBufferUsageFlags                flags;
+       nullptr,                                     // const VkCommandBufferInheritanceInfo*    pInheritanceInfo;
     };
 
     VkClearColorValue clearColor = {
@@ -1042,10 +1044,10 @@ void GepardVulkan::presentImage()
     VkCommandBuffer commandBuffer = _primaryCommandBuffers[0];
 
     VkCommandBufferBeginInfo commandBufferBeginInfo = {
-        VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        nullptr,
-        VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-        nullptr,
+       VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, // VkStructureType                          sType;
+       nullptr,                                     // const void*                              pNext;
+       VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, // VkCommandBufferUsageFlags                flags;
+       nullptr,                                     // const VkCommandBufferInheritanceInfo*    pInheritanceInfo;
     };
 
     VkImageSubresourceLayers subresource = {
@@ -1178,8 +1180,175 @@ void GepardVulkan::presentImage()
     };
 
     _vk.vkQueuePresentKHR(queue, &presentInfo);
-    // clean up
+
+    // Clean up
     _vk.vkDestroyFence(_device, fence, _allocator);
+}
+
+void GepardVulkan::readImage()
+{
+    VkBuffer buffer;
+    VkDeviceMemory bufferAlloc;
+    VkCommandBuffer commandBuffer = _primaryCommandBuffers[0];
+    const uint32_t width = _context.surface->width();
+    const uint32_t height = _context.surface->width();
+    VkDeviceSize dataSize = width * height * 4; // r8g8b8a8 format
+
+    // Create destination buffer
+    VkBufferCreateInfo bufferInfo = {
+        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,   // VkStructureType        sType;
+        nullptr,                                // const void*            pNext;
+        0u,                                     // VkBufferCreateFlags    flags;
+        dataSize,                               // VkDeviceSize           size;
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT,       // VkBufferUsageFlags     usage;
+        VK_SHARING_MODE_EXCLUSIVE,              // VkSharingMode          sharingMode;
+        1u,                                     // uint32_t               queueFamilyIndexCount;
+        &_queueFamilyIndex,                     // const uint32_t*        pQueueFamilyIndices;
+    };
+
+    _vk.vkCreateBuffer(_device, &bufferInfo, _allocator, &buffer);
+
+    VkMemoryRequirements memoryRequirements;
+    _vk.vkGetBufferMemoryRequirements(_device, buffer, &memoryRequirements);
+    VkMemoryAllocateInfo allocationInfo = {
+        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,                                         // VkStructureType    sType;
+        nullptr,                                                                        // const void*        pNext;
+        memoryRequirements.size,                                                        // VkDeviceSize       allocationSize;
+        getMemoryTypeIndex(memoryRequirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),    // uint32_t           memoryTypeIndex;
+    };
+
+    _vk.vkAllocateMemory(_device, &allocationInfo, _allocator, &bufferAlloc);
+    _vk.vkBindBufferMemory(_device, buffer, bufferAlloc, 0);
+
+    VkImageSubresourceRange subresourceRange = {
+        VK_IMAGE_ASPECT_COLOR_BIT,  // VkImageAspectFlags    aspectMask;
+        0u,                         // uint32_t              baseMipLevel;
+        1u,                         // uint32_t              levelCount;
+        0u,                         // uint32_t              baseArrayLayer;
+        1u,                         // uint32_t              layerCount;
+    };
+
+    VkImageMemoryBarrier preImageBarrier = {
+        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,     // VkStructureType            sType;
+        nullptr,                                    // const void*                pNext;
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,       // VkAccessFlags              srcAccessMask;
+        VK_ACCESS_TRANSFER_READ_BIT,                // VkAccessFlags              dstAccessMask;
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout              oldLayout;
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,       // VkImageLayout              newLayout;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   dstQueueFamilyIndex;
+        _surfaceImage,                              // VkImage                    image;
+        subresourceRange,                           // VkImageSubresourceRange    subresourceRange;
+    };
+
+    VkImageMemoryBarrier postImageBarrier = {
+        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,     // VkStructureType            sType;
+        nullptr,                                    // const void*                pNext;
+        VK_ACCESS_TRANSFER_READ_BIT,                // VkAccessFlags              srcAccessMask;
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,       // VkAccessFlags              dstAccessMask;
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,       // VkImageLayout              oldLayout;
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout              newLayout;
+        _queueFamilyIndex,                          // uint32_t                   srcQueueFamilyIndex;
+        _queueFamilyIndex,                          // uint32_t                   dstQueueFamilyIndex;
+        _surfaceImage,                              // VkImage                    image;
+        subresourceRange,                           // VkImageSubresourceRange    subresourceRange;
+    };
+
+    VkBufferMemoryBarrier bufferBarrier = {
+        VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,    // VkStructureType    sType;
+        nullptr,                                    // const void*        pNext;
+        VK_ACCESS_TRANSFER_WRITE_BIT,               // VkAccessFlags      srcAccessMask;
+        VK_ACCESS_HOST_READ_BIT,                    // VkAccessFlags      dstAccessMask;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t           srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t           dstQueueFamilyIndex;
+        buffer,                                     // VkBuffer           buffer;
+        0u,                                         // VkDeviceSize       offset;
+        dataSize,                                   // VkDeviceSize       size;
+    };
+
+    VkImageSubresourceLayers imageSubresource = {
+        VK_IMAGE_ASPECT_COLOR_BIT,  // VkImageAspectFlags    aspectMask;
+        0u,                         // uint32_t              mipLevel;
+        0u,                         // uint32_t              baseArrayLayer;
+        1u,                         // uint32_t              baseArrayLayer;
+    };
+
+    VkBufferImageCopy copyRegion = {
+        0u,                 // VkDeviceSize                bufferOffset;
+        width,              // uint32_t                    bufferRowLength;
+        height,             // uint32_t                    bufferImageHeight;
+        imageSubresource,   // VkImageSubresourceLayers    imageSubresource;
+        { 0, 0, 0 },        // VkOffset3D                  imageOffset;
+        {
+            width,
+            height,
+            1u,
+        },                  // VkExtent3D                  imageExtent;
+    };
+
+    VkCommandBufferBeginInfo commandBufferBeginInfo = {
+       VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, // VkStructureType                          sType;
+       nullptr,                                     // const void*                              pNext;
+       VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, // VkCommandBufferUsageFlags                flags;
+       nullptr,                                     // const VkCommandBufferInheritanceInfo*    pInheritanceInfo;
+    };
+
+    _vk.vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+
+    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 0, (const VkBufferMemoryBarrier*)nullptr, 1, &preImageBarrier);
+    _vk.vkCmdCopyImageToBuffer(commandBuffer, _surfaceImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffer, 1, &copyRegion);
+    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 1, &bufferBarrier, 1, &postImageBarrier);
+    _vk.vkEndCommandBuffer(commandBuffer);
+
+    VkSubmitInfo submitInfo = {
+        VK_STRUCTURE_TYPE_SUBMIT_INFO,  // VkStructureType                sType;
+        nullptr,                        // const void*                    pNext;
+        0,                              // uint32_t                       waitSemaphoreCount;
+        nullptr,                        // const VkSemaphore*             pWaitSemaphores;
+        nullptr,                        // const VkPipelineStageFlags*    pWaitDstStageMask;
+        1,                              // uint32_t                       commandBufferCount;
+        &commandBuffer,                 // const VkCommandBuffer*         pCommandBuffers;
+        0,                              // uint32_t                       signalSemaphoreCount;
+        nullptr,                        // const VkSemaphore*             pSignalSemaphores;
+    };
+
+    VkQueue queque;
+    _vk.vkGetDeviceQueue(_device, _queueFamilyIndex, 0, &queque);
+
+    VkFenceCreateInfo fenceInfo = {
+        VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,    // VkStructureType       sType;
+        nullptr,                                // const void*           pNext;
+        0,                                      // VkFenceCreateFlags    flags;
+    };
+
+    VkFence fence;
+    _vk.vkCreateFence(_device, &fenceInfo, _allocator, &fence);
+
+    _vk.vkQueueSubmit(queque, 1, &submitInfo, fence);
+
+    uint64_t timeout = (uint64_t)16 * 1000000; // 16 ms
+    _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
+
+    void* data;
+    _vk.vkMapMemory(_device, bufferAlloc, 0, dataSize, 0, &data);
+
+    VkMappedMemoryRange range = {
+        VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,  // VkStructureType    sType;
+        nullptr,                                // const void*        pNext;
+        bufferAlloc,                            // VkDeviceMemory     memory;
+        0,                                      // VkDeviceSize       offset;
+        dataSize,                               // VkDeviceSize       size;
+    };
+
+    _vk.vkInvalidateMappedMemoryRanges(_device, 1, &range);
+    std::memcpy(_context.surface->getBuffer(), data, dataSize);
+
+    // Clean up
+    _vk.vkUnmapMemory(_device, bufferAlloc);
+
+    _vk.vkFreeMemory(_device, bufferAlloc, _allocator);
+    _vk.vkDestroyFence(_device, fence, _allocator);
+    _vk.vkDestroyBuffer(_device, buffer, _allocator);
 }
 
 } // namespace vulkan
