@@ -33,9 +33,7 @@
 #include "gepard.h"
 #include "gepard-image.h"
 #include "gepard-types.h"
-
 #include "gepard-vulkan-interface.h"
-
 #include <vector>
 
 namespace gepard {
@@ -44,7 +42,6 @@ class Image;
 class Surface;
 
 namespace vulkan {
-
 
 class GepardVulkan {
 public:
@@ -79,13 +76,13 @@ private:
     void createDefaultInstance();
     void chooseDefaultPhysicalDevice();
     void chooseDefaultDevice();
-    bool findGraphicsQueue(std::vector<VkPhysicalDevice> devices);
+    bool chooseGraphicsQueue(const std::vector<VkPhysicalDevice> &devices);
     void createCommandPool();
     void allocatePrimaryCommandBuffer();
     void createDefaultRenderPass();
     void createSurfaceImage();
     void createDefaultFrameBuffer();
-    uint32_t getMemoryTypeIndex(VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags properties);
+    uint32_t getMemoryTypeIndex(const VkMemoryRequirements memoryRequirements, const VkMemoryPropertyFlags properties);
     void createSwapChain();
     void presentImage();
     void readImage();

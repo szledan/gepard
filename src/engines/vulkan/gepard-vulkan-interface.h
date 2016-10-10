@@ -38,103 +38,111 @@
 namespace gepard {
 namespace vulkan {
 
+// Global level vulkan functions
+#define GD_VK_GLOBAL_FUNTION_LIST(FUNC) \
+    FUNC(vkCreateInstance); \
+    FUNC(vkEnumerateInstanceExtensionProperties);
+
+// Instance level vulkan functions
+#define GD_VK_INSTANCE_FUNTION_LIST(FUNC) \
+    FUNC(vkDestroyInstance); \
+    FUNC(vkEnumeratePhysicalDevices); \
+    FUNC(vkGetPhysicalDeviceProperties); \
+    FUNC(vkGetPhysicalDeviceQueueFamilyProperties); \
+    FUNC(vkCreateDevice); \
+    FUNC(vkGetDeviceProcAddr); \
+    FUNC(vkGetPhysicalDeviceMemoryProperties); \
+    FUNC(vkGetPhysicalDeviceFeatures); \
+    FUNC(vkDestroySurfaceKHR); \
+    FUNC(vkGetPhysicalDeviceSurfaceFormatsKHR); \
+    FUNC(vkGetPhysicalDeviceSurfaceCapabilitiesKHR); \
+    FUNC(vkGetPhysicalDeviceSurfacePresentModesKHR);
+
+// Device level vulkan functions
+#define GD_VK_DEVICE_FUNTION_LIST(FUNC) \
+    FUNC(vkDestroyDevice); \
+    FUNC(vkGetDeviceQueue); \
+    FUNC(vkCreateCommandPool); \
+    FUNC(vkResetCommandPool); \
+    FUNC(vkDestroyCommandPool); \
+    FUNC(vkAllocateCommandBuffers); \
+    FUNC(vkFreeCommandBuffers); \
+    FUNC(vkBeginCommandBuffer); \
+    FUNC(vkEndCommandBuffer); \
+    FUNC(vkQueueSubmit); \
+    FUNC(vkCreateRenderPass); \
+    FUNC(vkDestroyRenderPass); \
+    FUNC(vkCreateFramebuffer); \
+    FUNC(vkDestroyFramebuffer); \
+    FUNC(vkCreateImage); \
+    FUNC(vkDestroyImage); \
+    FUNC(vkCreateImageView); \
+    FUNC(vkDestroyImageView); \
+    FUNC(vkGetBufferMemoryRequirements); \
+    FUNC(vkGetImageMemoryRequirements); \
+    FUNC(vkBindBufferMemory); \
+    FUNC(vkBindImageMemory); \
+    FUNC(vkAllocateMemory); \
+    FUNC(vkFreeMemory); \
+    FUNC(vkCreateGraphicsPipelines); \
+    FUNC(vkDestroyPipeline); \
+    FUNC(vkCreateShaderModule); \
+    FUNC(vkDestroyShaderModule); \
+    FUNC(vkCreatePipelineLayout); \
+    FUNC(vkDestroyPipelineLayout); \
+    FUNC(vkCmdBeginRenderPass); \
+    FUNC(vkCmdEndRenderPass); \
+    FUNC(vkCreateBuffer); \
+    FUNC(vkDestroyBuffer); \
+    FUNC(vkMapMemory); \
+    FUNC(vkFlushMappedMemoryRanges); \
+    FUNC(vkInvalidateMappedMemoryRanges); \
+    FUNC(vkUnmapMemory); \
+    FUNC(vkCmdBindPipeline); \
+    FUNC(vkCmdDraw); \
+    FUNC(vkCmdDrawIndexed); \
+    FUNC(vkCmdDrawIndirect); \
+    FUNC(vkCmdDrawIndexedIndirect); \
+    FUNC(vkCreateFence); \
+    FUNC(vkDestroyFence); \
+    FUNC(vkWaitForFences); \
+    FUNC(vkCmdBindVertexBuffers); \
+    FUNC(vkCmdBindIndexBuffer); \
+    FUNC(vkCmdPipelineBarrier); \
+    FUNC(vkCmdCopyBuffer); \
+    FUNC(vkCmdCopyBufferToImage); \
+    FUNC(vkCmdCopyImageToBuffer); \
+    FUNC(vkCmdCopyImage); \
+    FUNC(vkCmdBlitImage); \
+    FUNC(vkCmdClearColorImage); \
+    FUNC(vkCmdClearAttachments); \
+    FUNC(vkCreateSwapchainKHR); \
+    FUNC(vkDestroySwapchainKHR); \
+    FUNC(vkGetSwapchainImagesKHR); \
+    FUNC(vkAcquireNextImageKHR); \
+    FUNC(vkQueuePresentKHR);
+
 class GepardVulkanInterface {
 public:
     GepardVulkanInterface(const char* libraryName);
     ~GepardVulkanInterface();
 
     void loadGlobalFunctions();
-    void loadInstanceFunctions(VkInstance instance);
-    void loadDeviceFunctions(VkDevice device);
+    void loadInstanceFunctions(const VkInstance instance);
+    void loadDeviceFunctions(const VkDevice device);
 
 #define GD_VK_DECLARE_FUNCTION(fun) PFN_##fun fun
 
     // Global level vulkan functions
     GD_VK_DECLARE_FUNCTION(vkGetInstanceProcAddr);
-    GD_VK_DECLARE_FUNCTION(vkCreateInstance);
-    GD_VK_DECLARE_FUNCTION(vkEnumerateInstanceExtensionProperties);
+    GD_VK_GLOBAL_FUNTION_LIST(GD_VK_DECLARE_FUNCTION)
 
-    // Instance level vulkan functions
-    GD_VK_DECLARE_FUNCTION(vkDestroyInstance);
-    GD_VK_DECLARE_FUNCTION(vkEnumeratePhysicalDevices);
-    GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceProperties);
-    GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties);
-    GD_VK_DECLARE_FUNCTION(vkCreateDevice);
-    GD_VK_DECLARE_FUNCTION(vkGetDeviceProcAddr);
-    GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceMemoryProperties);
-    GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceFeatures);
-    // WSI functions
-    GD_VK_DECLARE_FUNCTION(vkDestroySurfaceKHR);
-#ifdef VK_USE_PLATFORM_XLIB_KHR
+    GD_VK_INSTANCE_FUNTION_LIST(GD_VK_DECLARE_FUNCTION)
+#if defined(VK_USE_PLATFORM_XLIB_KHR)
     GD_VK_DECLARE_FUNCTION(vkCreateXlibSurfaceKHR);
-#endif
-    GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR);
-    GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
-    GD_VK_DECLARE_FUNCTION(vkGetPhysicalDeviceSurfacePresentModesKHR);
+#endif // VK_USE_PLATFORM_XLIB_KHR
 
-    // Device level vulkan functions
-    GD_VK_DECLARE_FUNCTION(vkDestroyDevice);
-    GD_VK_DECLARE_FUNCTION(vkGetDeviceQueue);
-    GD_VK_DECLARE_FUNCTION(vkCreateCommandPool);
-    GD_VK_DECLARE_FUNCTION(vkResetCommandPool);
-    GD_VK_DECLARE_FUNCTION(vkDestroyCommandPool);
-    GD_VK_DECLARE_FUNCTION(vkAllocateCommandBuffers);
-    GD_VK_DECLARE_FUNCTION(vkFreeCommandBuffers);
-    GD_VK_DECLARE_FUNCTION(vkBeginCommandBuffer);
-    GD_VK_DECLARE_FUNCTION(vkEndCommandBuffer);
-    GD_VK_DECLARE_FUNCTION(vkQueueSubmit);
-    GD_VK_DECLARE_FUNCTION(vkCreateRenderPass);
-    GD_VK_DECLARE_FUNCTION(vkDestroyRenderPass);
-    GD_VK_DECLARE_FUNCTION(vkCreateFramebuffer);
-    GD_VK_DECLARE_FUNCTION(vkDestroyFramebuffer);
-    GD_VK_DECLARE_FUNCTION(vkCreateImage);
-    GD_VK_DECLARE_FUNCTION(vkDestroyImage);
-    GD_VK_DECLARE_FUNCTION(vkCreateImageView);
-    GD_VK_DECLARE_FUNCTION(vkDestroyImageView);
-    GD_VK_DECLARE_FUNCTION(vkGetBufferMemoryRequirements);
-    GD_VK_DECLARE_FUNCTION(vkGetImageMemoryRequirements);
-    GD_VK_DECLARE_FUNCTION(vkBindBufferMemory);
-    GD_VK_DECLARE_FUNCTION(vkBindImageMemory);
-    GD_VK_DECLARE_FUNCTION(vkAllocateMemory);
-    GD_VK_DECLARE_FUNCTION(vkFreeMemory);
-    GD_VK_DECLARE_FUNCTION(vkCreateGraphicsPipelines);
-    GD_VK_DECLARE_FUNCTION(vkDestroyPipeline);
-    GD_VK_DECLARE_FUNCTION(vkCreateShaderModule);
-    GD_VK_DECLARE_FUNCTION(vkDestroyShaderModule);
-    GD_VK_DECLARE_FUNCTION(vkCreatePipelineLayout);
-    GD_VK_DECLARE_FUNCTION(vkDestroyPipelineLayout);
-    GD_VK_DECLARE_FUNCTION(vkCmdBeginRenderPass);
-    GD_VK_DECLARE_FUNCTION(vkCmdEndRenderPass);
-    GD_VK_DECLARE_FUNCTION(vkCreateBuffer);
-    GD_VK_DECLARE_FUNCTION(vkDestroyBuffer);
-    GD_VK_DECLARE_FUNCTION(vkMapMemory);
-    GD_VK_DECLARE_FUNCTION(vkFlushMappedMemoryRanges);
-    GD_VK_DECLARE_FUNCTION(vkInvalidateMappedMemoryRanges);
-    GD_VK_DECLARE_FUNCTION(vkUnmapMemory);
-    GD_VK_DECLARE_FUNCTION(vkCmdBindPipeline);
-    GD_VK_DECLARE_FUNCTION(vkCmdDraw);
-    GD_VK_DECLARE_FUNCTION(vkCmdDrawIndexed);
-    GD_VK_DECLARE_FUNCTION(vkCmdDrawIndirect);
-    GD_VK_DECLARE_FUNCTION(vkCmdDrawIndexedIndirect);
-    GD_VK_DECLARE_FUNCTION(vkCreateFence);
-    GD_VK_DECLARE_FUNCTION(vkDestroyFence);
-    GD_VK_DECLARE_FUNCTION(vkWaitForFences);
-    GD_VK_DECLARE_FUNCTION(vkCmdBindVertexBuffers);
-    GD_VK_DECLARE_FUNCTION(vkCmdBindIndexBuffer);
-    GD_VK_DECLARE_FUNCTION(vkCmdPipelineBarrier);
-    GD_VK_DECLARE_FUNCTION(vkCmdCopyBuffer);
-    GD_VK_DECLARE_FUNCTION(vkCmdCopyBufferToImage);
-    GD_VK_DECLARE_FUNCTION(vkCmdCopyImageToBuffer);
-    GD_VK_DECLARE_FUNCTION(vkCmdCopyImage);
-    GD_VK_DECLARE_FUNCTION(vkCmdBlitImage);
-    GD_VK_DECLARE_FUNCTION(vkCmdClearColorImage);
-    GD_VK_DECLARE_FUNCTION(vkCmdClearAttachments);
-    // WSI functions
-    GD_VK_DECLARE_FUNCTION(vkCreateSwapchainKHR);
-    GD_VK_DECLARE_FUNCTION(vkDestroySwapchainKHR);
-    GD_VK_DECLARE_FUNCTION(vkGetSwapchainImagesKHR);
-    GD_VK_DECLARE_FUNCTION(vkAcquireNextImageKHR);
-    GD_VK_DECLARE_FUNCTION(vkQueuePresentKHR);
+    GD_VK_DEVICE_FUNTION_LIST(GD_VK_DECLARE_FUNCTION)
 
 #undef GD_VK_DECLARE_FUNCTION
 
