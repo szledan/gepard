@@ -82,11 +82,21 @@ Color Color::fromRawDataABGR(uint32_t raw)
 
 uint32_t Color::toRawDataABGR(Color color)
 {
-    const uint32_t alphaByte = uint32_t(color.a * 255.0f) << 24;
-    const uint32_t blueByte = uint32_t(color.b * 255.0f) << 16;
-    const uint32_t greenByte = uint32_t(color.g * 255.0f) << 8;
-    const uint32_t redByte = uint32_t(color.r * 255.0f);
+    const uint32_t alphaByte = (uint32_t(color.a * 255.0f) & 0xff) << 24;
+    const uint32_t blueByte = (uint32_t(color.b * 255.0f) & 0xff) << 16;
+    const uint32_t greenByte = (uint32_t(color.g * 255.0f) & 0xff) << 8;
+    const uint32_t redByte = (uint32_t(color.r * 255.0f) & 0xff);
     return alphaByte | blueByte | greenByte | redByte;
+}
+
+Color& Color::operator*=(const Float& rhs)
+{
+    this->r = clamp(this->r * rhs, Float(0.0f), Float(1.0f));
+    this->g = clamp(this->g * rhs, Float(0.0f), Float(1.0f));
+    this->b = clamp(this->b * rhs, Float(0.0f), Float(1.0f));
+    this->a = clamp(this->a * rhs, Float(0.0f), Float(1.0f));
+
+    return *this;
 }
 
 } // namespace gepard

@@ -292,8 +292,7 @@ void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
     } else if (_context.surface->getBuffer()) {
         glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) _context.surface->getBuffer());
     } else {
-        const uint32_t clearColor = 0u;
-        std::vector<uint32_t> buffer(width * height, clearColor);
+        std::vector<uint32_t> buffer(width * height);
         glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) buffer.data());
         _context.surface->drawBuffer(buffer.data());
     }

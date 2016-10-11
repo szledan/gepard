@@ -344,15 +344,7 @@ struct Color : public Vec4 {
      * \todo doc missing
      * \todo unit-test missing
      */
-    Color& operator*=(const Float& rhs)
-    {
-        this->r *= rhs;
-        this->g *= rhs;
-        this->b *= rhs;
-        this->a *= rhs;
-
-        return *this;
-    }
+    Color& operator*=(const Float& rhs);
 
     static const Color WHITE;
 };
