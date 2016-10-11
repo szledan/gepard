@@ -36,26 +36,49 @@ namespace software {
 GepardSoftware::GepardSoftware(GepardContext& context)
     : _context(context)
 {
-    GD_NOT_IMPLEMENTED();
+    _buffer.reserve(context.surface->width() * context.surface->height());
 }
 
 GepardSoftware::~GepardSoftware()
 {
-    GD_NOT_IMPLEMENTED();
 }
 
 /*!
- * \brief GepardSoftware::fillRect
+ * \brief Fill rect with Software backend.
  * \param x  X-axis value of _start_ and _end_ point
  * \param y  Y-axis value of _start_ and _end_ point
  * \param w  size on X-axis
  * \param h  size on Y-axis
  *
- * \todo unimplemented function
  */
 void GepardSoftware::fillRect(Float x, Float y, Float w, Float h)
 {
-    GD_NOT_IMPLEMENTED();
+    GD_LOG1("Fill rect with Software backend (" << x << ", " << y << ", " << w << ", " << h << ")");
+
+    const Color fillColor = _context.currentState().fillColor;
+    const uint32_t width = _context.surface->width();
+
+    //! \todo (szledan): anti-aliassing
+    //! \fixme (szledan): checking boundary
+    GD_LOG2("1. Fill destination buffer.");
+    for (int j = y; j < y + h; ++j)
+        for (int i = x; i < x + w; ++i) {
+            uint32_t& dstRaw = _buffer[j * width + i];
+            Color dst = Color::fromRawDataABGR(dstRaw);
+            Color src = fillColor;
+
+            // Apply src-alpha, one-minus-src-alpha blending mode.
+            // Use one-minus-src-alpha on dst.
+            dst *= (1.0f - src.a);
+
+            // Use src-alpha on src.
+            src *= src.a;
+
+            dstRaw = Color::toRawDataABGR(src + dst);
+        }
+
+    GD_LOG2("2. Call drawBuffer method of surface.");
+    _context.surface->drawBuffer(_buffer.data());
 }
 
 } // namespace software
