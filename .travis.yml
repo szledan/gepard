@@ -29,27 +29,17 @@ install:
 
 env:
   - CMD=cppcheck
-  - CMD=unittest TYPE=debug BACKEND=gles2
-  - CMD=unittest TYPE=debug BACKEND=vulkan
-  - CMD=unittest TYPE=debug BACKEND=software
-  - CMD=build TYPE=release BACKEND=gles2
-  - CMD=build TYPE=debug BACKEND=gles2
-  - CMD=build TYPE=release BACKEND=vulkan
-  - CMD=build TYPE=debug BACKEND=vulkan
-  - CMD=build TYPE=release BACKEND=software
-  - CMD=build TYPE=debug BACKEND=software
-  - CMD=build ARGS="--examples" BACKEND=software
+  - CMD=unittest
+  - CMD=build BACKEND=gles2
+  - CMD=build BACKEND=vulkan
+  - CMD=build BACKEND=software
 
 matrix:
   exclude:
     - compiler: clang
       env: CMD=cppcheck
     - compiler: clang
-      env: CMD=unittest TYPE=debug BACKEND=gles2
-    - compiler: clang
-      env: CMD=unittest TYPE=debug BACKEND=vulkan
-    - compiler: clang
-      env: CMD=unittest TYPE=debug BACKEND=software
+      env: CMD=unittest
   allow_failures:
     - compiler: clang
 

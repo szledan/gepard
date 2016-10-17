@@ -33,13 +33,18 @@ from os import path
 from os import getcwd
 
 
-def run_unittest(args, throw=True):
+def run_unittest(throw=True):
     """ Runs unit-tests. """
+    args = lambda: None
+    args.build_type = "debug"
+    args.backend = "software"
     build_path = util.get_build_path(args)
 
     print('')
     print("Building unit-tests...")
-    build.configure(args)
+    if not build.check_configured(args, throw=False):
+        build.configure(args)
+
     build.build_unit(args)
 
     print('')
@@ -48,12 +53,8 @@ def run_unittest(args, throw=True):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    build.add_base_args(parser)
-    arguments = parser.parse_args()
-
     try:
-        run_unittest(arguments)
+        run_unittest()
     except util.CommandError as e:
         util.print_fail()
         print(e)
