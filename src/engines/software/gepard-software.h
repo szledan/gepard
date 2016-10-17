@@ -33,6 +33,7 @@
 #include "gepard.h"
 #include "gepard-image.h"
 #include "gepard-types.h"
+#include <vector>
 
 namespace gepard {
 
@@ -50,6 +51,7 @@ public:
 
 private:
     GepardContext& _context;
+    std::vector<uint32_t> _buffer;
 };
 
 } // namespace software

@@ -71,4 +71,32 @@ Float& Vec4::operator[](std::size_t idx)
 
 const Color Color::WHITE(1.0f, 1.0f, 1.0f, 1.0f);
 
+Color Color::fromRawDataABGR(uint32_t raw)
+{
+    const Float red = Float(raw & 0x000000ff) / 255.0f;
+    const Float green = Float((raw & 0x00ff00) >> 8) / 255.0f;
+    const Float blue = Float((raw & 0x00ff0000) >> 16) / 255.0f;
+    const Float alpha = Float((raw & 0xff000000) >> 24) / 255.0f;
+    return Color(red, green, blue, alpha);
+}
+
+uint32_t Color::toRawDataABGR(Color color)
+{
+    const uint32_t alphaByte = (uint32_t(color.a * 255.0f) & 0xff) << 24;
+    const uint32_t blueByte = (uint32_t(color.b * 255.0f) & 0xff) << 16;
+    const uint32_t greenByte = (uint32_t(color.g * 255.0f) & 0xff) << 8;
+    const uint32_t redByte = (uint32_t(color.r * 255.0f) & 0xff);
+    return alphaByte | blueByte | greenByte | redByte;
+}
+
+Color& Color::operator*=(const Float& rhs)
+{
+    this->r = clamp(this->r * rhs, Float(0.0f), Float(1.0f));
+    this->g = clamp(this->g * rhs, Float(0.0f), Float(1.0f));
+    this->b = clamp(this->b * rhs, Float(0.0f), Float(1.0f));
+    this->a = clamp(this->a * rhs, Float(0.0f), Float(1.0f));
+
+    return *this;
+}
+
 } // namespace gepard

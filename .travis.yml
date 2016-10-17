@@ -3,39 +3,57 @@ os: linux
 sudo: required
 dist: trusty
 
-before_script:
-  - sudo add-apt-repository -y ppa:andykimpe/cmake
-  - sudo apt-get -qq update
-  - sudo apt-get -qq install cmake
-  - tools/scripts/vulkan-deps.sh
+compiler:
+  - gcc
+  - clang
 
-fast_finish: true
+branches:
+  only:
+  - master
+  - gles2-dev
+  - vulkan-dev
+  - software-dev
+
+before_install:
+  - sudo add-apt-repository -y ppa:andykimpe/cmake
+  - if [ "$CXX" == "clang++" ]; then sudo add-apt-repository -y ppa:h-rayflood/llvm; fi
+  - sudo apt-get -qq update
+
+install:
+  - sudo apt-get -qq install cmake
+  - if [ "$CXX" == "clang++" ]; then sudo apt-get install --allow-unauthenticated -qq clang-3.8; fi
+  - if [ "$CXX" == "clang++" ]; then export CXX="clang++-3.8"; fi
+  - if [ "$CMD" == "cppcheck" ]; then sudo apt-get install -qq cppcheck; fi
+  - if [ "$BACKEND" == "gles2" ]; then sudo apt-get install -qq freeglut3-dev libegl1-mesa-dev libgles2-mesa-dev; fi
+  - if [ "$BACKEND" == "vulkan" ]; then tools/scripts/vulkan-deps.sh; fi
 
 env:
   - CMD=cppcheck
-  - CMD=unittest TYPE=debug BACKEND=gles2
-  - CMD=unittest TYPE=debug BACKEND=vulkan
-  - CMD=unittest TYPE=debug BACKEND=software
-  - CMD=build TYPE=release BACKEND=gles2
-  - CMD=build TYPE=debug BACKEND=gles2
-  - CMD=build TYPE=release BACKEND=vulkan
-  - CMD=build TYPE=debug BACKEND=vulkan
-  - CMD=build TYPE=release BACKEND=software
-  - CMD=build TYPE=debug BACKEND=software
-  - CMD=build ARGS="--examples"
+  - CMD=unittest
+  - CMD=build BACKEND=gles2
+  - CMD=build BACKEND=vulkan
+  - CMD=build BACKEND=software
 
-addons:
-  apt:
-    packages:
-      - cppcheck
-      - freeglut3-dev
-      - libegl1-mesa-dev
-      - libgles2-mesa-dev
-
-cache:
-  directories:
-    - tools/frameworks
+matrix:
+  exclude:
+    - compiler: clang
+      env: CMD=cppcheck
+    - compiler: clang
+      env: CMD=unittest
+  allow_failures:
+    - compiler: clang
 
 script:
   - tools/scripts/travis.sh
 
+notifications:
+  irc:
+    on_success: change
+    on_failure: always
+    skip_join: true
+    channels:
+      - "chat.freenode.net#gepard"
+    template:
+      - "Branch: %{branch} - %{message}"
+      - "%{author} (%{commit}) %{commit_subject}"
+      - "Build details: %{build_url}"
