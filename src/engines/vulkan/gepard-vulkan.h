@@ -33,6 +33,8 @@
 #include "gepard.h"
 #include "gepard-image.h"
 #include "gepard-types.h"
+#include "gepard-vulkan-interface.h"
+#include <vector>
 
 namespace gepard {
 
@@ -44,11 +46,46 @@ namespace vulkan {
 class GepardVulkan {
 public:
     explicit GepardVulkan(GepardContext&);
+    ~GepardVulkan();
 
     void fillRect(Float x, Float y, Float w, Float h);
 
 private:
     GepardContext& _context;
+    GepardVulkanInterface _vk;
+    VkAllocationCallbacks* _allocator;
+    VkInstance _instance;
+    VkPhysicalDevice _physicalDevice;
+    VkDevice _device;
+    uint32_t _queueFamilyIndex;
+    VkCommandPool _commandPool;
+    std::vector<VkCommandBuffer> _primaryCommandBuffers;
+    std::vector<VkCommandBuffer> _secondaryCommandBuffers;
+    std::vector<VkDeviceMemory> _memoryAllocations;
+    VkRenderPass _renderPass;
+    VkFormat _imageFormat;
+    VkImage _surfaceImage;
+    VkImageView _frameBufferColorAttachmentImageView;
+    VkFramebuffer _frameBuffer;
+    VkPhysicalDeviceMemoryProperties _physicalDeviceMemoryProperties;
+    VkPhysicalDeviceFeatures _physicalDeviceFeatures;
+    VkSurfaceKHR _wsiSurface;
+    VkSwapchainKHR _wsiSwapChain;
+    std::vector<VkImage> _wsiSwapChainImages;
+
+    void createDefaultInstance();
+    void chooseDefaultPhysicalDevice();
+    void chooseDefaultDevice();
+    bool chooseGraphicsQueue(const std::vector<VkPhysicalDevice> &devices);
+    void createCommandPool();
+    void allocatePrimaryCommandBuffer();
+    void createDefaultRenderPass();
+    void createSurfaceImage();
+    void createDefaultFrameBuffer();
+    uint32_t getMemoryTypeIndex(const VkMemoryRequirements memoryRequirements, const VkMemoryPropertyFlags properties);
+    void createSwapChain();
+    void presentImage();
+    void readImage();
 };
 
 } // namespace vulkan

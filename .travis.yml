@@ -15,7 +15,6 @@ branches:
   - software-dev
 
 before_install:
-
   - sudo add-apt-repository -y ppa:andykimpe/cmake
   - if [ "$CXX" == "clang++" ]; then sudo add-apt-repository -y ppa:h-rayflood/llvm; fi
   - sudo apt-get -qq update
@@ -26,6 +25,7 @@ install:
   - if [ "$CXX" == "clang++" ]; then export CXX="clang++-3.8"; fi
   - if [ "$CMD" == "cppcheck" ]; then sudo apt-get install -qq cppcheck; fi
   - if [ "$BACKEND" == "gles2" ]; then sudo apt-get install -qq freeglut3-dev libegl1-mesa-dev libgles2-mesa-dev; fi
+  - if [ "$BACKEND" == "vulkan" ]; then tools/scripts/vulkan-deps.sh; fi
 
 env:
   - CMD=cppcheck
