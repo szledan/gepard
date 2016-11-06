@@ -241,10 +241,10 @@ void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
 
     //! \todo (kkristof) better file handling is needed.
     {
-        std::ifstream vertexInput( "src/engines/vulkan/shaders/vert.spv", std::ios::binary );
+        std::ifstream vertexInput( "src/engines/vulkan/shaders/fill-rect.vert.spv", std::ios::binary );
         std::vector<char> vertexCode((std::istreambuf_iterator<char>(vertexInput)), (std::istreambuf_iterator<char>()));
 
-        std::ifstream fragmentInput( "src/engines/vulkan/shaders/frag.spv", std::ios::binary );
+        std::ifstream fragmentInput( "src/engines/vulkan/shaders/fill-rect.frag.spv", std::ios::binary );
         std::vector<char> fragmentCode((std::istreambuf_iterator<char>(fragmentInput)), (std::istreambuf_iterator<char>()));
 
         const VkShaderModuleCreateInfo vertexModulInfo = {
