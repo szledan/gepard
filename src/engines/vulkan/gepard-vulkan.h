@@ -34,6 +34,7 @@
 #include "gepard-image.h"
 #include "gepard-types.h"
 #include "gepard-vulkan-interface.h"
+#include "gepard-vulkan-spirv-binaries.h"
 #include <vector>
 
 namespace gepard {

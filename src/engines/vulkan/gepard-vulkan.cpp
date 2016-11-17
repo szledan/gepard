@@ -239,20 +239,13 @@ void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
     VkShaderModule vertex;
     VkShaderModule fragment;
 
-    //! \todo (kkristof) better file handling is needed.
     {
-        std::ifstream vertexInput( "src/engines/vulkan/shaders/fill-rect.vert.spv", std::ios::binary );
-        std::vector<char> vertexCode((std::istreambuf_iterator<char>(vertexInput)), (std::istreambuf_iterator<char>()));
-
-        std::ifstream fragmentInput( "src/engines/vulkan/shaders/fill-rect.frag.spv", std::ios::binary );
-        std::vector<char> fragmentCode((std::istreambuf_iterator<char>(fragmentInput)), (std::istreambuf_iterator<char>()));
-
         const VkShaderModuleCreateInfo vertexModulInfo = {
             VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,            // VkStructureType              sType;
             nullptr,                                                // const void*                  pNext;
             0,                                                      // VkShaderModuleCreateFlags    flags;
-            vertexCode.size(),                                      // size_t                       codeSize;
-            reinterpret_cast<const uint32_t*>(vertexCode.data()),   // const uint32_t*              pCode;
+            sizeof(fillRectVert),                                   // size_t                       codeSize;
+            fillRectVert,                                           // const uint32_t*              pCode;
         };
         _vk.vkCreateShaderModule(_device, &vertexModulInfo, _allocator, &vertex);
 
@@ -260,9 +253,10 @@ void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
             VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,            // VkStructureType              sType;
             nullptr,                                                // const void*                  pNext;
             0,                                                      // VkShaderModuleCreateFlags    flags;
-            fragmentCode.size(),                                    // size_t                       codeSize;
-            reinterpret_cast<const uint32_t*>(fragmentCode.data()), // const uint32_t*              pCode;
+            sizeof(fillRectFrag),                                   // size_t                       codeSize;
+            fillRectFrag,                                           // const uint32_t*              pCode;
         };
+
         _vk.vkCreateShaderModule(_device, &fragmentModulInfo, _allocator, &fragment);
     }
 

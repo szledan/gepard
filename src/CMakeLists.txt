@@ -14,6 +14,7 @@ set(GLES2_SOURCES
 set(VULKAN_SOURCES
     engines/vulkan/gepard-vulkan-interface.cpp
     engines/vulkan/gepard-vulkan.cpp
+    engines/vulkan/shaders/gepard-vulkan-spirv-binaries.cpp
 )
 
 set(SOFTWARE_SOURCES
@@ -33,6 +34,7 @@ set(GLES2_INCLUDE_DIRS
 
 set(VULKAN_INCLUDE_DIRS
     engines/vulkan
+    engines/vulkan/shaders
 )
 
 set(SOFTWARE_INCLUDE_DIRS
