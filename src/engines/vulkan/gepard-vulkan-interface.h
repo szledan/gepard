@@ -31,7 +31,8 @@
 #include "gepard-defs.h"
 
 // TODO: move this define to the build system
-#define VK_USE_PLATFORM_XLIB_KHR
+//#define VK_USE_PLATFORM_XLIB_KHR
+#define VK_USE_PLATFORM_XCB_KHR
 
 #include <vulkan/vulkan.h>
 
@@ -105,6 +106,7 @@ namespace vulkan {
     FUNC(vkCmdDrawIndexedIndirect); \
     FUNC(vkCreateFence); \
     FUNC(vkDestroyFence); \
+    FUNC(vkResetFences); \
     FUNC(vkWaitForFences); \
     FUNC(vkCmdBindVertexBuffers); \
     FUNC(vkCmdBindIndexBuffer); \
@@ -141,6 +143,9 @@ public:
 #if defined(VK_USE_PLATFORM_XLIB_KHR)
     GD_VK_DECLARE_FUNCTION(vkCreateXlibSurfaceKHR);
 #endif // VK_USE_PLATFORM_XLIB_KHR
+#if defined(VK_USE_PLATFORM_XCB_KHR)
+    GD_VK_DECLARE_FUNCTION(vkCreateXcbSurfaceKHR);
+#endif // VK_USE_PLATFORM_XCB_KHR
 
     GD_VK_DEVICE_FUNTION_LIST(GD_VK_DECLARE_FUNCTION)
 

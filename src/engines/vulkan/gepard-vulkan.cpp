@@ -38,16 +38,22 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #endif // VK_USE_PLATFORM_XLIB_KHR
+#ifdef VK_USE_PLATFORM_XCB_KHR
+#include <X11/Xlib-xcb.h>
+#endif // VK_USE_PLATFORM_XCB_KHR
 
 namespace gepard {
 namespace vulkan {
 
 static const uint64_t oneMiliSec = 1000000;
 static const uint64_t timeout = (uint64_t)16 * oneMiliSec; // 16 ms
+#ifdef VK_USE_PLATFORM_XCB_KHR
+static xcb_connection_t* xcbConnection;
+#endif
 
 GepardVulkan::GepardVulkan(GepardContext& context)
     : _context(context)
-    , _vk("libvulkan.so")
+    , _vk("libvulkan.so.1")
     , _allocator(nullptr)
     , _instance(0)
     , _imageFormat(VK_FORMAT_R8G8B8A8_UNORM)
@@ -545,6 +551,9 @@ void GepardVulkan::createDefaultInstance()
 #ifdef VK_USE_PLATFORM_XLIB_KHR
         VK_KHR_XLIB_SURFACE_EXTENSION_NAME,
 #endif // VK_USE_PLATFORM_XLIB_KHR
+#ifdef VK_USE_PLATFORM_XCB_KHR
+        VK_KHR_XCB_SURFACE_EXTENSION_NAME,
+#endif // VK_USE_PLATFORM_XLIB_KHR
     };
 
     const char* const* enabledExtensionNames = enabledExtensions.empty() ? nullptr : enabledExtensions.data();
@@ -561,7 +570,8 @@ void GepardVulkan::createDefaultInstance()
         enabledExtensionNames,                  // const char* const*          ppEnabledExtensionNames;
     };
 
-    _vk.vkCreateInstance(&instanceCreateInfo, _allocator, &_instance);
+    VkResult result = _vk.vkCreateInstance(&instanceCreateInfo, _allocator, &_instance);
+
     GD_ASSERT(_instance);
 }
 
@@ -942,6 +952,20 @@ void GepardVulkan::createSwapChain()
     };
 
     _vk.vkCreateXlibSurfaceKHR(_instance, &surfaceCreateInfo, _allocator, &_wsiSurface);
+#elif defined(VK_USE_PLATFORM_XCB_KHR)
+    XSync((Display*)_context.surface->getDisplay(), false);
+
+    xcbConnection = XGetXCBConnection((Display*)_context.surface->getDisplay());
+
+    const VkXcbSurfaceCreateInfoKHR surfaceCreateInfo = {
+        VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR,  // VkStructureType                sType;
+        nullptr,                                        // const void*                    pNext;
+        0,                                              // VkXlibSurfaceCreateFlagsKHR    flags;
+        xcbConnection,                                  // xcb_connection_t*              connection;
+        (xcb_window_t)_context.surface->getWindow(),    // xcb_window_t                   window;
+    };
+
+    _vk.vkCreateXcbSurfaceKHR(_instance, &surfaceCreateInfo, _allocator, &_wsiSurface);
 #else
     GD_CRASH("Unimplemented WSI platform!");
 #endif // VK_USE_PLATFORM_XLIB_KHR
@@ -1029,7 +1053,9 @@ void GepardVulkan::presentImage()
     _vk.vkCreateFence(_device, &fenceInfo, _allocator, &fence);
 
     uint32_t imageIndex;
+    //! /todo: handle if the timeout is triggered
     _vk.vkAcquireNextImageKHR(_device, _wsiSwapChain, timeout, VK_NULL_HANDLE, fence, &imageIndex);
+    _vk.vkResetFences(_device, 1, &fence);
 
     VkQueue queue;
     _vk.vkGetDeviceQueue(_device, _queueFamilyIndex, 0, &queue);
