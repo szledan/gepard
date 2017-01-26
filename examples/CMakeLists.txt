@@ -4,9 +4,7 @@ function(build_example directory)
   target_link_libraries("${directory}" gepard X11 ${LIB_DEPENDENCIES})
 endfunction(build_example)
 
-include_directories(${CMAKE_BINARY_DIR}/include/)
-# TODO: remove:
-include_directories(${CMAKE_SOURCE_DIR}/src/)
+include_directories(${PROJECT_BINARY_DIR}/include/)
 
 build_example("draw_path")
 #build_example("triangle" "")
