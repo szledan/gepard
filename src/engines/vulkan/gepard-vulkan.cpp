@@ -46,7 +46,7 @@ namespace gepard {
 namespace vulkan {
 
 static const uint64_t oneMiliSec = 1000000;
-static const uint64_t timeout = (uint64_t)16 * oneMiliSec; // 16 ms
+static const uint64_t timeout = (uint64_t)32 * oneMiliSec; // 32 ms
 #ifdef VK_USE_PLATFORM_XCB_KHR
 static xcb_connection_t* xcbConnection;
 #endif
@@ -516,9 +516,12 @@ void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
     };
 
     VkFence fence;
+    VkResult vkResult;
     _vk.vkCreateFence(_device, &fenceInfo, _allocator, &fence);
     _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
-    _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
+    vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
+    if (vkResult == VK_TIMEOUT)
+        GD_LOG1("TIMEOUT!");
 
     if(_context.surface->getDisplay()) {
         presentImage();
@@ -871,7 +874,9 @@ void GepardVulkan::createSurfaceImage()
     VkFence fence;
     _vk.vkCreateFence(_device, &fenceInfo, _allocator, &fence);
     _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
-    _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
+    vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
+    if (vkResult == VK_TIMEOUT)
+        GD_LOG1("TIMEOUT!");
     _vk.vkDestroyFence(_device, fence, _allocator);
 }
 
@@ -1184,8 +1189,11 @@ void GepardVulkan::presentImage()
         nullptr,                        // const VkSemaphore*             pSignalSemaphores;
     };
 
+    VkResult vkResult;
     _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
-    _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
+    vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
+    if (vkResult == VK_TIMEOUT)
+        GD_LOG1("TIMEOUT!");
 
     const VkPresentInfoKHR presentInfo = {
         VK_STRUCTURE_TYPE_PRESENT_INFO_KHR, // VkStructureType          sType;
@@ -1341,9 +1349,12 @@ void GepardVulkan::readImage()
     };
 
     VkFence fence;
+    VkResult vkResult;
     _vk.vkCreateFence(_device, &fenceInfo, _allocator, &fence);
     _vk.vkQueueSubmit(queque, 1, &submitInfo, fence);
-    _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
+    vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
+    if (vkResult == VK_TIMEOUT)
+        GD_LOG1("TIMEOUT!");
 
     void* data;
     _vk.vkMapMemory(_device, bufferAlloc, 0, dataSize, 0, &data);
