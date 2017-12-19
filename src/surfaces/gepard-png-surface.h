@@ -57,6 +57,10 @@ public:
     virtual void* getDisplay() { return nullptr; }
     virtual unsigned long getWindow() { return 0; }
     virtual void* getBuffer() { return _buffer; }
+    virtual void drawBuffer(void* rgba)
+    {
+        memcpy(_buffer, rgba, 4 * width() * height());
+    }
 
     /*!
      * \todo doc is missing

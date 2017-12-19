@@ -29,6 +29,8 @@ usage() {
   echo "Options:"
   echo "-d, --developer: install developer libraries"
   echo "-q, --no-prompt: no progress info"
+  echo "--gles2: install gles2 libraries"
+  echo "--vulkan: install vulkan libraries"
   exit 1
 }
 
@@ -37,12 +39,16 @@ do
   case "$1" in
     -d|--developer) do_inst_dev=1;;
     -q|--no-prompt) do_quietly="-qq --assume-yes";;
+    --gles2) do_inst_gles2=1;;
+    --vulkan) do_inst_vulkan=1;;
     *) usage;;
   esac
   shift
 done
 
-lib_list="cmake libegl1-mesa-dev libgles2-mesa-dev libx11-dev"
+common_list="cmake libx11-dev libpng-dev"
+gles2_list="libegl1-mesa-dev libgles2-mesa-dev"
+vulkan_list=""
 
 dev_list="cppcheck doxygen graphviz"
 
@@ -53,8 +59,16 @@ else
   dev_list=
 fi
 
+if test "$do_inst_gles2" != "1" && test "$BACKEND" != "gles2"; then
+  gles2_list=
+fi
+
+if test "$do_inst_vulkan" != "1" && test "$BACKEND" != "vulkan"; then
+  vulkan_list=
+fi
+
 packages="$(
-echo "${dev_list} ${lib_list}" | tr " " "\n"
+echo "${dev_list} ${common_list} ${gles2_list} ${vulkan_list}" | tr " " "\n"
 )"
 
 sudo apt-get update ${do_quietly}

@@ -34,15 +34,21 @@ from os import getcwd
 from os import makedirs
 
 
-def create_options(arguments):
+def create_options(arguments=None):
     """ Create a CMake option list from parsed arguments. """
-    opts = [
-            '-DCMAKE_BUILD_TYPE=' + arguments.build_type.capitalize(),
-            '-DBACKEND=' + arguments.backend.upper(),
-            '-DLOG_LEVEL=' + str(arguments.log_level)
-    ]
 
-    if arguments.no_colored_logs:
+    opts = []
+
+    if hasattr(arguments, 'build_type'):
+        opts.append('-DCMAKE_BUILD_TYPE=' + arguments.build_type.capitalize())
+
+    if hasattr(arguments, 'backend'):
+        opts.append('-DBACKEND=' + arguments.backend.upper())
+
+    if hasattr(arguments, 'log_level'):
+        opts.append('-DLOG_LEVEL=' + str(arguments.log_level))
+
+    if hasattr(arguments, 'no_colored_logs') and arguments.no_colored_logs:
         opts.append('-DDISABLE_LOG_COLORS=ON')
 
     return opts
@@ -89,12 +95,15 @@ def configure(arguments):
     util.call(['cmake', '-B' + build_path, '-H' + util.get_base_path()] + create_options(arguments))
 
 
-def check_configured(arguments):
+def check_configured(arguments, throw=True):
     """ Checks if the build is configured. """
     build_path = util.get_build_path(arguments)
 
-    if not path.isfile(path.join(build_path, 'Makefile')):
+    ret = path.isfile(path.join(build_path, 'Makefile'))
+    if not ret and throw:
         raise RuntimeError('Build is not configured.')
+
+    return ret
 
 
 def run_clean(arguments):

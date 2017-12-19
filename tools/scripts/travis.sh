@@ -24,14 +24,18 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-if [ "$CMD" == "cppcheck" ]
-then
-    python tools/scripts/cppcheck.py
-else
-    if [ "$TYPE" == "debug" ]
-    then
-        type="--debug "
+if [ "$CMD" == "build" ]; then
+    if [ $BACKEND ]; then
+        backend="--backend=$BACKEND"
     fi
 
-    python tools/scripts/$CMD.py $type--backend=$BACKEND
+    echo "Running Release build with examples."
+    if ! python tools/scripts/build.py -e $backend $ARGS; then ret=1; fi
+
+    echo "Running Debug build.";
+    if ! python tools/scripts/build.py -d $backend $ARGS; then ret=1; fi
+
+    exit $ret
+else
+    python tools/scripts/$CMD.py
 fi
