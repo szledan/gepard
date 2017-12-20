@@ -312,6 +312,28 @@ struct Color : public Vec4 {
         : Vec4(clamp(red, Float(0.0f), Float(1.0f)), clamp(green, Float(0.0f), Float(1.0f)), clamp(blue, Float(0.0f), Float(1.0f)), clamp(alpha, Float(0.0f), Float(1.0f)))
     {
     }
+    Color(const std::string& color)
+        : Color(Float(0.0f), Float(0.0f), Float(0.0f), Float(1.0f))
+    {
+        const size_t length = color.length();
+        int n;
+
+        // Convert string hex to unsgined int.
+        std::stringstream ss;
+        ss << std::hex << color.substr(1);
+        ss >> n;
+        GD_LOG3("Convert '" << color << "' string to hex number: " << std::hex << n);
+
+        if (length == 7) {
+            r = (n & 0xff0000) >> 16;
+            g = (n & 0x00ff00) >> 8;
+            b = n & 0x0000ff;
+        } else if (length == 4) {
+            r = (n & 0xf00) >> 8;
+            g = (n & 0x0f0) >> 4;
+            b =  n & 0x00f;
+        }
+    }
     Color(const Color& color) : Color(color.r, color.g, color.b, color.a) {}
 
     /*!
@@ -370,28 +392,6 @@ inline Color operator+(const Color& lhs, const Color& rhs)
  */
 struct GepardState {
     Color fillColor = Color(Color::WHITE);
-};
-
-/* GepardContext */
-
-/*!
- * \brief The GepardContext struct
- *
- * Describes the Drawing context.
- *
- * \internal
- */
-struct GepardContext {
-    GepardContext(Surface* surface_)
-        : surface(surface_)
-    {
-        states.push_back(GepardState());
-    }
-
-    GepardState& currentState() { return states.back(); }
-
-    Surface* surface;
-    std::vector<GepardState> states;
 };
 
 } // namespace gepard

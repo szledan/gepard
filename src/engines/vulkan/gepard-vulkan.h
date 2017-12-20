@@ -31,6 +31,7 @@
 #include "gepard-defs.h"
 
 #include "gepard.h"
+#include "gepard-context.h"
 #include "gepard-image.h"
 #include "gepard-types.h"
 #include "gepard-vulkan-interface.h"
@@ -48,7 +49,9 @@ public:
     explicit GepardVulkan(GepardContext&);
     ~GepardVulkan();
 
-    void fillRect(Float x, Float y, Float w, Float h);
+    void fillRect(const Float x, const Float y, const Float w, const Float h);
+    void fill();
+    void stroke();
 
 private:
     GepardContext& _context;

@@ -27,6 +27,7 @@
 #define GEPARD_PATH_H
 
 #include "gepard-types.h"
+#include <ostream>
 
 namespace gepard {
 
@@ -154,12 +155,11 @@ struct PathData {
     void addArcElement(FloatPoint, FloatPoint, Float, Float, bool = true);
     void addArcToElement(const FloatPoint&, const FloatPoint&, const Float&);
     void addCloseSubpathElement();
-#ifdef GD_LOG_LEVEL
-    void dump();
-#endif // GD_LOG_LEVEL
 
     PathElement* firstElement() const { return _firstElement; }
     PathElement* lastElement() const { return _lastElement; }
+
+    const PathElement* operator[](std::size_t idx) const;
 
 private:
     Region<> _region;
@@ -173,13 +173,18 @@ private:
 class Path {
 public:
     explicit Path()
+        : _pathData(new PathData())
     {}
 
-    PathData& pathData() { return _pathData; }
-    void fillPath();
+    PathData* pathData() { return _pathData; }
+    void clear()
+    {
+        delete _pathData;
+        _pathData = new PathData();
+    }
 
 private:
-    PathData _pathData;
+    PathData* _pathData;
 };
 
 } // namespace gepard

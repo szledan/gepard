@@ -42,7 +42,7 @@ namespace gles2 {
  */
 struct ShaderProgram {
     ShaderProgram(const std::string& vertexShaderSource, const std::string& fragmentShaderSource, const std::string& name = "")
-        : id(0)
+        : id(GLuint(-1))
         , _vertexShaderSource(vertexShaderSource)
         , _fragmentShaderSource(fragmentShaderSource)
         , _name(name)
@@ -60,7 +60,7 @@ struct ShaderProgram {
     void compileShaderProgram();
 
     uint32_t hash;
-    uint32_t id;
+    GLuint id;
 protected:
     static void logShaderCompileError(const GLuint shader);
     static void logProgramLinkError(const GLuint program);

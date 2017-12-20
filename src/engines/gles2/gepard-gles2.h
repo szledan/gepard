@@ -33,6 +33,7 @@
 #include "gepard.h"
 #include "gepard-gles2-defs.h"
 #include "gepard-gles2-shader-factory.h"
+#include "gepard-context.h"
 #include "gepard-image.h"
 #include "gepard-types.h"
 #include <EGL/egl.h>
@@ -47,15 +48,19 @@ namespace gles2 {
 
 class GepardGLES2 {
 public:
-    static const int kMaximumNumberOfAttributes = GLushort(-1) + 1;
-    static const int kMaximumNumberOfUshortQuads = kMaximumNumberOfAttributes / 6;
+    static const int kMaximumNumberOfAttributes;
+    static const int kMaximumNumberOfUshortQuads;
 
     explicit GepardGLES2(GepardContext&);
     ~GepardGLES2();
 
-    void fillRect(Float x, Float y, Float w, Float h);
+    void fillRect(const Float x, const Float y, const Float w, const Float h);
+    void fill();
+    void stroke();
 
 private:
+    void render();
+
     GepardContext& _context;
 
     GLuint _indexBufferObject;
@@ -66,6 +71,7 @@ private:
 
     GLuint _fboId;
     GLuint _textureId;
+    GLfloat* _attributes;
 };
 
 } // namespace gles2

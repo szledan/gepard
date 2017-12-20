@@ -1,5 +1,5 @@
-/* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2016-2017, Gepard Graphics
+ * Copyright (C) 2016-2017, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +25,19 @@
 
 #include "gepard-engine.h"
 
+#include "gepard-types.h"
+
 namespace gepard {
 
 /*!
  * \brief GepardEngine::closePath
+ *
+ * \internal
+ * \todo unit tests missing
  */
 void GepardEngine::closePath()
 {
-    GD_NOT_IMPLEMENTED();
+    _context.path.pathData()->addCloseSubpathElement();
 }
 
 /*!
@@ -40,11 +45,12 @@ void GepardEngine::closePath()
  * \param x  X-axis value of _end_ point
  * \param y  Y-axis value of _end_ point
  *
- * \todo unimplemented function
+ * \internal
+ * \todo unit tests missing
  */
 void GepardEngine::moveTo(Float x, Float y)
 {
-    GD_NOT_IMPLEMENTED();
+    _context.path.pathData()->addMoveToElement(FloatPoint(x, y));
 }
 
 /*!
@@ -52,11 +58,12 @@ void GepardEngine::moveTo(Float x, Float y)
  * \param x  X-axis value of _end_ point
  * \param y  Y-axis value of _end_ point
  *
- * \todo unimplemented function
+ * \internal
+ * \todo unit tests missing
  */
 void GepardEngine::lineTo(Float x, Float y)
 {
-    GD_NOT_IMPLEMENTED();
+    _context.path.pathData()->addLineToElement(FloatPoint(x, y));
 }
 
 /*!
@@ -66,11 +73,12 @@ void GepardEngine::lineTo(Float x, Float y)
  * \param x  X-axis value of _end_ point
  * \param y  Y-axis value of _end_ point
  *
- * \todo unimplemented function
+ * \internal
+ * \todo unit tests missing
  */
 void GepardEngine::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
 {
-    GD_NOT_IMPLEMENTED();
+    _context.path.pathData()->addQuadaraticCurveToElement(FloatPoint(cpx, cpy), FloatPoint(x, y));
 }
 
 /*!
@@ -82,11 +90,12 @@ void GepardEngine::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
  * \param x  X-axis value of _end_ point
  * \param y  Y-axis value of _end_ point
  *
- * \todo unimplemented function
+ * \internal
+ * \todo unit tests missing
  */
 void GepardEngine::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y)
 {
-    GD_NOT_IMPLEMENTED();
+    _context.path.pathData()->addBezierCurveToElement(FloatPoint(cp1x, cp1y), FloatPoint(cp2x, cp2y), FloatPoint(x, y));
 }
 
 /*!
@@ -97,11 +106,12 @@ void GepardEngine::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y,
  * \param y2  Y-axis value of _end_ point
  * \param radius  size of arc
  *
- * \todo unimplemented function
+ * \internal
+ * \todo unit tests missing
  */
 void GepardEngine::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
 {
-    GD_NOT_IMPLEMENTED();
+    _context.path.pathData()->addArcToElement(FloatPoint(x1, y1), FloatPoint(x2, y2), radius);
 }
 
 /*!
@@ -111,11 +121,16 @@ void GepardEngine::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
  * \param w  size on X-axis
  * \param h  size on Y-axis
  *
- * \todo unimplemented function
+ * \internal
+ * \todo unit tests missing
  */
 void GepardEngine::rect(Float x, Float y, Float w, Float h)
 {
-    GD_NOT_IMPLEMENTED();
+    moveTo(x, y);
+    lineTo(x + w, y);
+    lineTo(x + w, y + h);
+    lineTo(x, y + h);
+    closePath();
 }
 
 /*!
@@ -127,41 +142,50 @@ void GepardEngine::rect(Float x, Float y, Float w, Float h)
  * \param endAngle  specify the _end_ point on arc
  * \param counterclockwise  specify the draw direction on arc
  *
- * \todo unimplemented function
+ * \internal
+ * \todo unit tests missing
  */
 void GepardEngine::arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise)
 {
-    GD_NOT_IMPLEMENTED();
+    _context.path.pathData()->addArcElement(FloatPoint(x, y), FloatPoint(radius, radius), startAngle, endAngle, counterclockwise);
 }
 
 /*!
  * \brief GepardEngine::beginPath
  *
- * \todo unimplemented function
+ * More information:
+ * <a href="https://www.w3.org/TR/2dcontext/#drawing-state">https://www.w3.org/TR/2dcontext/#drawing-state</a>.
+ *
+ * \internal
+ * \todo unit tests missing
  */
 void GepardEngine::beginPath()
 {
-    GD_NOT_IMPLEMENTED();
+    _context.path.clear();
 }
 
 /*!
  * \brief GepardEngine::fill
  *
- * \todo unimplemented function
+ * \internal
+ * \todo unit tests missing
  */
 void GepardEngine::fill()
 {
-    GD_NOT_IMPLEMENTED();
+    GD_ASSERT(_engineBackend);
+    _engineBackend->fill();
 }
 
 /*!
  * \brief GepardEngine::stroke
  *
- * \todo unimplemented function
+ * \internal
+ * \todo unit tests missing
  */
 void GepardEngine::stroke()
 {
-    GD_NOT_IMPLEMENTED();
+    GD_ASSERT(_engineBackend);
+    _engineBackend->stroke();
 }
 
 /*!
@@ -213,10 +237,15 @@ void GepardEngine::fillRect(Float x, Float y, Float w, Float h)
     _engineBackend->fillRect(x, y, w, h);
 }
 
+void GepardEngine::setFillColor(const Color& color)
+{
+    GD_LOG1("Set fill color (" << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ")");
+    _context.currentState().fillColor = color;
+}
+
 void GepardEngine::setFillColor(const Float red, const Float green, const Float blue, const Float alpha)
 {
-    GD_LOG1("Set fill color (" << red << ", " << green << ", " << blue << ", " << alpha << ")");
-    _context.currentState().fillColor = Color(red, green, blue, alpha);
+    setFillColor(Color(red, green, blue, alpha));
 }
 
 } // namespace gepard

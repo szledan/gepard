@@ -51,7 +51,7 @@ GepardSoftware::~GepardSoftware()
  * \param h  size on Y-axis
  *
  */
-void GepardSoftware::fillRect(Float x, Float y, Float w, Float h)
+void GepardSoftware::fillRect(const Float x, const Float y, const Float w, const Float h)
 {
     GD_LOG1("Fill rect with Software backend (" << x << ", " << y << ", " << w << ", " << h << ")");
 
@@ -79,6 +79,16 @@ void GepardSoftware::fillRect(Float x, Float y, Float w, Float h)
 
     GD_LOG2("2. Call drawBuffer method of surface.");
     _context.surface->drawBuffer(_buffer.data());
+}
+
+void GepardSoftware::fill()
+{
+    GD_NOT_IMPLEMENTED();
+}
+
+void GepardSoftware::stroke()
+{
+    GD_NOT_IMPLEMENTED();
 }
 
 } // namespace software

@@ -1,5 +1,5 @@
-/* Copyright (C) 2015-2016, Gepard Graphics
- * Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2015-2017, Gepard Graphics
+ * Copyright (C) 2015-2017, Szilard Ledan <szledan@gmail.com>
  * Copyright (C) 2015-2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
  * All rights reserved.
  *
@@ -27,7 +27,7 @@
 #ifndef GEPARD_H
 #define GEPARD_H
 
-#include "string"
+#include <string>
 
 namespace gepard {
 
@@ -36,6 +36,14 @@ class Image;
 class Surface;
 
 class Gepard {
+    class String : public std::string {
+    public:
+        String(const char* chs = "") : std::string(chs) {}
+        String& operator=(const std::string& str) { status = !status; *((std::string*)this) = str; return *this; }
+        String& operator=(const char* chs) { status = !status; *((std::string*)this) = chs; return *this; }
+        bool status = false;
+    };
+
 public:
     explicit Gepard(Surface* surface);
     ~Gepard();
@@ -168,6 +176,24 @@ public:
     void transform(float a, float b, float c, float d, float e, float f);
     void setTransform(float a, float b, float c, float d, float e, float f);
     /// \} 6. CanvasAPI Transformations
+
+    /*! \name 8. Fill and stroke styles
+     *
+     * \cond
+     * \todo Missing short description
+     * \endcond
+     */
+    /// \{
+
+    /*!
+     * \brief fillStyle
+     */
+    String fillStyle = "black";
+    /*!
+     * \brief strokeStyle
+     */
+    String strokeStyle = "black";
+    /// \}  8. Fill and stroke styles
 
     /*! \name 9. CanvasAPI Rectangles
      *
@@ -303,12 +329,14 @@ public:
      *
      * \note A shorter form can also be used: '#RGB'.
      */
-    void setFillColor(std::string color = "#ffffff");
+    void setFillColor(const std::string& color = "#000000");
 
     /// \} A. NonCanvasAPI Functions
 
 private:
     GepardEngine* _engine;
+    bool fillStyleStatus = fillStyle.status;
+    bool strokeStatus = strokeStyle.status;
 };
 
 /*!

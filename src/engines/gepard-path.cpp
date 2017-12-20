@@ -28,6 +28,7 @@
 #include "gepard-defs.h"
 #include "gepard-types.h"
 #include <math.h>
+#include <ostream>
 
 namespace gepard {
 
@@ -57,9 +58,10 @@ void PathData::addLineToElement(FloatPoint to)
 {
     if (!_lastElement) {
         addMoveToElement(to);
+        return;
     }
 
-    if (!_lastElement->isMoveTo() && _lastElement->to == to)
+    if (_lastElement->to == to)
         return;
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(LineToElement))) LineToElement(to));
@@ -70,6 +72,7 @@ void PathData::addQuadaraticCurveToElement(FloatPoint control, FloatPoint to)
 {
     if (!_lastElement) {
         addMoveToElement(to);
+        return;
     }
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(QuadraticCurveToElement))) QuadraticCurveToElement(control, to));
@@ -80,6 +83,7 @@ void PathData::addBezierCurveToElement(FloatPoint control1, FloatPoint control2,
 {
     if (!_lastElement) {
         addMoveToElement(to);
+        return;
     }
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(BezierCurveToElement))) BezierCurveToElement(control1, control2, to));
@@ -92,6 +96,7 @@ void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAn
 
     if (!_lastElement) {
         addMoveToElement(center);
+        return;
     }
 
     if (!radius.x || !radius.y || startAngle == endAngle) {
@@ -224,37 +229,24 @@ void PathData::addCloseSubpathElement()
     _lastElement = _lastElement->next;
 }
 
-#ifdef GD_LOG_LEVEL
-void PathData::dump()
+const PathElement* PathData::operator[](std::size_t idx) const
 {
     PathElement* element = _firstElement;
 
-    std::cout << "firstElement: " << _firstElement << std::endl;
-    std::cout << "lastElement: " << _lastElement << std::endl;
-    std::cout << "lastMoveToElement: " << _lastMoveToElement << std::endl;
-    std::cout << "PathData:";
+    std::size_t i = 0;
     while (element) {
-        std::cout << " " << *element;
+        if (i == idx)
+            break;
+        i++;
         element = element->next;
     }
-    std::cout << std::endl;
+
+    if (!element)
+        element = _lastElement;
+
+    return element;
 }
-#endif // GD_LOG_LEVEL
 
 /* Path */
-
-void Path::fillPath()
-{
-    GD_ASSERT(_pathData.lastElement()->isCloseSubpath());
-
-#ifdef GD_LOG_LEVEL
-    // TODO(@szledan): For testing.
-    _pathData.dump();
-#endif // GD_LOG_LEVEL
-
-    // Choose a GPU_BACK_END.
-    // TODO(szledan): GLESV2
-    // TODO(szledan): VULKAN
-}
 
 } // namespace gepard

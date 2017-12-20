@@ -5,13 +5,15 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_FLAGS}")
 
 set(SOURCES
-    gepard-types-tests.cpp
+    gepard-unit-main.cpp
     ${PROJECT_SOURCE_DIR}/src/utils/gepard-defs.cpp
     ${PROJECT_SOURCE_DIR}/src/utils/gepard-types.cpp
+    ${PROJECT_SOURCE_DIR}/src/engines/gepard-path.cpp
 )
 
 set(COMMON_INCLUDE_DIRS
     ${PROJECT_SOURCE_DIR}/src/utils
+    ${PROJECT_SOURCE_DIR}/src/engines
 )
 
 ExternalProject_Add(gtest

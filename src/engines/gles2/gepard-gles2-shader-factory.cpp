@@ -103,7 +103,7 @@ GLuint ShaderProgram::linkPrograms(GLuint vertexShader, GLuint fragmentShader)
 
 void ShaderProgram::compileShaderProgram()
 {
-    if (id)
+    if (id != GLuint(-1))
         return;
 
     GD_LOG1("Compile '" << _name << "' shader program.");
@@ -116,7 +116,7 @@ void ShaderProgram::compileShaderProgram()
 
     if (vertexShader && fragmentShader) {
         id = linkPrograms(vertexShader, fragmentShader);
-        GD_LOG2("The " << _name << " linked program is: " << id << ".");
+        GD_LOG2("The '" << _name << "' linked program is: " << id << ".");
     }
 
     // According to the specification, the shaders are kept

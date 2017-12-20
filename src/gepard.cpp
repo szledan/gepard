@@ -1,6 +1,6 @@
-/* Copyright (C) 2015-2016, Gepard Graphics
+/* Copyright (C) 2015-2017, Gepard Graphics
  * Copyright (C) 2015-2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
- * Copyright (C) 2015-2016, Szilard Ledan <szledan@gmail.com>
+ * Copyright (C) 2015-2017, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,28 @@
 #include "gepard-defs.h"
 #include "gepard-engine.h"
 #include "gepard-image.h"
+#include "gepard-types.h"
+#include <map>
 
 namespace gepard {
+
+namespace {
+
+/*! https://www.w3.org/TR/css-color-3/
+ * \todo color
+ */
+Color colorParser(const std::string& color)
+{
+//    std::map<std::string, Color> definedColors = {
+//        {"black", Color("#000000")}
+//    };
+
+    // Delete white-spaces.
+
+    return Color(color);
+}
+
+} // anonymous namespace
 
 Gepard::Gepard(Surface* surface)
     : _engine(new GepardEngine(surface))
@@ -72,12 +92,11 @@ void Gepard::restore()
  *
  *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-closepath">[W3C-2DContext]</a>
  *   </blockquote>
- *
- * \todo unimplemented function
  */
 void Gepard::closePath()
 {
-    GD_NOT_IMPLEMENTED();
+    GD_ASSERT(_engine);
+    _engine->closePath();
 }
 
 /*!
@@ -95,12 +114,11 @@ void Gepard::closePath()
  * been called.
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-moveto">[W3C-2DContext]</a>
  *   </blockquote>
- *
- * \todo unimplemented function
  */
 void Gepard::moveTo(float x, float y)
 {
-    GD_NOT_IMPLEMENTED();
+    GD_ASSERT(_engine);
+    _engine->moveTo(x, y);
 }
 
 /*!
@@ -115,12 +133,11 @@ void Gepard::moveTo(float x, float y)
  *
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-lineto">[W3C-2DContext]</a>
  *   </blockquote>
- *
- * \todo unimplemented function
  */
 void Gepard::lineTo(float x, float y)
 {
-    GD_NOT_IMPLEMENTED();
+    GD_ASSERT(_engine);
+    _engine->lineTo(x, y);
 }
 
 /*!
@@ -135,12 +152,11 @@ void Gepard::lineTo(float x, float y)
  *
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-quadraticcurveto">[W3C-2DContext]</a>
  *   </blockquote>
- *
- * \todo unimplemented function
  */
 void Gepard::quadraticCurveTo(float cpx, float cpy, float x, float y)
 {
-    GD_NOT_IMPLEMENTED();
+    GD_ASSERT(_engine);
+    _engine->quadraticCurveTo(cpx, cpy, x, y);
 }
 
 /*!
@@ -156,12 +172,11 @@ void Gepard::quadraticCurveTo(float cpx, float cpy, float x, float y)
  *
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-beziercurveto">[W3C-2DContext]</a>
  *   </blockquote>
- *
- * \todo unimplemented function
  */
 void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
 {
-    GD_NOT_IMPLEMENTED();
+    GD_ASSERT(_engine);
+    _engine->bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
 }
 
 /*!
@@ -201,12 +216,11 @@ void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float
  *
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-arcto">[W3C-2DContext]</a>
  *   </blockquote>
- *
- * \todo unimplemented function
  */
 void Gepard::arcTo(float x1, float y1, float x2, float y2, float radius)
 {
-    GD_NOT_IMPLEMENTED();
+    GD_ASSERT(_engine);
+    _engine->arcTo(x1, y1, x2, y2, radius);
 }
 
 /*!
@@ -222,12 +236,11 @@ void Gepard::arcTo(float x1, float y1, float x2, float y2, float radius)
  *
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-rect">[W3C-2DContext]</a>
  *   </blockquote>
- *
- * \todo unimplemented function
  */
 void Gepard::rect(float x, float y, float w, float h)
 {
-    GD_NOT_IMPLEMENTED();
+    GD_ASSERT(_engine);
+    _engine->rect(x, y, w, h);
 }
 
 /*!
@@ -267,12 +280,11 @@ void Gepard::rect(float x, float y, float w, float h)
  *
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-arc">[W3C-2DContext]</a>
  *   </blockquote>
- *
- * \todo unimplemented function
  */
 void Gepard::arc(float x, float y, float radius, float startAngle, float endAngle, bool counterclockwise)
 {
-    GD_NOT_IMPLEMENTED();
+    GD_ASSERT(_engine);
+    _engine->arc(x, y, radius, startAngle, endAngle, counterclockwise);
 }
 
 void Gepard::scale(float x, float y)
@@ -338,12 +350,11 @@ void Gepard::strokeRect(float x, float y, float w, float h)
  *
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-beginpath">[W3C-2DContext]</a>
  *   </blockquote>
- *
- * \todo unimplemented function
  */
 void Gepard::beginPath()
 {
-    GD_NOT_IMPLEMENTED();
+    GD_ASSERT(_engine);
+    _engine->beginPath();
 }
 
 /*!
@@ -370,7 +381,12 @@ void Gepard::beginPath()
  */
 void Gepard::fill()
 {
-    GD_NOT_IMPLEMENTED();
+    GD_ASSERT(_engine);
+    if (fillStyleStatus != fillStyle.status) {
+        _engine->setFillColor(colorParser(fillStyle));
+        fillStyleStatus = !fillStyleStatus;
+    }
+    _engine->fill();
 }
 
 /*!
@@ -563,24 +579,10 @@ void Gepard::putImageData(Image /*imagedata*/, double dx, double dy, double dirt
     /*! \todo unimplemented function */
 }
 
-void Gepard::setFillColor(std::string color)
+void Gepard::setFillColor(const std::string& color)
 {
-    size_t length = color.length();
-    int n;
-
-    // Convert string hex to unsgined int.
-    std::stringstream ss;
-    ss << std::hex << color.substr(1);
-    ss >> n;
-    GD_LOG3("Convert '" << color << "' string to hex number: " << std::hex << n);
-
-    if (length == 7) {
-        setFillColor((n & 0xff0000) >> 16, (n & 0x00ff00) >> 8, n & 0x0000ff);
-    } else if (length == 4) {
-        setFillColor((n & 0xf00) >> 8, (n & 0x0f0) >> 4, n & 0x00f);
-    } else {
-        setFillColor(1.0f, 1.0f, 1.0f);
-    }
+    GD_ASSERT(_engine);
+    _engine->setFillColor(Color(color));
 }
 
 void Gepard::setFillColor(const int red, const int green, const int blue, const int alpha)

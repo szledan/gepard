@@ -1,5 +1,5 @@
-/* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2017, Gepard Graphics
+ * Copyright (C) 2017, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,46 +23,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_SOFTWARE
-
-#ifndef GEPARD_SOFTWARE_H
-#define GEPARD_SOFTWARE_H
+#include "gepard-context.h"
 
 #include "gepard-defs.h"
-
-#include "gepard.h"
-#include "gepard-context.h"
-#include "gepard-image.h"
 #include "gepard-types.h"
-#include <vector>
+#include <math.h>
 
 namespace gepard {
 
-class Image;
-class Surface;
-
-namespace software {
-
-class GepardSoftware {
-public:
-    explicit GepardSoftware(GepardContext&);
-    ~GepardSoftware();
-
-    void fillRect(const Float x, const Float y, const Float w, const Float h);
-    void fill();
-    void stroke();
-
-private:
-    GepardContext& _context;
-    std::vector<uint32_t> _buffer;
-};
-
-} // namespace software
-
-typedef software::GepardSoftware GepardEngineBackend;
+GepardContext::GepardContext(Surface *surface_)
+    : surface(surface_)
+{
+    states.push_back(GepardState());
+}
 
 } // namespace gepard
-
-#endif // GEPARD_SOFTWARE_H
-
-#endif // GD_USE_SOFTWARE
