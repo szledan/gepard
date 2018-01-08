@@ -61,6 +61,8 @@ public:
 private:
     void render();
 
+    ShaderProgramManager _shaderProgramManager;
+
     GepardContext& _context;
 
     GLuint _indexBufferObject;

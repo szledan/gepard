@@ -38,104 +38,46 @@ namespace gepard {
 namespace gles2 {
 
 /*!
- * \brief The ShaderProgram class
+ * \brief The ShaderProgram struct
  */
 struct ShaderProgram {
-    ShaderProgram(const std::string& vertexShaderSource, const std::string& fragmentShaderSource, const std::string& name = "")
-        : id(GLuint(-1))
-        , _vertexShaderSource(vertexShaderSource)
-        , _fragmentShaderSource(fragmentShaderSource)
-        , _name(name)
+    static constexpr GLuint kInvalidProgramID = GLuint(-1);
+
+    ShaderProgram() : id(kInvalidProgramID) {}
+    ~ShaderProgram()
     {
+        glDeleteProgram(id);
     }
+
     /*!
      * \brief Function to compile a shader program.
-     * \param result  pointer of the number of compiled program. If it's not nullptr then nothing happens.
-     * \param name  the name of the program (only for the logging at the moment).
      * \param vertexShaderSource  vertex shader source code.
      * \param fragmentShaderSource  fragment shader source code.
+     * \param name  the name of the program.
      *
      * \internal
      */
-    void compileShaderProgram();
+    void compileShaderProgram(const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
+    const bool isInvalid() const { return id == kInvalidProgramID; }
 
-    uint32_t hash;
     GLuint id;
 protected:
     static void logShaderCompileError(const GLuint shader);
     static void logProgramLinkError(const GLuint program);
-    static GLuint compileShader(const GLenum type, const GLchar* shaderSource);
-    static GLuint linkPrograms(GLuint vertexShader, GLuint fragmentShader);
-private:
-    const std::string _vertexShaderSource;
-    const std::string _fragmentShaderSource;
-    const std::string _name;
+    static const GLuint compileShader(const GLenum type, const GLchar* shaderSource);
+    static const GLuint linkPrograms(const GLuint vertexShader, const GLuint fragmentShader);
 };
 
-#if 0
+/*!
+ * \brief The ShaderProgramManager class
+ */
 class ShaderProgramManager {
 public:
-    static int kMaxActiveProgram = 16;
-
-    ShaderProgramManager()
-        : _first(_actives)
-        , _numberOfActives(0)
-        , _newHash(1)
-    {
-        _actives[0].hash = _newHash++;
-        _actives[0].id = 0;
-    }
-
-    int addAndUse(const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource)
-    {
-        uint32_t& hash = &(_programs[name]);
-        if (!hash) {
-            hash = _newHash++;
-            GD_LOG2("Add new shader program: " << name << " with hash: " << hash);
-        }
-
-        if ()
-
-        return 0;
-    }
+    ShaderProgram& getProgram(const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
 
 private:
-    struct ActiveProgram {
-        ActiveProgram(uint h = 0, uint i = 0) : hash(h), id(i), index(0) {}
-
-        uint32_t hash;
-        union {
-            uint32_t id : 16;
-            uint32_t index : 16;
-        };
-    };
-
-    struct ActiveProgramCache {
-        ActiveProgramCache() : first(0) {}
-
-        uint32_t operator[](uint32_t hash)
-        {
-            uint32_t index = first;
-            GD_ASSERT(index < kMaxActiveProgram);
-            do {
-                if (!actives[index].hash) {
-                    ;
-                }
-
-                //! \todo next
-
-            } while (actives[index].hash);
-        }
-
-        ActiveProgram actives[kMaxActiveProgram];
-        uint32_t first;
-    };
-
-    std::map<std::string, ShaderProgram&> _programs;
-    ActiveProgramCache _actives;
-    uint32_t _newHash;
+    std::map<std::string, ShaderProgram> _programs;
 };
-#endif
 
 } // namespace gles2
 } // namespace gepard

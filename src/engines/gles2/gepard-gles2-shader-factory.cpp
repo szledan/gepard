@@ -61,7 +61,7 @@ void ShaderProgram::logProgramLinkError(const GLuint program)
     GD_LOG_ERR("Shader program link failed with: " << std::string(errorLog.begin(), errorLog.end()));
 }
 
-GLuint ShaderProgram::compileShader(GLenum type, const GLchar* shaderSource)
+const GLuint ShaderProgram::compileShader(const GLenum type, const GLchar* shaderSource)
 {
     GD_LOG1("Compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader program.");
 
@@ -74,13 +74,13 @@ GLuint ShaderProgram::compileShader(GLenum type, const GLchar* shaderSource)
 
     if (isCompiled != GL_TRUE) {
         logShaderCompileError(shader);
-        return 0;
+        return kInvalidProgramID;
     }
 
     return shader;
 }
 
-GLuint ShaderProgram::linkPrograms(GLuint vertexShader, GLuint fragmentShader)
+const GLuint ShaderProgram::linkPrograms(const GLuint vertexShader, const GLuint fragmentShader)
 {
     GD_LOG1("Link shader programs; vertex shader: " << vertexShader << ", fragment shader: " << fragmentShader);
     GD_ASSERT(vertexShader && "Vertex shader program doesn't exist!");
@@ -96,27 +96,27 @@ GLuint ShaderProgram::linkPrograms(GLuint vertexShader, GLuint fragmentShader)
     if (isLinked != GL_TRUE) {
         logProgramLinkError(program);
         glDeleteProgram(program);
-        return 0;
+        return kInvalidProgramID;
     }
     return program;
 }
 
-void ShaderProgram::compileShaderProgram()
+void ShaderProgram::compileShaderProgram(const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource)
 {
     if (id != GLuint(-1))
         return;
 
-    GD_LOG1("Compile '" << _name << "' shader program.");
+    GD_LOG1("Compile '" << name << "' shader program.");
 
     GLuint vertexShader = 0;
-    vertexShader = compileShader(GL_VERTEX_SHADER, (const GLchar*)_vertexShaderSource.c_str());
+    vertexShader = compileShader(GL_VERTEX_SHADER, (const GLchar*)vertexShaderSource.c_str());
 
     GLuint fragmentShader = 0;
-    fragmentShader = compileShader(GL_FRAGMENT_SHADER, (const GLchar*)_fragmentShaderSource.c_str());
+    fragmentShader = compileShader(GL_FRAGMENT_SHADER, (const GLchar*)fragmentShaderSource.c_str());
 
     if (vertexShader && fragmentShader) {
         id = linkPrograms(vertexShader, fragmentShader);
-        GD_LOG2("The '" << _name << "' linked program is: " << id << ".");
+        GD_LOG2("The '" << name << "' linked program is: " << id << ".");
     }
 
     // According to the specification, the shaders are kept
@@ -127,6 +127,17 @@ void ShaderProgram::compileShaderProgram()
     if (fragmentShader) {
         glDeleteShader(fragmentShader);
     }
+}
+
+ShaderProgram&ShaderProgramManager::getProgram(const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource)
+{
+    ShaderProgram& program = _programs[name];
+    if (program.isInvalid()) {
+        program.compileShaderProgram(name, vertexShaderSource, fragmentShaderSource);
+        GD_LOG2("Add new shader program: " << name << " with ID: " << program.id);
+    }
+
+    return program;
 }
 
 } // namespace gles2

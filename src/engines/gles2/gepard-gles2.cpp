@@ -66,8 +66,6 @@ static const std::string s_textureFragmentShader = GD_PROGRAM(
     }
 );
 
-GD_CREATE_PROGRAM(s_textureProgram, s_textureVertexShader, s_textureFragmentShader);
-
 //! \brief Fill rectangle vertex shader.
 static const std::string s_fillRectVertexShader = GD_PROGRAM(
     uniform vec2 u_size;
@@ -97,8 +95,6 @@ static const std::string s_fillRectFragmentShader = GD_PROGRAM(
         gl_FragColor = v_color;
     }
 );
-
-GD_CREATE_PROGRAM(s_fillRectProgram, s_fillRectVertexShader, s_fillRectFragmentShader);
 
 //! \brief Fill path vertex shader.
 static const std::string s_fillPathVertexShader = GD_PROGRAM(
@@ -189,8 +185,6 @@ static const std::string s_fillPathFragmentShader = GD_PROGRAM(
     }
 );
 
-GD_CREATE_PROGRAM(s_fillPathProgram, s_fillPathVertexShader, s_fillPathFragmentShader);
-
 static const std::string s_copyPathVertexShader = GD_PROGRAM(
     precision highp float;
 
@@ -220,8 +214,6 @@ static const std::string s_copyPathFragmentShader = GD_PROGRAM(
         gl_FragColor = vec4(u_color.rgb, u_color.a * texture2D(u_texture, v_texturePosition).a);
     }
 );
-
-GD_CREATE_PROGRAM(s_copyPathProgram, s_copyPathVertexShader, s_copyPathFragmentShader);
 
 namespace gepard {
 namespace gles2 {
@@ -367,15 +359,6 @@ GepardGLES2::~GepardGLES2()
         free(_attributes);
     }
 
-    glDeleteProgram(s_textureProgram.id);
-    s_textureProgram.id = GLuint(-1);
-    glDeleteProgram(s_fillRectProgram.id);
-    s_fillRectProgram.id = GLuint(-1);
-    glDeleteProgram(s_fillPathProgram.id);
-    s_fillPathProgram.id = GLuint(-1);
-    glDeleteProgram(s_copyPathProgram.id);
-    s_copyPathProgram.id = GLuint(-1);
-
     if (_eglDisplay != EGL_NO_DISPLAY) {
         eglMakeCurrent(_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
         eglDestroyContext(_eglDisplay, _eglContext);
@@ -408,8 +391,7 @@ void GepardGLES2::fillRect(const Float x, const Float y, const Float w, const Fl
     const int quadCount = 2;
     const int numberOfAttributes = 3 * quadCount;
 
-    ShaderProgram& program = s_fillRectProgram;
-    program.compileShaderProgram();
+    ShaderProgram& program = _shaderProgramManager.getProgram("s_fillRectProgram", s_fillRectVertexShader, s_fillRectFragmentShader);
 
     const GLfloat attributes[] = {
         GLfloat(x), GLfloat(y), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
@@ -547,8 +529,7 @@ void GepardGLES2::fill()
     }
 
     {
-        ShaderProgram& fillProgram = s_fillPathProgram;
-        fillProgram.compileShaderProgram();
+        ShaderProgram& fillProgram = _shaderProgramManager.getProgram("s_fillPathProgram", s_fillPathVertexShader, s_fillPathFragmentShader);
         glUseProgram(fillProgram.id);
 
         constexpr int strideLength = 8 * sizeof(GLfloat);
@@ -604,8 +585,7 @@ void GepardGLES2::fill()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     {
-        ShaderProgram& copyProgram = s_copyPathProgram;
-        copyProgram.compileShaderProgram();
+        ShaderProgram& copyProgram = _shaderProgramManager.getProgram("s_copyPathProgram", s_copyPathVertexShader, s_copyPathFragmentShader);
         glUseProgram(copyProgram.id);
 
         const GLfloat textureCoords[] = {
@@ -645,8 +625,7 @@ void GepardGLES2::render()
     const uint32_t height = _context.surface->height();
 
     if (_context.surface->getDisplay()) {
-        ShaderProgram& textureProgram = s_textureProgram;
-        textureProgram.compileShaderProgram();
+        ShaderProgram& textureProgram = _shaderProgramManager.getProgram("s_textureProgram", s_textureVertexShader, s_textureFragmentShader);
         glUseProgram(textureProgram.id);
 
         static const GLfloat textureCoords[] = {
