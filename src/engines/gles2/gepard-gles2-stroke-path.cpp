@@ -1,6 +1,5 @@
-/* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2013, Zoltan Herczeg
- * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2017, Gepard Graphics
+ * Copyright (C) 2017, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,26 +25,17 @@
 
 #ifdef GD_USE_GLES2
 
-#ifndef GEPARD_GLES2_DEFS_H
-#define GEPARD_GLES2_DEFS_H
-
-#include "gepard-defs.h"
-
-#define GL_GLEXT_PROTOTYPES 1
-
-#include <EGL/egl.h>
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+#include "gepard-gles2.h"
 
 namespace gepard {
 namespace gles2 {
 
-#define GD_GLES2_TEXTURE_SIZE 512
-#define GD_ANTIALIAS_LEVEL 16
+void GepardGLES2::stroke()
+{
+    GD_NOT_IMPLEMENTED();
+}
 
 } // namespace gles2
 } // namespace gepard
-
-#endif // GEPARD_GLES2_DEFS_H
 
 #endif // GD_USE_GLES2

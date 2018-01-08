@@ -34,6 +34,9 @@
 #include <map>
 #include <string>
 
+#define _GD_GLES2_SHADER_PROGRAM_STR(...)  #__VA_ARGS__
+#define GD_GLES2_SHADER_PROGRAM(...) _GD_GLES2_SHADER_PROGRAM_STR(__VA_ARGS__)
+
 namespace gepard {
 namespace gles2 {
 
