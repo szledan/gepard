@@ -1,5 +1,5 @@
-/* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2016-2017, Gepard Graphics
+ * Copyright (C) 2015-2017, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
