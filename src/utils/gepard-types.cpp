@@ -69,7 +69,7 @@ Float& Vec4::operator[](std::size_t idx)
 
 /* Color */
 
-const Color Color::WHITE(1.0f, 1.0f, 1.0f, 1.0f);
+const Color Color::BLACK(0.0f, 0.0f, 0.0f, 1.0f);
 
 Color Color::fromRawDataABGR(uint32_t raw)
 {
@@ -97,6 +97,20 @@ Color& Color::operator*=(const Float& rhs)
     this->a = clamp(this->a * rhs, Float(0.0f), Float(1.0f));
 
     return *this;
+}
+
+LineCapTypes strToLineCap(const std::string& value)
+{
+    if (value == "round") return RoundCap;
+    if (value == "square") return SquareCap;
+    return ButtCap;
+}
+
+LineJoinTypes strToLineJoin(const std::string& value)
+{
+    if (value == "round") return RoundJoin;
+    if (value == "bevel") return BevelJoin;
+    return MiterJoin;
 }
 
 } // namespace gepard

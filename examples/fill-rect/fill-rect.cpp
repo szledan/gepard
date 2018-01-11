@@ -31,7 +31,7 @@
 #include <iostream>
 #include <thread>
 
-void gShape(gepard::Gepard& gepard)
+void pathShape(gepard::Gepard& gepard)
 {
     gepard.setFillColor(0.5f, 0.4f, 0.1f, 0.2f);
     gepard.fillRect(50, 50, 500, 500);
@@ -62,7 +62,7 @@ int main()
         gepard::PNGSurface pngSurface(600, 600);
         gepard::Gepard pngGepard(&pngSurface);
 
-        gShape(pngGepard);
+        pathShape(pngGepard);
 
         pngSurface.save("fillRect.png");
     }
@@ -72,7 +72,7 @@ int main()
         gepard::XSurface surface(600, 600);
         gepard::Gepard gepard(&surface);
 
-        gShape(gepard);
+        pathShape(gepard);
 
         XEvent xEvent;
         while (true) {

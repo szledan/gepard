@@ -85,6 +85,8 @@ public:
     void setFillColor(const Color& color);
     void setFillColor(const Float red, const Float green, const Float blue, const Float alpha = 1.0f);
 
+    void setStrokeColor(const Color& color);
+
     GepardContext& context() { return _context; }
 
 private:

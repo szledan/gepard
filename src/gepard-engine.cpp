@@ -161,6 +161,7 @@ void GepardEngine::arc(Float x, Float y, Float radius, Float startAngle, Float e
  */
 void GepardEngine::beginPath()
 {
+    GD_LOG1("Clear path data.");
     _context.path.clear();
 }
 
@@ -173,7 +174,11 @@ void GepardEngine::beginPath()
 void GepardEngine::fill()
 {
     GD_ASSERT(_engineBackend);
+#ifdef GD_USE_GLES2
+    _engineBackend->fillPath(_context.path.pathData(), _context.currentState().fillColor);
+#else // !GD_USE_GLES2
     _engineBackend->fill();
+#endif // GD_USE_GLES2
 }
 
 /*!
@@ -185,7 +190,11 @@ void GepardEngine::fill()
 void GepardEngine::stroke()
 {
     GD_ASSERT(_engineBackend);
+#ifdef GD_USE_GLES2
+    _engineBackend->strokePath(_context.path.pathData(), _context.currentState());
+#else // !GD_USE_GLES2
     _engineBackend->stroke();
+#endif // GD_USE_GLES2
 }
 
 /*!
@@ -234,7 +243,11 @@ bool GepardEngine::isPointInPath(Float x, Float y)
 void GepardEngine::fillRect(Float x, Float y, Float w, Float h)
 {
     GD_ASSERT(_engineBackend);
+#ifdef GD_USE_GLES2
+    _engineBackend->fillRect(x, y, w, h, _context.currentState().fillColor);
+#else // !GD_USE_GLES2
     _engineBackend->fillRect(x, y, w, h);
+#endif // GD_USE_GLES2
 }
 
 void GepardEngine::setFillColor(const Color& color)
@@ -246,6 +259,12 @@ void GepardEngine::setFillColor(const Color& color)
 void GepardEngine::setFillColor(const Float red, const Float green, const Float blue, const Float alpha)
 {
     setFillColor(Color(red, green, blue, alpha));
+}
+
+void GepardEngine::setStrokeColor(const Color& color)
+{
+    GD_LOG1("Set stroke color (" << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ")");
+    _context.currentState().strokeColor = color;
 }
 
 } // namespace gepard

@@ -96,7 +96,7 @@ const Segment Segment::splitSegment(const Float y)
     GD_ASSERT(this->from.y < this->to.y);
     GD_ASSERT(y > this->from.y && y < this->to.y);
 
-    Float x = this->slopeInv() * (y - this->from.y) + this->from.x;
+    const Float x = this->slopeInv() * (y - this->from.y) + this->from.x;
     FloatPoint to = this->to;
     this->to = FloatPoint(x, y);
     FloatPoint newPoint = this->to;
@@ -112,11 +112,10 @@ const Segment Segment::splitSegment(const Float y)
     return Segment(newPoint, to, this->id, this->realSlope);
 }
 
-const Float Segment::computeIntersectionY(Segment* segment) const
+const bool Segment::computeIntersectionY(Segment* segment, Float& y) const
 {
-    Float y = NAN;
     if (this == segment)
-        return y;
+        return false;
 
     if (this->from.x != segment->from.x && this->to.x != segment->to.x) {
         Float denom = (this->slopeInv() - segment->slopeInv());
@@ -125,9 +124,10 @@ const Float Segment::computeIntersectionY(Segment* segment) const
         }
         if (!isOnSegment(y)) {
             y = INFINITY;
+            return false;
         }
     } //! \todo: else: y is NaN.
-    return y;
+    return true;
 }
 
 std::ostream& operator<<(std::ostream& os, const Segment& s)
@@ -153,36 +153,9 @@ bool operator<=(const Segment& lhs, const Segment& rhs)
 
 /* SegmentApproximator */
 
-void SegmentApproximator::insertSegment(const FloatPoint& from, const FloatPoint& to)
-{
-    if (from.y == to.y)
-        return;
-
-    Segment segment(from, to);
-
-    // Update bounding-box.
-    _boundingBox.stretch(segment.from);
-    _boundingBox.stretch(segment.to);
-
-    // Insert segment.
-    const int topY = segment.topY();
-    const int bottomY = segment.bottomY();
-
-    if (_segments.find(topY) == _segments.end()) {
-        _segments.emplace(topY, new SegmentList()).first->second->push_front(segment);
-        // TODO: log: std::cout << *(_segments[topY].begin()) << std::endl;
-    } else {
-        _segments[topY]->push_front(segment);
-    }
-
-    if (_segments.find(bottomY) == _segments.end()) {
-        _segments.emplace(bottomY, new SegmentList());
-    }
-}
-
 SegmentApproximator::SegmentApproximator(const int antiAliasLevel, const Float factor)
-    : _kAntiAliasLevel(antiAliasLevel > 0 ? antiAliasLevel : GD_GLES2_ANTIALIAS_LEVEL)
-    , _kTolerance((factor > 0.0 ? factor : 1.0 ) / ((Float)_kAntiAliasLevel))
+    : kAntiAliasLevel(antiAliasLevel > 0 ? antiAliasLevel : GD_GLES2_ANTIALIAS_LEVEL)
+    , kTolerance((factor > 0.0 ? factor : 1.0 ) / ((Float)kAntiAliasLevel))
 {
 }
 
@@ -195,7 +168,7 @@ SegmentApproximator::~SegmentApproximator()
 
 void SegmentApproximator::insertLine(const FloatPoint& from, const FloatPoint& to)
 {
-    insertSegment(FloatPoint(from.x * _kAntiAliasLevel, std::floor(from.y * _kAntiAliasLevel)), FloatPoint(to.x * _kAntiAliasLevel, std::floor(to.y * _kAntiAliasLevel)));
+    insertSegment(FloatPoint(from.x * kAntiAliasLevel, std::floor(from.y * kAntiAliasLevel)), FloatPoint(to.x * kAntiAliasLevel, std::floor(to.y * kAntiAliasLevel)));
 }
 
 const bool SegmentApproximator::quadCurveIsLineSegment(FloatPoint points[])
@@ -207,27 +180,27 @@ const bool SegmentApproximator::quadCurveIsLineSegment(FloatPoint points[])
     const Float x2 = points[2].x;
     const Float y2 = points[2].y;
 
-    const Float dt = std::abs((x2 - x0) * (y0 - y1) - (x0 - x1) * (y2 - y0));
+    const Float dt = std::fabs((x2 - x0) * (y0 - y1) - (x0 - x1) * (y2 - y0));
 
-    if (dt > _kTolerance)
+    if (dt > kTolerance)
         return false;
 
     Float minX, minY, maxX, maxY;
 
     if (x0 < x2) {
-        minX = x0 - _kTolerance;
-        maxX = x2 + _kTolerance;
+        minX = x0 - kTolerance;
+        maxX = x2 + kTolerance;
     } else {
-        minX = x2 - _kTolerance;
-        maxX = x0 + _kTolerance;
+        minX = x2 - kTolerance;
+        maxX = x0 + kTolerance;
     }
 
     if (y0 < y2) {
-        minY = y0 - _kTolerance;
-        maxY = y2 + _kTolerance;
+        minY = y0 - kTolerance;
+        maxY = y2 + kTolerance;
     } else {
-        minY = y2 - _kTolerance;
-        maxY = y0 + _kTolerance;
+        minY = y2 - kTolerance;
+        maxY = y0 + kTolerance;
     }
 
     return !(x1 < minX || x1 > maxX || y1 < minY || y1 > maxY);
@@ -290,32 +263,63 @@ const bool SegmentApproximator::curveIsLineSegment(FloatPoint points[])
     const Float x3 = points[3].x;
     const Float y3 = points[3].y;
 
-    const Float dt1 = std::abs((x3 - x0) * (y0 - y1) - (x0 - x1) * (y3 - y0));
-    const Float dt2 = std::abs((x3 - x0) * (y0 - y2) - (x0 - x2) * (y3 - y0));
+    const Float dt1 = std::fabs((x3 - x0) * (y0 - y1) - (x0 - x1) * (y3 - y0));
+    const Float dt2 = std::fabs((x3 - x0) * (y0 - y2) - (x0 - x2) * (y3 - y0));
 
-    if (dt1 > _kTolerance || dt2 > _kTolerance)
+    if (dt1 > kTolerance || dt2 > kTolerance)
         return false;
 
     Float minX, minY, maxX, maxY;
 
     if (x0 < x3) {
-        minX = x0 - _kTolerance;
-        maxX = x3 + _kTolerance;
+        minX = x0 - kTolerance;
+        maxX = x3 + kTolerance;
     } else {
-        minX = x3 - _kTolerance;
-        maxX = x0 + _kTolerance;
+        minX = x3 - kTolerance;
+        maxX = x0 + kTolerance;
     }
 
     if (y0 < y3) {
-        minY = y0 - _kTolerance;
-        maxY = y3 + _kTolerance;
+        minY = y0 - kTolerance;
+        maxY = y3 + kTolerance;
     } else {
-        minY = y3 - _kTolerance;
-        maxY = y0 + _kTolerance;
+        minY = y3 - kTolerance;
+        maxY = y0 + kTolerance;
     }
 
     return !(x1 < minX || x1 > maxX || y1 < minY || y1 > maxY
-        || x2 < minX || x2 > maxX || y2 < minY || y2 > maxY);
+             || x2 < minX || x2 > maxX || y2 < minY || y2 > maxY);
+}
+
+const bool SegmentApproximator::collinear(const FloatPoint& p0, const FloatPoint& p1, const FloatPoint& p2)
+{
+    return std::fabs((p2.x - p0.x) * (p0.y - p1.y) - (p0.x - p1.x) * (p2.y - p0.y)) <= kTolerance;
+}
+
+const bool SegmentApproximator::curveIsLineSegment(const FloatPoint& p0, const FloatPoint& p1, const FloatPoint& p2)
+{
+    if (!collinear(p0, p1, p2))
+        return false;
+
+    float minX, minY, maxX, maxY;
+
+    if (p0.x < p2.x) {
+        minX = p0.x - kTolerance;
+        maxX = p2.x + kTolerance;
+    } else {
+        minX = p2.x - kTolerance;
+        maxX = p0.x + kTolerance;
+    }
+
+    if (p0.y < p2.y) {
+        minY = p0.y - kTolerance;
+        maxY = p2.y + kTolerance;
+    } else {
+        minY = p2.y - kTolerance;
+        maxY = p0.y + kTolerance;
+    }
+
+    return !(p1.x < minX || p1.x > maxX || p1.y < minY || p1.y > maxY);
 }
 
 void SegmentApproximator::splitCubeCurve(FloatPoint points[])
@@ -371,9 +375,9 @@ void SegmentApproximator::insertBezierCurve(const FloatPoint& from, const FloatP
     } while (points >= buffer);
 }
 
-const int SegmentApproximator::calculateSegments(const Float& angle, const Float& radius)
+const int SegmentApproximator::calculateArcSegments(const Float& angle, const Float& radius)
 {
-    const Float epsilon = _kTolerance / radius;
+    const Float epsilon = kTolerance / radius;
     Float angleSegment;
     Float error;
 
@@ -416,7 +420,7 @@ void SegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcEle
 
     const Float deltaAngle = antiClockwise ? startAngle - endAngle : endAngle - startAngle;
 
-    const int segments = calculateSegments(deltaAngle, std::max(arcElement->radius.x * 2, arcElement->radius.y * 2));
+    const int segments = calculateArcSegments(deltaAngle, std::max(arcElement->radius.x * 2, arcElement->radius.y * 2));
     Float step = deltaAngle / segments;
 
     if (antiClockwise)
@@ -437,7 +441,7 @@ void SegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcEle
     }
 }
 
-void SegmentApproximator::printSegements()
+void SegmentApproximator::printSegments()
 {
     for (auto& currentSegments : _segments) {
         SegmentList currentList = *(currentSegments.second);
@@ -457,6 +461,7 @@ inline void SegmentApproximator::splitSegments()
             SegmentList* newList = newSegments->second;
             int splitY = std::floor(newSegments->first);
             GD_ASSERT(currentList && newList);
+            GD_ASSERT(currentSegments->first < newSegments->first);
 
             for (Segment& segment : *currentList) {
                 if (segment.isOnSegment(splitY)) {
@@ -480,11 +485,12 @@ SegmentList* SegmentApproximator::segments()
         SegmentList::iterator currentSegment = currentList->begin();
         for (SegmentList::iterator segment = currentSegment; currentSegment != currentList->end(); ++segment) {
             if (segment != currentList->end()) {
-                const Float y = currentSegment->computeIntersectionY(&(*segment));
-                if (y != NAN && y != INFINITY) {
+                Float y;
+                if (currentSegment->computeIntersectionY(&(*segment), y)) {
                     const int intersectionY = std::floor(y);
                     ys.insert(intersectionY);
-                    if (intersectionY != y) {
+                    if ((Float)intersectionY != y) {
+                        GD_ASSERT((Float)intersectionY < y);
                         ys.insert(intersectionY + 1);
                     }
                 }
@@ -512,11 +518,11 @@ SegmentList* SegmentApproximator::segments()
         // 4.a Fix intersection pairs.
         for (SegmentList::iterator segment = currentList->begin(); segment != currentList->end(); ++segment) {
             GD_ASSERT(segment->to.y - segment->from.y >= 1.0);
-//if (segment->to.y - segment->from.y <= 1.0) /* TODO: it is a bug? (testcase: fillmode: EvenOdd, test: "ERD" part from test of "Erdély") */
+if (segment->to.y - segment->from.y <= 1.0) /* TODO: is it a bug? (testcase: fillmode: EvenOdd, test: "ERD" part from test of "Erdély") */
             for (SegmentList::iterator furtherSegment = segment; furtherSegment != currentList->end() ; ++furtherSegment) {
                 GD_ASSERT(segment->from.y == furtherSegment->from.y);
                 GD_ASSERT(segment->to.y == furtherSegment->to.y);
-                GD_ASSERT(furtherSegment->from.x >= segment->from.x)
+//                GD_ASSERT(furtherSegment->from.x >= segment->from.x)
                 if (furtherSegment->to.x < segment->to.x) {
                     if (furtherSegment->from.x - segment->from.x < segment->to.x - furtherSegment->to.x) {
                         furtherSegment->from.x = segment->from.x;
@@ -537,6 +543,25 @@ SegmentList* SegmentApproximator::segments()
 
     // 5. Return independent segments.
     return segments;
+}
+
+void SegmentApproximator::insertSegment(const FloatPoint& from, const FloatPoint& to)
+{
+    if (from.y == to.y)
+        return;
+
+    Segment segment(from, to);
+
+    // Update bounding-box.
+    _boundingBox.stretch(segment.from);
+    _boundingBox.stretch(segment.to);
+
+    // Insert segment.
+    const int topY = segment.topY();
+    const int bottomY = segment.bottomY();
+
+    _segments.emplace(topY, new SegmentList()).first->second->push_front(segment);
+    _segments.emplace(bottomY, new SegmentList());
 }
 
 /* Trapezoid */
@@ -592,15 +617,15 @@ bool operator<=(const Trapezoid& lhs, const Trapezoid& rhs)
 
 /* TrapezoidTessellator */
 
-TrapezoidTessellator::TrapezoidTessellator(Path* path, TrapezoidTessellator::FillRule fillRule, int antiAliasingLevel)
-    : _path(path)
+TrapezoidTessellator::TrapezoidTessellator(PathData& pathData, FillRule fillRule, int antiAliasingLevel)
+    : _pathData(pathData)
     , _fillRule(fillRule)
     , _antiAliasingLevel(antiAliasingLevel)
 {}
 
 const TrapezoidList TrapezoidTessellator::trapezoidList()
 {
-    PathElement* element = _path->pathData()->firstElement();
+    PathElement* element = _pathData.firstElement();
 
     if (!element)
         return TrapezoidList();

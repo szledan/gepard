@@ -27,16 +27,42 @@
 
 #include "gepard-gles2.h"
 
+#include "gepard-defs.h"
+#include "gepard-gles2-stroke-builder.h"
+#include "gepard-path.h"
+#include "gepard-types.h"
+#include <memory>
+
 namespace gepard {
 namespace gles2 {
 
-void GepardGLES2::stroke()
+void GepardGLES2::strokePath(PathData* path, const GepardState& state)
 {
-    makeCurrent();
-    GD_NOT_IMPLEMENTED();
+    GD_LOG3("Path: " << path->firstElement());
+    if (!path /*|| path->isEmpty()*/)
+        return;
+
+    Float miterLimit = state.miterLimit ? state.miterLimit : 10;
+
+    StrokePathBuilder sPath(state.lineWitdh, miterLimit, state.lineJoinMode, state.lineCapMode);
+    sPath.convertStrokeToFill(path);
+
+    fillPath(sPath.pathData(), state.strokeColor);
 }
 
 } // namespace gles2
 } // namespace gepard
 
 #endif // GD_USE_GLES2
+
+#if 0
+
+void PlatformContextTyGL::strokePath(const TyGL::PathData* path, Coloring coloring)
+{
+    m_coloring = &coloring;
+    strokePath(path);
+    resetColoring();
+}
+
+} // namespace WebCore
+#endif

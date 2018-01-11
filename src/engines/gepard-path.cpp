@@ -383,7 +383,9 @@ Path::~Path()
 
 void Path::clear()
 {
-    delete _pathData;
+    if (_pathData) {
+        delete _pathData;
+    }
     _pathData = new PathData();
 }
 

@@ -36,12 +36,29 @@ class Image;
 class Surface;
 
 class Gepard {
-    class String : public std::string {
+    struct Attribute {
     public:
-        String(const char* chs = "") : std::string(chs) {}
-        String& operator=(const std::string& str) { status = !status; *((std::string*)this) = str; return *this; }
-        String& operator=(const char* chs) { status = !status; *((std::string*)this) = chs; return *this; }
-        bool status = false;
+        Attribute(const char* chs = "", void(*cbf)(GepardEngine*, const std::string&) = nullptr, GepardEngine* eng = nullptr) : callBackFunction(cbf), engine(eng), data(chs) {}
+        template<typename T>
+        Attribute(const T value, void(*cbf)(GepardEngine*, const std::string&) = nullptr, GepardEngine* eng = nullptr) : callBackFunction(cbf), engine(eng), data(std::to_string(value)) {}
+
+        Attribute& operator=(const Attribute&);
+        Attribute& operator=(const std::string&);
+        Attribute& operator=(const char* chs) { this->operator=(std::string(chs)); return *this; }
+        template<typename T>
+        Attribute& operator=(const T value) { this->operator=(std::to_string(value)); return *this; }
+
+        operator std::string() const{ return data; }
+        operator double() const { return std::stod(data); }
+        operator float() const { return std::stof(data); }
+        operator int() const { return std::stoi(data); }
+
+        void callFunction();
+        void setCallBack(GepardEngine*, void(*func)(GepardEngine*, const std::string&));
+        void(*callBackFunction)(GepardEngine*, const std::string&) = nullptr;
+        GepardEngine* engine = nullptr;
+
+        std::string data = "";
     };
 
 public:
@@ -79,6 +96,36 @@ public:
      * \endcond
      */
     /// \{
+
+    /*! \name 3. Line styles
+     *
+     * \cond
+     * \todo Missing short description
+     * \endcond
+     */
+    /// \{
+
+    /*!
+     * \brief lineWidth
+     * \todo Missing short description
+     */
+    Attribute lineWidth = 1.0;
+    /*!
+     * \brief lineCap
+     * \todo Missing short description
+     */
+    Attribute lineCap = "butt";
+    /*!
+     * \brief lineJoin
+     * \todo Missing short description
+     */
+    Attribute lineJoin = "miter";
+    /*!
+     * \brief miterLimit
+     * \todo Missing short description
+     */
+    Attribute miterLimit = 10;
+    /// \}  3. Line styles
 
     /*!
      * \brief Marks the current subpath as closed, and starts a new subpath
@@ -188,11 +235,11 @@ public:
     /*!
      * \brief fillStyle
      */
-    String fillStyle = "black";
+    Attribute fillStyle = "black";
     /*!
      * \brief strokeStyle
      */
-    String strokeStyle = "black";
+    Attribute strokeStyle = "black";
     /// \}  8. Fill and stroke styles
 
     /*! \name 9. CanvasAPI Rectangles
@@ -335,8 +382,6 @@ public:
 
 private:
     GepardEngine* _engine;
-    bool fillStyleStatus = fillStyle.status;
-    bool strokeStatus = strokeStyle.status;
 };
 
 /*!

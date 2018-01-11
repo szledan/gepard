@@ -27,57 +27,181 @@
 #include "surfaces/gepard-xsurface.h"
 #include "surfaces/gepard-png-surface.h"
 #include <chrono>
+#include <cmath>
+#include <ctime>
 #include <iostream>
 #include <thread>
 
-void gShape(gepard::Gepard& ctx)
+void pathShape(gepard::Gepard& ctx)
 {
-    ctx.fillStyle = "#0F0";
+    ctx.lineWidth = 1;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "miter";
+    ctx.miterLimit = 5;
+
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, 600, 600);
+
+    ctx.fillStyle = "#0f0";
+    ctx.strokeStyle = "#00f";
     ctx.beginPath();
     ctx.moveTo(300, 100);
     ctx.lineTo(50, 230);
     ctx.lineTo(380, 200);
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
 
-    ctx.fillStyle = "#F00";
+    ctx.fillStyle = "#f00";
+    ctx.strokeStyle = "#ff0";
     ctx.beginPath();
     ctx.moveTo(100, 100);
     ctx.lineTo(180, 200);
     ctx.bezierCurveTo(400, 200, 40, 50, 300, 250);
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    ctx.beginPath();
+    ctx.moveTo(100, 300);
+    ctx.lineTo(200, 300);
+    ctx.fill();
+    ctx.stroke();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    ctx.beginPath();
+    ctx.moveTo(100, 320);
+    ctx.lineTo(200, 320);
+    ctx.fill();
+    ctx.stroke();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    ctx.beginPath();
+    ctx.moveTo(100, 400);
+    ctx.lineTo(200, 400);
+    ctx.fill();
+    ctx.stroke();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    ctx.beginPath();
+    ctx.moveTo(150, 350);
+    ctx.lineTo(150, 450);
+    ctx.fill();
+    ctx.stroke();
+}
+
+void testShape(gepard::Gepard& ctx)
+{
+    ctx.lineWidth = 10;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, 300, 150);
+
+    ctx.strokeStyle = "#00f";
+    ctx.beginPath();
+    ctx.moveTo(100, 100);
+    ctx.lineTo(199, 111);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#000";
+    ctx.beginPath();
+    ctx.moveTo(100, 100);
+    ctx.lineTo(199, 111);
+    ctx.stroke();
 }
 
 int main(int argc, char* argv[])
 {
-    // Parse arguments.
-    const int flags = argc < 2 ? 3 : std::atoi(argv[1]);
+    if ((argc > 1) && (std::string(argv[1]) == "-h" || std::string(argv[1]) == "--help")) {
+        std::cout << "Usage: " << argv[0] << " [options]" << std::endl << std::endl;
+        std::cout << "Options:" << std::endl;
+        std::cout << "  -h, --help             show this help." << std::endl;
+        std::cout << "  -p, --png [file-name]  use png-surface and set output filename." << std::endl;
+        return 0;
+    }
 
-    // Draw to PNG file.
-    if (flags & 1) {
+    if (argc > 1 && (std::string(argv[1]) == "-p" || std::string(argv[1]) == "--png")) {
+        std::string pngFile = (argc > 2) ? argv[2] : "fillPath.png";
+
         gepard::PNGSurface pngSurface(600, 600);
         gepard::Gepard pngGepard(&pngSurface);
 
-        gShape(pngGepard);
+        pathShape(pngGepard);
+        testShape(pngGepard);
 
-        pngSurface.save("fillPath.png");
-    }
+        pngSurface.save(pngFile);
 
-    // Draw on XWindow.
-    if (flags & 2) {
-        gepard::XSurface surface(600, 600);
-        gepard::Gepard gepard(&surface);
+    } else {
+        struct {
+            void clockFace()
+            {
+                _ctx.lineWidth = _lineWidth;
+                _ctx.lineCap = "butt";
+                _ctx.lineJoin = "miter";
+                _ctx.miterLimit = 5;
 
-        gShape(gepard);
+                _ctx.strokeStyle = "#ff0";
+                _ctx.beginPath();
+                for (int i = 0; i < 12; ++i) {
+                    const float h = float(i) / 12.0;
+                    _ctx.moveTo(_cx + 0.91 * _size * std::sin(h * 2 * M_PI), _cy - 0.91 * _size * std::cos(h * 2 * M_PI));
+                    _ctx.lineTo(_cx + 1.0 * _size * std::sin(h * 2 * M_PI), _cx - 1.0 * _size * std::cos(h * 2 * M_PI));
+                }
+                _ctx.stroke();
 
-        XEvent xEvent;
-        while (true) {
-            std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.
-            if (XCheckWindowEvent((Display*)surface.getDisplay(), (Window)surface.getWindow(), KeyPress | ClientMessage, &xEvent)) {
-                break;
+                _ctx.strokeStyle = "#f60";
+                _ctx.beginPath();
+                _ctx.moveTo(_cx + _size, _cy);
+                _ctx.arc(_cx, _cy, _size, 0, 2 * M_PI);
+                _ctx.stroke();
+                _ctx.lineCap = "round";
             }
-        }
+            void clockHand(const float size, const float value, const std::string& color)
+            {
+                _ctx.strokeStyle = color;
+                _ctx.beginPath();
+                _ctx.moveTo(_cx, _cy);
+                _ctx.lineTo(_cx + size * std::sin(value * 2 * M_PI), _cy - size * std::cos(value * 2 * M_PI));
+                _ctx.stroke();
+            }
+            void showNow(const float h, const float m, const float s, const bool isClear = false)
+            {
+                if (!isClear) {
+                    _s = s / 60.0;
+                    _m = (m + _s) / 60.0;
+                    _h = (h + _m) / 12.0;
+                }
+                _ctx.lineWidth = _lineWidth + (isClear ? 5 : 0);
+                 clockHand(0.5 * _size, _h, isClear ? "#000" : "#f00");
+                 clockHand(0.66 * _size, _m, isClear ? "#000" : "#0f0");
+                 clockHand(0.86 * _size, _s, isClear ? "#000" : "#00f");
+            }
+            void clear() { showNow(0, 0, 0, true); }
+            void run()
+            {
+                clockFace();
+                XEvent xEvent;
+                while (true) {
+                    std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+                    struct std::tm* np = std::localtime(&now);
+                    showNow(np->tm_hour, np->tm_min, np->tm_sec);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(900));
+                    clear();
+
+                    if (XCheckWindowEvent((Display*)_surface.getDisplay(), (Window)_surface.getWindow(), KeyPress | ClientMessage, &xEvent)) {
+                        break;
+                    }
+                }
+            }
+
+            float _lineWidth = 3.0;
+            float _cx = 300.0;
+            float _cy = 300.0;
+            float _size = 100.0;
+            float _h, _m, _s;
+            gepard::XSurface _surface = gepard::XSurface(600, 600);
+            gepard::Gepard _ctx = gepard::Gepard(&_surface);
+        } clck;
+
+        clck.run();
     }
 
     return 0;

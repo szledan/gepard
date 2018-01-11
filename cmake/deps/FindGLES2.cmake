@@ -9,6 +9,9 @@ find_library(GLES2_LIBRARY GLESv2
 find_library(GLES2_LIBRARY GLESv2
              PATHS "/usr/lib/mesa")
 
+find_library(GLES2_LIBRARY GLESv2
+             PATHS "/usr/lib/x86_64-linux-gnu")
+
 find_path(GLES2_INCLUDE_DIR "GLES2/gl2.h")
 
 include(FindPackageHandleStandardArgs)

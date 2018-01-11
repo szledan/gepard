@@ -42,6 +42,14 @@ namespace gepard {
 struct GepardContext {
     GepardContext(Surface* surface_);
 
+    void setFillStyle(const std::string&);
+    void setStrokeStyle(const std::string&);
+
+    void setLineWidth(const std::string&);
+    void setLineCap(const std::string&);
+    void setLineJoin(const std::string&);
+    void setMiterLimit(const std::string&);
+
     GepardState& currentState() { return states.back(); }
 
     Surface* surface;

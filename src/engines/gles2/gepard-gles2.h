@@ -54,9 +54,9 @@ public:
     explicit GepardGLES2(GepardContext&);
     ~GepardGLES2();
 
-    void fillRect(const Float x, const Float y, const Float w, const Float h);
-    void fill();
-    void stroke();
+    void fillRect(const Float x, const Float y, const Float w, const Float h, const Color& fillColor);
+    void fillPath(PathData*, const Color&);
+    void strokePath(PathData*, const GepardState&);
 
 private:
     void makeCurrent();

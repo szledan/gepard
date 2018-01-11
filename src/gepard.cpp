@@ -26,6 +26,7 @@
 
 #include "gepard.h"
 
+#include "gepard-context.h"
 #include "gepard-defs.h"
 #include "gepard-engine.h"
 #include "gepard-image.h"
@@ -34,9 +35,46 @@
 
 namespace gepard {
 
+Gepard::Attribute& Gepard::Attribute::operator=(const Attribute& atr)
+{
+    callBackFunction = atr.callBackFunction;
+    engine = atr.engine;
+    data = atr.data;
+    callFunction();
+
+    return *this;
+}
+
+Gepard::Attribute& Gepard::Attribute::operator=(const std::string& str)
+{
+    data = str;
+    callFunction();
+
+    return *this;
+}
+
+void Gepard::Attribute::callFunction()
+{
+    if (engine && callBackFunction) {
+        callBackFunction(engine, data);
+    }
+}
+
+void Gepard::Attribute::setCallBack(GepardEngine* eng, void(*func)(GepardEngine*, const std::string&))
+{
+    engine = eng;
+    callBackFunction = func;
+}
+
 Gepard::Gepard(Surface* surface)
     : _engine(new GepardEngine(surface))
 {
+    fillStyle.setCallBack(_engine, [](GepardEngine* engine, const std::string& color){ engine->context().setFillStyle(color); });
+    strokeStyle.setCallBack(_engine, [](GepardEngine* engine, const std::string& color){ engine->context().setStrokeStyle(color); });
+    lineWidth.setCallBack(_engine, [](GepardEngine* engine, const std::string& width){ engine->context().setLineWidth(width); });
+    lineCap.setCallBack(_engine, [](GepardEngine* engine, const std::string& capMode){ engine->context().setLineCap(capMode); });
+    lineJoin.setCallBack(_engine, [](GepardEngine* engine, const std::string& joinMode){ engine->context().setLineJoin(joinMode); });
+    miterLimit.setCallBack(_engine, [](GepardEngine* engine, const std::string& limit){ engine->context().setMiterLimit(limit); });
 }
 
 Gepard::~Gepard()
@@ -364,10 +402,6 @@ void Gepard::beginPath()
 void Gepard::fill()
 {
     GD_ASSERT(_engine);
-    if (fillStyleStatus != fillStyle.status) {
-        _engine->setFillColor(Color(fillStyle));
-        fillStyleStatus = !fillStyleStatus;
-    }
     _engine->fill();
 }
 
@@ -401,7 +435,8 @@ void Gepard::fill()
  */
 void Gepard::stroke()
 {
-    GD_NOT_IMPLEMENTED();
+    GD_ASSERT(_engine);
+    _engine->stroke();
 }
 
 /*!
