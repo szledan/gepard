@@ -130,7 +130,7 @@ const Float Segment::computeIntersectionY(Segment* segment) const
     return y;
 }
 
-std::ostream&operator<<(std::ostream& os, const Segment& s)
+std::ostream& operator<<(std::ostream& os, const Segment& s)
 {
     return os << s.from << ((s.direction < 0) ? "<" : ((s.direction > 0) ? ">" : "=")) << s.to;
 }
@@ -405,7 +405,7 @@ void SegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcEle
 {
     Float startAngle = arcElement->startAngle;
     const Float endAngle = arcElement->endAngle;
-    const bool antiClockwise = arcElement->antiClockwise;
+    const bool antiClockwise = arcElement->counterClockwise;
 
     FloatPoint startPoint = FloatPoint(std::cos(startAngle) * arcElement->radius.x, std::sin(startAngle) * arcElement->radius.y) + arcElement->center;
     insertLine(lastEndPoint, startPoint);
@@ -554,7 +554,7 @@ const bool Trapezoid::isMergableInTo(const Trapezoid* other) const
     return false;
 }
 
-std::ostream&operator<<(std::ostream& os, const Trapezoid& t)
+std::ostream& operator<<(std::ostream& os, const Trapezoid& t)
 {
     return os << t.topY << "," << t.topLeftX << "," << t.topRightX << "," << t.bottomY << "," << t.bottomLeftX << "," << t.bottomRightX;
 }

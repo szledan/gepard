@@ -34,24 +34,6 @@
 
 namespace gepard {
 
-namespace {
-
-/*! https://www.w3.org/TR/css-color-3/
- * \todo color
- */
-Color colorParser(const std::string& color)
-{
-//    std::map<std::string, Color> definedColors = {
-//        {"black", Color("#000000")}
-//    };
-
-    // Delete white-spaces.
-
-    return Color(color);
-}
-
-} // anonymous namespace
-
 Gepard::Gepard(Surface* surface)
     : _engine(new GepardEngine(surface))
 {
@@ -383,7 +365,7 @@ void Gepard::fill()
 {
     GD_ASSERT(_engine);
     if (fillStyleStatus != fillStyle.status) {
-        _engine->setFillColor(colorParser(fillStyle));
+        _engine->setFillColor(Color(fillStyle));
         fillStyleStatus = !fillStyleStatus;
     }
     _engine->fill();

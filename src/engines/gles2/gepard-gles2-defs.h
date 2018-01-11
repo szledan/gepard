@@ -40,8 +40,7 @@
 namespace gepard {
 namespace gles2 {
 
-#define GD_GLES2_TEXTURE_SIZE 512
-#define GD_ANTIALIAS_LEVEL 16
+#define GD_GLES2_ANTIALIAS_LEVEL 16
 
 } // namespace gles2
 } // namespace gepard

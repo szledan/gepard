@@ -1,4 +1,4 @@
-/* Copyright (C) 2017, Gepard Graphics
+/* Copyright (C) 2017-2018, Gepard Graphics
  * Copyright (C) 2013, Zoltan Herczeg
  * Copyright (C) 2013, 2017-2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
@@ -34,9 +34,14 @@
 #include "gepard-gles2-trapezoid-tessellator.h"
 #include <string>
 
-//! \brief Fill path vertex shader.
+namespace gepard {
+namespace gles2 {
+
 static const std::string s_fillPathVertexShader = GD_GLES2_SHADER_PROGRAM(
     precision highp float;
+
+    uniform vec2 u_size;
+
     attribute vec4 a_position;
     attribute vec4 a_x1x2Cdx1dx2;
 
@@ -47,12 +52,8 @@ static const std::string s_fillPathVertexShader = GD_GLES2_SHADER_PROGRAM(
     varying vec4 v_x1x2;
     varying vec2 v_dx1dx2;
 
-    uniform vec2 u_size;
-
     void main(void)
     {
-        // a_position[2] = trapezoid.bottomY    < a_position[1]
-        // a_position[3] = trapezoid.topY       > a_position[1]
         float y = floor(a_position[2]);
         v_y1y2[0] = a_position[1] - y;
         v_y1y2[1] = floor(a_position[3]) - y;
@@ -74,7 +75,6 @@ static const std::string s_fillPathVertexShader = GD_GLES2_SHADER_PROGRAM(
     }
 );
 
-//! \brief Fill path vertex shader.
 static const std::string s_fillPathFragmentShader = GD_GLES2_SHADER_PROGRAM(
     precision highp float;
 
@@ -84,14 +84,14 @@ static const std::string s_fillPathFragmentShader = GD_GLES2_SHADER_PROGRAM(
 
     void main(void)
     {
-        const float step = 1.0 / GD_ANTIALIAS_LEVEL.0;
-        const float rounding = 0.5 / GD_ANTIALIAS_LEVEL.0;
+        const float step = 1.0 / float(GD_GLES2_ANTIALIAS_LEVEL);
+        const float rounding = 0.5 / float(GD_GLES2_ANTIALIAS_LEVEL);
 
         float y = floor(v_y1y2[0]);
         float from = max(-y + v_y1y2[2], 0.0);
         float to = min(v_y1y2[1] - y + v_y1y2[3], 1.0) - from;
 
-        vec2 x1x2 = (y + from) * (v_dx1dx2 * GD_ANTIALIAS_LEVEL.0);
+        vec2 x1x2 = (y + from) * (v_dx1dx2 * float(GD_GLES2_ANTIALIAS_LEVEL));
 
         float x = floor(v_x1x2[0]);
         x1x2[0] = (-x) + (x1x2[0] + v_x1x2[2]);
@@ -102,7 +102,7 @@ static const std::string s_fillPathFragmentShader = GD_GLES2_SHADER_PROGRAM(
 
         float sum = (clamp(x1x2[1], 0.0, 1.0) - clamp(x1x2[0], 0.0, 1.0));
         if (to > 1.0 - rounding) {
-            vec2 last = x1x2 + v_dx1dx2 * (GD_ANTIALIAS_LEVEL.0 - 1.0);
+            vec2 last = x1x2 + v_dx1dx2 * (float(GD_GLES2_ANTIALIAS_LEVEL) - 1.0);
             sum += (clamp(last[1], 0.0, 1.0) - clamp(last[0], 0.0, 1.0));
             to -= step;
         }
@@ -126,11 +126,11 @@ static const std::string s_fillPathFragmentShader = GD_GLES2_SHADER_PROGRAM(
 static const std::string s_copyPathVertexShader = GD_GLES2_SHADER_PROGRAM(
     precision highp float;
 
+    uniform vec2 u_viewportSize;
+
     attribute vec4 a_position;
 
     varying vec2 v_texturePosition;
-
-    uniform vec2 u_viewportSize;
 
     void main()
     {
@@ -142,8 +142,8 @@ static const std::string s_copyPathVertexShader = GD_GLES2_SHADER_PROGRAM(
 static const std::string s_copyPathFragmentShader = GD_GLES2_SHADER_PROGRAM(
     precision highp float;
 
-    uniform sampler2D u_texture;
     uniform vec4 u_color;
+    uniform sampler2D u_texture;
 
     varying vec2 v_texturePosition;
 
@@ -152,9 +152,6 @@ static const std::string s_copyPathFragmentShader = GD_GLES2_SHADER_PROGRAM(
         gl_FragColor = vec4(u_color.rgb, u_color.a * texture2D(u_texture, v_texturePosition).a);
     }
 );
-
-namespace gepard {
-namespace gles2 {
 
 static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes, const int antiAliasingLevel)
 {
@@ -226,7 +223,7 @@ void GepardGLES2::fill()
 
     TrapezoidTessellator::FillRule fillRule = TrapezoidTessellator::FillRule::NonZero;
 
-    TrapezoidTessellator tt(&_context.path, fillRule, GD_ANTIALIAS_LEVEL);
+    TrapezoidTessellator tt(&_context.path, fillRule, GD_GLES2_ANTIALIAS_LEVEL);
     TrapezoidList trapezoidList = tt.trapezoidList();
 
     GLuint textureId;
@@ -319,14 +316,14 @@ void GepardGLES2::fill()
         glEnableVertexAttribArray(index);
         glVertexAttribPointer(index, 4, GL_FLOAT, GL_FALSE, 0, textureCoords);
 
+        index = glGetUniformLocation(copyProgram.id, "u_color");
+        const Color fillColor = _context.currentState().fillColor;
+        glUniform4f(index, ((Float)fillColor.r), ((Float)fillColor.g), ((Float)fillColor.b), fillColor.a);
+
         index = glGetUniformLocation(copyProgram.id, "u_viewportSize");
         glUniform2f(index, width, height);
 
         glBindTexture(GL_TEXTURE_2D, textureId);
-
-        index = glGetUniformLocation(copyProgram.id, "u_color");
-        const Color fillColor = _context.currentState().fillColor;
-        glUniform4f(index, ((Float)fillColor.r), ((Float)fillColor.g), ((Float)fillColor.b), fillColor.a);
     }
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

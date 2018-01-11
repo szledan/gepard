@@ -1,5 +1,5 @@
-/* Copyright (C) 2016-2017, Gepard Graphics
- * Copyright (C) 2015-2017, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2016-2018, Gepard Graphics
+ * Copyright (C) 2015-2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,111 +42,70 @@ typedef enum PathElementTypes {
 } PathElementType;
 
 struct PathElement {
-    explicit PathElement() : next(nullptr), type(PathElementTypes::Undefined) {}
-    explicit PathElement(PathElementType type) : next(nullptr), type(type) {}
-    explicit PathElement(PathElementType type, FloatPoint to)
-        : next(nullptr)
-        , type(type)
-        , to(to)
-    {}
+    explicit PathElement();
+    explicit PathElement(const PathElementType type);
+    explicit PathElement(const PathElementType type, const FloatPoint& to);
 
-    bool isMoveTo() const { return this->type == PathElementTypes::MoveTo; }
-    bool isCloseSubpath() const { return this->type == PathElementTypes::CloseSubpath; }
-    virtual std::ostream& output(std::ostream& os) const
-    {
-        return os << this->to;
-    }
+    const bool isMoveTo() const;
+    const bool isCloseSubpath() const;
+    virtual std::ostream& output(std::ostream& os) const;
 
     PathElement* next;
     PathElementType type;
     FloatPoint to;
 };
 
-inline std::ostream& operator<<(std::ostream& os, const PathElement& ps)
-{
-    return ps.output(os);
-}
+inline std::ostream& operator<<(std::ostream& os, const PathElement& ps);
 
 struct MoveToElement : public PathElement {
-    explicit MoveToElement(FloatPoint to) : PathElement(PathElementTypes::MoveTo, to) {}
+    explicit MoveToElement(const FloatPoint& to);
 
-    std::ostream& output(std::ostream& os) const { return PathElement::output(os << "M"); }
+    std::ostream& output(std::ostream& os) const;
 };
 
 struct LineToElement : public PathElement {
-    explicit LineToElement(FloatPoint to) : PathElement(PathElementTypes::LineTo, to) {}
+    explicit LineToElement(const FloatPoint& to);
 
-    std::ostream& output(std::ostream& os) const { return PathElement::output(os << "L"); }
+    std::ostream& output(std::ostream& os) const;
 };
 
 struct CloseSubpathElement : public PathElement {
-    explicit CloseSubpathElement(FloatPoint to) : PathElement(PathElementTypes::CloseSubpath, to) {}
+    explicit CloseSubpathElement(const FloatPoint& to);
 
-    std::ostream& output(std::ostream& os) const { return PathElement::output(os << "Z"); }
+    std::ostream& output(std::ostream& os) const;
 };
 
 struct QuadraticCurveToElement : public PathElement {
-    explicit QuadraticCurveToElement(FloatPoint control, FloatPoint to)
-        : PathElement(PathElementTypes::QuadraticCurve, to)
-        , control(control)
-    {}
+    explicit QuadraticCurveToElement(const FloatPoint& control, const FloatPoint& to);
 
-    std::ostream& output(std::ostream& os) const
-    {
-        return PathElement::output(os << "Q" << this->control << " ");
-    }
+    std::ostream& output(std::ostream& os) const;
 
     FloatPoint control;
 };
 
 struct BezierCurveToElement : public PathElement {
-    explicit BezierCurveToElement(FloatPoint control1, FloatPoint control2, FloatPoint to)
-        : PathElement(PathElementTypes::BezierCurve, to)
-        , control1(control1)
-        , control2(control2)
-    {}
+    explicit BezierCurveToElement(const FloatPoint& control1, const FloatPoint& control2, const FloatPoint& to);
 
-    std::ostream& output(std::ostream& os) const
-    {
-        return PathElement::output(os << "C" << this->control1 << " " << this->control2 << " ");
-    }
+    std::ostream& output(std::ostream& os) const;
 
     FloatPoint control1;
     FloatPoint control2;
 };
 
 struct ArcElement : public PathElement {
-    explicit ArcElement(FloatPoint center, FloatPoint radius, Float startAngle, Float endAngle, bool antiClockwise = true)
-        : PathElement(PathElementTypes::Arc, FloatPoint(center.x + cos(endAngle) * radius.x, center.y + sin(endAngle) * radius.y))
-        , center(center)
-        , radius(radius)
-        , startAngle(startAngle)
-        , endAngle(endAngle)
-        , antiClockwise(antiClockwise)
-    {
-        GD_ASSERT(radius.x >= 0 && radius.y >= 0);
-    }
+    explicit ArcElement(const FloatPoint& center, const FloatPoint& radius, const Float startAngle, const Float endAngle, const bool counterClockwise = false);
 
-    std::ostream& output(std::ostream& os) const
-    {
-        // TODO(szledan): generate SVG representation
-        os << "A";
-        return PathElement::output(os);
-    }
+    std::ostream& output(std::ostream& os) const;
 
     FloatPoint center;
     FloatPoint radius;
     Float startAngle;
     Float endAngle;
-    bool antiClockwise;
+    bool counterClockwise;
 };
 
 struct PathData {
-    explicit PathData()
-        : _firstElement(nullptr)
-        , _lastElement(nullptr)
-        , _lastMoveToElement(nullptr)
-    {}
+    explicit PathData();
 
     void addMoveToElement(FloatPoint);
     void addLineToElement(FloatPoint);
@@ -172,16 +131,11 @@ private:
 
 class Path {
 public:
-    explicit Path()
-        : _pathData(new PathData())
-    {}
+    explicit Path();
+    ~Path();
 
     PathData* pathData() { return _pathData; }
-    void clear()
-    {
-        delete _pathData;
-        _pathData = new PathData();
-    }
+    void clear();
 
 private:
     PathData* _pathData;

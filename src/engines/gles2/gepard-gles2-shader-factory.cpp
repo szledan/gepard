@@ -103,7 +103,7 @@ const GLuint ShaderProgram::linkPrograms(const GLuint vertexShader, const GLuint
 
 void ShaderProgram::compileShaderProgram(const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource)
 {
-    if (id != GLuint(-1))
+    if (id != kInvalidProgramID)
         return;
 
     GD_LOG1("Compile '" << name << "' shader program.");
@@ -129,7 +129,7 @@ void ShaderProgram::compileShaderProgram(const std::string& name, const std::str
     }
 }
 
-ShaderProgram&ShaderProgramManager::getProgram(const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource)
+ShaderProgram& ShaderProgramManager::getProgram(const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource)
 {
     ShaderProgram& program = _programs[name];
     if (program.isInvalid()) {

@@ -28,6 +28,7 @@
 
 #include "gepard-path.h"
 #include "gepard-types.h"
+#include <vector>
 
 namespace gepard {
 

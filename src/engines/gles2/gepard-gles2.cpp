@@ -33,14 +33,17 @@
 #include "gepard-gles2-defs.h"
 #include "gepard-gles2-shader-factory.h"
 
-#define GD_ANTIALIAS_LEVEL 16
+namespace gepard {
+namespace gles2 {
 
 static const std::string s_textureVertexShader = GD_GLES2_SHADER_PROGRAM(
     precision highp float;
 
-    attribute vec4 a_position;
-    varying vec2 v_texturePosition;
     uniform vec2 u_viewportSize;
+
+    attribute vec4 a_position;
+
+    varying vec2 v_texturePosition;
 
     void main()
     {
@@ -53,6 +56,7 @@ static const std::string s_textureFragmentShader = GD_GLES2_SHADER_PROGRAM(
     precision highp float;
 
     uniform sampler2D u_texture;
+
     varying vec2 v_texturePosition;
 
     void main()
@@ -60,9 +64,6 @@ static const std::string s_textureFragmentShader = GD_GLES2_SHADER_PROGRAM(
         gl_FragColor = texture2D(u_texture, v_texturePosition);
     }
 );
-
-namespace gepard {
-namespace gles2 {
 
 const int GepardGLES2::kMaximumNumberOfAttributes = GLushort(-1) + 1;
 const int GepardGLES2::kMaximumNumberOfUshortQuads = GepardGLES2::kMaximumNumberOfAttributes / 6;
@@ -106,7 +107,7 @@ GepardGLES2::GepardGLES2(GepardContext& context)
     eglDisplay = eglGetDisplay((EGLNativeDisplayType)display);
 
     if (eglDisplay == EGL_NO_DISPLAY) {
-        GD_CRASH("eglGetDisplay returned EGL_DEFAULT_DISPLAY");
+        GD_CRASH("eglGetDisplay returned EGL_NO_DISPLAY");
     }
 
     // 2. Initialize EGL.

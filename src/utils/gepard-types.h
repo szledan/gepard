@@ -27,7 +27,7 @@
 #define GEPARD_TYPES_H
 
 #include "gepard-defs.h"
-#include <math.h>
+#include <cmath>
 #include <vector>
 
 namespace gepard {
@@ -45,9 +45,9 @@ const double precisionOfFloat = 1000 * 1000 * 1000;
 //   const float precisionOfFloat = 100 * 1000;
 // #endif
 
-inline Float fixPrecision(Float f) { return floor(f * precisionOfFloat) / precisionOfFloat; }
+inline Float fixPrecision(Float f) { return std::floor(f * precisionOfFloat) / precisionOfFloat; }
 
-static const Float piFloat = 2.0 * asin(1.0);
+static const Float piFloat = 2.0 * std::asin(1.0);
 
 /* Basic math functions */
 
@@ -304,6 +304,7 @@ struct Vec4 {
  * Describes a simple RGBA color chanel struct
  * where each chanel is a gepard::Float [0.0, 1.0].
  *
+ * \todo reference: https://www.w3.org/TR/css-color-3/
  * \internal
  */
 struct Color : public Vec4 {

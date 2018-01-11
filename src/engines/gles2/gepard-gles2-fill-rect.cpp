@@ -1,5 +1,5 @@
-/* Copyright (C) 2018, Gepard Graphics
- * Copyright (C) 2018, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2016-2018, Gepard Graphics
+ * Copyright (C) 2016-2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,12 @@
 #include "gepard-gles2-defs.h"
 #include "gepard-gles2-shader-factory.h"
 
-//! \brief Fill rectangle vertex shader.
+namespace gepard {
+namespace gles2 {
+
 static const std::string s_fillRectVertexShader = GD_GLES2_SHADER_PROGRAM(
+    precision highp float;
+
     uniform vec2 u_size;
 
     attribute vec2 a_position;
@@ -42,13 +46,13 @@ static const std::string s_fillRectVertexShader = GD_GLES2_SHADER_PROGRAM(
 
     void main(void)
     {
-        v_color = a_color;
         vec2 coords = (2.0 * a_position.xy / u_size.xy) - 1.0;
         gl_Position = vec4(coords, 1.0, 1.0);
+
+        v_color = a_color;
     }
 );
 
-//! \brief Fill rectangle fragment shader.
 static const std::string s_fillRectFragmentShader = GD_GLES2_SHADER_PROGRAM(
     precision highp float;
 
@@ -59,9 +63,6 @@ static const std::string s_fillRectFragmentShader = GD_GLES2_SHADER_PROGRAM(
         gl_FragColor = v_color;
     }
 );
-
-namespace gepard {
-namespace gles2 {
 
 /*!
  * \brief Fill rect with GLES2 backend.
