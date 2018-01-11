@@ -138,15 +138,12 @@ GepardGLES2::GepardGLES2(GepardContext& context)
         GD_CRASH("eglCreateContext returned EGL_NO_CONTEXT");
     }
 
-    // 7. Bind the context to the current thread
-    if (eglMakeCurrent(eglDisplay, eglSurface, eglSurface, _eglContext) != EGL_TRUE) {
-        GD_CRASH("eglMakeCurrent returned EGL_FALSE");
-    }
-
     // Set EGL display & surface.
     _eglDisplay = eglDisplay;
     _eglSurface = eglSurface;
     GD_LOG3("EGL display and surface are: " << _eglDisplay  << " and " << _eglSurface << ".");
+
+    makeCurrent();
 
     glGenFramebuffers(1, &_fboId);
     glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
@@ -217,8 +214,25 @@ GepardGLES2::~GepardGLES2()
     }
 }
 
+void GepardGLES2::makeCurrent()
+{
+    static GepardGLES2* currentGepardGLES2 = nullptr;
+
+    if (this != currentGepardGLES2) {
+        GD_LOG1("Make current binds the EGL rendering context.");
+        if (eglMakeCurrent(_eglDisplay, _eglSurface, _eglSurface, _eglContext) != EGL_TRUE) {
+            GD_CRASH("eglMakeCurrent returned EGL_FALSE");
+        }
+        currentGepardGLES2 = this;
+    }
+
+    GD_LOG3("Current GepardGLES2: " << this);
+}
+
 void GepardGLES2::render()
 {
+    //! \todo: if needed, call 'makeCurrent();'.
+
     const uint32_t width = _context.surface->width();
     const uint32_t height = _context.surface->height();
 

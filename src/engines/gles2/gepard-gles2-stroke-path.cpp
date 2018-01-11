@@ -32,6 +32,7 @@ namespace gles2 {
 
 void GepardGLES2::stroke()
 {
+    makeCurrent();
     GD_NOT_IMPLEMENTED();
 }
 

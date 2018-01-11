@@ -215,6 +215,7 @@ static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes, const int
 
 void GepardGLES2::fill()
 {
+    makeCurrent();
     if (!_context.path.pathData()->firstElement())
         return;
 

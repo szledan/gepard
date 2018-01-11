@@ -59,6 +59,7 @@ public:
     void stroke();
 
 private:
+    void makeCurrent();
     void render();
 
     ShaderProgramManager _shaderProgramManager;

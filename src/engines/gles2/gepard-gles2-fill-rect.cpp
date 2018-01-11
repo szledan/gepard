@@ -75,6 +75,7 @@ static const std::string s_fillRectFragmentShader = GD_GLES2_SHADER_PROGRAM(
  */
 void GepardGLES2::fillRect(const Float x, const Float y, const Float w, const Float h)
 {
+    makeCurrent();
     glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
 
     GD_LOG1("Fill rect with GLES2 (" << x << ", " << y << ", " << w << ", " << h << ")");
