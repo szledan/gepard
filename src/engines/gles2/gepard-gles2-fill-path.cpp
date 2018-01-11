@@ -305,23 +305,29 @@ void GepardGLES2::fill()
         ShaderProgram& copyProgram = _shaderProgramManager.getProgram("copyPathProgram", s_copyPathVertexShader, s_copyPathFragmentShader);
         glUseProgram(copyProgram.id);
 
-        const GLfloat textureCoords[] = {
-            0.0, (GLfloat)height, 0.0, 0.0,
-            0.0, 0.0, 0.0, 1.0,
-            (GLfloat)width, (GLfloat)height, 1.0, 0.0,
-            (GLfloat)width, 0.0, 1.0, 1.0,
-        };
+        {
+            const GLfloat textureCoords[] = {
+                0.0, (GLfloat)height, 0.0, 0.0,
+                0.0, 0.0, 0.0, 1.0,
+                (GLfloat)width, (GLfloat)height, 1.0, 0.0,
+                (GLfloat)width, 0.0, 1.0, 1.0,
+            };
 
-        GLint index = glGetAttribLocation(copyProgram.id, "a_position");
-        glEnableVertexAttribArray(index);
-        glVertexAttribPointer(index, 4, GL_FLOAT, GL_FALSE, 0, textureCoords);
+            const GLint index = glGetAttribLocation(copyProgram.id, "a_position");
+            glEnableVertexAttribArray(index);
+            glVertexAttribPointer(index, 4, GL_FLOAT, GL_FALSE, 0, textureCoords);
+        }
 
-        index = glGetUniformLocation(copyProgram.id, "u_color");
-        const Color fillColor = _context.currentState().fillColor;
-        glUniform4f(index, ((Float)fillColor.r), ((Float)fillColor.g), ((Float)fillColor.b), fillColor.a);
+        {
+            const Color& fillColor = _context.currentState().fillColor;
+            const GLint index = glGetUniformLocation(copyProgram.id, "u_color");
+            glUniform4f(index, ((Float)fillColor.r), ((Float)fillColor.g), ((Float)fillColor.b), fillColor.a);
+        }
 
-        index = glGetUniformLocation(copyProgram.id, "u_viewportSize");
-        glUniform2f(index, width, height);
+        {
+            const GLint index = glGetUniformLocation(copyProgram.id, "u_viewportSize");
+            glUniform2f(index, width, height);
+        }
 
         glBindTexture(GL_TEXTURE_2D, textureId);
     }

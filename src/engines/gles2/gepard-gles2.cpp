@@ -226,19 +226,23 @@ void GepardGLES2::render()
         ShaderProgram& textureProgram = _shaderProgramManager.getProgram("s_textureProgram", s_textureVertexShader, s_textureFragmentShader);
         glUseProgram(textureProgram.id);
 
-        static const GLfloat textureCoords[] = {
-            0, (GLfloat)height, 0, 0,
-            0, 0, 0, 1,
-            (GLfloat)width, (GLfloat)height, 1, 0,
-            (GLfloat)width, 0, 1, 1
-        };
+        {
+            const GLfloat textureCoords[] = {
+                0.0, (GLfloat)height, 0.0, 0.0,
+                0.0, 0.0, 0.0, 1.0,
+                (GLfloat)width, (GLfloat)height, 1.0, 0.0,
+                (GLfloat)width, 0.0, 1.0, 1.0
+            };
 
-        GLint intValue = glGetAttribLocation(textureProgram.id, "a_position");
-        glEnableVertexAttribArray(intValue);
-        glVertexAttribPointer(intValue, 4, GL_FLOAT, GL_FALSE, 0, textureCoords);
+            const GLint index = glGetAttribLocation(textureProgram.id, "a_position");
+            glEnableVertexAttribArray(index);
+            glVertexAttribPointer(index, 4, GL_FLOAT, GL_FALSE, 0, textureCoords);
+        }
 
-        intValue = glGetUniformLocation(textureProgram.id, "u_viewportSize");
-        glUniform2f(intValue, width, height);
+        {
+            const GLint index = glGetUniformLocation(textureProgram.id, "u_viewportSize");
+            glUniform2f(index, width, height);
+        }
 
         glBindTexture(GL_TEXTURE_2D, _textureId);
 
