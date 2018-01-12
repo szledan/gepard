@@ -9,9 +9,9 @@ typedef struct {
     gepard::Gepard *gpd;
 } pygepard_GepardObject;
 
-//
-// Gepard object internal functions
-//
+/*
+ * Gepard object internal functions
+ */
 
 static PyObject* Gepard__new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
@@ -48,9 +48,9 @@ static void Gepard__dealloc(PyObject *self)
     Py_TYPE(self)->tp_free(self);
 }
 
-//
-// Gepard API functions
-//
+/*
+ * Gepard API functions
+ */
 
 static PyObject* Gepard__save(PyObject *self, PyObject* args)
 {
@@ -303,9 +303,9 @@ static PyMethodDef pClassMethods[] =
     {NULL, NULL, 0, NULL}
 };
 
-//
-// Gepard object and module definition
-//
+/*
+ * Gepard object and module definition
+ */
 
 static PyTypeObject pygepard_GepardType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -358,8 +358,6 @@ initpygepard(void)
 {
     if (PyType_Ready(&pygepard_GepardType) < 0)
         return;
-
-    Py_INCREF(&pygepard_GepardType);
 
     PyObject *pModule = Py_InitModule("pygepard", pModuleMethods);
 
