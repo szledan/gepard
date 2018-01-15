@@ -273,8 +273,7 @@ static PyObject* Gepard__setFillColor(PyObject *self, PyObject* args)
     Py_RETURN_NONE;
 }
 
-static PyMethodDef pClassMethods[] =
-{
+static PyMethodDef pClassMethods[] = {
     {"save", (PyCFunction) Gepard__save, METH_NOARGS, "save"},
     {"restore", (PyCFunction) Gepard__restore, METH_NOARGS, "restore"},
     {"closePath", (PyCFunction) Gepard__closePath, METH_VARARGS, "closePath"},
@@ -348,8 +347,7 @@ static PyTypeObject pygepard_GepardType = {
     Gepard__new,                   /* tp_new */
 };
 
-static PyMethodDef pModuleMethods[] =
-{
+static PyMethodDef pModuleMethods[] = {
     {NULL, NULL, 0, NULL}
 };
 
@@ -365,7 +363,8 @@ initpygepard(void)
 }
 
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     Py_Initialize();
     Py_SetProgramName(argv[0]);
 
