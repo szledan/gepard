@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.10)
 project(gepard C CXX)
 set(PROJECT_VERSION 0.0.2)
 
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake ${PROJECT_SOURCE_DIR}/cmake/deps)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake ${PROJECT_SOURCE_DIR}/cmake/deps)
 
 include(OptionList)
 include(Dependencies)
@@ -29,5 +29,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIB_OUTPUT_DIR})
 
 add_subdirectory(src)
-add_subdirectory(tests/unit)
 add_subdirectory(examples)
+add_subdirectory(tests/unit)
+add_subdirectory(tools/pygepard)
