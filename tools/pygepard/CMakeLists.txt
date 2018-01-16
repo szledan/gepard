@@ -4,10 +4,9 @@ set(SOURCES
 
 find_package(PythonLibs)
 if (PYTHONLIBS_FOUND)
-  include_directories(${PYTHON_INCLUDE_DIRS} ${INCLUDE_OUTPUT_DIR})
-
   add_library(pygepard SHARED EXCLUDE_FROM_ALL ${SOURCES})
 
+  target_include_directories(pygepard PUBLIC ${PYTHON_INCLUDE_DIRS} ${INCLUDE_OUTPUT_DIR})
   if(PYTHONLIBS_VERSION_STRING VERSION_LESS "3.0")
     target_compile_definitions(pygepard PUBLIC PYTHON2)
   else()
