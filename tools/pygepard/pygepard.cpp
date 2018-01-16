@@ -347,6 +347,7 @@ static PyTypeObject pygepard_GepardType = {
     Gepard__new,                   /* tp_new */
 };
 
+#if defined(PYTHON2)
 static PyMethodDef pModuleMethods[] = {
     {NULL, NULL, 0, NULL}
 };
@@ -362,15 +363,36 @@ initpygepard(void)
     PyModule_AddObject(pModule, "Gepard", (PyObject *)&pygepard_GepardType);
 }
 
+#elif defined(PYTHON3)
+static PyModuleDef pygepardmodule = {
+    PyModuleDef_HEAD_INIT,
+    "pygepard",
+    "Gepard API bindings",
+    -1,
+    0,
+    0,
+    0,
+    0,
+    0,
+};
 
-int main(int argc, char **argv)
+PyMODINIT_FUNC
+initpygepard(void)
 {
-    Py_Initialize();
-    Py_SetProgramName(argv[0]);
+    PyObject* module;
 
-    initpygepard();
+    if (PyType_Ready(&pygepard_GepardType) < 0)
+        return nullptr;
 
-    Py_Finalize();
-    return 0;
+    module = PyModule_Create(&pygepardmodule);
+    if (module == nullptr)
+        return nullptr;
+
+    Py_INCREF(&pygepard_GepardType);
+    return module;
 }
+
+#else
+#error "Unreachable"
+#endif
 
