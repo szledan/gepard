@@ -181,7 +181,7 @@ void SegmentApproximator::insertSegment(const FloatPoint& from, const FloatPoint
 }
 
 SegmentApproximator::SegmentApproximator(const int antiAliasLevel, const Float factor)
-    : _kAntiAliasLevel(antiAliasLevel > 0 ? antiAliasLevel : 16)
+    : _kAntiAliasLevel(antiAliasLevel > 0 ? antiAliasLevel : GD_GLES2_ANTIALIAS_LEVEL)
     , _kTolerance((factor > 0.0 ? factor : 1.0 ) / ((Float)_kAntiAliasLevel))
 {
 }
@@ -252,7 +252,8 @@ void SegmentApproximator::splitQuadraticCurve(FloatPoint points[])
 void SegmentApproximator::insertQuadCurve(const FloatPoint& from, const FloatPoint& control, const FloatPoint& to)
 {
     // De Casteljau algorithm.
-    const int max = 16 * 2 + 1;
+    const int kNumberOfParts = 16;
+    const int max = kNumberOfParts * 2 + 1;
     FloatPoint buffer[max];
     FloatPoint* points = buffer;
 
@@ -342,7 +343,8 @@ void SegmentApproximator::splitCubeCurve(FloatPoint points[])
 void SegmentApproximator::insertBezierCurve(const FloatPoint& from, const FloatPoint& control1, const FloatPoint& control2, const FloatPoint& to)
 {
     // De Casteljau algorithm.
-    const int max = 16 * 3 + 1;
+    const int kNumberOfParts = 16;
+    const int max = kNumberOfParts * 3 + 1;
     FloatPoint buffer[max];
     FloatPoint* points = buffer;
 

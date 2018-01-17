@@ -31,6 +31,7 @@
 #define GEPARD_GLES2_TRAPEZOID_TESSELLATOR_H
 
 #include "gepard-defs.h"
+#include "gepard-gles2-defs.h"
 #include "gepard-path.h"
 #include "gepard-types.h"
 #include <list>
@@ -81,7 +82,7 @@ typedef std::map<const int, SegmentList*> SegmentTree;
 
 class SegmentApproximator {
 public:
-    SegmentApproximator(const int antiAliasLevel = 16, const Float factor = 1.0);
+    SegmentApproximator(const int antiAliasLevel = GD_GLES2_ANTIALIAS_LEVEL, const Float factor = 1.0);
     ~SegmentApproximator();
 
     void insertLine(const FloatPoint& from, const FloatPoint& to);
@@ -149,7 +150,7 @@ public:
         NonZero,
     };
 
-    TrapezoidTessellator(Path* path, FillRule fillRule = NonZero, int antiAliasingLevel = 16);
+    TrapezoidTessellator(Path* path, FillRule fillRule = NonZero, int antiAliasingLevel = GD_GLES2_ANTIALIAS_LEVEL);
 
     const FillRule fillRule() const { return _fillRule; }
     const TrapezoidList trapezoidList();
