@@ -347,7 +347,13 @@ static PyTypeObject pygepard_GepardType = {
     Gepard__new,                   /* tp_new */
 };
 
-#if defined(PYTHON2)
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+const char *module_version_str = "Module has been built for Python version " STR(PY_MAJOR_VERSION) "." STR(PY_MINOR_VERSION) "." STR(PY_MICRO_VERSION);
+#undef STR
+#undef STR_HELPER
+
+#if PY_MAJOR_VERSION < 3
 static PyMethodDef pModuleMethods[] = {
     {NULL, NULL, 0, NULL}
 };
@@ -363,7 +369,13 @@ initpygepard(void)
     PyModule_AddObject(pModule, "Gepard", (PyObject *)&pygepard_GepardType);
 }
 
-#elif defined(PYTHON3)
+extern "C" PyObject*
+PyInit_pygepard(void)
+{
+    PyErr_SetString(PyExc_ImportError, module_version_str);
+    return nullptr;
+}
+#else /* PY_MAJOR_VERSION < 3 */
 static PyModuleDef pygepardmodule = {
     PyModuleDef_HEAD_INIT,
     "pygepard",
@@ -377,7 +389,7 @@ static PyModuleDef pygepardmodule = {
 };
 
 PyMODINIT_FUNC
-initpygepard(void)
+PyInit_pygepard(void)
 {
     PyObject* module;
 
@@ -389,10 +401,15 @@ initpygepard(void)
         return nullptr;
 
     Py_INCREF(&pygepard_GepardType);
+    PyModule_AddObject(module, "Gepard", (PyObject *)&pygepard_GepardType);
     return module;
 }
 
-#else
-#error "Unreachable"
-#endif
+PyMODINIT_FUNC
+initpygepard(void)
+{
+    PyErr_SetString(PyExc_ImportError, module_version_str);
+    return nullptr;
+}
+#endif /* PY_MAJOR_VERSION < 3 */
 
