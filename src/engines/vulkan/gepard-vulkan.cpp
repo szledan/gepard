@@ -117,7 +117,7 @@ GepardVulkan::~GepardVulkan()
     }
 }
 
-void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
+void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const Float h)
 {
     // Vertex data setup
     const float r = _context.currentState().fillColor.r;
@@ -540,6 +540,16 @@ void GepardVulkan::fillRect(Float x, Float y, Float w, Float h)
 
     _vk.vkFreeMemory(_device, vertexBufferMemory, _allocator);
     _vk.vkFreeMemory(_device, indexBufferMemory, _allocator);
+}
+
+void GepardVulkan::fill()
+{
+    GD_NOT_IMPLEMENTED();
+}
+
+void GepardVulkan::stroke()
+{
+    GD_NOT_IMPLEMENTED();
 }
 
 void GepardVulkan::createDefaultInstance()

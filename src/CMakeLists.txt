@@ -1,4 +1,5 @@
 set(COMMON_SOURCES
+    engines/gepard-context.cpp
     engines/gepard-path.cpp
     gepard.cpp
     gepard-engine.cpp
@@ -8,7 +9,11 @@ set(COMMON_SOURCES
 
 set(GLES2_SOURCES
     engines/gles2/gepard-gles2.cpp
+    engines/gles2/gepard-gles2-fill-path.cpp
+    engines/gles2/gepard-gles2-fill-rect.cpp
     engines/gles2/gepard-gles2-shader-factory.cpp
+    engines/gles2/gepard-gles2-stroke-path.cpp
+    engines/gles2/gepard-gles2-trapezoid-tessellator.cpp
 )
 
 set(VULKAN_SOURCES

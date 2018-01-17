@@ -1,6 +1,5 @@
-/* Copyright (C) 2015-2016, Gepard Graphics
- * Copyright (C) 2015-2016, Szilard Ledan <szledan@gmail.com>
- * Copyright (C) 2015, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
+/* Copyright (C) 2017, Gepard Graphics
+ * Copyright (C) 2017, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,44 +30,42 @@
 #include <iostream>
 #include <thread>
 
-void gShape(gepard::Gepard& gepard)
+void gShape(gepard::Gepard& ctx)
 {
-    gepard.setFillColor(0.5f, 0.4f, 0.1f, 0.2f);
-    gepard.fillRect(50, 50, 500, 500);
+    ctx.fillStyle = "#0F0";
+    ctx.beginPath();
+    ctx.moveTo(300, 100);
+    ctx.lineTo(50, 230);
+    ctx.lineTo(380, 200);
+    ctx.closePath();
+    ctx.fill();
 
-    gepard.setFillColor(0.0f, 0.8f, 0.3f, 0.8f);
-    gepard.fillRect(100, 100, 80, 400);
-
-    gepard.setFillColor(0.0f, 0.0f, 1.0f, 0.8f);
-    gepard.fillRect(100, 420, 280, 80);
-
-    gepard.setFillColor(0.3f, 0.0f, 0.7f);
-    gepard.fillRect(180, 100, 200, 80);
-
-    gepard.setFillColor(0.3f, 0.7f, 0.2f);
-    gepard.fillRect(380, 80, 80, 130);
-
-    gepard.setFillColor("#af5f4f");
-    gepard.fillRect(380, 380, 80, 130);
-
-    gepard.setFillColor(220, 180, 40);
-    gepard.fillRect(330, 320, 160, 60);
+    ctx.fillStyle = "#F00";
+    ctx.beginPath();
+    ctx.moveTo(100, 100);
+    ctx.lineTo(180, 200);
+    ctx.bezierCurveTo(400, 200, 40, 50, 300, 250);
+    ctx.closePath();
+    ctx.fill();
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+    // Parse arguments.
+    const int flags = argc < 2 ? 3 : std::atoi(argv[1]);
+
     // Draw to PNG file.
-    {
+    if (flags & 1) {
         gepard::PNGSurface pngSurface(600, 600);
         gepard::Gepard pngGepard(&pngSurface);
 
         gShape(pngGepard);
 
-        pngSurface.save("fillRect.png");
+        pngSurface.save("fillPath.png");
     }
 
     // Draw on XWindow.
-    {
+    if (flags & 2) {
         gepard::XSurface surface(600, 600);
         gepard::Gepard gepard(&surface);
 
