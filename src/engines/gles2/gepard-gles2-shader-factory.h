@@ -1,5 +1,5 @@
-/* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2016-2018, Gepard Graphics
+ * Copyright (C) 2016-2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,42 +34,52 @@
 #include <map>
 #include <string>
 
+#define _GD_GLES2_SHADER_PROGRAM_STR(...)  #__VA_ARGS__
+#define GD_GLES2_SHADER_PROGRAM(...) _GD_GLES2_SHADER_PROGRAM_STR(__VA_ARGS__)
+
 namespace gepard {
 namespace gles2 {
 
 /*!
- * \brief The ShaderProgram class
+ * \brief The ShaderProgram struct
  */
 struct ShaderProgram {
-    ShaderProgram(const std::string& vertexShaderSource, const std::string& fragmentShaderSource, const std::string& name = "")
-        : id(0)
-        , _vertexShaderSource(vertexShaderSource)
-        , _fragmentShaderSource(fragmentShaderSource)
-        , _name(name)
+    static constexpr GLuint kInvalidProgramID = GLuint(-1);
+
+    ShaderProgram() : id(kInvalidProgramID) {}
+    ~ShaderProgram()
     {
+        glDeleteProgram(id);
     }
+
     /*!
      * \brief Function to compile a shader program.
-     * \param result  pointer of the number of compiled program. If it's not nullptr then nothing happens.
-     * \param name  the name of the program (only for the logging at the moment).
      * \param vertexShaderSource  vertex shader source code.
      * \param fragmentShaderSource  fragment shader source code.
+     * \param name  the name of the program.
      *
      * \internal
      */
-    void compileShaderProgram();
+    void compileShaderProgram(const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
+    const bool isInvalid() const { return id == kInvalidProgramID; }
 
-    uint32_t hash;
-    uint32_t id;
+    GLuint id;
 protected:
     static void logShaderCompileError(const GLuint shader);
     static void logProgramLinkError(const GLuint program);
-    static GLuint compileShader(const GLenum type, const GLchar* shaderSource);
-    static GLuint linkPrograms(GLuint vertexShader, GLuint fragmentShader);
+    static const GLuint compileShader(const GLenum type, const GLchar* shaderSource);
+    static const GLuint linkPrograms(const GLuint vertexShader, const GLuint fragmentShader);
+};
+
+/*!
+ * \brief The ShaderProgramManager class
+ */
+class ShaderProgramManager {
+public:
+    ShaderProgram& getProgram(const std::string& name, const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
+
 private:
-    const std::string _vertexShaderSource;
-    const std::string _fragmentShaderSource;
-    const std::string _name;
+    std::map<std::string, ShaderProgram> _programs;
 };
 
 } // namespace gles2

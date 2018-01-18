@@ -1,5 +1,5 @@
-/* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2016-2017, Gepard Graphics
+ * Copyright (C) 2016-2017, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@
 
 #include "gepard-defs.h"
 
+#include "gepard-context.h"
 #include "gepard-image.h"
 #include "gepard-types.h"
 
@@ -81,6 +82,7 @@ public:
 
     void fillRect(Float x, Float y, Float w, Float h);
 
+    void setFillColor(const Color& color);
     void setFillColor(const Float red, const Float green, const Float blue, const Float alpha = 1.0f);
 
     GepardContext& context() { return _context; }

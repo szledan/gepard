@@ -28,7 +28,8 @@
 
 #include "gepard.h"
 
-#include <malloc.h>
+#include <cstdlib>
+#include <cstring>
 #include <png.h>
 #include <string>
 
@@ -41,7 +42,7 @@ namespace gepard {
  */
 class PNGSurface : public Surface {
 public:
-    PNGSurface(uint32_t width = 0, uint32_t height = 0, std::string title = "Rendered with Gepard")
+    PNGSurface(const uint32_t width = 0, const uint32_t height = 0, const std::string& title = "Rendered with Gepard")
         : Surface(width, height)
         , _buffer(malloc(width * height * sizeof(uint32_t)))
         , _title(title)
@@ -50,7 +51,7 @@ public:
     ~PNGSurface()
     {
         if (_buffer) {
-            free(_buffer);
+            std::free(_buffer);
         }
     }
 
@@ -59,7 +60,7 @@ public:
     virtual void* getBuffer() { return _buffer; }
     virtual void drawBuffer(void* rgba)
     {
-        memcpy(_buffer, rgba, 4 * width() * height());
+        std::memcpy(_buffer, rgba, 4 * width() * height());
     }
 
     /*!
@@ -75,14 +76,13 @@ public:
     {
         const int formatSize = 4;
         uint32_t* buffer = (uint32_t*)_buffer;
-        FILE *fp = NULL;    //! \todo use 'std::fstream' instead of 'FILE' if possible
+        FILE *fp = fopen(fileName.c_str(), "wb");    //! \todo use 'std::fstream' instead of 'FILE' if possible
         bool code = true;
         png_structp png_ptr = NULL;
         png_infop info_ptr = NULL;
         png_bytep row = NULL;
 
         // Open file for writing (binary mode)
-        fp = fopen(fileName.c_str(), "wb");
         if (fp == NULL) {
             fprintf(stderr, "Could not open file %s for writing\n", fileName.c_str());     //! \todo use 'std::cout/std::clog' instead of 'fprintf'
             code = false;
@@ -130,7 +130,7 @@ public:
 
         png_write_info(png_ptr, info_ptr);
 
-        row = (png_bytep) malloc(formatSize * width() * sizeof(png_byte));   //! \todo ignore 'malloc', use member variable: _row.
+        row = (png_bytep) std::malloc(formatSize * width() * sizeof(png_byte));   //! \todo ignore 'malloc', use member variable: _row.
 
         // Write image data
         uint32_t x, y;
@@ -158,7 +158,7 @@ public:
             png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
         }
         if (row != NULL) {
-            free(row);
+            std::free(row);
         }
 
         return code;

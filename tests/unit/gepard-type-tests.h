@@ -1,5 +1,5 @@
-/* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2016-2017, Gepard Graphics
+ * Copyright (C) 2016-2017, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,6 +22,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+#ifndef GEPARD_TYPE_TESTS_H
+#define GEPARD_TYPE_TESTS_H
 
 #include "gepard-types.h"
 #include "gtest/gtest.h"
@@ -283,12 +286,8 @@ TEST(IVec4Test, CopyConstructor)
 
 /* Color */
 
-} // anonymous namespace
-
 /* Gepard types tests */
 
-int main(int argc, char* argv[])
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
+} // anonymous namespace
+
+#endif // GEPARD_TYPE_TESTS_H

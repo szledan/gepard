@@ -1,5 +1,5 @@
-/* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2016-2018, Gepard Graphics
+ * Copyright (C) 2015-2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +27,129 @@
 
 #include "gepard-defs.h"
 #include "gepard-types.h"
-#include <math.h>
+#include <cmath>
+#include <ostream>
 
 namespace gepard {
 
+/* PathElement */
+
+PathElement::PathElement()
+    : next(nullptr)
+    , type(PathElementTypes::Undefined)
+{
+}
+
+PathElement::PathElement(const PathElementType type)
+    : next(nullptr)
+    , type(type)
+{
+}
+
+PathElement::PathElement(const PathElementType type, const FloatPoint& to)
+    : next(nullptr)
+    , type(type)
+    , to(to)
+{}
+
+const bool PathElement::isMoveTo() const
+{
+    return this->type == PathElementTypes::MoveTo;
+}
+
+const bool PathElement::isCloseSubpath() const
+{
+    return this->type == PathElementTypes::CloseSubpath;
+}
+
+std::ostream& PathElement::output(std::ostream& os) const
+{
+    return os << this->to;
+}
+
+std::ostream& operator<<(std::ostream& os, const PathElement& ps)
+{
+    return ps.output(os);
+}
+
+MoveToElement::MoveToElement(const FloatPoint& to)
+    : PathElement(PathElementTypes::MoveTo, to)
+{
+}
+
+std::ostream& MoveToElement::output(std::ostream& os) const
+{
+    return PathElement::output(os << "M");
+}
+
+LineToElement::LineToElement(const FloatPoint& to)
+    : PathElement(PathElementTypes::LineTo, to)
+{
+}
+
+std::ostream& LineToElement::output(std::ostream& os) const
+{
+    return PathElement::output(os << "L");
+}
+
+CloseSubpathElement::CloseSubpathElement(const FloatPoint& to)
+    : PathElement(PathElementTypes::CloseSubpath, to)
+{
+}
+
+std::ostream& CloseSubpathElement::output(std::ostream& os) const
+{
+    return PathElement::output(os << "Z");
+}
+
+QuadraticCurveToElement::QuadraticCurveToElement(const FloatPoint& control, const FloatPoint& to)
+    : PathElement(PathElementTypes::QuadraticCurve, to)
+    , control(control)
+{
+}
+
+std::ostream& QuadraticCurveToElement::output(std::ostream& os) const
+{
+    return PathElement::output(os << "Q" << this->control << " ");
+}
+
+BezierCurveToElement::BezierCurveToElement(const FloatPoint& control1, const FloatPoint& control2, const FloatPoint& to)
+    : PathElement(PathElementTypes::BezierCurve, to)
+    , control1(control1)
+    , control2(control2)
+{
+}
+
+std::ostream& BezierCurveToElement::output(std::ostream& os) const
+{
+    return PathElement::output(os << "C" << this->control1 << " " << this->control2 << " ");
+}
+
+ArcElement::ArcElement(const FloatPoint& center, const FloatPoint& radius, const Float startAngle, const Float endAngle, const bool counterClockwise)
+    : PathElement(PathElementTypes::Arc, FloatPoint(center.x + std::cos(endAngle) * radius.x, center.y + std::sin(endAngle) * radius.y))
+    , center(center)
+    , radius(radius)
+    , startAngle(startAngle)
+    , endAngle(endAngle)
+    , counterClockwise(counterClockwise)
+{
+    GD_ASSERT(radius.x >= 0 && radius.y >= 0);
+}
+
+std::ostream& ArcElement::output(std::ostream& os) const
+{
+    // TODO(szledan): generate SVG representation
+    os << "A";
+    return PathElement::output(os);
+}
+
 /* PathData */
+
+PathData::PathData()
+    : _firstElement(nullptr)
+    , _lastElement(nullptr)
+    , _lastMoveToElement(nullptr)
+{}
 
 void PathData::addMoveToElement(FloatPoint to)
 {
@@ -57,9 +175,10 @@ void PathData::addLineToElement(FloatPoint to)
 {
     if (!_lastElement) {
         addMoveToElement(to);
+        return;
     }
 
-    if (!_lastElement->isMoveTo() && _lastElement->to == to)
+    if (_lastElement->to == to)
         return;
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(LineToElement))) LineToElement(to));
@@ -70,6 +189,7 @@ void PathData::addQuadaraticCurveToElement(FloatPoint control, FloatPoint to)
 {
     if (!_lastElement) {
         addMoveToElement(to);
+        return;
     }
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(QuadraticCurveToElement))) QuadraticCurveToElement(control, to));
@@ -80,6 +200,7 @@ void PathData::addBezierCurveToElement(FloatPoint control1, FloatPoint control2,
 {
     if (!_lastElement) {
         addMoveToElement(to);
+        return;
     }
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(BezierCurveToElement))) BezierCurveToElement(control1, control2, to));
@@ -88,10 +209,11 @@ void PathData::addBezierCurveToElement(FloatPoint control1, FloatPoint control2,
 
 void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAngle, Float endAngle, bool antiClockwise)
 {
-    FloatPoint start = FloatPoint(center.x + cos(startAngle) * radius.x, center.y + sin(startAngle) * radius.y);
+    FloatPoint start = FloatPoint(center.x + std::cos(startAngle) * radius.x, center.y + std::sin(startAngle) * radius.y);
 
     if (!_lastElement) {
         addMoveToElement(center);
+        return;
     }
 
     if (!radius.x || !radius.y || startAngle == endAngle) {
@@ -105,15 +227,15 @@ void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAn
 
     const Float twoPiFloat = 2.0 * piFloat;
     if (antiClockwise && startAngle - endAngle >= twoPiFloat) {
-        startAngle = fmod(startAngle, twoPiFloat);
+        startAngle = std::fmod(startAngle, twoPiFloat);
         endAngle = startAngle - twoPiFloat;
     } else if (!antiClockwise && endAngle - startAngle >= twoPiFloat) {
-        startAngle = fmod(startAngle, twoPiFloat);
+        startAngle = std::fmod(startAngle, twoPiFloat);
         endAngle = startAngle + twoPiFloat;
     } else {
         bool equal = startAngle == endAngle;
 
-        startAngle = fmod(startAngle, twoPiFloat);
+        startAngle = std::fmod(startAngle, twoPiFloat);
         if (startAngle < 0) {
             startAngle += twoPiFloat;
         }
@@ -153,62 +275,64 @@ void PathData::addArcToElement(const FloatPoint& control, const FloatPoint& end,
         addLineToElement(control);
     }
 
-    FloatPoint start(_lastElement->to);
+    const FloatPoint start(_lastElement->to);
 
-    FloatPoint delta1(start - control);
-    FloatPoint delta2(end - control);
-    Float delta1Length = sqrtf(delta1.lengthSquared());
-    Float delta2Length = sqrtf(delta2.lengthSquared());
+    const FloatPoint delta1(start - control);
+    const FloatPoint delta2(end - control);
+    const Float delta1Length = std::sqrt(delta1.lengthSquared());
+    const Float delta2Length = std::sqrt(delta2.lengthSquared());
 
     // Normalized dot product.
     GD_ASSERT(delta1Length && delta2Length);
-    Float cosPhi = delta1.dot(delta2) / (delta1Length * delta2Length);
+    const Float cosPhi = delta1.dot(delta2) / (delta1Length * delta2Length);
 
     // All three points are on the same straight line (HTML5, 4.8.11.1.8).
-    if (fabs(cosPhi) >= 0.9999) {
+    if (std::fabs(cosPhi) >= 0.9999) {
         addLineToElement(control);
         return;
     }
 
-    Float tangent = radius / tan(acos(cosPhi) / 2.0);
-    Float delta1Factor = tangent / delta1Length;
-    FloatPoint arcStartPoint((control.x + delta1Factor * delta1.x), (control.y + delta1Factor * delta1.y));
+    const Float tangent = radius / std::tan(std::acos(cosPhi) / 2.0);
+    const Float delta1Factor = tangent / delta1Length;
+    const FloatPoint arcStartPoint((control.x + delta1Factor * delta1.x), (control.y + delta1Factor * delta1.y));
 
     FloatPoint orthoStartPoint(delta1.y, -delta1.x);
-    Float orthoStartPointLength = sqrtf(orthoStartPoint.lengthSquared());
-    Float radiusFactor = radius / orthoStartPointLength;
+    const Float orthoStartPointLength = std::sqrt(orthoStartPoint.lengthSquared());
+    const Float radiusFactor = radius / orthoStartPointLength;
 
     GD_ASSERT(orthoStartPointLength);
-    Float cosAlpha = (orthoStartPoint.x * delta2.x + orthoStartPoint.y * delta2.y) / (orthoStartPointLength * delta2Length);
-    if (cosAlpha < 0.0)
+    const Float cosAlpha = (orthoStartPoint.x * delta2.x + orthoStartPoint.y * delta2.y) / (orthoStartPointLength * delta2Length);
+    if (cosAlpha < 0.0) {
         orthoStartPoint = FloatPoint(-orthoStartPoint.x, -orthoStartPoint.y);
+    }
 
-    FloatPoint center((arcStartPoint.x + radiusFactor * orthoStartPoint.x), (arcStartPoint.y + radiusFactor * orthoStartPoint.y));
+    const FloatPoint center((arcStartPoint.x + radiusFactor * orthoStartPoint.x), (arcStartPoint.y + radiusFactor * orthoStartPoint.y));
 
     // Calculate angles for addArc.
     orthoStartPoint = FloatPoint(-orthoStartPoint.x, -orthoStartPoint.y);
-    Float startAngle = acos(orthoStartPoint.x / orthoStartPointLength);
-    if (orthoStartPoint.y < 0.0)
+    Float startAngle = std::acos(orthoStartPoint.x / orthoStartPointLength);
+    if (orthoStartPoint.y < 0.0) {
         startAngle = 2.0 * piFloat - startAngle;
+    }
 
-    bool antiClockwise = false;
+    bool counterClockwise = false;
 
-    Float delta2Factor = tangent / delta2Length;
-    FloatPoint arcEndPoint((control.x + delta2Factor * delta2.x), (control.y + delta2Factor * delta2.y));
-    FloatPoint orthoEndPoint(arcEndPoint - center);
-    Float orthoEndPointLength = sqrtf(orthoEndPoint.lengthSquared());
-    Float endAngle = acos(orthoEndPoint.x / orthoEndPointLength);
+    const Float delta2Factor = tangent / delta2Length;
+    const FloatPoint arcEndPoint((control.x + delta2Factor * delta2.x), (control.y + delta2Factor * delta2.y));
+    const FloatPoint orthoEndPoint(arcEndPoint - center);
+    const Float orthoEndPointLength = std::sqrt(orthoEndPoint.lengthSquared());
+    Float endAngle = std::acos(orthoEndPoint.x / orthoEndPointLength);
     if (orthoEndPoint.y < 0.0) {
-        endAngle = 2 * piFloat - endAngle;
+        endAngle = 2.0 * piFloat - endAngle;
     }
     if ((startAngle > endAngle) && ((startAngle - endAngle) < piFloat)) {
-        antiClockwise = true;
+        counterClockwise = true;
     }
     if ((startAngle < endAngle) && ((endAngle - startAngle) > piFloat)) {
-        antiClockwise = true;
+        counterClockwise = true;
     }
 
-    addArcElement(center, FloatPoint(radius, radius), startAngle, endAngle, antiClockwise);
+    addArcElement(center, FloatPoint(radius, radius), startAngle, endAngle, counterClockwise);
 }
 
 void PathData::addCloseSubpathElement()
@@ -224,37 +348,43 @@ void PathData::addCloseSubpathElement()
     _lastElement = _lastElement->next;
 }
 
-#ifdef GD_LOG_LEVEL
-void PathData::dump()
+const PathElement* PathData::operator[](std::size_t idx) const
 {
     PathElement* element = _firstElement;
 
-    std::cout << "firstElement: " << _firstElement << std::endl;
-    std::cout << "lastElement: " << _lastElement << std::endl;
-    std::cout << "lastMoveToElement: " << _lastMoveToElement << std::endl;
-    std::cout << "PathData:";
+    std::size_t i = 0;
     while (element) {
-        std::cout << " " << *element;
+        if (i == idx)
+            break;
+        i++;
         element = element->next;
     }
-    std::cout << std::endl;
+
+    if (!element) {
+        element = _lastElement;
+    }
+
+    return element;
 }
-#endif // GD_LOG_LEVEL
 
 /* Path */
 
-void Path::fillPath()
+Path::Path()
+    : _pathData(new PathData())
 {
-    GD_ASSERT(_pathData.lastElement()->isCloseSubpath());
+}
 
-#ifdef GD_LOG_LEVEL
-    // TODO(@szledan): For testing.
-    _pathData.dump();
-#endif // GD_LOG_LEVEL
+Path::~Path()
+{
+    if (_pathData) {
+        delete _pathData;
+    }
+}
 
-    // Choose a GPU_BACK_END.
-    // TODO(szledan): GLESV2
-    // TODO(szledan): VULKAN
+void Path::clear()
+{
+    delete _pathData;
+    _pathData = new PathData();
 }
 
 } // namespace gepard

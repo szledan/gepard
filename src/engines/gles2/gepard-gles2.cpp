@@ -1,6 +1,6 @@
-/* Copyright (C) 2016, Gepard Graphics
+/* Copyright (C) 2016-2018, Gepard Graphics
  * Copyright (C) 2013, Zoltan Herczeg
- * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
+ * Copyright (C) 2013, 2016-2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,38 @@
 namespace gepard {
 namespace gles2 {
 
+static const std::string s_textureVertexShader = GD_GLES2_SHADER_PROGRAM(
+    precision highp float;
+
+    uniform vec2 u_viewportSize;
+
+    attribute vec4 a_position;
+
+    varying vec2 v_texturePosition;
+
+    void main()
+    {
+        v_texturePosition = a_position.zw;
+        gl_Position = vec4((2.0 * a_position.xy / u_viewportSize) - 1.0, 0.0, 1.0);
+    }
+);
+
+static const std::string s_textureFragmentShader = GD_GLES2_SHADER_PROGRAM(
+    precision highp float;
+
+    uniform sampler2D u_texture;
+
+    varying vec2 v_texturePosition;
+
+    void main()
+    {
+        gl_FragColor = texture2D(u_texture, v_texturePosition);
+    }
+);
+
+const int GepardGLES2::kMaximumNumberOfAttributes = GLushort(-1) + 1;
+const int GepardGLES2::kMaximumNumberOfUshortQuads = GepardGLES2::kMaximumNumberOfAttributes / 6;
+
 GepardGLES2::GepardGLES2(GepardContext& context)
     : _context(context)
 {
@@ -70,79 +102,61 @@ GepardGLES2::GepardGLES2(GepardContext& context)
     void* display = context.surface->getDisplay();
     GD_LOG3("Display is: " << display  << ".");
 
-    //! \todo the GLES2 backend rendering into 'fbo' in the future, so this separation is temporary.
-    if (display) {
-        GD_LOG2("Initialize EGL.");
-        eglDisplay = eglGetDisplay((EGLNativeDisplayType) display);
+    GD_LOG2("Initialize EGL.");
+    // 1. Get the default display.
+    eglDisplay = eglGetDisplay((EGLNativeDisplayType)display);
 
-        if (eglDisplay == EGL_NO_DISPLAY) {
-            GD_CRASH("eglGetDisplay returned EGL_DEFAULT_DISPLAY");
-        }
-        if (eglInitialize(eglDisplay, NULL, NULL) != EGL_TRUE) {
-            GD_CRASH("eglInitialize returned with EGL_FALSE");
-        }
-        if (eglChooseConfig(eglDisplay, configAttribs, &eglConfig, 1, &numOfConfigs) != EGL_TRUE) {
-            GD_CRASH("eglChooseConfig returned with EGL_FALSE");
-        }
-        EGLNativeWindowType window = context.surface->getWindow();
-        eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, window, NULL);
-        if (eglSurface == EGL_NO_SURFACE) {
-            GD_CRASH("eglCreateWindowSurface returned EGL_NO_SURFACE");
-        }
-        _eglContext = eglCreateContext(eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttribs);
-        if (_eglContext == EGL_NO_CONTEXT) {
-            GD_CRASH("eglCreateContext returned EGL_NO_CONTEXT");
-        }
-        if (eglMakeCurrent(eglDisplay, eglSurface, eglSurface, _eglContext) != EGL_TRUE) {
-            GD_CRASH("eglMakeCurrent returned EGL_FALSE");
-        }
+    if (eglDisplay == EGL_NO_DISPLAY) {
+        GD_CRASH("eglGetDisplay returned EGL_NO_DISPLAY");
+    }
 
-        // Set EGL display & surface.
-        _eglDisplay = eglDisplay;
-        _eglSurface = eglSurface;
-        GD_LOG3("EGL display and surface are: " << _eglDisplay  << " and " << _eglSurface << ".");
+    // 2. Initialize EGL.
+    if (eglInitialize(eglDisplay, NULL, NULL) != EGL_TRUE) {
+        GD_CRASH("eglInitialize returned with EGL_FALSE");
+    }
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    } else {
-        // 1. Get the default display.
-        eglDisplay = eglGetDisplay((EGLNativeDisplayType) 0);
-
-        // 2. Initialize EGL.
-        eglInitialize(eglDisplay, 0, 0);
-
+    if (!display) {
         // 3. Make OpenGL ES the current API.
         eglBindAPI(EGL_OPENGL_ES_API);
-
-        // 4. Find a config that matches all requirements.
-        int iConfigs;
-        eglChooseConfig(eglDisplay, configAttribs, &eglConfig, 1, &iConfigs);
-
-        if (iConfigs != 1) {
-            GD_CRASH("Error: eglChooseConfig(): config not found.");
-        }
-
-        // 5. Create a surface to draw to.
-        eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, (EGLNativeWindowType)NULL, NULL);
-
-        // 6. Create a context.
-        _eglContext = eglCreateContext(eglDisplay, eglConfig, NULL, contextAttribs);
-
-        // 7. Bind the context to the current thread
-        eglMakeCurrent(eglDisplay, eglSurface, eglSurface, _eglContext);
-
-        glGenFramebuffers(1, &_fboId);
-        glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
-
-        glGenTextures(1, &_textureId);
-        glBindTexture(GL_TEXTURE_2D, _textureId);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, context.surface->width(), context.surface->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _textureId, 0);
     }
+
+    // 4. Find a config that matches all requirements.
+    if (eglChooseConfig(eglDisplay, configAttribs, &eglConfig, 1, &numOfConfigs) != EGL_TRUE) {
+        GD_CRASH("eglChooseConfig returned with EGL_FALSE");
+    }
+
+    // 5. Create a surface to draw to.
+    EGLNativeWindowType window = context.surface->getWindow();
+    eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, (EGLNativeWindowType)window, NULL);
+    if (display && eglSurface == EGL_NO_SURFACE) {
+        GD_CRASH("eglCreateWindowSurface returned EGL_NO_SURFACE");
+    }
+
+    // 6. Create a context.
+    _eglContext = eglCreateContext(eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttribs);
+    if (_eglContext == EGL_NO_CONTEXT) {
+        GD_CRASH("eglCreateContext returned EGL_NO_CONTEXT");
+    }
+
+    // Set EGL display & surface.
+    _eglDisplay = eglDisplay;
+    _eglSurface = eglSurface;
+    GD_LOG3("EGL display and surface are: " << _eglDisplay  << " and " << _eglSurface << ".");
+
+    makeCurrent();
+
+    glGenFramebuffers(1, &_fboId);
+    glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
+
+    glGenTextures(1, &_textureId);
+    glBindTexture(GL_TEXTURE_2D, _textureId);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, context.surface->width(), context.surface->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _textureId, 0);
 
     const GLfloat red = 0.0f;
     const GLfloat green = 0.0f;
@@ -179,10 +193,16 @@ GepardGLES2::GepardGLES2(GepardContext& context)
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize * sizeof(GLushort), quadIndexes, GL_STATIC_DRAW);
 
     free(quadIndexes);
+
+    _attributes = reinterpret_cast<GLfloat*>(malloc(kMaximumNumberOfAttributes * sizeof(GLfloat)));
 }
 
 GepardGLES2::~GepardGLES2()
 {
+    if (_attributes) {
+        free(_attributes);
+    }
+
     if (_eglDisplay != EGL_NO_DISPLAY) {
         eglMakeCurrent(_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
         eglDestroyContext(_eglDisplay, _eglContext);
@@ -194,112 +214,68 @@ GepardGLES2::~GepardGLES2()
     }
 }
 
-//! \brief Fill rectangle vertex shader.
-static const std::string s_fillRectVertexShader = "\
-        uniform vec2 in_size;                           \
-                                                        \
-        attribute vec2 in_position;                     \
-        attribute vec4 in_color;                        \
-                                                        \
-        varying vec4 v_color;                           \
-                                                        \
-        void main(void)                                 \
-        {                                               \
-            v_color = in_color;                         \
-            vec2 coords = (2.0 * in_position.xy / in_size.xy) - 1.0; \
-            gl_Position = vec4(coords, 1.0, 1.0);       \
-        }                                               \
-                                     ";
-
-//! \brief Fill rectangle fragment shader.
-static const std::string s_fillRectFragmentShader = "\
-        precision highp float;                          \
-                                                        \
-        varying vec4 v_color;                           \
-                                                        \
-        void main(void)                                 \
-        {                                               \
-            gl_FragColor = v_color;                     \
-        }                                               \
-                                       ";
-
-static ShaderProgram s_fillRectProgram(s_fillRectVertexShader, s_fillRectFragmentShader);
-
-/*!
- * \brief Fill rect with GLES2 backend.
- * \param x  X-axis value of _start_ and _end_ point
- * \param y  Y-axis value of _start_ and _end_ point
- * \param w  size on X-axis
- * \param h  size on Y-axis
- *
- * \internal
- */
-void GepardGLES2::fillRect(Float x, Float y, Float w, Float h)
+void GepardGLES2::makeCurrent()
 {
-    GD_LOG1("Fill rect with GLES2 (" << x << ", " << y << ", " << w << ", " << h << ")");
+    static GepardGLES2* currentGepardGLES2 = nullptr;
 
-    const Color fillColor = _context.currentState().fillColor;
+    if (this != currentGepardGLES2) {
+        GD_LOG1("Make current binds the EGL rendering context.");
+        if (eglMakeCurrent(_eglDisplay, _eglSurface, _eglSurface, _eglContext) != EGL_TRUE) {
+            GD_CRASH("eglMakeCurrent returned EGL_FALSE");
+        }
+        currentGepardGLES2 = this;
+    }
+
+    GD_LOG3("Current GepardGLES2: " << this);
+}
+
+void GepardGLES2::render()
+{
+    //! \todo: if needed, call 'makeCurrent();'.
+
     const uint32_t width = _context.surface->width();
     const uint32_t height = _context.surface->height();
-    const int quadCount = 2;
-    const int numberOfAttributes = 3 * quadCount;
-
-    GD_LOG2("1. Compile shaders.");
-    ShaderProgram& program = s_fillRectProgram;
-    program.compileShaderProgram();
-
-    GLfloat attributes[] = {
-        GLfloat(x), GLfloat(y), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
-        GLfloat(x + w), GLfloat(y), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
-        GLfloat(x), GLfloat(y + h), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
-        GLfloat(x + w), GLfloat(y + h), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
-    };
-
-    GD_LOG2("1. Set blending.");
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    GD_LOG2("2. Use shader programs.");
-    glUseProgram(program.id);
-
-    GD_LOG2("3. Binding attributes.");
-    {
-        GLuint index = glGetUniformLocation(program.id, "in_size");
-        glUniform2f(index, width, height);
-    }
-
-    const GLsizei stride = numberOfAttributes * sizeof(GL_FLOAT);
-    int offset = 0;
-    {
-        const GLint size = 2;
-        GLuint index = glGetAttribLocation(program.id, "in_position");
-        glEnableVertexAttribArray(index);
-        glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, attributes + offset);
-        offset = size;
-    }
-
-    {
-        const GLint size = 4;
-        GLuint index = glGetAttribLocation(program.id, "in_color");
-        glEnableVertexAttribArray(index);
-        glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, attributes + offset);
-    }
-
-    GD_LOG2("4. Draw triangles in pairs as quads.");
-    glDrawElements(GL_TRIANGLES, quadCount * 6, GL_UNSIGNED_SHORT, nullptr);
 
     if (_context.surface->getDisplay()) {
+        ShaderProgram& textureProgram = _shaderProgramManager.getProgram("s_textureProgram", s_textureVertexShader, s_textureFragmentShader);
+        glUseProgram(textureProgram.id);
+
+        {
+            const GLfloat textureCoords[] = {
+                0.0, (GLfloat)height, 0.0, 0.0,
+                0.0, 0.0, 0.0, 1.0,
+                (GLfloat)width, (GLfloat)height, 1.0, 0.0,
+                (GLfloat)width, 0.0, 1.0, 1.0
+            };
+
+            const GLint index = glGetAttribLocation(textureProgram.id, "a_position");
+            glEnableVertexAttribArray(index);
+            glVertexAttribPointer(index, 4, GL_FLOAT, GL_FALSE, 0, textureCoords);
+        }
+
+        {
+            const GLint index = glGetUniformLocation(textureProgram.id, "u_viewportSize");
+            glUniform2f(index, width, height);
+        }
+
+        glBindTexture(GL_TEXTURE_2D, _textureId);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
         eglSwapBuffers(_eglDisplay, _eglSurface);
     } else if (_context.surface->getBuffer()) {
+        glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
         glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) _context.surface->getBuffer());
     } else {
+        glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
         std::vector<uint32_t> buffer(width * height);
         glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) buffer.data());
         _context.surface->drawBuffer(buffer.data());
     }
-
-    //! \todo: fix id = 0;
-    glDeleteProgram(s_fillRectProgram.id);
-    s_fillRectProgram.id = 0;
 }
 
 } // namespace gles2
