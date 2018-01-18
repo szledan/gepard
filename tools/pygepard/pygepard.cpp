@@ -1,6 +1,31 @@
-#include <Python.h>
-#include <iostream>
+/* Copyright (C) 2018, Gepard Graphics
+ * Copyright (C) 2018, Dániel Bátyai <dbatyai@inf.u-szeged.hu>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #include "gepard.h"
+#include <iostream>
+#include <Python.h>
 #include "surfaces/gepard-xsurface.h"
 
 typedef struct {
@@ -347,7 +372,13 @@ static PyTypeObject pygepard_GepardType = {
     Gepard__new,                   /* tp_new */
 };
 
-#if defined(PYTHON2)
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+const char *module_version_str = "Module has been built for Python version " STR(PY_MAJOR_VERSION) "." STR(PY_MINOR_VERSION) "." STR(PY_MICRO_VERSION);
+#undef STR
+#undef STR_HELPER
+
+#if PY_MAJOR_VERSION < 3
 static PyMethodDef pModuleMethods[] = {
     {NULL, NULL, 0, NULL}
 };
@@ -363,7 +394,13 @@ initpygepard(void)
     PyModule_AddObject(pModule, "Gepard", (PyObject *)&pygepard_GepardType);
 }
 
-#elif defined(PYTHON3)
+extern "C" PyObject*
+PyInit_pygepard(void)
+{
+    PyErr_SetString(PyExc_ImportError, module_version_str);
+    return nullptr;
+}
+#else /* PY_MAJOR_VERSION < 3 */
 static PyModuleDef pygepardmodule = {
     PyModuleDef_HEAD_INIT,
     "pygepard",
@@ -377,7 +414,7 @@ static PyModuleDef pygepardmodule = {
 };
 
 PyMODINIT_FUNC
-initpygepard(void)
+PyInit_pygepard(void)
 {
     PyObject* module;
 
@@ -389,10 +426,15 @@ initpygepard(void)
         return nullptr;
 
     Py_INCREF(&pygepard_GepardType);
+    PyModule_AddObject(module, "Gepard", (PyObject *)&pygepard_GepardType);
     return module;
 }
 
-#else
-#error "Unreachable"
-#endif
+PyMODINIT_FUNC
+initpygepard(void)
+{
+    PyErr_SetString(PyExc_ImportError, module_version_str);
+    return nullptr;
+}
+#endif /* PY_MAJOR_VERSION < 3 */
 
