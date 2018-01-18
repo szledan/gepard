@@ -518,7 +518,7 @@ SegmentList* SegmentApproximator::segments()
         // 4.a Fix intersection pairs.
         for (SegmentList::iterator segment = currentList->begin(); segment != currentList->end(); ++segment) {
             GD_ASSERT(segment->to.y - segment->from.y >= 1.0);
-if (segment->to.y - segment->from.y <= 1.0) /* TODO: is it a bug? (testcase: fillmode: EvenOdd, test: "ERD" part from test of "Erdély") */
+//if (segment->to.y - segment->from.y <= 1.0) /* TODO: is it a bug? (testcase: fillmode: EvenOdd, test: "ERD" part from test of "Erdély") */
             for (SegmentList::iterator furtherSegment = segment; furtherSegment != currentList->end() ; ++furtherSegment) {
                 GD_ASSERT(segment->from.y == furtherSegment->from.y);
                 GD_ASSERT(segment->to.y == furtherSegment->to.y);
@@ -534,11 +534,12 @@ if (segment->to.y - segment->from.y <= 1.0) /* TODO: is it a bug? (testcase: fil
             }
         }
         if (needSorting) {
-            currentList->sort();
-        }
+            //currentList->sort();
+            --currentSegments;
+        } else
+        segments->merge(*currentList);
 
         // 4.b Merge segment lists.
-        segments->merge(*currentList);
     }
 
     // 5. Return independent segments.

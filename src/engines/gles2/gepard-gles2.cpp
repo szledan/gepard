@@ -259,7 +259,6 @@ void GepardGLES2::render()
         }
 
         glBindTexture(GL_TEXTURE_2D, _textureId);
-
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -267,6 +266,8 @@ void GepardGLES2::render()
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         eglSwapBuffers(_eglDisplay, _eglSurface);
+        glClearColor(0.0, 0.0, 0.0, 0.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     } else if (_context.surface->getBuffer()) {
         glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
         glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) _context.surface->getBuffer());

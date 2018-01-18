@@ -169,35 +169,44 @@ int main(int argc, char* argv[])
                     _m = (m + _s) / 60.0;
                     _h = (h + _m) / 12.0;
                 }
-                _ctx.lineWidth = _lineWidth + (isClear ? 5 : 0);
-                 clockHand(0.5 * _size, _h, isClear ? "#000" : "#f00");
-                 clockHand(0.66 * _size, _m, isClear ? "#000" : "#0f0");
-                 clockHand(0.86 * _size, _s, isClear ? "#000" : "#00f");
+                _ctx.lineWidth = _lineWidth + (isClear ? 2 : 0);
+                clockHand(0.5 * _size, _h, isClear ? "#000" : "#f00");
+                clockHand(0.66 * _size, _m, isClear ? "#000" : "#0f0");
+                clockHand(0.86 * _size, _s, isClear ? "#000" : "#00f");
             }
             void clear() { showNow(0, 0, 0, true); }
             void run()
             {
                 clockFace();
                 XEvent xEvent;
+                const uint msStep = 100;
+                uint ms = 0;
+                int sc = 0;
                 while (true) {
                     std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
                     struct std::tm* np = std::localtime(&now);
-                    showNow(np->tm_hour, np->tm_min, np->tm_sec);
-                    std::this_thread::sleep_for(std::chrono::milliseconds(900));
-                    clear();
 
+                    if (sc != np->tm_sec) {
+                        sc = np->tm_sec;
+                        ms = 0;
+                    }
+                    showNow(np->tm_hour, np->tm_min, np->tm_sec + (ms += msStep) / 1000.0);
+
+                    std::this_thread::sleep_for(std::chrono::milliseconds(msStep));
                     if (XCheckWindowEvent((Display*)_surface.getDisplay(), (Window)_surface.getWindow(), KeyPress | ClientMessage, &xEvent)) {
                         break;
                     }
+
+                    clear();
                 }
             }
 
-            float _lineWidth = 3.0;
-            float _cx = 300.0;
-            float _cy = 300.0;
-            float _size = 100.0;
+            const float _lineWidth = 3.0;
+            const float _size = 100.0;
+            const float _cx = _size;
+            const float _cy = _size;
             float _h, _m, _s;
-            gepard::XSurface _surface = gepard::XSurface(600, 600);
+            gepard::XSurface _surface = gepard::XSurface(2 * _size, 2 * _size);
             gepard::Gepard _ctx = gepard::Gepard(&_surface);
         } clck;
 
