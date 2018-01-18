@@ -352,6 +352,10 @@ public:
     {
     }
 
+    virtual ~Surface()
+    {
+    }
+
     virtual void* getDisplay() = 0;
     virtual unsigned long getWindow() = 0;
     virtual void* getBuffer() = 0;
