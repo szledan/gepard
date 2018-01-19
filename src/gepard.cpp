@@ -579,4 +579,9 @@ void Gepard::setFillColor(const float red, const float green, const float blue, 
     _engine->setFillColor(red, green, blue, alpha);
 }
 
+// Virtual destructor definition for the abstract Surface class.
+Surface::~Surface()
+{
+}
+
 } // namespace gepard

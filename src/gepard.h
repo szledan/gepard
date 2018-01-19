@@ -366,10 +366,6 @@ protected:
     uint32_t _height;
 };
 
-inline Surface::~Surface()
-{
-}
-
 } // namespace gepard
 
 #endif // GEPARD_H
