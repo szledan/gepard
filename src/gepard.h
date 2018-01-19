@@ -352,10 +352,7 @@ public:
     {
     }
 
-    virtual ~Surface()
-    {
-    }
-
+    virtual ~Surface() = 0;
     virtual void* getDisplay() = 0;
     virtual unsigned long getWindow() = 0;
     virtual void* getBuffer() = 0;
@@ -368,6 +365,10 @@ protected:
     uint32_t _width;
     uint32_t _height;
 };
+
+inline Surface::~Surface()
+{
+}
 
 } // namespace gepard
 
