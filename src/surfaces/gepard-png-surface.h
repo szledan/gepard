@@ -48,7 +48,8 @@ public:
         , _title(title)
     {
     }
-    ~PNGSurface()
+
+    virtual ~PNGSurface()
     {
         if (_buffer) {
             std::free(_buffer);

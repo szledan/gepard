@@ -66,7 +66,8 @@ public:
         XMapWindow(_display, _window); // make the window visible on the screen
         XStoreName(_display, _window, windowTitle.c_str());
     }
-    ~XSurface()
+
+    virtual ~XSurface()
     {
         XDestroyWindow(_display, _window);
         XCloseDisplay(_display);
