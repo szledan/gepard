@@ -401,6 +401,7 @@ struct Color : public Vec4 {
     Color& operator*=(const Float& rhs);
 
     static const Color BLACK;
+    static const Color WHITE;
 };
 
 /*!

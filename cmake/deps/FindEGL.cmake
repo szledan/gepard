@@ -10,7 +10,7 @@ find_library(EGL_LIBRARY EGL
              PATHS "/usr/lib/mesa")
 
 find_library(GLES2_LIBRARY GLESv2
-          PATHS "/usr/lib/x86_64-linux-gnu")
+             PATHS "/usr/lib/x86_64-linux-gnu")
 
 find_path(EGL_INCLUDE_DIR "EGL/egl.h")
 

@@ -64,7 +64,7 @@ int main()
 
         pathShape(pngGepard);
 
-        pngSurface.save("fillRect.png");
+        pngSurface.save("fill-rect.png");
     }
 
     // Draw on XWindow.

@@ -70,6 +70,7 @@ Float& Vec4::operator[](std::size_t idx)
 /* Color */
 
 const Color Color::BLACK(0.0f, 0.0f, 0.0f, 1.0f);
+const Color Color::WHITE(1.0f, 1.0f, 1.0f, 1.0f);
 
 Color Color::fromRawDataABGR(uint32_t raw)
 {

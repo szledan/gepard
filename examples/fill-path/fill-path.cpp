@@ -1,5 +1,5 @@
-/* Copyright (C) 2017, Gepard Graphics
- * Copyright (C) 2017, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2017-2018, Gepard Graphics
+ * Copyright (C) 2017-2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,13 +24,8 @@
  */
 
 #include "gepard.h"
-#include "surfaces/gepard-xsurface.h"
 #include "surfaces/gepard-png-surface.h"
-#include <chrono>
-#include <cmath>
-#include <ctime>
 #include <iostream>
-#include <thread>
 
 void pathShape(gepard::Gepard& ctx)
 {
@@ -63,7 +58,7 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    std::string pngFile = (argc > 1) ? argv[1] : "fillPath.png";
+    std::string pngFile = (argc > 1) ? argv[1] : "fill-path.png";
 
     gepard::PNGSurface pngSurface(600, 600);
     gepard::Gepard pngGepard(&pngSurface);

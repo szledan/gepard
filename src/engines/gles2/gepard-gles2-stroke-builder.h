@@ -69,7 +69,6 @@ public:
     PathData* pathData() { return &_path; }
 
 private:
-
     inline void addMoveToShape();
     inline void addCloseSubpathShape(const FloatPoint&, const CloseSubpathElement*);
     inline void addLineShape(const FloatPoint&, const LineToElement*);
@@ -82,7 +81,6 @@ private:
         if (_hasShapeFirstLine)
             addCapShape(_lineCap);
     }
-
 
     inline FloatPoint miterLength(const FloatPoint&, const FloatPoint&);
 

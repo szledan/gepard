@@ -54,15 +54,3 @@ void GepardGLES2::strokePath(PathData* path, const GepardState& state)
 } // namespace gepard
 
 #endif // GD_USE_GLES2
-
-#if 0
-
-void PlatformContextTyGL::strokePath(const TyGL::PathData* path, Coloring coloring)
-{
-    m_coloring = &coloring;
-    strokePath(path);
-    resetColoring();
-}
-
-} // namespace WebCore
-#endif
