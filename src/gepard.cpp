@@ -35,6 +35,13 @@
 
 namespace gepard {
 
+Gepard::Attribute::Attribute(const char* chs, void (*cbf)(GepardEngine*, const std::string&), GepardEngine* eng)
+    : callBackFunction(cbf)
+    , engine(eng)
+    , data(chs)
+{
+}
+
 Gepard::Attribute& Gepard::Attribute::operator=(const Attribute& atr)
 {
     callBackFunction = atr.callBackFunction;
@@ -51,6 +58,31 @@ Gepard::Attribute& Gepard::Attribute::operator=(const std::string& str)
     callFunction();
 
     return *this;
+}
+
+Gepard::Attribute&Gepard::Attribute::operator=(const char* chs)
+{
+    this->operator=(std::string(chs)); return *this;
+}
+
+gepard::Gepard::Attribute::operator std::string() const
+{
+    return data;
+}
+
+gepard::Gepard::Attribute::operator double() const
+{
+    return std::stod(data);
+}
+
+gepard::Gepard::Attribute::operator float() const
+{
+    return std::stof(data);
+}
+
+gepard::Gepard::Attribute::operator int() const
+{
+    return std::stoi(data);
 }
 
 void Gepard::Attribute::callFunction()

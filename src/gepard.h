@@ -38,20 +38,20 @@ class Surface;
 class Gepard {
     struct Attribute {
     public:
-        Attribute(const char* chs = "", void(*cbf)(GepardEngine*, const std::string&) = nullptr, GepardEngine* eng = nullptr) : callBackFunction(cbf), engine(eng), data(chs) {}
+        Attribute(const char* chs = "", void(*cbf)(GepardEngine*, const std::string&) = nullptr, GepardEngine* eng = nullptr);
         template<typename T>
         Attribute(const T value, void(*cbf)(GepardEngine*, const std::string&) = nullptr, GepardEngine* eng = nullptr) : callBackFunction(cbf), engine(eng), data(std::to_string(value)) {}
 
         Attribute& operator=(const Attribute&);
         Attribute& operator=(const std::string&);
-        Attribute& operator=(const char* chs) { this->operator=(std::string(chs)); return *this; }
+        Attribute& operator=(const char* chs);
         template<typename T>
         Attribute& operator=(const T value) { this->operator=(std::to_string(value)); return *this; }
 
-        operator std::string() const{ return data; }
-        operator double() const { return std::stod(data); }
-        operator float() const { return std::stof(data); }
-        operator int() const { return std::stoi(data); }
+        operator std::string() const;
+        operator double() const;
+        operator float() const;
+        operator int() const;
 
         void callFunction();
         void setCallBack(GepardEngine*, void(*func)(GepardEngine*, const std::string&));
