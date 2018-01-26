@@ -40,7 +40,7 @@ Gepard::Gepard(Surface* surface)
 #if defined(GD_ENABLE_MINITRACE)
     const char* minitraceFile = std::getenv("GD_MINITRACE_FILE");
     mtr_init(minitraceFile ? minitraceFile : "gepard.json");
-#endif // ENABLE_MINITRACE
+#endif // GD_ENABLE_MINITRACE
 
     _engine = new GepardEngine(surface);
 }
