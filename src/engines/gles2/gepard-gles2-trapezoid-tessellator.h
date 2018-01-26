@@ -58,7 +58,7 @@ struct Segment {
     const bool isOnSegment(const Float y) const;
 
     const Segment splitSegment(const Float y);
-    const Float computeIntersectionY(Segment* segment) const;
+    const bool computeIntersectionY(Segment* segment, Float& y) const;
 
     FloatPoint from;
     FloatPoint to;
@@ -94,20 +94,25 @@ public:
     const BoundingBox boundingBox() const { return _boundingBox; }
 
     inline void splitSegments();
-    void printSegements();
-
-private:
-    void insertSegment(const FloatPoint& from, const FloatPoint& to);
+    void printSegments();
 
     const bool quadCurveIsLineSegment(FloatPoint[]);
     void splitQuadraticCurve(FloatPoint[]);
+
     const bool curveIsLineSegment(FloatPoint[]);
+    const bool curveIsLineSegment(const FloatPoint& p0, const FloatPoint& p1, const FloatPoint& p2);
     void splitCubeCurve(FloatPoint[]);
-    const int calculateSegments(const Float& angle, const Float& radius);
+
+    const int calculateArcSegments(const Float& angle, const Float& radius);
     void arcToCurve(FloatPoint[], const Float&, const Float&);
 
-    const int _kAntiAliasLevel;
-    const Float _kTolerance;
+    const bool collinear(const FloatPoint& p0, const FloatPoint& p1, const FloatPoint& p2);
+
+    const int kAntiAliasLevel;
+    const Float kTolerance;
+private:
+    void insertSegment(const FloatPoint& from, const FloatPoint& to);
+
     SegmentTree _segments;
 
     BoundingBox _boundingBox;
@@ -150,7 +155,7 @@ public:
         NonZero,
     };
 
-    TrapezoidTessellator(Path* path, FillRule fillRule = NonZero, int antiAliasingLevel = GD_GLES2_ANTIALIAS_LEVEL);
+    TrapezoidTessellator(PathData&, FillRule = NonZero, int antiAliasingLevel = GD_GLES2_ANTIALIAS_LEVEL);
 
     const FillRule fillRule() const { return _fillRule; }
     const TrapezoidList trapezoidList();
@@ -158,7 +163,7 @@ public:
     const int antiAliasingLevel() const { return _antiAliasingLevel; }
 
 private:
-    Path* _path;
+    PathData& _pathData;
     const FillRule _fillRule;
     const int _antiAliasingLevel;
 

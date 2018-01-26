@@ -348,6 +348,12 @@ void PathData::addCloseSubpathElement()
     _lastElement = _lastElement->next;
 }
 
+const bool PathData::isEmpty() const
+{
+    //! \todo(szledan): Need more investigation of condition.
+    return _firstElement == _lastElement;
+}
+
 const PathElement* PathData::operator[](std::size_t idx) const
 {
     PathElement* element = _firstElement;
@@ -383,7 +389,9 @@ Path::~Path()
 
 void Path::clear()
 {
-    delete _pathData;
+    if (_pathData) {
+        delete _pathData;
+    }
     _pathData = new PathData();
 }
 

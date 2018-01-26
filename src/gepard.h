@@ -36,12 +36,29 @@ class Image;
 class Surface;
 
 class Gepard {
-    class String : public std::string {
+    struct Attribute {
     public:
-        String(const char* chs = "") : std::string(chs) {}
-        String& operator=(const std::string& str) { status = !status; *((std::string*)this) = str; return *this; }
-        String& operator=(const char* chs) { status = !status; *((std::string*)this) = chs; return *this; }
-        bool status = false;
+        Attribute(const char* chs = "", void(*cbf)(GepardEngine*, const std::string&) = nullptr, GepardEngine* eng = nullptr);
+        template<typename T>
+        Attribute(const T value, void(*cbf)(GepardEngine*, const std::string&) = nullptr, GepardEngine* eng = nullptr) : callBackFunction(cbf), engine(eng), data(std::to_string(value)) {}
+
+        Attribute& operator=(const Attribute&);
+        Attribute& operator=(const std::string&);
+        Attribute& operator=(const char* chs);
+        template<typename T>
+        Attribute& operator=(const T value) { this->operator=(std::to_string(value)); return *this; }
+
+        operator std::string() const;
+        operator double() const;
+        operator float() const;
+        operator int() const;
+
+        void callFunction();
+        void setCallBack(GepardEngine*, void(*func)(GepardEngine*, const std::string&));
+        void(*callBackFunction)(GepardEngine*, const std::string&) = nullptr;
+        GepardEngine* engine = nullptr;
+
+        std::string data = "";
     };
 
 public:
@@ -79,6 +96,88 @@ public:
      * \endcond
      */
     /// \{
+
+    /*! \name 3. Line styles
+     */
+    /// \{
+
+    /*!
+     * \brief lineWidth
+     *
+     *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
+     * Returns the current line width.
+     *
+     * Can be set, to change the line width. Values that are not finite values
+     * greater than zero are ignored.
+     *  -- <a href="https://www.w3.org/TR/2dcontext/#line-styles">[W3C-2DContext]</a>
+     *   </blockquote>
+     *
+     * \cond
+     * \note The documentation contains quotes from the
+     * <a href="https://www.w3.org/TR/2dcontext">W3C-2DContext</a>
+     * recommandation.  These are closed in a \c \<blockquote\>.
+     * \endcond
+     */
+    Attribute lineWidth = 1.0;
+    /*!
+     * \brief lineCap
+     *
+     *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
+     * Returns the current line cap style.
+     *
+     * Can be set, to change the line cap style.
+     *
+     * The possible line cap styles are "butt", "round", and "square". Other values
+     * are ignored.
+     *  -- <a href="https://www.w3.org/TR/2dcontext/#line-styles">[W3C-2DContext]</a>
+     *   </blockquote>
+     *
+     * \cond
+     * \note The documentation contains quotes from the
+     * <a href="https://www.w3.org/TR/2dcontext">W3C-2DContext</a>
+     * recommandation.  These are closed in a \c \<blockquote\>.
+     * \endcond
+     */
+    Attribute lineCap = "butt";
+    /*!
+     * \brief lineJoin
+     *
+     *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
+     * Returns the current line join style.
+     *
+     * Can be set, to change the line join style.
+     *
+     * The possible line join styles are "bevel", "round", and "miter". Other values
+     * are ignored.
+     *  -- <a href="https://www.w3.org/TR/2dcontext/#line-styles">[W3C-2DContext]</a>
+     *   </blockquote>
+     *
+     * \cond
+     * \note The documentation contains quotes from the
+     * <a href="https://www.w3.org/TR/2dcontext">W3C-2DContext</a>
+     * recommandation.  These are closed in a \c \<blockquote\>.
+     * \endcond
+     */
+    Attribute lineJoin = "miter";
+    /*!
+     * \brief miterLimit
+     *
+     *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
+     * Returns the current miter limit ratio.
+     *
+     * Can be set, to change the miter limit ratio. Values that are not finite values
+     * greater than zero are ignored.
+     *  -- <a href="https://www.w3.org/TR/2dcontext/#line-styles">[W3C-2DContext]</a>
+     *   </blockquote>
+     *
+     * \cond
+     * \note The documentation contains quotes from the
+     * <a href="https://www.w3.org/TR/2dcontext">W3C-2DContext</a>
+     * recommandation.  These are closed in a \c \<blockquote\>.
+     * \endcond
+     */
+    Attribute miterLimit = 10;
+    /// \}  3. Line styles
 
     /*!
      * \brief Marks the current subpath as closed, and starts a new subpath
@@ -187,12 +286,44 @@ public:
 
     /*!
      * \brief fillStyle
+     *
+     *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
+     * Returns the current style used for filling shapes.
+     *
+     * Can be set, to change the fill style.
+     *
+     * The style can be either a string containing a CSS color, or a CanvasGradient
+     * or CanvasPattern object. Invalid values are ignored.
+     *  -- <a href="https://www.w3.org/TR/2dcontext/#fill-and-stroke-styles">[W3C-2DContext]</a>
+     *   </blockquote>
+     *
+     * \cond
+     * \note The documentation contains quotes from the
+     * <a href="https://www.w3.org/TR/2dcontext">W3C-2DContext</a>
+     * recommandation.  These are closed in a \c \<blockquote\>.
+     * \endcond
      */
-    String fillStyle = "black";
+    Attribute fillStyle = "black";
     /*!
      * \brief strokeStyle
+     *
+     *   <blockquote cite="https://www.w3.org/TR/2dcontext/">
+     * Returns the current style used for stroking shapes.
+     *
+     * Can be set, to change the stroke style.
+     *
+     * The style can be either a string containing a CSS color, or a CanvasGradient
+     * or CanvasPattern object. Invalid values are ignored.
+     *  -- <a href="https://www.w3.org/TR/2dcontext/#fill-and-stroke-styles">[W3C-2DContext]</a>
+     *   </blockquote>
+     *
+     * \cond
+     * \note The documentation contains quotes from the
+     * <a href="https://www.w3.org/TR/2dcontext">W3C-2DContext</a>
+     * recommandation.  These are closed in a \c \<blockquote\>.
+     * \endcond
      */
-    String strokeStyle = "black";
+    Attribute strokeStyle = "black";
     /// \}  8. Fill and stroke styles
 
     /*! \name 9. CanvasAPI Rectangles
@@ -335,8 +466,6 @@ public:
 
 private:
     GepardEngine* _engine;
-    bool fillStyleStatus = fillStyle.status;
-    bool strokeStatus = strokeStyle.status;
 };
 
 /*!

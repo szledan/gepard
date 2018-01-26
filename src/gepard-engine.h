@@ -85,9 +85,20 @@ public:
     void setFillColor(const Color& color);
     void setFillColor(const Float red, const Float green, const Float blue, const Float alpha = 1.0f);
 
+    void setStrokeColor(const Color& color);
+
+    void setFillStyle(const std::string&);
+    void setStrokeStyle(const std::string&);
+    void setLineWidth(const std::string&);
+    void setLineCap(const std::string&);
+    void setLineJoin(const std::string&);
+    void setMiterLimit(const std::string&);
+
     GepardContext& context() { return _context; }
 
 private:
+    GepardState& state();
+
     GepardContext _context;
     GepardEngineBackend* _engineBackend;
 };

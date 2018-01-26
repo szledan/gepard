@@ -1,5 +1,5 @@
-/* Copyright (C) 2017, Gepard Graphics
- * Copyright (C) 2017, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2017-2018, Gepard Graphics
+ * Copyright (C) 2017-2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,15 +24,15 @@
  */
 
 #include "gepard.h"
-#include "surfaces/gepard-xsurface.h"
 #include "surfaces/gepard-png-surface.h"
-#include <chrono>
 #include <iostream>
-#include <thread>
 
-void gShape(gepard::Gepard& ctx)
+void pathShape(gepard::Gepard& ctx)
 {
-    ctx.fillStyle = "#0F0";
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, 600, 600);
+
+    ctx.fillStyle = "#0f0";
     ctx.beginPath();
     ctx.moveTo(300, 100);
     ctx.lineTo(50, 230);
@@ -40,7 +40,7 @@ void gShape(gepard::Gepard& ctx)
     ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = "#F00";
+    ctx.fillStyle = "#f00";
     ctx.beginPath();
     ctx.moveTo(100, 100);
     ctx.lineTo(180, 200);
@@ -51,34 +51,21 @@ void gShape(gepard::Gepard& ctx)
 
 int main(int argc, char* argv[])
 {
-    // Parse arguments.
-    const int flags = argc < 2 ? 3 : std::atoi(argv[1]);
-
-    // Draw to PNG file.
-    if (flags & 1) {
-        gepard::PNGSurface pngSurface(600, 600);
-        gepard::Gepard pngGepard(&pngSurface);
-
-        gShape(pngGepard);
-
-        pngSurface.save("fillPath.png");
+    if ((argc > 1) && (std::string(argv[1]) == "-h" || std::string(argv[1]) == "--help")) {
+        std::cout << "Usage: " << argv[0] << " [options] [file-name]" << std::endl << std::endl;
+        std::cout << "Options:" << std::endl;
+        std::cout << "  -h, --help    show this help." << std::endl;
+        return 0;
     }
 
-    // Draw on XWindow.
-    if (flags & 2) {
-        gepard::XSurface surface(600, 600);
-        gepard::Gepard gepard(&surface);
+    std::string pngFile = (argc > 1) ? argv[1] : "fill-path.png";
 
-        gShape(gepard);
+    gepard::PNGSurface pngSurface(600, 600);
+    gepard::Gepard pngGepard(&pngSurface);
 
-        XEvent xEvent;
-        while (true) {
-            std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.
-            if (XCheckWindowEvent((Display*)surface.getDisplay(), (Window)surface.getWindow(), KeyPress | ClientMessage, &xEvent)) {
-                break;
-            }
-        }
-    }
+    pathShape(pngGepard);
+
+    pngSurface.save(pngFile);
 
     return 0;
 }

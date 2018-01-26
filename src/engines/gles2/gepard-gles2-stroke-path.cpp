@@ -27,13 +27,30 @@
 
 #include "gepard-gles2.h"
 
+#include "gepard-defs.h"
+#include "gepard-gles2-stroke-builder.h"
+#include "gepard-path.h"
+#include "gepard-types.h"
+#include <memory>
+
 namespace gepard {
 namespace gles2 {
 
-void GepardGLES2::stroke()
+void GepardGLES2::strokePath()
 {
-    makeCurrent();
-    GD_NOT_IMPLEMENTED();
+    PathData* pathData = _context.path.pathData();
+    const GepardState& state = _context.currentState();
+
+    GD_LOG3("Path: " << pathData->firstElement());
+    if (!pathData || pathData->isEmpty())
+        return;
+
+    Float miterLimit = state.miterLimit ? state.miterLimit : 10;
+
+    StrokePathBuilder sPath(state.lineWitdh, miterLimit, state.lineJoinMode, state.lineCapMode);
+    sPath.convertStrokeToFill(pathData);
+
+    fillPath(sPath.pathData(), state.strokeColor);
 }
 
 } // namespace gles2

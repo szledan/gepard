@@ -28,6 +28,8 @@
 
 #include "gepard-defs.h"
 #include <cmath>
+#include <limits>
+#include <string>
 #include <vector>
 
 namespace gepard {
@@ -45,6 +47,7 @@ const double precisionOfFloat = 1000 * 1000 * 1000;
 //   const float precisionOfFloat = 100 * 1000;
 // #endif
 
+inline const Float strToFloat(const std::string& str) { return std::stod(str); }
 inline Float fixPrecision(Float f) { return std::floor(f * precisionOfFloat) / precisionOfFloat; }
 
 static const Float piFloat = 2.0 * std::asin(1.0);
@@ -159,8 +162,24 @@ struct FloatPoint {
     FloatPoint() : x(0.0), y(0.0) {}
     FloatPoint(Float x_, Float y_) : x(x_), y(y_) {}
 
-    Float lengthSquared() const { return x * x + y * y; }
-    Float dot(const FloatPoint& p) const { return x * p.x + y * p.y; }
+    const Float lengthSquared() const { return x * x + y * y; }
+    const Float length() const { return std::sqrt(lengthSquared()); }
+    const Float dot(const FloatPoint& p) const { return x * p.x + y * p.y; }
+    const Float cross(const FloatPoint& p) const { return x * p.y - y * p.x; }
+    const FloatPoint normal() const { return FloatPoint(y, -x); }
+
+    const bool isZero() const { return (std::fabs(x) < std::numeric_limits<Float>::epsilon()) && (std::fabs(y) < std::numeric_limits<Float>::epsilon()); }
+
+    void set(const Float newX, const Float newY)
+    {
+        x = newX;
+        y = newY;
+    }
+    void scale(const Float scaleX, const Float scaleY)
+    {
+        x *= scaleX;
+        y *= scaleY;
+    }
 
     Float x;
     Float y;
@@ -206,10 +225,20 @@ inline FloatPoint operator-(const FloatPoint& lhs, const FloatPoint& rhs)
     return FloatPoint(lhs.x - rhs.x, lhs.y - rhs.y);
 }
 
+inline FloatPoint operator-(const FloatPoint& fp)
+{
+    return FloatPoint(-fp.x, -fp.y);
+}
+
 inline FloatPoint operator/(const FloatPoint& fp, const Float& f)
 {
     GD_ASSERT(f);
     return FloatPoint(fp.x / f, fp.y / f);
+}
+
+inline FloatPoint operator*(const Float& f, const FloatPoint& fp)
+{
+    return FloatPoint(f * fp.x, f * fp.y);
 }
 
 inline FloatPoint operator*(const FloatPoint& fp, const FloatPoint& de)
@@ -325,15 +354,17 @@ struct Color : public Vec4 {
         ss >> n;
         GD_LOG3("Convert '" << color << "' string to hex number: " << std::hex << n);
 
+        a = 1.0;
         if (length == 7) {
-            r = (n & 0xff0000) >> 16;
-            g = (n & 0x00ff00) >> 8;
-            b = n & 0x0000ff;
+            r = ((n & 0xff0000) >> 16) / 255.0;
+            g = ((n & 0x00ff00) >> 8) / 255.0;
+            b = (n & 0x0000ff) / 255.0;
         } else if (length == 4) {
-            r = (n & 0xf00) >> 8;
-            g = (n & 0x0f0) >> 4;
-            b =  n & 0x00f;
+            r = ((n & 0xf00) >> 8) / 15.0;
+            g = ((n & 0x0f0) >> 4) / 15.0;
+            b =  (n & 0x00f) / 15.0;
         }
+        GD_LOG3("Color is: " << r << ", " << g << ", " << b << ", " << a << ".");
     }
     Color(const Color& color) : Color(color.r, color.g, color.b, color.a) {}
 
@@ -369,6 +400,7 @@ struct Color : public Vec4 {
      */
     Color& operator*=(const Float& rhs);
 
+    static const Color BLACK;
     static const Color WHITE;
 };
 
@@ -381,6 +413,22 @@ inline Color operator+(const Color& lhs, const Color& rhs)
     return Color(lhs.r + rhs.r, lhs.g + rhs.g, lhs.b + rhs.b, lhs.a + rhs.a);
 }
 
+typedef enum LineCapTypes {
+    ButtCap,
+    RoundCap,
+    SquareCap,
+} LineCapType;
+
+LineCapTypes strToLineCap(const std::string& value);
+
+typedef enum LineJoinTypes {
+    RoundJoin,
+    BevelJoin,
+    MiterJoin,
+} LineJoinType;
+
+LineJoinTypes strToLineJoin(const std::string& value);
+
 /* GepardState */
 
 /*!
@@ -392,7 +440,14 @@ inline Color operator+(const Color& lhs, const Color& rhs)
  * \internal
  */
 struct GepardState {
-    Color fillColor = Color(Color::WHITE);
+    Color fillColor = Color(Color::BLACK);
+
+    Color strokeColor = Color(Color::BLACK);
+    //! \brief CanvasDrawingStyles
+    Float lineWitdh = 1.0;
+    LineJoinTypes lineJoinMode = BevelJoin;
+    LineCapTypes lineCapMode = ButtCap;
+    Float miterLimit = 10;
 };
 
 } // namespace gepard
