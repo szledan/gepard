@@ -56,7 +56,7 @@ public:
 
     void fillRect(const Float x, const Float y, const Float w, const Float h, const Color& fillColor);
     void fillPath(PathData*, const Color&);
-    void strokePath(PathData*, const GepardState&);
+    void strokePath();
 
 private:
     void makeCurrent();

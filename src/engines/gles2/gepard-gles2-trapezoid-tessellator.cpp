@@ -474,10 +474,10 @@ inline void SegmentApproximator::splitSegments()
 
 SegmentList* SegmentApproximator::segments()
 {
-    // 1. Split segments with all y lines.
+    // Split segments with all y lines.
     splitSegments();
 
-    // 2. Find all intersection points.
+    // Find all intersection points.
     std::set<int> ys;
     for (auto& currentSegments : _segments) {
         SegmentList* currentList = currentSegments.second;
@@ -504,25 +504,26 @@ SegmentList* SegmentApproximator::segments()
         _segments.emplace(y, new SegmentList());
     }
 
-    // 3. Split segments with all y lines.
+    // Split segments with all y lines.
     splitSegments();
 
-    // 4. Merge and sort all segment list.
-    // TODO: use MovePtr:
+    // Merge and sort all segment list.
     SegmentList* segments = new SegmentList();
     for (SegmentTree::iterator currentSegments = _segments.begin(); currentSegments != _segments.end(); ++currentSegments) {
         SegmentList* currentList = currentSegments->second;
         currentList->sort();
 
         bool needSorting = false;
-        // 4.a Fix intersection pairs.
+        // Fix intersection pairs.
         for (SegmentList::iterator segment = currentList->begin(); segment != currentList->end(); ++segment) {
             GD_ASSERT(segment->to.y - segment->from.y >= 1.0);
-//if (segment->to.y - segment->from.y <= 1.0) /* TODO: is it a bug? (testcase: fillmode: EvenOdd, test: "ERD" part from test of "Erdély") */
+            //! \todo(szledan): definitely this if statment is needed before the for
+            //!  if (segment->to.y - segment->from.y <= 1.0)
             for (SegmentList::iterator furtherSegment = segment; furtherSegment != currentList->end() ; ++furtherSegment) {
                 GD_ASSERT(segment->from.y == furtherSegment->from.y);
                 GD_ASSERT(segment->to.y == furtherSegment->to.y);
-//                GD_ASSERT(furtherSegment->from.x >= segment->from.x)
+                //! \todo(szledan): need to test this assert:
+                //! GD_ASSERT(furtherSegment->from.x >= segment->from.x)
                 if (furtherSegment->to.x < segment->to.x) {
                     if (furtherSegment->from.x - segment->from.x < segment->to.x - furtherSegment->to.x) {
                         furtherSegment->from.x = segment->from.x;
@@ -534,15 +535,14 @@ SegmentList* SegmentApproximator::segments()
             }
         }
         if (needSorting) {
-            //currentList->sort();
             --currentSegments;
-        } else
-        segments->merge(*currentList);
-
-        // 4.b Merge segment lists.
+        } else {
+            // Merge segment lists.
+            segments->merge(*currentList);
+        }
     }
 
-    // 5. Return independent segments.
+    // Return independent segments.
     return segments;
 }
 

@@ -7,10 +7,7 @@ find_library(GLES2_LIBRARY GLESv2
 
 # If not found, check in other system directories
 find_library(GLES2_LIBRARY GLESv2
-             PATHS "/usr/lib/mesa")
-
-find_library(GLES2_LIBRARY GLESv2
-             PATHS "/usr/lib/x86_64-linux-gnu")
+             PATHS "/usr/lib/mesa" "/usr/lib/x86_64-linux-gnu")
 
 find_path(GLES2_INCLUDE_DIR "GLES2/gl2.h")
 

@@ -69,12 +69,12 @@ void Gepard::Attribute::setCallBack(GepardEngine* eng, void(*func)(GepardEngine*
 Gepard::Gepard(Surface* surface)
     : _engine(new GepardEngine(surface))
 {
-    fillStyle.setCallBack(_engine, [](GepardEngine* engine, const std::string& color){ engine->context().setFillStyle(color); });
-    strokeStyle.setCallBack(_engine, [](GepardEngine* engine, const std::string& color){ engine->context().setStrokeStyle(color); });
-    lineWidth.setCallBack(_engine, [](GepardEngine* engine, const std::string& width){ engine->context().setLineWidth(width); });
-    lineCap.setCallBack(_engine, [](GepardEngine* engine, const std::string& capMode){ engine->context().setLineCap(capMode); });
-    lineJoin.setCallBack(_engine, [](GepardEngine* engine, const std::string& joinMode){ engine->context().setLineJoin(joinMode); });
-    miterLimit.setCallBack(_engine, [](GepardEngine* engine, const std::string& limit){ engine->context().setMiterLimit(limit); });
+    fillStyle.setCallBack(_engine, [](GepardEngine* engine, const std::string& color){ engine->setFillStyle(color); });
+    strokeStyle.setCallBack(_engine, [](GepardEngine* engine, const std::string& color){ engine->setStrokeStyle(color); });
+    lineWidth.setCallBack(_engine, [](GepardEngine* engine, const std::string& width){ engine->setLineWidth(width); });
+    lineCap.setCallBack(_engine, [](GepardEngine* engine, const std::string& capMode){ engine->setLineCap(capMode); });
+    lineJoin.setCallBack(_engine, [](GepardEngine* engine, const std::string& joinMode){ engine->setLineJoin(joinMode); });
+    miterLimit.setCallBack(_engine, [](GepardEngine* engine, const std::string& limit){ engine->setMiterLimit(limit); });
 }
 
 Gepard::~Gepard()

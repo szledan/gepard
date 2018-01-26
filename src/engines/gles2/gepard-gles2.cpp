@@ -158,14 +158,7 @@ GepardGLES2::GepardGLES2(GepardContext& context)
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _textureId, 0);
 
-//    const GLfloat red = 0.0f;
-//    const GLfloat green = 0.0f;
-//    const GLfloat blue = 0.0f;
-//    const GLfloat alpha = 0.0f;
-//    GD_LOG2("Set clear color (" << float(red) << ", " << float(green) << ", " << float(blue) << ", " << float(alpha) << ")");
-//    glClearColor(red, green, blue, alpha);
     glViewport(0, 0, context.surface->width(), context.surface->height());
-//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_BLEND);
 
     GLushort* quadIndexes;

@@ -301,9 +301,6 @@ void GepardGLES2::fillPath(PathData* pathData, const Color& fillColor)
 
     {
         glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
-//! \todo(szledan): I need to test these two lines in the future.
-//        glClearColor(0.0, 0.0, 0.0, 0.0);
-//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

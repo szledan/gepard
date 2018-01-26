@@ -175,7 +175,7 @@ void GepardEngine::fill()
 {
     GD_ASSERT(_engineBackend);
 #ifdef GD_USE_GLES2
-    _engineBackend->fillPath(_context.path.pathData(), _context.currentState().fillColor);
+    _engineBackend->fillPath(context().path.pathData(), state().fillColor);
 #else // !GD_USE_GLES2
     _engineBackend->fill();
 #endif // GD_USE_GLES2
@@ -191,7 +191,7 @@ void GepardEngine::stroke()
 {
     GD_ASSERT(_engineBackend);
 #ifdef GD_USE_GLES2
-    _engineBackend->strokePath(_context.path.pathData(), _context.currentState());
+    _engineBackend->strokePath();
 #else // !GD_USE_GLES2
     _engineBackend->stroke();
 #endif // GD_USE_GLES2
@@ -244,7 +244,7 @@ void GepardEngine::fillRect(Float x, Float y, Float w, Float h)
 {
     GD_ASSERT(_engineBackend);
 #ifdef GD_USE_GLES2
-    _engineBackend->fillRect(x, y, w, h, _context.currentState().fillColor);
+    _engineBackend->fillRect(x, y, w, h, state().fillColor);
 #else // !GD_USE_GLES2
     _engineBackend->fillRect(x, y, w, h);
 #endif // GD_USE_GLES2
@@ -253,7 +253,7 @@ void GepardEngine::fillRect(Float x, Float y, Float w, Float h)
 void GepardEngine::setFillColor(const Color& color)
 {
     GD_LOG1("Set fill color (" << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ")");
-    _context.currentState().fillColor = color;
+    state().fillColor = color;
 }
 
 void GepardEngine::setFillColor(const Float red, const Float green, const Float blue, const Float alpha)
@@ -264,7 +264,42 @@ void GepardEngine::setFillColor(const Float red, const Float green, const Float 
 void GepardEngine::setStrokeColor(const Color& color)
 {
     GD_LOG1("Set stroke color (" << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ")");
-    _context.currentState().strokeColor = color;
+    state().strokeColor = color;
+}
+
+GepardState&GepardEngine::state()
+{
+    return _context.currentState();
+}
+
+void GepardEngine::setFillStyle(const std::string& color)
+{
+    state().fillColor = Color(color);
+}
+
+void GepardEngine::setStrokeStyle(const std::string& color)
+{
+    state().strokeColor = Color(color);
+}
+
+void GepardEngine::setLineWidth(const std::string& width)
+{
+    state().lineWitdh = strToFloat(width);
+}
+
+void GepardEngine::setLineCap(const std::string& capMode)
+{
+    state().lineCapMode = strToLineCap(capMode);
+}
+
+void GepardEngine::setLineJoin(const std::string& joinMode)
+{
+    state().lineJoinMode = strToLineJoin(joinMode);;
+}
+
+void GepardEngine::setMiterLimit(const std::string& limit)
+{
+    state().miterLimit = strToFloat(limit);
 }
 
 } // namespace gepard

@@ -36,34 +36,4 @@ GepardContext::GepardContext(Surface *surface_)
     states.push_back(GepardState());
 }
 
-void GepardContext::setFillStyle(const std::string& color)
-{
-    currentState().fillColor = Color(color);
-}
-
-void GepardContext::setStrokeStyle(const std::string& color)
-{
-    currentState().strokeColor = Color(color);
-}
-
-void GepardContext::setLineWidth(const std::string& width)
-{
-    currentState().lineWitdh = strToFloat(width);
-}
-
-void GepardContext::setLineCap(const std::string& capMode)
-{
-    currentState().lineCapMode = strToLineCap(capMode);
-}
-
-void GepardContext::setLineJoin(const std::string& joinMode)
-{
-    currentState().lineJoinMode = strToLineJoin(joinMode);;
-}
-
-void GepardContext::setMiterLimit(const std::string& limit)
-{
-    currentState().miterLimit = strToFloat(limit);
-}
-
 } // namespace gepard

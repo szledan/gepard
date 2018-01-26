@@ -36,16 +36,19 @@
 namespace gepard {
 namespace gles2 {
 
-void GepardGLES2::strokePath(PathData* path, const GepardState& state)
+void GepardGLES2::strokePath()
 {
-    GD_LOG3("Path: " << path->firstElement());
-    if (!path /*|| path->isEmpty()*/)
+    PathData* pathData = _context.path.pathData();
+    const GepardState& state = _context.currentState();
+
+    GD_LOG3("Path: " << pathData->firstElement());
+    if (!pathData || pathData->isEmpty())
         return;
 
     Float miterLimit = state.miterLimit ? state.miterLimit : 10;
 
     StrokePathBuilder sPath(state.lineWitdh, miterLimit, state.lineJoinMode, state.lineCapMode);
-    sPath.convertStrokeToFill(path);
+    sPath.convertStrokeToFill(pathData);
 
     fillPath(sPath.pathData(), state.strokeColor);
 }

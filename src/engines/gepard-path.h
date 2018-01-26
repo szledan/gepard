@@ -118,7 +118,7 @@ struct PathData {
     PathElement* firstElement() const { return _firstElement; }
     PathElement* lastElement() const { return _lastElement; }
 
-    const bool isEmpty() const { return _firstElement == _lastElement; }
+    const bool isEmpty() const;
 
     const PathElement* operator[](std::size_t idx) const;
 
