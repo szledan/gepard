@@ -36,8 +36,11 @@ def get_base_path():
 
 def get_build_path(arguments):
     """ Returns build direcotry. """
+    if (arguments.build_dir):
+        return arguments.build_dir
+
     basedir = get_base_path()
-    return path.join(basedir, 'build', arguments.build_type)
+    return path.join(basedir, 'build', arguments.backend)
 
 
 def call(command, throw=True):
@@ -47,20 +50,6 @@ def call(command, throw=True):
         raise CommandError(ret, command)
 
     return ret
-
-
-def print_success():
-    print('')
-    print('-' * 30)
-    print('Everything passed.')
-    print('-' * 30)
-
-
-def print_fail():
-    print('')
-    print('-' * 30)
-    print('Something failed, please see the log.')
-    print('-' * 30)
 
 
 class CommandError(BaseException):
