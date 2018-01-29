@@ -5,6 +5,7 @@ set(PROJECT_VERSION 0.0.2)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 include(OptionList)
+include(Dependencies)
 
 set(EXTRA_FLAGS "-Wall -pedantic -std=c++11")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_FLAGS}")
