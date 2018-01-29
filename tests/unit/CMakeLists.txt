@@ -1,9 +1,5 @@
 include(ExternalProject)
 
-set(EXTRA_FLAGS " -Wall -pedantic -std=c++11 ")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_FLAGS}")
-
 set(SOURCES
     gepard-unit-main.cpp
     ${PROJECT_SOURCE_DIR}/src/utils/gepard-defs.cpp
@@ -17,15 +13,23 @@ set(COMMON_INCLUDE_DIRS
 )
 
 ExternalProject_Add(gtest
-                    PREFIX ${PROJECT_SOURCE_DIR}/tools/frameworks/googletest
+                    PREFIX ${PROJECT_SOURCE_DIR}/third-party/googletest
                     GIT_REPOSITORY https://github.com/google/googletest.git
-                    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${PROJECT_SOURCE_DIR}/tools/frameworks/googletest
+                    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/third-party -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_INSTALL_INCLUDEDIR=include -DBUILD_GMOCK=OFF -DBUILD_GTEST=ON
+                    BINARY_DIR ${PROJECT_BINARY_DIR}/third-party/googletest
+                    BUILD_COMMAND make gtest
                     INSTALL_COMMAND make install > /dev/null)
-set_target_properties(gtest PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
-include_directories(${PROJECT_SOURCE_DIR}/tools/frameworks/googletest/include)
-include_directories(${COMMON_INCLUDE_DIRS})
 
-add_executable(unit EXCLUDE_FROM_ALL ${SOURCES})
-add_dependencies(unit gtest)
-target_link_libraries(unit ${PROJECT_SOURCE_DIR}/tools/frameworks/googletest/lib/libgtest.a pthread)
+set(CMAKE_THREAD_PREFER_PTHREAD)
+set(THREADS_PREFER_PTHREAD_FLAG)
+find_package(Threads)
+
+add_executable(unittest ${SOURCES})
+add_dependencies(unittest gtest)
+
+include(GNUInstallDirs)
+target_include_directories(unittest PUBLIC ${PROJECT_BINARY_DIR}/third-party/include)
+target_include_directories(unittest PUBLIC ${COMMON_INCLUDE_DIRS})
+
+target_link_libraries(unittest ${PROJECT_BINARY_DIR}/third-party/lib/libgtest.a Threads::Threads)

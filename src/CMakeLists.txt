@@ -46,24 +46,21 @@ set(SOFTWARE_INCLUDE_DIRS
 )
 
 set(SOURCES ${COMMON_SOURCES})
-if (${USE_GLES2})
-list(APPEND SOURCES ${GLES2_SOURCES})
-elseif (${USE_VULKAN})
-list(APPEND SOURCES ${VULKAN_SOURCES})
-elseif (${USE_SOFTWARE})
-list(APPEND SOURCES ${SOFTWARE_SOURCES})
-endif()
-
-include_directories(${COMMON_INCLUDE_DIRS})
-if (${USE_GLES2})
-include_directories(${GLES2_INCLUDE_DIRS})
-elseif (${USE_VULKAN})
-include_directories(${VULKAN_INCLUDE_DIRS})
-elseif (${USE_SOFTWARE})
-include_directories(${SOFTWARE_INCLUDE_DIRS})
-endif()
+list(APPEND SOURCES ${${BACKEND}_SOURCES})
 
 add_library(gepard SHARED ${SOURCES})
 
+if (BACKEND STREQUAL "GLES2")
+  find_package(GLESv2 REQUIRED)
+  find_package(EGL REQUIRED)
+elseif (BACKEND STREQUAL "VULKAN")
+  find_package(Vulkan REQUIRED)
+endif ()
+
+target_compile_definitions(gepard PUBLIC "GD_USE_${BACKEND}")
+target_include_directories(gepard PUBLIC ${COMMON_INCLUDE_DIRS})
+target_include_directories(gepard PUBLIC ${${BACKEND}_INCLUDE_DIRS})
+
+# TODO(dbatyai): Find a better way to do this
 file(COPY gepard.h DESTINATION ${INCLUDE_OUTPUT_DIR})
 file(COPY surfaces DESTINATION ${INCLUDE_OUTPUT_DIR})

@@ -31,7 +31,7 @@ from os import path
 
 def get_base_path():
     """ Returns the base path to the project. """
-    return path.abspath(path.join(path.dirname(__file__), '..', '..'))
+    return path.abspath(path.join(path.dirname(__file__), '..'))
 
 
 def get_build_path(arguments):

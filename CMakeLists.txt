@@ -2,20 +2,13 @@ cmake_minimum_required(VERSION 2.8.10)
 project(gepard C CXX)
 set(PROJECT_VERSION 0.0.2)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake ${PROJECT_SOURCE_DIR}/cmake/deps)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 include(OptionList)
-include(Dependencies)
 
 set(EXTRA_FLAGS "-Wall -pedantic -std=c++11")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_FLAGS}")
-
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O2 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -DNDEBUG")
-
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 
 set(BINARY_OUTPUT_DIR ${PROJECT_BINARY_DIR}/bin)
 set(LIB_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib)
@@ -29,6 +22,5 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIB_OUTPUT_DIR})
 
 add_subdirectory(src)
-add_subdirectory(examples)
-add_subdirectory(tests/unit)
-add_subdirectory(tools/pygepard)
+add_subdirectory(apps EXCLUDE_FROM_ALL)
+add_subdirectory(tests/unit EXCLUDE_FROM_ALL)
