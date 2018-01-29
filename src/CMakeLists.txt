@@ -73,6 +73,7 @@ endif()
 target_compile_definitions(gepard PUBLIC "GD_USE_${BACKEND}")
 target_include_directories(gepard PUBLIC ${COMMON_INCLUDE_DIRS})
 target_include_directories(gepard PUBLIC ${${BACKEND}_INCLUDE_DIRS})
+target_include_directories(gepard PUBLIC ${GEPARD_DEP_INCLUDES})
 
 # TODO(dbatyai): Add a target to do this instead of doing it at configure time
 file(COPY gepard.h DESTINATION ${INCLUDE_OUTPUT_DIR})
