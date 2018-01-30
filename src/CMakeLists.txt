@@ -51,26 +51,11 @@ list(APPEND SOURCES ${${BACKEND}_SOURCES})
 add_library(gepard SHARED ${SOURCES})
 
 if (BACKEND STREQUAL "VULKAN" AND NOT VULKAN_FOUND)
-  message(STATUS "Adding target to download Vulkan headers")
-  add_custom_command (OUTPUT ${PROJECT_BINARY_DIR}/thirdparty/include/vulkan/vulkan.h
-                      COMMAND mkdir -p "${PROJECT_BINARY_DIR}/thirdparty/include/vulkan"
-                      COMMAND wget -O "${PROJECT_BINARY_DIR}/thirdparty/include/vulkan/vulkan.h"
-                                      "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/1.0/src/vulkan/vulkan.h")
-
-  add_custom_command (OUTPUT ${PROJECT_BINARY_DIR}/thirdparty/include/vulkan/vk_platform.h
-                      COMMAND mkdir -p "${PROJECT_BINARY_DIR}/thirdparty/include/vulkan"
-                      COMMAND wget -O "${PROJECT_BINARY_DIR}/thirdparty/include/vulkan/vk_platform.h"
-                                      "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/1.0/src/vulkan/vk_platform.h")
-
-  add_custom_target(vulkan_headers
-                    DEPENDS ${PROJECT_BINARY_DIR}/thirdparty/include/vulkan/vulkan.h
-                            ${PROJECT_BINARY_DIR}/thirdparty/include/vulkan/vk_platform.h)
-
   add_dependencies(gepard vulkan_headers)
-  target_include_directories(gepard PUBLIC ${PROJECT_BINARY_DIR}/thirdparty/include)
 endif()
 
 target_compile_definitions(gepard PUBLIC "GD_USE_${BACKEND}")
+
 target_include_directories(gepard PUBLIC ${COMMON_INCLUDE_DIRS})
 target_include_directories(gepard PUBLIC ${${BACKEND}_INCLUDE_DIRS})
 target_include_directories(gepard PUBLIC ${GEPARD_DEP_INCLUDES})

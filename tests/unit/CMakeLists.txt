@@ -27,7 +27,6 @@ find_package(Threads)
 add_executable(unittest ${SOURCES})
 add_dependencies(unittest gtest)
 
-include(GNUInstallDirs)
 target_include_directories(unittest PUBLIC ${PROJECT_BINARY_DIR}/thirdparty/include)
 target_include_directories(unittest PUBLIC ${COMMON_INCLUDE_DIRS})
 
