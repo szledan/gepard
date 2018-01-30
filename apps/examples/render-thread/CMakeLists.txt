@@ -5,4 +5,6 @@ set(SOURCES
 add_executable(render-thread ${SOURCES})
 add_dependencies(examples render-thread)
 
-target_link_libraries(render-thread gepard X11 ${GEPARD_DEP_LIBS})
+find_package(X11)
+
+target_link_libraries(render-thread gepard ${X11_LIBRARIES} ${GEPARD_DEP_LIBS})

@@ -5,4 +5,7 @@ set(SOURCES
 add_executable(fill-rect ${SOURCES})
 add_dependencies(examples fill-rect)
 
-target_link_libraries(fill-rect gepard X11 png ${GEPARD_DEP_LIBS})
+find_package(X11)
+find_package(PNG)
+
+target_link_libraries(fill-rect gepard ${X11_LIBRARIES} ${PNG_LIBRARIES} ${GEPARD_DEP_LIBS})
