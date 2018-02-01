@@ -39,7 +39,7 @@ def run_unittest(throw=True):
     args.build_dir = "build/unittest-gles2"
     args.build_type = "debug"
     args.backend = "gles2"
-    args.targets = ["unit"]
+    args.targets = ["unittest"]
     build_path = util.get_build_path(args)
 
     print('')
@@ -49,7 +49,7 @@ def run_unittest(throw=True):
 
     print('')
     print("Running unit-tests...")
-    return util.call([path.join(build_path, 'bin', 'unit')], throw)
+    return util.call([path.join(build_path, 'bin', 'unittest')], throw)
 
 
 def main():
