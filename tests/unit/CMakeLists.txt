@@ -20,8 +20,8 @@ ExternalProject_Add(gtest
                     BUILD_COMMAND make gtest
                     INSTALL_COMMAND make install > /dev/null)
 
-set(CMAKE_THREAD_PREFER_PTHREAD)
-set(THREADS_PREFER_PTHREAD_FLAG)
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads)
 
 add_executable(unittest ${SOURCES})
@@ -30,4 +30,4 @@ add_dependencies(unittest gtest)
 target_include_directories(unittest PUBLIC ${PROJECT_BINARY_DIR}/thirdparty/include)
 target_include_directories(unittest PUBLIC ${COMMON_INCLUDE_DIRS})
 
-target_link_libraries(unittest ${PROJECT_BINARY_DIR}/thirdparty/lib/libgtest.a Threads::Threads)
+target_link_libraries(unittest ${PROJECT_BINARY_DIR}/thirdparty/lib/libgtest.a ${CMAKE_THREAD_LIBS_INIT})
