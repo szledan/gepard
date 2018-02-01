@@ -66,11 +66,8 @@ def main():
     try:
         run_cppcheck()
     except util.CommandError as e:
-        util.print_fail()
         print(e)
         sys.exit(e.code)
-
-    util.print_success()
 
 
 if __name__ == "__main__":
