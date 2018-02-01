@@ -25,7 +25,6 @@ install:
   - if [ "$CXX" == "clang++" ]; then export CXX="clang++-3.8"; fi
   - if [ "$CMD" == "cppcheck" ]; then sudo apt-get install -qq cppcheck; fi
   - if [ "$BACKEND" == "gles2" ]; then sudo apt-get install -qq freeglut3-dev libegl1-mesa-dev libgles2-mesa-dev; fi
-  - if [ "$BACKEND" == "vulkan" ]; then tools/scripts/vulkan-deps.sh; fi
 
 env:
   - CMD=cppcheck
@@ -44,7 +43,7 @@ matrix:
     - compiler: clang
 
 script:
-  - tools/scripts/travis.sh
+  - tools/travis.sh
 
 notifications:
   irc:

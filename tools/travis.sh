@@ -30,12 +30,12 @@ if [ "$CMD" == "build" ]; then
     fi
 
     echo "Running Release build with examples."
-    if ! python tools/scripts/build.py -e $backend $ARGS; then ret=1; fi
+    if ! python tools/build.py -e $backend $ARGS; then ret=1; fi
 
     echo "Running Debug build.";
-    if ! python tools/scripts/build.py -d $backend $ARGS; then ret=1; fi
+    if ! python tools/build.py -d $backend $ARGS; then ret=1; fi
 
     exit $ret
 else
-    python tools/scripts/$CMD.py
+    python tools/$CMD.py
 fi
