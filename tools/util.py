@@ -60,3 +60,4 @@ class CommandError(BaseException):
 
     def __str__(self):
         return 'Command "%s" failed with exit code: %d' % (" ".join(self.cmd), self.code)
+

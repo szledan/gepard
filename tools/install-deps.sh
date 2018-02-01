@@ -73,3 +73,4 @@ echo "${dev_list} ${common_list} ${gles2_list} ${vulkan_list}" | tr " " "\n"
 
 sudo apt-get update ${do_quietly}
 sudo apt-get install ${do_quietly} ${packages}
+
