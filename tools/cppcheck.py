@@ -1,8 +1,8 @@
 #! /usr/bin/python -B
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015-2016, Gepard Graphics
-# Copyright (C) 2016, Dániel Bátyai <dbatyai@inf.u-szeged.hu>
+# Copyright (C) 2015-2018, Gepard Graphics
+# Copyright (C) 2016-2018, Dániel Bátyai <dbatyai@inf.u-szeged.hu>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -66,11 +66,8 @@ def main():
     try:
         run_cppcheck()
     except util.CommandError as e:
-        util.print_fail()
         print(e)
         sys.exit(e.code)
-
-    util.print_success()
 
 
 if __name__ == "__main__":

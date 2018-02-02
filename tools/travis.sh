@@ -1,8 +1,7 @@
-#! /usr/bin/python -B
-# -*- coding: utf-8 -*-
-#
-# Copyright (C) 2015-2016, Gepard Graphics
-# Copyright (C) 2016, Dániel Bátyai <dbatyai@inf.u-szeged.hu>
+#!/bin/bash
+
+# Copyright (C) 2016, 2018 Gepard Graphics
+# Copyright (C) 2016, 2018 Dániel Bátyai <dbatyai@inf.u-szeged.hu>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -25,43 +24,20 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import argparse
-import build
-import sys
-import util
-from os import path
-from os import getcwd
+if [ "$CMD" == "build" ]; then
+    if [ $BACKEND ]; then
+        backend="--backend=$BACKEND"
+    fi
 
+    targets="gepard examples pygepard"
 
-def run_unittest(throw=True):
-    """ Runs unit-tests. """
-    args = lambda: None
-    args.build_type = "debug"
-    args.backend = "software"
-    build_path = util.get_build_path(args)
+    echo "Running Release build."
+    if ! python tools/build.py $backend $ARGS $targets; then ret=1; fi
 
-    print('')
-    print("Building unit-tests...")
-    if not build.check_configured(args, throw=False):
-        build.configure(args)
+    echo "Running Debug build.";
+    if ! python tools/build.py -d $backend $ARGS $targets; then ret=1; fi
 
-    build.build_unit(args)
-
-    print('')
-    print("Running unit-tests...")
-    return util.call([path.join(build_path, 'bin', 'unit')], throw)
-
-
-def main():
-    try:
-        run_unittest()
-    except util.CommandError as e:
-        util.print_fail()
-        print(e)
-        sys.exit(e.code)
-
-    util.print_success()
-
-
-if __name__ == "__main__":
-    main()
+    exit $ret
+else
+    python tools/$CMD.py
+fi

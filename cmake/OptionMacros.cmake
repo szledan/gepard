@@ -26,13 +26,8 @@ macro(ADD_CHOICE _name _desc _choices _default)
 
     set(${_name} ${${_name}})
     unset(${_name} CACHE)
-
-    set(USE_${${_name}} ON)
-    add_definitions("-DGD_USE_${${_name}}")
   else()
     set(${_name} ${_default})
-    set(USE_${_default} ON)
-    add_definitions("-DGD_USE_${_default}")
   endif()
   message("   - ${_name}: ${${_name}}")
 endmacro()
