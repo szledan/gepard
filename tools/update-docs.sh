@@ -25,4 +25,3 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 doxygen docs/gepard-public.doxygen
-

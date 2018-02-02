@@ -41,4 +41,3 @@ if [ "$CMD" == "build" ]; then
 else
     python tools/$CMD.py
 fi
-
