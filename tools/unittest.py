@@ -36,7 +36,7 @@ from os import getcwd
 def run_unittest(throw=True):
     """ Runs unit-tests. """
     args = lambda: None
-    args.build_dir = "build/unittest-gles2"
+    args.build_dir = "build/unittest"
     args.build_type = "debug"
     args.backend = "software"
     args.targets = ["unittest"]
