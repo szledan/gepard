@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Copyright (C) 2016, Gepard Graphics
-# Copyright (C) 2016, Dániel Bátyai <dbatyai@inf.u-szeged.hu>
+# Copyright (C) 2016, 2018 Gepard Graphics
+# Copyright (C) 2016, 2018 Dániel Bátyai <dbatyai@inf.u-szeged.hu>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
