@@ -689,7 +689,7 @@ const TrapezoidList TrapezoidTessellator::trapezoidList()
         }
     } while (element->next != nullptr);
 
-    segmentApproximator.insertLine(lastMoveTo, element->to);
+    segmentApproximator.insertLine(element->to, lastMoveTo);
 
     // 2. Use approximator to generate the list of segments.
     SegmentList* segmentList = segmentApproximator.segments();
