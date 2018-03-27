@@ -159,7 +159,7 @@ public:
     TrapezoidTessellator(PathData&, FillRule = NonZero, int antiAliasingLevel = GD_GLES2_ANTIALIAS_LEVEL);
 
     const FillRule fillRule() const { return _fillRule; }
-    const TrapezoidList trapezoidList();
+    const TrapezoidList trapezoidList(const GepardState& state);
     const BoundingBox boundingBox() const { return _boundingBox; }
     const int antiAliasingLevel() const { return _antiAliasingLevel; }
 

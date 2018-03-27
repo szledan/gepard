@@ -150,6 +150,37 @@ void GepardEngine::arc(Float x, Float y, Float radius, Float startAngle, Float e
     _context.path.pathData()->addArcElement(FloatPoint(x, y), FloatPoint(radius, radius), startAngle, endAngle, counterclockwise);
 }
 
+void GepardEngine::scale(Float x, Float y)
+{
+    state().transform.scale(x, y);
+    _context.path.pathData()->applyTransform(Transform(1, 0, 0, 1, 0, 0).scale(x, y).inverse());
+}
+
+void GepardEngine::rotate(Float angle)
+{
+    state().transform.rotate(angle);
+    _context.path.pathData()->applyTransform(Transform(1, 0, 0, 1, 0, 0).rotate(angle).inverse());
+}
+
+void GepardEngine::translate(Float x, Float y)
+{
+    state().transform.translate(x, y);
+    _context.path.pathData()->applyTransform(Transform(1, 0, 0, 1, 0, 0).translate(x, y).inverse());
+}
+
+void GepardEngine::transform(Float a, Float b, Float c, Float d, Float e, Float f)
+{
+    Transform t = Transform(a, b, c, d, e, f);
+    state().transform.multiply(t);
+    _context.path.pathData()->applyTransform(t.inverse());
+}
+
+void GepardEngine::setTransform(Float a, Float b, Float c, Float d, Float e, Float f)
+{
+    state().transform = Transform(a, b, c, d, e, f);
+    _context.path.pathData()->applyTransform(state().transform.inverse());
+}
+
 /*!
  * \brief GepardEngine::beginPath
  *
@@ -175,7 +206,7 @@ void GepardEngine::fill()
 {
     GD_ASSERT(_engineBackend);
 #ifdef GD_USE_GLES2
-    _engineBackend->fillPath(context().path.pathData(), state().fillColor);
+    _engineBackend->fillPath(context().path.pathData(), state());
 #else // !GD_USE_GLES2
     _engineBackend->fill();
 #endif // GD_USE_GLES2

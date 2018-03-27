@@ -39,7 +39,7 @@ namespace gles2 {
 void GepardGLES2::strokePath()
 {
     PathData* pathData = _context.path.pathData();
-    const GepardState& state = _context.currentState();
+    GepardState& state = _context.currentState();
 
     GD_LOG3("Path: " << pathData->firstElement());
     if (!pathData || pathData->isEmpty())
@@ -50,7 +50,10 @@ void GepardGLES2::strokePath()
     StrokePathBuilder sPath(state.lineWitdh, miterLimit, state.lineJoinMode, state.lineCapMode);
     sPath.convertStrokeToFill(pathData);
 
-    fillPath(sPath.pathData(), state.strokeColor);
+    Color tempColor = state.fillColor;
+    state.fillColor = state.strokeColor;
+    fillPath(sPath.pathData(), state);
+    state.fillColor = tempColor;
 }
 
 } // namespace gles2

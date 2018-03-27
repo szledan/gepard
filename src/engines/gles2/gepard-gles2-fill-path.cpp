@@ -213,12 +213,13 @@ static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes, const int
     }
 }
 
-void GepardGLES2::fillPath(PathData* pathData, const Color& fillColor)
+void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
 {
     makeCurrent();
     if (!pathData->firstElement())
         return;
 
+    const Color& fillColor = state.fillColor;
     const uint32_t width = _context.surface->width();
     const uint32_t height = _context.surface->height();
 
@@ -273,7 +274,7 @@ void GepardGLES2::fillPath(PathData* pathData, const Color& fillColor)
         TrapezoidTessellator::FillRule fillRule = TrapezoidTessellator::FillRule::NonZero;
 
         TrapezoidTessellator tt(*pathData, fillRule, GD_GLES2_ANTIALIAS_LEVEL);
-        const TrapezoidList trapezoidList = tt.trapezoidList();
+        const TrapezoidList trapezoidList = tt.trapezoidList(state);
 
         int trapezoidIndex = 0;
         for (Trapezoid trapezoid : trapezoidList) {

@@ -632,7 +632,7 @@ TrapezoidTessellator::TrapezoidTessellator(PathData& pathData, FillRule fillRule
     , _antiAliasingLevel(antiAliasingLevel)
 {}
 
-const TrapezoidList TrapezoidTessellator::trapezoidList()
+const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state)
 {
     PathElement* element = _pathData.firstElement();
 
@@ -646,6 +646,7 @@ const TrapezoidList TrapezoidTessellator::trapezoidList()
     FloatPoint from;
     FloatPoint to = element->to;
     FloatPoint lastMoveTo = to;
+    Transform at = state.transform;
 
     // 1. Insert path elements.
     do {
@@ -654,16 +655,16 @@ const TrapezoidList TrapezoidTessellator::trapezoidList()
         to = element->to;
         switch (element->type) {
         case PathElementTypes::MoveTo: {
-            segmentApproximator.insertLine(from, lastMoveTo);
+            segmentApproximator.insertLine(at.apply(from), at.apply(lastMoveTo));
             lastMoveTo = to;
             break;
         }
         case PathElementTypes::LineTo: {
-            segmentApproximator.insertLine(from, to);
+            segmentApproximator.insertLine(at.apply(from), at.apply(to));
             break;
         }
         case PathElementTypes::CloseSubpath: {
-            segmentApproximator.insertLine(from, lastMoveTo);
+            segmentApproximator.insertLine(at.apply(from), at.apply(lastMoveTo));
             lastMoveTo = to;
             break;
         }
@@ -689,7 +690,7 @@ const TrapezoidList TrapezoidTessellator::trapezoidList()
         }
     } while (element->next != nullptr);
 
-    segmentApproximator.insertLine(element->to, lastMoveTo);
+    segmentApproximator.insertLine(at.apply(element->to), at.apply(lastMoveTo));
 
     // 2. Use approximator to generate the list of segments.
     SegmentList* segmentList = segmentApproximator.segments();

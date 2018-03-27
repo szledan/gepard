@@ -115,6 +115,8 @@ struct PathData {
     void addArcToElement(const FloatPoint&, const FloatPoint&, const Float&);
     void addCloseSubpathElement();
 
+    void applyTransform(const Transform);
+
     PathElement* firstElement() const { return _firstElement; }
     PathElement* lastElement() const { return _lastElement; }
 

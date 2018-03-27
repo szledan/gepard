@@ -72,6 +72,13 @@ public:
     void rect(Float x, Float y, Float w, Float h);
     void arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise = false);
 
+    /* 6. Transformations */
+    void scale(Float x, Float y);
+    void rotate(Float angle);
+    void translate(Float x, Float y);
+    void transform(Float a, Float b, Float c, Float d, Float e, Float f);
+    void setTransform(Float a, Float b, Float c, Float d, Float e, Float f);
+
     /* 11. Drawing paths to the canvas */
     void beginPath();
     void fill();
