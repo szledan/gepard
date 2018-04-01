@@ -485,6 +485,9 @@ struct Transform {
         }
         return *this;
     }
+
+    void operator*= (const Transform& transform) { multiply(transform); }
+
     Transform& translate(const Float x, const Float y)
     {
         Transform matrix(1.0, 0.0, 0.0, 1.0, x, y);

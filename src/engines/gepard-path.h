@@ -96,12 +96,14 @@ struct ArcElement : public PathElement {
     explicit ArcElement(const FloatPoint& center, const FloatPoint& radius, const Float startAngle, const Float endAngle, const bool counterClockwise = false);
 
     std::ostream& output(std::ostream& os) const;
+    void multiply(const Transform t) { transform *= t; }
 
     FloatPoint center;
     FloatPoint radius;
     Float startAngle;
     Float endAngle;
     bool counterClockwise;
+    Transform transform;
 };
 
 struct PathData {

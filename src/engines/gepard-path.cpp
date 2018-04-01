@@ -377,7 +377,7 @@ void PathData::applyTransform(const Transform transform)
         case PathElementTypes::Arc:
             arcToElement = reinterpret_cast<ArcElement*>(element);
             arcToElement->to = transform.apply(arcToElement->to);
-//            arcToElement->multiply(transform);
+            arcToElement->multiply(transform);
             break;
         default:
             break;

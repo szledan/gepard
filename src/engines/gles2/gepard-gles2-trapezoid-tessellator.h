@@ -88,7 +88,7 @@ public:
     void insertLine(const FloatPoint& from, const FloatPoint& to);
     void insertQuadCurve(const FloatPoint& from, const FloatPoint& control, const FloatPoint& to);
     void insertBezierCurve(const FloatPoint& from, const FloatPoint& control1, const FloatPoint& control2, const FloatPoint& to);
-    void insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement);
+    void insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement, const Transform& transform);
 
     SegmentList* segments();
     const BoundingBox boundingBox() const { return _boundingBox; }

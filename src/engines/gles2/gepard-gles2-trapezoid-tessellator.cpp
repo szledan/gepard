@@ -407,13 +407,19 @@ void SegmentApproximator::arcToCurve(FloatPoint result[], const Float& startAngl
     result[2].y = sinEndAngle;
 }
 
-void SegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement)
+void SegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement, const Transform& t)
 {
     Float startAngle = arcElement->startAngle;
     const Float endAngle = arcElement->endAngle;
     const bool antiClockwise = arcElement->counterClockwise;
 
-    FloatPoint startPoint = FloatPoint(std::cos(startAngle) * arcElement->radius.x, std::sin(startAngle) * arcElement->radius.y) + arcElement->center;
+    Transform transform = t;
+    Transform arcTransform = arcElement->transform;
+    Transform axesTransform = { arcElement->radius.x, 0.0, 0.0, arcElement->radius.y, arcElement->center.x, arcElement->center.y };
+    arcTransform *= axesTransform;
+    transform *= arcTransform;
+
+    FloatPoint startPoint = transform.apply(FloatPoint(std::cos(startAngle), std::sin(startAngle)));
     insertLine(lastEndPoint, startPoint);
 
     GD_ASSERT(startAngle != endAngle);
@@ -429,12 +435,12 @@ void SegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcEle
     FloatPoint bezierPoints[3];
     for (int i = 0; i < segments; i++, startAngle += step) {
         arcToCurve(bezierPoints, startAngle, (i == segments - 1) ? endAngle : startAngle + step);
-        bezierPoints[0] = bezierPoints[0] * arcElement->radius + arcElement->center;
-        bezierPoints[1] = bezierPoints[1] * arcElement->radius + arcElement->center;
+        bezierPoints[0] = transform.apply(bezierPoints[0]);
+        bezierPoints[1] = transform.apply(bezierPoints[1]);
         if (i == segments - 1) {
-            bezierPoints[2] = arcElement->to;
+            bezierPoints[2] = t.apply(arcElement->to);
         } else {
-            bezierPoints[2] = bezierPoints[2] * arcElement->radius + arcElement->center;
+            bezierPoints[2] = transform.apply(bezierPoints[2]);
         }
         insertBezierCurve(startPoint, bezierPoints[0], bezierPoints[1], bezierPoints[2]);
         startPoint = bezierPoints[2];
@@ -630,7 +636,8 @@ TrapezoidTessellator::TrapezoidTessellator(PathData& pathData, FillRule fillRule
     : _pathData(pathData)
     , _fillRule(fillRule)
     , _antiAliasingLevel(antiAliasingLevel)
-{}
+{
+}
 
 const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state)
 {
@@ -680,7 +687,7 @@ const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state
         }
         case PathElementTypes::Arc: {
             ArcElement* ae = reinterpret_cast<ArcElement*>(element);
-            segmentApproximator.insertArc(from, ae);
+            segmentApproximator.insertArc(at.apply(from), ae, at);
             break;
         }
         case PathElementTypes::Undefined:
