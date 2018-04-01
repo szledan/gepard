@@ -116,14 +116,16 @@ Gepard::~Gepard()
     }
 }
 
+/*! \todo missing docs */
 void Gepard::save()
 {
-/*! \todo unimplemented function */
+    _engine->save();
 }
 
+/*! \todo missing docs */
 void Gepard::restore()
 {
-/*! \todo unimplemented function */
+    _engine->restore();
 }
 
 /*!

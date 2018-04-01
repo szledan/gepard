@@ -62,6 +62,10 @@ public:
         }
     }
 
+    /* 2. State */
+    void save();
+    void restore();
+
     /* 5. Building paths */
     void closePath();
     void moveTo(Float x, Float y);

@@ -30,6 +30,30 @@
 namespace gepard {
 
 /*!
+ * \brief GepardEngine::save
+ *
+ * \internal
+ * \todo unit tests missing
+ */
+void GepardEngine::save()
+{
+    _context.states.push_back(state());
+}
+
+/*!
+ * \brief GepardEngine::restore
+ *
+ * \internal
+ * \todo unit tests missing
+ */
+void GepardEngine::restore()
+{
+    if (_context.states.size() > 1) {
+        _context.states.pop_back();
+    }
+}
+
+/*!
  * \brief GepardEngine::closePath
  *
  * \internal
