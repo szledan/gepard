@@ -670,12 +670,12 @@ const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state
         }
         case PathElementTypes::QuadraticCurve: {
             QuadraticCurveToElement* qe = reinterpret_cast<QuadraticCurveToElement*>(element);
-            segmentApproximator.insertQuadCurve(from, qe->control, to);
+            segmentApproximator.insertQuadCurve(at.apply(from), at.apply(qe->control), at.apply(to));
             break;
         }
         case PathElementTypes::BezierCurve: {
             BezierCurveToElement* be = reinterpret_cast<BezierCurveToElement*>(element);
-            segmentApproximator.insertBezierCurve(from, be->control1, be->control2, to);
+            segmentApproximator.insertBezierCurve(at.apply(from), at.apply(be->control1), at.apply(be->control2), at.apply(to));
             break;
         }
         case PathElementTypes::Arc: {
