@@ -547,7 +547,244 @@ void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const F
 
 void GepardVulkan::putImage(Image imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
 {
-    GD_LOG2("putImage " << dx << " " << dy << " " << dirtyWidth << " " << dirtyHeight);
+    GD_LOG2("putImage " << dx << " " << dy << " " << dirtyX << " " << dirtyY << " " << dirtyWidth << " " << dirtyHeight);
+    VkResult vkResult;
+    VkBuffer buffer;
+    VkDeviceMemory bufferAlloc;
+    const uint32_t width = imagedata.width();
+    const uint32_t height = imagedata.height();
+
+    const VkDeviceSize dataSize = width * height * sizeof(uint32_t); // r8g8b8a8 format
+    // TODO: create function for buffer creation
+    const VkBufferCreateInfo bufferInfo = {
+        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,   // VkStructureType        sType;
+        nullptr,                                // const void*            pNext;
+        0u,                                     // VkBufferCreateFlags    flags;
+        dataSize,                               // VkDeviceSize           size;
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,       // VkBufferUsageFlags     usage;
+        VK_SHARING_MODE_EXCLUSIVE,              // VkSharingMode          sharingMode;
+        1u,                                     // uint32_t               queueFamilyIndexCount;
+        &_queueFamilyIndex,                     // const uint32_t*        pQueueFamilyIndices;
+    };
+
+    vkResult = _vk.vkCreateBuffer(_device, &bufferInfo, _allocator, &buffer);
+    GD_ASSERT(vkResult == VK_SUCCESS && "Creating the buffer is failed!");
+    VkMemoryRequirements bufferMemoryRequirements;
+
+    _vk.vkGetBufferMemoryRequirements(_device, buffer, &bufferMemoryRequirements);
+    const VkMemoryAllocateInfo allocationInfo = {
+        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,                                         // VkStructureType    sType;
+        nullptr,                                                                        // const void*        pNext;
+        bufferMemoryRequirements.size,                                                        // VkDeviceSize       allocationSize;
+        getMemoryTypeIndex(bufferMemoryRequirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),    // uint32_t           memoryTypeIndex;
+    };
+
+    _vk.vkAllocateMemory(_device, &allocationInfo, _allocator, &bufferAlloc);
+    _vk.vkBindBufferMemory(_device, buffer, bufferAlloc, 0);
+
+    void* bufferPtr;
+    _vk.vkMapMemory(_device, bufferAlloc, 0, bufferMemoryRequirements.size, 0, &bufferPtr);
+    memcpy(bufferPtr, imagedata.data().data(), dataSize);
+    _vk.vkUnmapMemory(_device, bufferAlloc);
+
+    VkImage image;
+
+    // TODO: implement funiction for image creation
+    const VkExtent3D imageSize = {
+        width,  // uint32_t    width;
+        height, // uint32_t    height;
+        1u,     // uint32_t    depth;
+    };
+
+    const VkImageCreateInfo imageCreateInfo = {
+        VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,        // VkStructureType          sType;
+        nullptr,                                    // const void*              pNext;
+        0u,                                         // VkImageCreateFlags       flags;
+        VK_IMAGE_TYPE_2D,                           // VkImageType              imageType;
+        _imageFormat,                               // VkFormat                 format;
+        imageSize,                                  // VkExtent3D               extent;
+        1u,                                         // uint32_t                 mipLevels;
+        1u,                                         // uint32_t                 arrayLayers;
+        VK_SAMPLE_COUNT_1_BIT,                      // VkSampleCountFlagBits    samples;
+        VK_IMAGE_TILING_OPTIMAL,                    // VkImageTiling            tiling;
+        VK_IMAGE_USAGE_TRANSFER_SRC_BIT
+            | VK_IMAGE_USAGE_TRANSFER_DST_BIT,      // VkImageUsageFlags        usage;
+        VK_SHARING_MODE_EXCLUSIVE,                  // VkSharingMode            sharingMode;
+        1u,                                         // uint32_t                 queueFamilyIndexCount;
+        &_queueFamilyIndex,                         // const uint32_t*          pQueueFamilyIndices;
+        VK_IMAGE_LAYOUT_UNDEFINED,                  // VkImageLayout            initialLayout;
+    };
+
+    vkResult = _vk.vkCreateImage(_device, &imageCreateInfo, _allocator, &image);
+    GD_ASSERT(vkResult == VK_SUCCESS && "Creating the image is failed!");
+
+    VkMemoryRequirements imageMemoryRequirements;
+    _vk.vkGetImageMemoryRequirements(_device, _surfaceImage, &imageMemoryRequirements);
+
+    const VkMemoryAllocateInfo imageAllocateInfo = {
+        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,                                             // VkStructureType    sType;
+        nullptr,                                                                            // const void*        pNext;
+        imageMemoryRequirements.size,                                                       // VkDeviceSize       allocationSize;
+        getMemoryTypeIndex(imageMemoryRequirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),   // uint32_t           memoryTypeIndex;
+    };
+    VkDeviceMemory imageMemory;
+    vkResult = _vk.vkAllocateMemory(_device, &imageAllocateInfo, _allocator, &imageMemory);
+    GD_ASSERT(vkResult == VK_SUCCESS && "Memory allocation failed!");
+
+    vkResult = _vk.vkBindImageMemory(_device, image, imageMemory, static_cast<VkDeviceSize>(0u));
+    GD_ASSERT(vkResult == VK_SUCCESS && "Memory bind failed!");
+
+    const VkCommandBuffer commandBuffer = _primaryCommandBuffers[0];
+    const VkCommandBufferBeginInfo commandBufferBeginInfo = {
+       VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, // VkStructureType                          sType;
+       nullptr,                                     // const void*                              pNext;
+       VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, // VkCommandBufferUsageFlags                flags;
+       nullptr,                                     // const VkCommandBufferInheritanceInfo*    pInheritanceInfo;
+    };
+
+    VkImageSubresourceLayers subResourceLayers = {
+        VK_IMAGE_ASPECT_COLOR_BIT,  //VkImageAspectFlags    aspectMask;
+        0u,                         //uint32_t              mipLevel;
+        0u,                         //uint32_t              baseArrayLayer;
+        1u,                         //uint32_t              layerCount;
+    };
+
+    VkBufferImageCopy bufferToImage = {
+        0,                      // VkDeviceSize                bufferOffset;
+        0,                      // uint32_t                    bufferRowLength;
+        0,                      // uint32_t                    bufferImageHeight;
+        subResourceLayers,      // VkImageSubresourceLayers    imageSubresource;
+        { 0, 0, 0 },            // VkOffset3D                  imageOffset;
+        {
+            imagedata.width(),
+            imagedata.height(),
+            1u,
+        },                      // VkExtent3D                  imageExtent;
+    };
+
+    const VkImageSubresourceRange subresourceRange = {
+        VK_IMAGE_ASPECT_COLOR_BIT,  // VkImageAspectFlags    aspectMask;
+        0u,                         // uint32_t              baseMipLevel;
+        1u,                         // uint32_t              levelCount;
+        0u,                         // uint32_t              baseArrayLayer;
+        1u,                         // uint32_t              layerCount;
+    };
+
+    const VkImageMemoryBarrier srcImageBarrier = {
+        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,     // VkStructureType            sType;
+        nullptr,                                    // const void*                pNext;
+        VK_ACCESS_TRANSFER_WRITE_BIT,               // VkAccessFlags              srcAccessMask;
+        VK_ACCESS_TRANSFER_READ_BIT,                // VkAccessFlags              dstAccessMask;
+        VK_IMAGE_LAYOUT_UNDEFINED,                  // VkImageLayout              oldLayout;
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,       // VkImageLayout              newLayout;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   dstQueueFamilyIndex;
+        image,                                      // VkImage                    image;
+        subresourceRange,                           // VkImageSubresourceRange    subresourceRange;
+    };
+
+    const VkImageMemoryBarrier dstImageBarrier = {
+        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,     // VkStructureType            sType;
+        nullptr,                                    // const void*                pNext;
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,       // VkAccessFlags              srcAccessMask;
+        VK_ACCESS_TRANSFER_WRITE_BIT,               // VkAccessFlags              dstAccessMask;
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout              oldLayout;
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,       // VkImageLayout              newLayout;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   dstQueueFamilyIndex;
+        _surfaceImage,                              // VkImage                    image;
+        subresourceRange,                           // VkImageSubresourceRange    subresourceRange;
+    };
+
+    const VkImageMemoryBarrier postImageBarrier = {
+        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,     // VkStructureType            sType;
+        nullptr,                                    // const void*                pNext;
+        VK_ACCESS_TRANSFER_WRITE_BIT,               // VkAccessFlags              srcAccessMask;
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,       // VkAccessFlags              dstAccessMask;
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,       // VkImageLayout              oldLayout;
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout              newLayout;
+        _queueFamilyIndex,                          // uint32_t                   srcQueueFamilyIndex;
+        _queueFamilyIndex,                          // uint32_t                   dstQueueFamilyIndex;
+        _surfaceImage,                              // VkImage                    image;
+        subresourceRange,                           // VkImageSubresourceRange    subresourceRange;
+    };
+
+    const VkImageMemoryBarrier imageBarriers[] = { srcImageBarrier, dstImageBarrier };
+
+    const VkOffset3D srcOffset = {
+        dirtyX,
+        dirtyY,
+        0,
+    };
+    const VkOffset3D dstOffset{
+        dx,
+        dy,
+        0,
+    };
+    const VkExtent3D extent = {
+        dirtyWidth,
+        dirtyHeight,
+        1,
+    };
+    const VkImageCopy imageCopy = {
+        subResourceLayers,   // VkImageSubresourceLayers    srcSubresource;
+        srcOffset,           // VkOffset3D                  srcOffset;
+        subResourceLayers,   // VkImageSubresourceLayers    dstSubresource;
+        dstOffset,           // VkOffset3D                  dstOffset;
+        extent,              // VkExtent3D                  extent;
+    };
+
+    _vk.vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+
+    _vk.vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferToImage);
+    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 0, (const VkBufferMemoryBarrier*)nullptr, 2, imageBarriers);
+    _vk.vkCmdCopyImage(commandBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, _surfaceImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageCopy);
+    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 0, (const VkBufferMemoryBarrier*)nullptr, 1, &postImageBarrier);
+
+    _vk.vkEndCommandBuffer(commandBuffer);
+
+    const VkSubmitInfo submitInfo = {
+        VK_STRUCTURE_TYPE_SUBMIT_INFO,  // VkStructureType                sType;
+        nullptr,                        // const void*                    pNext;
+        0u,                             // uint32_t                       waitSemaphoreCount;
+        nullptr,                        // const VkSemaphore*             pWaitSemaphores;
+        nullptr,                        // const VkPipelineStageFlags*    pWaitDstStageMask;
+        1u,                             // uint32_t                       commandBufferCount;
+        &commandBuffer,                 // const VkCommandBuffer*         pCommandBuffers;
+        0u,                             // uint32_t                       signalSemaphoreCount;
+        nullptr,                        // const VkSemaphore*             pSignalSemaphores;
+    };
+
+    VkQueue queue;
+    _vk.vkGetDeviceQueue(_device, _queueFamilyIndex, 0, &queue);
+
+    const VkFenceCreateInfo fenceInfo = {
+        VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,    // VkStructureType       sType;
+        nullptr,                                // const void*           pNext;
+        0,                                      // VkFenceCreateFlags    flags;
+    };
+
+    VkFence fence;
+    _vk.vkCreateFence(_device, &fenceInfo, _allocator, &fence);
+    vkResult = _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
+    GD_ASSERT(vkResult == VK_SUCCESS && "Queue submit failed!");
+
+    vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
+    if (vkResult == VK_TIMEOUT)
+        GD_LOG1("TIMEOUT!");
+
+    if(_context.surface->getDisplay()) {
+        presentImage();
+    } else if(_context.surface->getBuffer()) {
+        readImage();
+    }
+
+    // Clean up
+    _vk.vkFreeMemory(_device, imageMemory, _allocator);
+    _vk.vkFreeMemory(_device, bufferAlloc, _allocator);
+    _vk.vkDestroyFence(_device, fence, _allocator);
+    _vk.vkDestroyImage(_device, image, _allocator);
+    _vk.vkDestroyBuffer(_device, buffer, _allocator);
 }
 
 void GepardVulkan::fill()

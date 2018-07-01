@@ -41,7 +41,7 @@ public:
 
     const uint32_t width();
     const uint32_t height();
-    std::vector<uint32_t> data();
+    std::vector<uint32_t> &data();
 private:
     uint32_t _width;
     uint32_t _height;

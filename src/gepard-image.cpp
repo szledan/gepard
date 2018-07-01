@@ -63,7 +63,7 @@ const uint32_t Image::height()
     return _height;
 }
 
-std::vector<uint32_t> Image::data()
+std::vector<uint32_t> &Image::data()
 {
     return _data;
 }

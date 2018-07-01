@@ -45,6 +45,18 @@ void generateCheckerBoard(gepard::Gepard& gepard)
     }
 }
 
+void fillImage(gepard::Image& image)
+{
+    for (int i = 0; i < image.width(); i++) {
+        for (int j = 0; j < image.height(); j++) {
+            uint32_t color = 0x7f7f7f7f;
+
+            image.data()[i * image.width() + j] = color;
+            std::cout << image.data()[i * image.width() + j] << std::endl;
+        }
+    }
+}
+
 int main()
 {
     gepard::PNGSurface surface(SURFACE_SIZE, SURFACE_SIZE);
@@ -53,12 +65,15 @@ int main()
     generateCheckerBoard(gepard);
 
     gepard::Image image = gepard.createImageData(200.0, 200.0);
+    fillImage(image);
 
     std::cout << image.width() << " " << image.height() << std::endl;
     gepard::Image image2 = gepard.createImageData(image);
     std::cout << image2.width() << " " << image2.height() << std::endl;
 
-    gepard.putImageData(image, 20, 20);
+    gepard.putImageData(image, 100, 100, 10, 10, 50, 50);
+
+    gepard.putImageData(image2, 0, 0);
 
     surface.save("image.png");
 
