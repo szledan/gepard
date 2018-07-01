@@ -598,16 +598,17 @@ void Gepard::drawImage(Image /*image*/, float sx, float sy, float sw, float sh,
 
 Image Gepard::createImageData(float sw, float sh)
 {
-/*! \todo unimplemented function */
-    GD_NOT_IMPLEMENTED();
-    return Image();
+    GD_ASSERT(sw >= 0.0 && sh >= 0.0);
+    uint32_t width = (uint32_t) sw;
+    uint32_t height = (uint32_t) sh;
+    return Image(width, height);
 }
 
-Image Gepard::createImageData(Image /*imagedata*/)
+Image Gepard::createImageData(Image imagedata)
 {
-/*! \todo unimplemented function */
-    GD_NOT_IMPLEMENTED();
-    return Image();
+    uint32_t width = imagedata.width();
+    uint32_t height = imagedata.height();
+    return Image(width, height);
 }
 
 Image Gepard::getImageData(double sx, double sy, double sw, double sh)
@@ -617,15 +618,15 @@ Image Gepard::getImageData(double sx, double sy, double sw, double sh)
     return Image();
 }
 
-void Gepard::putImageData(Image /*imagedata*/, double dx, double dy)
+void Gepard::putImageData(Image imagedata, double dx, double dy)
 {
-/*! \todo unimplemented function */
+    _engine->putImage(imagedata, dx, dy, 0.0, 0.0, imagedata.width(), imagedata.height());
 }
 
-void Gepard::putImageData(Image /*imagedata*/, double dx, double dy, double dirtyX, double dirtyY,
+void Gepard::putImageData(Image imagedata, double dx, double dy, double dirtyX, double dirtyY,
     double dirtyWidth, double dirtyHeight)
 {
-    /*! \todo unimplemented function */
+    _engine->putImage(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
 }
 
 void Gepard::setFillColor(const std::string& color)

@@ -1,5 +1,5 @@
-/* Copyright (C) 2015-2018, Gepard Graphics
- * Copyright (C) 2016, 2018 Kristof Kosztyo <kkristof@inf.u-szeged.hu>
+/* Copyright (C) 2018, Gepard Graphics
+ * Copyright (C) 2018, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,31 +23,44 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GEPARD_IMAGE_H
-#define GEPARD_IMAGE_H
+#include "gepard.h"
+#include "gepard-image.h"
+#include "surfaces/gepard-png-surface.h"
+#include <iostream>
 
-#include "gepard-defs.h"
+#define SURFACE_SIZE 600
 
-#include <vector>
+void generateCheckerBoard(gepard::Gepard& gepard)
+{
+    int cellWidth = SURFACE_SIZE / 8;
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            if ((i+j) % 2) {
+                gepard.setFillColor(0.3f, 0.3f, 0.3f, 1.0f);
+            } else {
+                gepard.setFillColor(0.8f, 0.8f, 0.8f, 1.0f);
+            }
+            gepard.fillRect(i * cellWidth, j * cellWidth, cellWidth, cellWidth);
+        }
+    }
+}
 
-namespace gepard {
+int main()
+{
+    gepard::PNGSurface surface(SURFACE_SIZE, SURFACE_SIZE);
+    gepard::Gepard gepard(&surface);
 
-class Image {
-public:
-    Image();
-    Image(uint32_t width, uint32_t height);
-    Image(uint32_t width, uint32_t height, std::vector<uint32_t> data);
-    virtual ~Image();
+    generateCheckerBoard(gepard);
 
-    const uint32_t width();
-    const uint32_t height();
-    std::vector<uint32_t> data();
-private:
-    uint32_t _width;
-    uint32_t _height;
-    std::vector<uint32_t> _data;
-};
+    gepard::Image image = gepard.createImageData(200.0, 200.0);
 
-} // namespace gepard
+    std::cout << image.width() << " " << image.height() << std::endl;
+    gepard::Image image2 = gepard.createImageData(image);
+    std::cout << image2.width() << " " << image2.height() << std::endl;
 
-#endif // GEPARD_IMAGE_H
+    gepard.putImageData(image, 20, 20);
+
+    surface.save("image.png");
+
+    return 0;
+}

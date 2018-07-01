@@ -51,6 +51,7 @@ public:
     ~GepardVulkan();
 
     void fillRect(const Float x, const Float y, const Float w, const Float h);
+    void putImage(Image imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight);
     void fill();
     void stroke();
 

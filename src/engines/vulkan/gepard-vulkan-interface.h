@@ -31,8 +31,8 @@
 #include "gepard-defs.h"
 
 // TODO: move this define to the build system
-//#define VK_USE_PLATFORM_XLIB_KHR
-#define VK_USE_PLATFORM_XCB_KHR
+#define VK_USE_PLATFORM_XLIB_KHR
+//#define VK_USE_PLATFORM_XCB_KHR
 
 #include <vulkan/vulkan.h>
 

@@ -545,6 +545,11 @@ void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const F
     _vk.vkFreeMemory(_device, indexBufferMemory, _allocator);
 }
 
+void GepardVulkan::putImage(Image imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
+{
+    GD_LOG2("putImage " << dx << " " << dy << " " << dirtyWidth << " " << dirtyHeight);
+}
+
 void GepardVulkan::fill()
 {
     GD_NOT_IMPLEMENTED();

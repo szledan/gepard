@@ -250,6 +250,28 @@ void GepardEngine::fillRect(Float x, Float y, Float w, Float h)
 #endif // GD_USE_GLES2
 }
 
+/*!
+ * \brief GepardEngine::putImage
+ * \param imagedata
+ * \param dx Horizontal position on the _destination_
+ * \param dy Vertical position on the _destination_
+ * \param dirtyX Horizontal position on the _source_
+ * \param dirtyY Vertical position on the _source_
+ * \param dirtyWidth width of the rectangle to be painted
+ * \param dirtyHeight height of the rectangle to be painted.
+ *
+ * Copy the imageData into the canvas.
+ */
+void GepardEngine::putImage(Image imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
+{
+    GD_ASSERT(_engineBackend);
+#ifdef GD_USE_VULKAN
+    _engineBackend->putImage(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+#else // !GD_USE_VULKAN
+    GD_NOT_IMPLEMENTED();
+#endif // GD_USE_VULKAN
+}
+
 void GepardEngine::setFillColor(const Color& color)
 {
     GD_LOG1("Set fill color (" << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ")");

@@ -1,5 +1,5 @@
-/* Copyright (C) 2015-2018, Gepard Graphics
- * Copyright (C) 2016, 2018 Kristof Kosztyo <kkristof@inf.u-szeged.hu>
+/* Copyright (C) 2018, Gepard Graphics
+ * Copyright (C) 2018, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,31 +23,49 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GEPARD_IMAGE_H
-#define GEPARD_IMAGE_H
+#include "gepard-image.h"
 
-#include "gepard-defs.h"
-
-#include <vector>
+#include <cstring>
 
 namespace gepard {
 
-class Image {
-public:
-    Image();
-    Image(uint32_t width, uint32_t height);
-    Image(uint32_t width, uint32_t height, std::vector<uint32_t> data);
-    virtual ~Image();
+Image::Image()
+    : _width(0)
+    , _height(0)
+{
+}
 
-    const uint32_t width();
-    const uint32_t height();
-    std::vector<uint32_t> data();
-private:
-    uint32_t _width;
-    uint32_t _height;
-    std::vector<uint32_t> _data;
-};
+Image::Image(uint32_t width, uint32_t height)
+    : _width(width)
+    , _height(height)
+{
+    _data.resize(width * height);
+}
+
+Image::Image(uint32_t width, uint32_t height, std::vector<uint32_t> data)
+    : _width(width)
+    , _height(height)
+    , _data(data)
+{
+}
+
+Image::~Image()
+{
+}
+
+const uint32_t Image::width()
+{
+    return _width;
+}
+
+const uint32_t Image::height()
+{
+    return _height;
+}
+
+std::vector<uint32_t> Image::data()
+{
+    return _data;
+}
 
 } // namespace gepard
-
-#endif // GEPARD_IMAGE_H
