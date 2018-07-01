@@ -12,6 +12,7 @@ set(GLES2_SOURCES
     engines/gles2/gepard-gles2-fill-path.cpp
     engines/gles2/gepard-gles2-fill-rect.cpp
     engines/gles2/gepard-gles2-shader-factory.cpp
+    engines/gles2/gepard-gles2-stroke-builder.cpp
     engines/gles2/gepard-gles2-stroke-path.cpp
     engines/gles2/gepard-gles2-trapezoid-tessellator.cpp
 )
@@ -47,24 +48,20 @@ set(SOFTWARE_INCLUDE_DIRS
 )
 
 set(SOURCES ${COMMON_SOURCES})
-if (${USE_GLES2})
-list(APPEND SOURCES ${GLES2_SOURCES})
-elseif (${USE_VULKAN})
-list(APPEND SOURCES ${VULKAN_SOURCES})
-elseif (${USE_SOFTWARE})
-list(APPEND SOURCES ${SOFTWARE_SOURCES})
-endif()
-
-include_directories(${COMMON_INCLUDE_DIRS})
-if (${USE_GLES2})
-include_directories(${GLES2_INCLUDE_DIRS})
-elseif (${USE_VULKAN})
-include_directories(${VULKAN_INCLUDE_DIRS})
-elseif (${USE_SOFTWARE})
-include_directories(${SOFTWARE_INCLUDE_DIRS})
-endif()
+list(APPEND SOURCES ${${BACKEND}_SOURCES})
 
 add_library(gepard SHARED ${SOURCES})
 
+if (BACKEND STREQUAL "VULKAN" AND NOT VULKAN_FOUND)
+  add_dependencies(gepard vulkan_headers)
+endif()
+
+target_compile_definitions(gepard PUBLIC "GD_USE_${BACKEND}")
+
+target_include_directories(gepard PUBLIC ${COMMON_INCLUDE_DIRS})
+target_include_directories(gepard PUBLIC ${${BACKEND}_INCLUDE_DIRS})
+target_include_directories(gepard PUBLIC ${GEPARD_DEP_INCLUDES})
+
+# TODO(dbatyai): Add a target to do this instead of doing it at configure time
 file(COPY gepard.h DESTINATION ${INCLUDE_OUTPUT_DIR})
 file(COPY surfaces DESTINATION ${INCLUDE_OUTPUT_DIR})

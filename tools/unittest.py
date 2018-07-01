@@ -25,49 +25,40 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import subprocess
+import argparse
+import build
 import sys
+import util
 from os import path
-
-def get_base_path():
-    """ Returns the base path to the project. """
-    return path.abspath(path.join(path.dirname(__file__), '..', '..'))
+from os import getcwd
 
 
-def get_build_path(arguments):
-    """ Returns build direcotry. """
-    basedir = get_base_path()
-    return path.join(basedir, 'build', arguments.build_type)
+def run_unittest(throw=True):
+    """ Runs unit-tests. """
+    args = lambda: None
+    args.build_dir = "build/unittest"
+    args.build_type = "debug"
+    args.backend = "software"
+    args.targets = ["unittest"]
+    build_path = util.get_build_path(args)
 
-
-def call(command, throw=True):
-    """ Wrapper for subprocess call. """
-    ret = subprocess.call(command)
-    if ret and throw:
-        raise CommandError(ret, command)
-
-    return ret
-
-
-def print_success():
     print('')
-    print('-' * 30)
-    print('Everything passed.')
-    print('-' * 30)
+    print("Building unit-tests...")
+    build.configure(args)
+    build.build_targets(args)
 
-
-def print_fail():
     print('')
-    print('-' * 30)
-    print('Something failed, please see the log.')
-    print('-' * 30)
+    print("Running unit-tests...")
+    return util.call([path.join(build_path, 'bin', 'unittest')], throw)
 
 
-class CommandError(BaseException):
-    def __init__(self, code, cmd):
-        super(CommandError, self).__init__(code, cmd)
-        self.code = code
-        self.cmd = cmd
+def main():
+    try:
+        run_unittest()
+    except util.CommandError as e:
+        print(e)
+        sys.exit(e.code)
 
-    def __str__(self):
-        return 'Command "%s" failed with exit code: %d' % (" ".join(self.cmd), self.code)
+
+if __name__ == "__main__":
+    main()

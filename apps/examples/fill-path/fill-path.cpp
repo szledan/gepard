@@ -1,5 +1,5 @@
-/* Copyright (C) 2018, Gepard Graphics
- * Copyright (C) 2018, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2017-2018, Gepard Graphics
+ * Copyright (C) 2017-2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,37 +23,49 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_GLES2
+#include "gepard.h"
+#include "surfaces/gepard-png-surface.h"
+#include <iostream>
 
-#include "gepard-gles2.h"
-
-#include "gepard-defs.h"
-#include "gepard-gles2-stroke-builder.h"
-#include "gepard-path.h"
-#include "gepard-types.h"
-#include <memory>
-
-namespace gepard {
-namespace gles2 {
-
-void GepardGLES2::strokePath()
+void pathShape(gepard::Gepard& ctx)
 {
-    PathData* pathData = _context.path.pathData();
-    const GepardState& state = _context.currentState();
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, 600, 600);
 
-    GD_LOG3("Path: " << pathData->firstElement());
-    if (!pathData || pathData->isEmpty())
-        return;
+    ctx.fillStyle = "#0f0";
+    ctx.beginPath();
+    ctx.moveTo(300, 100);
+    ctx.lineTo(50, 230);
+    ctx.lineTo(380, 200);
+    ctx.closePath();
+    ctx.fill();
 
-    Float miterLimit = state.miterLimit ? state.miterLimit : 10;
-
-    StrokePathBuilder sPath(state.lineWitdh, miterLimit, state.lineJoinMode, state.lineCapMode);
-    sPath.convertStrokeToFill(pathData);
-
-    fillPath(sPath.pathData(), state.strokeColor);
+    ctx.fillStyle = "#f00";
+    ctx.beginPath();
+    ctx.moveTo(100, 100);
+    ctx.lineTo(180, 200);
+    ctx.bezierCurveTo(400, 200, 40, 50, 300, 250);
+    ctx.closePath();
+    ctx.fill();
 }
 
-} // namespace gles2
-} // namespace gepard
+int main(int argc, char* argv[])
+{
+    if ((argc > 1) && (std::string(argv[1]) == "-h" || std::string(argv[1]) == "--help")) {
+        std::cout << "Usage: " << argv[0] << " [options] [file-name]" << std::endl << std::endl;
+        std::cout << "Options:" << std::endl;
+        std::cout << "  -h, --help    show this help." << std::endl;
+        return 0;
+    }
 
-#endif // GD_USE_GLES2
+    std::string pngFile = (argc > 1) ? argv[1] : "fill-path.png";
+
+    gepard::PNGSurface pngSurface(600, 600);
+    gepard::Gepard pngGepard(&pngSurface);
+
+    pathShape(pngGepard);
+
+    pngSurface.save(pngFile);
+
+    return 0;
+}

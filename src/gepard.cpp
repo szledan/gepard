@@ -26,6 +26,7 @@
 
 #include "gepard.h"
 
+#include "gepard-context.h"
 #include "gepard-defs.h"
 #include "gepard-engine.h"
 #include "gepard-image.h"
@@ -34,9 +35,78 @@
 
 namespace gepard {
 
+Gepard::Attribute::Attribute(const char* chs, void (*cbf)(GepardEngine*, const std::string&), GepardEngine* eng)
+    : callBackFunction(cbf)
+    , engine(eng)
+    , data(chs)
+{
+}
+
+Gepard::Attribute& Gepard::Attribute::operator=(const Attribute& atr)
+{
+    callBackFunction = atr.callBackFunction;
+    engine = atr.engine;
+    data = atr.data;
+    callFunction();
+
+    return *this;
+}
+
+Gepard::Attribute& Gepard::Attribute::operator=(const std::string& str)
+{
+    data = str;
+    callFunction();
+
+    return *this;
+}
+
+Gepard::Attribute&Gepard::Attribute::operator=(const char* chs)
+{
+    this->operator=(std::string(chs)); return *this;
+}
+
+gepard::Gepard::Attribute::operator std::string() const
+{
+    return data;
+}
+
+gepard::Gepard::Attribute::operator double() const
+{
+    return std::stod(data);
+}
+
+gepard::Gepard::Attribute::operator float() const
+{
+    return std::stof(data);
+}
+
+gepard::Gepard::Attribute::operator int() const
+{
+    return std::stoi(data);
+}
+
+void Gepard::Attribute::callFunction()
+{
+    if (engine && callBackFunction) {
+        callBackFunction(engine, data);
+    }
+}
+
+void Gepard::Attribute::setCallBack(GepardEngine* eng, void(*func)(GepardEngine*, const std::string&))
+{
+    engine = eng;
+    callBackFunction = func;
+}
+
 Gepard::Gepard(Surface* surface)
     : _engine(new GepardEngine(surface))
 {
+    fillStyle.setCallBack(_engine, [](GepardEngine* engine, const std::string& color){ engine->setFillStyle(color); });
+    strokeStyle.setCallBack(_engine, [](GepardEngine* engine, const std::string& color){ engine->setStrokeStyle(color); });
+    lineWidth.setCallBack(_engine, [](GepardEngine* engine, const std::string& width){ engine->setLineWidth(width); });
+    lineCap.setCallBack(_engine, [](GepardEngine* engine, const std::string& capMode){ engine->setLineCap(capMode); });
+    lineJoin.setCallBack(_engine, [](GepardEngine* engine, const std::string& joinMode){ engine->setLineJoin(joinMode); });
+    miterLimit.setCallBack(_engine, [](GepardEngine* engine, const std::string& limit){ engine->setMiterLimit(limit); });
 }
 
 Gepard::~Gepard()
@@ -364,10 +434,6 @@ void Gepard::beginPath()
 void Gepard::fill()
 {
     GD_ASSERT(_engine);
-    if (fillStyleStatus != fillStyle.status) {
-        _engine->setFillColor(Color(fillStyle));
-        fillStyleStatus = !fillStyleStatus;
-    }
     _engine->fill();
 }
 
@@ -401,7 +467,8 @@ void Gepard::fill()
  */
 void Gepard::stroke()
 {
-    GD_NOT_IMPLEMENTED();
+    GD_ASSERT(_engine);
+    _engine->stroke();
 }
 
 /*!
@@ -577,6 +644,11 @@ void Gepard::setFillColor(const float red, const float green, const float blue, 
 {
     GD_ASSERT(_engine);
     _engine->setFillColor(red, green, blue, alpha);
+}
+
+// Virtual destructor definition for the abstract Surface class.
+Surface::~Surface()
+{
 }
 
 } // namespace gepard

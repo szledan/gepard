@@ -157,23 +157,23 @@ static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes, const int
 {
     GLfloat slopeLeft = (trapezoid.bottomLeftX - trapezoid.topLeftX) / (trapezoid.bottomY - trapezoid.topY);
     GLfloat slopeRight = (trapezoid.bottomRightX - trapezoid.topRightX) / (trapezoid.bottomY - trapezoid.topY);
-    const GLfloat bottomY = floor(trapezoid.topY);
-    const GLfloat topY = ceil(trapezoid.bottomY);
+    const GLfloat bottomY = std::floor(trapezoid.topY);
+    const GLfloat topY = std::ceil(trapezoid.bottomY);
     // The fraction is stored in a temporary variable.
     GLfloat temp, x1, x2;
     GLfloat bottomLeftX, bottomRightX, topLeftX, topRightX;
 
-    temp = ceil(trapezoid.bottomY) - (trapezoid.bottomY);
+    temp = std::ceil(trapezoid.bottomY) - (trapezoid.bottomY);
     x1 = trapezoid.bottomLeftX - temp * slopeLeft;
     x2 = trapezoid.bottomRightX - temp * slopeRight;
-    topLeftX = floor(x1 - fabs(slopeLeft));
-    topRightX = ceil(x2 + fabs(slopeRight));
+    topLeftX = std::floor(x1 - fabs(slopeLeft));
+    topRightX = std::ceil(x2 + fabs(slopeRight));
 
-    temp = trapezoid.topY - floor(trapezoid.topY);
+    temp = trapezoid.topY - std::floor(trapezoid.topY);
     x1 = trapezoid.topLeftX - temp * slopeLeft;
     x2 = trapezoid.topRightX - temp * slopeRight;
-    bottomLeftX = floor(x1 - fabs(slopeLeft));
-    bottomRightX = ceil(x2 + fabs(slopeRight));
+    bottomLeftX = std::floor(x1 - std::fabs(slopeLeft));
+    bottomRightX = std::ceil(x2 + std::fabs(slopeRight));
 
     slopeLeft /= antiAliasingLevel;
     slopeRight /= antiAliasingLevel;
@@ -213,19 +213,14 @@ static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes, const int
     }
 }
 
-void GepardGLES2::fill()
+void GepardGLES2::fillPath(PathData* pathData, const Color& fillColor)
 {
     makeCurrent();
-    if (!_context.path.pathData()->firstElement())
+    if (!pathData->firstElement())
         return;
 
     const uint32_t width = _context.surface->width();
     const uint32_t height = _context.surface->height();
-
-    TrapezoidTessellator::FillRule fillRule = TrapezoidTessellator::FillRule::NonZero;
-
-    TrapezoidTessellator tt(&_context.path, fillRule, GD_GLES2_ANTIALIAS_LEVEL);
-    TrapezoidList trapezoidList = tt.trapezoidList();
 
     GLuint textureId;
     {
@@ -243,6 +238,7 @@ void GepardGLES2::fill()
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, fboId);
+
         glBlendFunc(GL_ONE, GL_ONE);
     }
 
@@ -273,45 +269,50 @@ void GepardGLES2::fill()
             glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, strideLength, _attributes + offset);
             offset += size;
         }
-    }
 
-    int trapezoidIndex = 0;
-    for (Trapezoid trapezoid : trapezoidList) {
-        GD_ASSERT(trapezoid.topY < trapezoid.bottomY);
-        GD_ASSERT(trapezoid.topLeftX <= trapezoid.topRightX);
-        GD_ASSERT(trapezoid.bottomLeftX <= trapezoid.bottomRightX);
+        TrapezoidTessellator::FillRule fillRule = TrapezoidTessellator::FillRule::NonZero;
 
-        if (!trapezoid.leftId || !trapezoid.rightId)
-            continue;
+        TrapezoidTessellator tt(*pathData, fillRule, GD_GLES2_ANTIALIAS_LEVEL);
+        const TrapezoidList trapezoidList = tt.trapezoidList();
 
-        setupAttributes(trapezoid, _attributes + trapezoidIndex * 32, tt.antiAliasingLevel());
-        trapezoidIndex++;
-        if (trapezoidIndex >= min(kMaximumNumberOfUshortQuads, kMaximumNumberOfAttributes / 32)) {
+        int trapezoidIndex = 0;
+        for (Trapezoid trapezoid : trapezoidList) {
+            GD_ASSERT(trapezoid.topY < trapezoid.bottomY);
+            GD_ASSERT(trapezoid.topLeftX <= trapezoid.topRightX);
+            GD_ASSERT(trapezoid.bottomLeftX <= trapezoid.bottomRightX);
+
+            if (!trapezoid.leftId || !trapezoid.rightId)
+                continue;
+
+            setupAttributes(trapezoid, _attributes + trapezoidIndex * 32, tt.antiAliasingLevel());
+            trapezoidIndex++;
+            if (trapezoidIndex >= min(kMaximumNumberOfUshortQuads, kMaximumNumberOfAttributes / 32)) {
+                GD_LOG2("Draw '" << trapezoidIndex << "' trapezoids with triangles in pairs.");
+                glDrawElements(GL_TRIANGLES, 6 * trapezoidIndex, GL_UNSIGNED_SHORT, nullptr);
+                trapezoidIndex = 0;
+            }
+        }
+
+        if (trapezoidIndex) {
             GD_LOG2("Draw '" << trapezoidIndex << "' trapezoids with triangles in pairs.");
             glDrawElements(GL_TRIANGLES, 6 * trapezoidIndex, GL_UNSIGNED_SHORT, nullptr);
-            trapezoidIndex = 0;
         }
     }
 
-    if (trapezoidIndex) {
-        GD_LOG2("Draw '" << trapezoidIndex << "' trapezoids with triangles in pairs.");
-        glDrawElements(GL_TRIANGLES, 6 * trapezoidIndex, GL_UNSIGNED_SHORT, nullptr);
-    }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
-
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     {
+        glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
         ShaderProgram& copyProgram = _shaderProgramManager.getProgram("copyPathProgram", s_copyPathVertexShader, s_copyPathFragmentShader);
         glUseProgram(copyProgram.id);
 
         {
             const GLfloat textureCoords[] = {
-                0.0, (GLfloat)height, 0.0, 0.0,
-                0.0, 0.0, 0.0, 1.0,
-                (GLfloat)width, (GLfloat)height, 1.0, 0.0,
-                (GLfloat)width, 0.0, 1.0, 1.0,
+                0.0, 0.0, 0.0, 0.0,
+                (GLfloat)width, 0.0, 1.0, 0.0,
+                0.0, (GLfloat)height, 0.0, 1.0,
+                (GLfloat)width, (GLfloat)height, 1.0, 1.0,
             };
 
             const GLint index = glGetAttribLocation(copyProgram.id, "a_position");
@@ -320,7 +321,6 @@ void GepardGLES2::fill()
         }
 
         {
-            const Color& fillColor = _context.currentState().fillColor;
             const GLint index = glGetUniformLocation(copyProgram.id, "u_color");
             glUniform4f(index, ((Float)fillColor.r), ((Float)fillColor.g), ((Float)fillColor.b), fillColor.a);
         }
@@ -331,9 +331,10 @@ void GepardGLES2::fill()
         }
 
         glBindTexture(GL_TEXTURE_2D, textureId);
+
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     render();
 }
