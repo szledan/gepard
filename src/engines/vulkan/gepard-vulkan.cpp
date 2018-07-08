@@ -526,7 +526,7 @@ void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const F
     if(_context.surface->getDisplay()) {
         presentImage();
     } else if(_context.surface->getBuffer()) {
-        readImage();
+        presentToMemoryBuffer();
     }
 
     // Clean up
@@ -776,7 +776,7 @@ void GepardVulkan::putImage(Image imagedata, Float dx, Float dy, Float dirtyX, F
     if(_context.surface->getDisplay()) {
         presentImage();
     } else if(_context.surface->getBuffer()) {
-        readImage();
+        presentToMemoryBuffer();
     }
 
     // Clean up
@@ -785,6 +785,18 @@ void GepardVulkan::putImage(Image imagedata, Float dx, Float dy, Float dirtyX, F
     _vk.vkDestroyFence(_device, fence, _allocator);
     _vk.vkDestroyImage(_device, image, _allocator);
     _vk.vkDestroyBuffer(_device, buffer, _allocator);
+}
+
+Image GepardVulkan::getImage(Float sx, Float sy, Float sw, Float sh)
+{
+    std::vector<uint32_t> imageData;
+    int32_t x = sx;
+    int32_t y = sy;
+    uint32_t w = sw;
+    uint32_t h = sh;
+    imageData.resize(w * h);
+    readImage(imageData.data(), x, y, w, h);
+    return Image(w, h, imageData);
 }
 
 void GepardVulkan::fill()
@@ -1464,13 +1476,16 @@ void GepardVulkan::presentImage()
     _vk.vkDestroyFence(_device, fence, _allocator);
 }
 
-void GepardVulkan::readImage()
+void GepardVulkan::presentToMemoryBuffer()
+{
+    readImage((uint32_t*)_context.surface->getBuffer(), 0, 0, _context.surface->width(), _context.surface->height());
+}
+
+void GepardVulkan::readImage(uint32_t* memoryBuffer, int32_t x, int32_t y, uint32_t width, uint32_t height)
 {
     VkBuffer buffer;
     VkDeviceMemory bufferAlloc;
     const VkCommandBuffer commandBuffer = _primaryCommandBuffers[0];
-    const uint32_t width = _context.surface->width();
-    const uint32_t height = _context.surface->width();
     const VkDeviceSize dataSize = width * height * 4; // r8g8b8a8 format
 
     // Create destination buffer
@@ -1557,7 +1572,7 @@ void GepardVulkan::readImage()
         width,              // uint32_t                    bufferRowLength;
         height,             // uint32_t                    bufferImageHeight;
         imageSubresource,   // VkImageSubresourceLayers    imageSubresource;
-        { 0, 0, 0 },        // VkOffset3D                  imageOffset;
+        { x, y, 0 },        // VkOffset3D                  imageOffset;
         {
             width,
             height,
@@ -1620,7 +1635,7 @@ void GepardVulkan::readImage()
     };
 
     _vk.vkInvalidateMappedMemoryRanges(_device, 1, &range);
-    std::memcpy(_context.surface->getBuffer(), data, dataSize);
+    std::memcpy(memoryBuffer, data, dataSize);
 
     // Clean up
     _vk.vkUnmapMemory(_device, bufferAlloc);

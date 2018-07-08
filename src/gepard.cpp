@@ -580,20 +580,22 @@ bool Gepard::isPointInPath(float x, float y)
     return false;
 }
 
-void Gepard::drawImage(Image /*image*/, float dx, float dy)
+void Gepard::drawImage(Image image, float dx, float dy)
 {
-/*! \todo unimplemented function */
+    float width = image.width();
+    float height = image.height();
+    _engine->drawImage(image, 0.0, 0.0, width, height, dx, dy, width, height);
 }
 
-void Gepard::drawImage(Image /*image*/, float dx, float dy, float dw, float dh)
+void Gepard::drawImage(Image image, float dx, float dy, float dw, float dh)
 {
-/*! \todo unimplemented function */
+    _engine->drawImage(image, 0.0, 0.0, image.width(), image.height(), dx, dy, dw, dh);
 }
 
-void Gepard::drawImage(Image /*image*/, float sx, float sy, float sw, float sh,
+void Gepard::drawImage(Image image, float sx, float sy, float sw, float sh,
     float dx, float dy, float dw, float dh)
 {
-/*! \todo unimplemented function */
+    _engine->drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
 }
 
 Image Gepard::createImageData(float sw, float sh)
@@ -613,9 +615,7 @@ Image Gepard::createImageData(Image imagedata)
 
 Image Gepard::getImageData(double sx, double sy, double sw, double sh)
 {
-/*! \todo unimplemented function */
-    GD_NOT_IMPLEMENTED();
-    return Image();
+    return _engine->getImage(sx, sy, sw, sh);
 }
 
 void Gepard::putImageData(Image imagedata, double dx, double dy)

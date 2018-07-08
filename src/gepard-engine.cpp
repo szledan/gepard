@@ -272,6 +272,33 @@ void GepardEngine::putImage(Image imagedata, Float dx, Float dy, Float dirtyX, F
 #endif // GD_USE_VULKAN
 }
 
+void GepardEngine::drawImage(Image imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
+{
+    GD_ASSERT(_engineBackend);
+    GD_NOT_IMPLEMENTED();
+}
+
+/*!
+ * \brief GepardEngine::getImage
+ * \param sx Horizontal position on the _canvas_
+ * \param sy Vertical position on the _canvas_
+ * \param sw width of the rectangle to be copied
+ * \param sh height of the rectangle to be copied
+ * \return imageData
+ *
+ * Read back the canvas' data on the given rectangle.
+ */
+Image GepardEngine::getImage(Float sx, Float sy, Float sw, Float sh)
+{
+    GD_ASSERT(_engineBackend);
+#ifdef GD_USE_VULKAN
+    return _engineBackend->getImage(sx, sy, sw, sh);
+#else // !GD_USE_VULKAN
+    GD_NOT_IMPLEMENTED();
+    return Image();
+#endif // GD_USE_VULKAN
+}
+
 void GepardEngine::setFillColor(const Color& color)
 {
     GD_LOG1("Set fill color (" << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ")");

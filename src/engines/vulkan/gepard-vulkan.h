@@ -52,6 +52,7 @@ public:
 
     void fillRect(const Float x, const Float y, const Float w, const Float h);
     void putImage(Image imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight);
+    Image getImage(Float sx, Float sy, Float sw, Float sh);
     void fill();
     void stroke();
 
@@ -90,7 +91,8 @@ private:
     uint32_t getMemoryTypeIndex(const VkMemoryRequirements memoryRequirements, const VkMemoryPropertyFlags properties);
     void createSwapChain();
     void presentImage();
-    void readImage();
+    void presentToMemoryBuffer();
+    void readImage(uint32_t* memoryBuffer, int32_t x, int32_t y, uint32_t width, uint32_t height);
 };
 
 } // namespace vulkan
