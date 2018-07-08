@@ -28,7 +28,7 @@
 #include "gepard-gles2.h"
 
 #include "gepard-defs.h"
-#include "gepard-gles2-stroke-builder.h"
+#include "gepard-stroke-builder.h"
 #include "gepard-path.h"
 #include "gepard-types.h"
 #include <memory>

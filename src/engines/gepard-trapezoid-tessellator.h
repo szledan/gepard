@@ -27,8 +27,8 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#ifndef GEPARD_GLES2_TRAPEZOID_TESSELLATOR_H
-#define GEPARD_GLES2_TRAPEZOID_TESSELLATOR_H
+#ifndef GEPARD_TRAPEZOID_TESSELLATOR_H
+#define GEPARD_TRAPEZOID_TESSELLATOR_H
 
 #include "gepard-defs.h"
 #include "gepard-gles2-defs.h"
@@ -38,7 +38,6 @@
 #include <map>
 
 namespace gepard {
-namespace gles2 {
 
 /* Segment */
 
@@ -171,7 +170,6 @@ private:
     BoundingBox _boundingBox;
 };
 
-} // namespace gles2
 } // namespace gepard
 
-#endif // GEPARD_GLES2_TRAPEZOID_TESSELLATOR_H
+#endif // GEPARD_TRAPEZOID_TESSELLATOR_H

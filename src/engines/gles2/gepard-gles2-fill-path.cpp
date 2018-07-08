@@ -31,7 +31,7 @@
 #include "gepard-defs.h"
 #include "gepard-gles2-defs.h"
 #include "gepard-gles2-shader-factory.h"
-#include "gepard-gles2-trapezoid-tessellator.h"
+#include "gepard-trapezoid-tessellator.h"
 #include <string>
 
 namespace gepard {

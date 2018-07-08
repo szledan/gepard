@@ -27,7 +27,7 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#include "gepard-gles2-trapezoid-tessellator.h"
+#include "gepard-trapezoid-tessellator.h"
 
 #include "gepard-defs.h"
 #include <cmath>
@@ -35,7 +35,6 @@
 #include <set>
 
 namespace gepard {
-namespace gles2 {
 
 /* Segment */
 
@@ -786,5 +785,4 @@ const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state
     return trapezoidList;
 }
 
-} // namespace gles2
 } // namespace gepard
