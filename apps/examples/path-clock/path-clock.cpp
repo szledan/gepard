@@ -29,6 +29,7 @@
 #include <cmath>
 #include <ctime>
 #include <iostream>
+#include <string>
 #include <thread>
 
 namespace {
@@ -59,12 +60,22 @@ public:
     {
         clockFace();
         XEvent xEvent;
+        float ms = 0;
+        float sc = 0;
+        const uint fps = 1000 / _frequency;
+        const float addMilliSec = float(fps) / 1000.0;
         while (true) {
             std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
             struct std::tm* np = std::localtime(&now);
-            showNow(np->tm_hour, np->tm_min, np->tm_sec);
+            if (sc != np->tm_sec) {
+                ms = 0;
+                sc = np->tm_sec;
+            } else {
+                ms += addMilliSec;
+            }
+            showNow(np->tm_hour, np->tm_min, np->tm_sec + (ms));
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000 / _frequency));
+            std::this_thread::sleep_for(std::chrono::milliseconds(fps));
             if (XCheckWindowEvent((Display*)_surface->getDisplay(), (Window)_surface->getWindow(), KeyPress | ClientMessage, &xEvent)) {
                 break;
             }
@@ -115,7 +126,7 @@ private:
         _ctx->lineWidth = _lineWidth + (isClear ? 2 : 0);
         clockHand(0.5 * _size, _h, isClear ? "#000" : "#f00");
         clockHand(0.66 * _size, _m, isClear ? "#000" : "#0f0");
-        clockHand(0.86 * _size, _s, isClear ? "#000" : "#00f");
+        clockHand(0.86 * _size, _s, isClear ? "#000" : "#05f");
     }
     void clear() { showNow(0, 0, 0, true); }
 
