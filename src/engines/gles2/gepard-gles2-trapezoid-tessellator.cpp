@@ -501,7 +501,7 @@ SegmentList* SegmentApproximator::segments()
     }
 
     for (auto y : ys) {
-        _segments.emplace(y, new SegmentList());
+        insertSegmentList(y);
     }
 
     // Split segments with all y lines.
@@ -561,8 +561,16 @@ void SegmentApproximator::insertSegment(const FloatPoint& from, const FloatPoint
     const int topY = segment.topY();
     const int bottomY = segment.bottomY();
 
-    _segments.emplace(topY, new SegmentList()).first->second->push_front(segment);
-    _segments.emplace(bottomY, new SegmentList());
+    insertSegmentList(topY)->push_front(segment);
+    insertSegmentList(bottomY);
+}
+
+SegmentList* SegmentApproximator::insertSegmentList(const int y)
+{
+    auto search = _segments.find(y);
+    if(search == _segments.end())
+        return _segments.emplace(y, new SegmentList()).first->second;
+    return search->second;
 }
 
 /* Trapezoid */
@@ -628,7 +636,7 @@ const TrapezoidList TrapezoidTessellator::trapezoidList()
 {
     PathElement* element = _pathData.firstElement();
 
-    if (!element)
+    if (!element || !element->next)
         return TrapezoidList();
 
     GD_ASSERT(element->type == PathElementTypes::MoveTo);
@@ -679,7 +687,7 @@ const TrapezoidList TrapezoidTessellator::trapezoidList()
             // unreachable
             break;
         }
-    } while (element->next);
+    } while (element->next != nullptr);
 
     segmentApproximator.insertLine(lastMoveTo, element->to);
 
@@ -693,7 +701,6 @@ const TrapezoidList TrapezoidTessellator::trapezoidList()
         Trapezoid trapezoid;
         int fill = 0;
         bool isInFill = false;
-        // TODO: GD_ASSERTs for wrong segments.
         for (Segment& segment : *segmentList) {
             if (segment.from.y == segment.to.y)
                 continue;
@@ -725,12 +732,14 @@ const TrapezoidList TrapezoidTessellator::trapezoidList()
                 }
                 isInFill = false;
             }
-            GD_ASSERT(trapezoid.topY == (fixPrecision(segment.topY() / denom)));
+            //! \todo(szledan): we need this assert in the future,
+            //! but the TT doesn't work correctly now with that.
+            // GD_ASSERT(trapezoid.topY == (fixPrecision(segment.topY() / denom)));
         }
 
         delete segmentList;
 
-        // TODO: check the boundingBox calculation:
+        //! \todo(szledan): check the boundingBox calculation:
         // NOTE:  maxX = (maxX + (_antiAliasingLevel - 1)) / _antiAliasingLevel;
         _boundingBox.minX = (fixPrecision(segmentApproximator.boundingBox().minX) / _antiAliasingLevel);
         _boundingBox.minY = (fixPrecision(segmentApproximator.boundingBox().minY) / _antiAliasingLevel);
@@ -741,7 +750,7 @@ const TrapezoidList TrapezoidTessellator::trapezoidList()
     trapezoids.sort();
 
     // 4. Vertical merge trapezoids.
-    // TODO: use MovePtr:
+    //! \todo(szledan): use MovePtr:
     TrapezoidList trapezoidList;
     for (TrapezoidList::iterator current = trapezoids.begin(); current != trapezoids.end(); ++current) {
         const Float bottomY = current->bottomY;

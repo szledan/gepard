@@ -351,7 +351,7 @@ void PathData::addCloseSubpathElement()
 const bool PathData::isEmpty() const
 {
     //! \todo(szledan): Need more investigation of condition.
-    return _firstElement == _lastElement;
+    return !_firstElement && _firstElement == _lastElement;
 }
 
 const PathElement* PathData::operator[](std::size_t idx) const

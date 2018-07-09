@@ -112,6 +112,7 @@ public:
     const Float kTolerance;
 private:
     void insertSegment(const FloatPoint& from, const FloatPoint& to);
+    SegmentList* insertSegmentList(const int y);
 
     SegmentTree _segments;
 

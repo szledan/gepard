@@ -333,6 +333,8 @@ void GepardGLES2::fillPath(PathData* pathData, const Color& fillColor)
         glBindTexture(GL_TEXTURE_2D, textureId);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        glDeleteTextures(1, &textureId);
     }
 
 
