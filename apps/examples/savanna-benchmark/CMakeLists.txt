@@ -10,7 +10,9 @@ set(INCLUDE_DIRS
 
 include_directories(${INCLUDE_DIRS})
 
-add_executable(savanna-benchmark EXCLUDE_FROM_ALL ${SOURCES})
+add_executable(savanna-benchmark ${SOURCES})
 add_dependencies(examples savanna-benchmark)
 
-target_link_libraries(savanna-benchmark gepard X11 ${LIB_DEPENDENCIES})
+find_package(X11)
+
+target_link_libraries(savanna-benchmark gepard ${X11_LIBRARIES} ${GEPARD_DEP_LIBS})

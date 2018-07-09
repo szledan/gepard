@@ -1,7 +1,8 @@
-#!/bin/bash
-
-# Copyright (C) 2016, Gepard Graphics
-# Copyright (C) 2016, Dániel Bátyai <dbatyai@inf.u-szeged.hu>
+#! /usr/bin/python -B
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2015-2018, Gepard Graphics
+# Copyright (C) 2016-2018, Dániel Bátyai <dbatyai@inf.u-szeged.hu>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -24,18 +25,38 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-if [ "$CMD" == "build" ]; then
-    if [ $BACKEND ]; then
-        backend="--backend=$BACKEND"
-    fi
+import subprocess
+import sys
+from os import path
 
-    echo "Running Release build with examples."
-    if ! python tools/scripts/build.py -e $backend $ARGS; then ret=1; fi
+def get_base_path():
+    """ Returns the base path to the project. """
+    return path.abspath(path.join(path.dirname(__file__), '..'))
 
-    echo "Running Debug build.";
-    if ! python tools/scripts/build.py -d $backend $ARGS; then ret=1; fi
 
-    exit $ret
-else
-    python tools/scripts/$CMD.py
-fi
+def get_build_path(arguments):
+    """ Returns build direcotry. """
+    if (arguments.build_dir):
+        return arguments.build_dir
+
+    basedir = get_base_path()
+    return path.join(basedir, 'build', arguments.backend)
+
+
+def call(command, throw=True):
+    """ Wrapper for subprocess call. """
+    ret = subprocess.call(command)
+    if ret and throw:
+        raise CommandError(ret, command)
+
+    return ret
+
+
+class CommandError(BaseException):
+    def __init__(self, code, cmd):
+        super(CommandError, self).__init__(code, cmd)
+        self.code = code
+        self.cmd = cmd
+
+    def __str__(self):
+        return 'Command "%s" failed with exit code: %d' % (" ".join(self.cmd), self.code)
