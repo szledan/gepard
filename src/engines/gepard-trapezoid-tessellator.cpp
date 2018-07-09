@@ -153,7 +153,7 @@ bool operator<=(const Segment& lhs, const Segment& rhs)
 /* SegmentApproximator */
 
 SegmentApproximator::SegmentApproximator(const int antiAliasLevel, const Float factor)
-    : kAntiAliasLevel(antiAliasLevel > 0 ? antiAliasLevel : GD_GLES2_ANTIALIAS_LEVEL)
+    : kAntiAliasLevel(antiAliasLevel > 0 ? antiAliasLevel : GD_ANTIALIAS_LEVEL)
     , kTolerance((factor > 0.0 ? factor : 1.0 ) / ((Float)kAntiAliasLevel))
 {
 }

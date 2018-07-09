@@ -116,8 +116,8 @@ static const std::string s_fillPathVertexShader = GD_GLES2_SHADER_PROGRAM(
         v_x1x2[2] = fract(x1);
         v_x1x2[3] = fract(x2);
 
-        v_dx1dx2[0] = dx1 * (1.0 / float(GD_GLES2_ANTIALIAS_LEVEL));
-        v_dx1dx2[1] = dx2 * (1.0 / float(GD_GLES2_ANTIALIAS_LEVEL));
+        v_dx1dx2[0] = dx1 * (1.0 / float(GD_ANTIALIAS_LEVEL));
+        v_dx1dx2[1] = dx2 * (1.0 / float(GD_ANTIALIAS_LEVEL));
         gl_Position = vec4((2.0 * position.xy / u_size) - 1.0, 0.0, 1.0);
     }
 );
@@ -131,14 +131,14 @@ static const std::string s_fillPathFragmentShader = GD_GLES2_SHADER_PROGRAM(
 
     void main(void)
     {
-        const float step = 1.0 / float(GD_GLES2_ANTIALIAS_LEVEL);
-        const float rounding = 0.5 / float(GD_GLES2_ANTIALIAS_LEVEL);
+        const float step = 1.0 / float(GD_ANTIALIAS_LEVEL);
+        const float rounding = 0.5 / float(GD_ANTIALIAS_LEVEL);
 
         float y = floor(v_y1y2[0]);
         float from = max(-y + v_y1y2[2], 0.0);
         float to = min(v_y1y2[1] - y + v_y1y2[3], 1.0) - from;
 
-        vec2 x1x2 = (y + from) * (v_dx1dx2 * float(GD_GLES2_ANTIALIAS_LEVEL));
+        vec2 x1x2 = (y + from) * (v_dx1dx2 * float(GD_ANTIALIAS_LEVEL));
 
         float x = floor(v_x1x2[0]);
         x1x2[0] = (-x) + (x1x2[0] + v_x1x2[2]);
@@ -149,7 +149,7 @@ static const std::string s_fillPathFragmentShader = GD_GLES2_SHADER_PROGRAM(
 
         float sum = (clamp(x1x2[1], 0.0, 1.0) - clamp(x1x2[0], 0.0, 1.0));
         if (to > 1.0 - rounding) {
-            vec2 last = x1x2 + v_dx1dx2 * (float(GD_GLES2_ANTIALIAS_LEVEL) - 1.0);
+            vec2 last = x1x2 + v_dx1dx2 * (float(GD_ANTIALIAS_LEVEL) - 1.0);
             sum += (clamp(last[1], 0.0, 1.0) - clamp(last[0], 0.0, 1.0));
             to -= step;
         }
@@ -275,7 +275,7 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
 
         TrapezoidTessellator::FillRule fillRule = TrapezoidTessellator::FillRule::NonZero;
 
-        TrapezoidTessellator tt(*pathData, fillRule, GD_GLES2_ANTIALIAS_LEVEL);
+        TrapezoidTessellator tt(*pathData, fillRule, GD_ANTIALIAS_LEVEL);
         const TrapezoidList trapezoidList = tt.trapezoidList(state);
 
         int trapezoidIndex = 0;
@@ -305,8 +305,6 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
 
-//        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
         ShaderProgram& copyProgram = _shaderProgramManager.getProgram("copyPathProgram", s_copyPathVertexShader, s_copyPathFragmentShader);
