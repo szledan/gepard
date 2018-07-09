@@ -25,28 +25,75 @@
 
 #include "gepard.h"
 #include "surfaces/gepard-png-surface.h"
+#include "surfaces/gepard-xsurface.h"
+#include <chrono>
 #include <iostream>
+#include <thread>
+
+void rightTriangle(gepard::Gepard& ctx, const float x, const float y, const float w, const float h)
+{
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + w, y);
+    ctx.lineTo(x, y + h);
+    ctx.closePath();
+    ctx.fill();
+}
+
+void fillRightTriangle(gepard::Gepard& ctx, const std::string style, const float x, const float y, const float w, const float h)
+{
+    ctx.fillStyle = style;
+    rightTriangle(ctx, x, y, w, h);
+}
 
 void pathShape(gepard::Gepard& ctx)
 {
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, 600, 600);
+    // One pixel size triangles.
+    fillRightTriangle(ctx, "#f00", 1, 1, 1, 1);
+    fillRightTriangle(ctx, "#fff", 4, 3, -1, 1);
+    fillRightTriangle(ctx, "#00f", 6, 6, -1, -1);
+    fillRightTriangle(ctx, "#0f0", 7, 8, 1, -1);
 
-    ctx.fillStyle = "#0f0";
-    ctx.beginPath();
-    ctx.moveTo(300, 100);
-    ctx.lineTo(50, 230);
-    ctx.lineTo(380, 200);
-    ctx.closePath();
-    ctx.fill();
+    // One pixel high and 255 pixels wide triangles.
+    fillRightTriangle(ctx, "#f00", 10, 1, 255, 1);
+    fillRightTriangle(ctx, "#fff", 10 + 255, 3, -255, 1);
+    fillRightTriangle(ctx, "#00f", 10 + 255, 6, -255, -1);
+    fillRightTriangle(ctx, "#0f0", 10, 8, 255, -1);
 
-    ctx.fillStyle = "#f00";
+    // One pixel wide and 255 pixels high triangles.
+    fillRightTriangle(ctx, "#f00", 1, 10, 1, 255);
+    fillRightTriangle(ctx, "#fff", 4, 10, -1, 255);
+    fillRightTriangle(ctx, "#00f", 6, 10 + 255, -1, -255);
+    fillRightTriangle(ctx, "#0f0", 7, 10 + 255, 1, -255);
+
+    // Eight pixels size triangles.
+    fillRightTriangle(ctx, "#f00", 10, 10, 8, 8);
+    fillRightTriangle(ctx, "#fff", 30, 10, -8, 8);
+    fillRightTriangle(ctx, "#00f", 30, 30, -8, -8);
+    fillRightTriangle(ctx, "#0f0", 10, 30, 8, -8);
+
+    // Contacted triangles.
+    fillRightTriangle(ctx, "#888", 40, 10, 20, 20);
+    fillRightTriangle(ctx, "#888", 60, 30, -20, -20);
+    fillRightTriangle(ctx, "#888", 90, 10, -20, 20);
+    fillRightTriangle(ctx, "#888", 70, 30, 20, -20);
+
+    // Stacked triangles with different alpha values.
+    for (int i = 0, x = 100; i < 5; ++i) {
+        const float alpha[] = {0.1f, 1.0f / 3.0f, 0.5f, 2.0f / 3.0f, 1.0f};
+        ctx.setFillColor(1.0f, 0.0f, 0.0f, alpha[i]);
+        rightTriangle(ctx, x + i * 30, 10, 16, 16);
+        ctx.setFillColor(0.0f, 1.0f, 0.0f, alpha[i]);
+        rightTriangle(ctx, x + i * 30, 30, 16, -16);
+        ctx.setFillColor(0.0f, 0.0f, 1.0f, alpha[i]);
+        rightTriangle(ctx, x + 20 + i * 30, 30, -16, -16);
+    }
+
+    ctx.strokeStyle = "#0f0";
     ctx.beginPath();
     ctx.moveTo(100, 100);
-    ctx.lineTo(180, 200);
-    ctx.bezierCurveTo(400, 200, 40, 50, 300, 250);
-    ctx.closePath();
-    ctx.fill();
+    ctx.lineTo(130, 100);
+    ctx.stroke();
 }
 
 int main(int argc, char* argv[])
@@ -60,12 +107,26 @@ int main(int argc, char* argv[])
 
     std::string pngFile = (argc > 1) ? argv[1] : "fill-path.png";
 
-    gepard::PNGSurface pngSurface(600, 600);
-    gepard::Gepard pngGepard(&pngSurface);
+    const uint width = 300;
+    const uint height = 300;
+    gepard::PNGSurface pngSurface(width, height);
+    gepard::XSurface surface(600, 600);
+    gepard::Gepard pngGepard(&surface);
+
+    pngGepard.fillStyle = "#000";
+    pngGepard.fillRect(0, 0, width, height);
 
     pathShape(pngGepard);
+    XEvent xEvent;
 
-    pngSurface.save(pngFile);
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.
+        if (XCheckWindowEvent((Display*)surface.getDisplay(), (Window)surface.getWindow(), KeyPress | ClientMessage, &xEvent)) {
+            break;
+        }
+    }
+
+//    pngSurface.save(pngFile);
 
     return 0;
 }
