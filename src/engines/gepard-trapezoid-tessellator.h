@@ -136,7 +136,10 @@ struct Trapezoid {
     Float rightSlope;
 };
 
-inline std::ostream& operator<<(std::ostream& os, const Trapezoid& t);
+inline std::ostream& operator<<(std::ostream& os, const Trapezoid& t)
+{
+    return os << t.topY << "," << t.topLeftX << "," << t.topRightX << "," << t.bottomY << "," << t.bottomLeftX << "," << t.bottomRightX;
+}
 
 inline bool operator<(const Trapezoid& lhs, const Trapezoid& rhs);
 inline bool operator==(const Trapezoid& lhs, const Trapezoid& rhs);

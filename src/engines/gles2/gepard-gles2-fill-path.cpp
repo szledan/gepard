@@ -42,8 +42,8 @@ static const std::string s_fillPathVertexShader = GD_GLES2_SHADER_PROGRAM(
 
     uniform vec2 u_size;
 
-    attribute vec4 a_position;
-    attribute vec4 a_x1x2Cdx1dx2;
+    attribute vec4 a_trapezoidXs;
+    attribute vec4 a_trapezoidYsAndIndex;
 
     // To reduce the rounding issues of float16 variables,
     // the numbers are spearated for integer and fractional parts.
@@ -54,24 +54,71 @@ static const std::string s_fillPathVertexShader = GD_GLES2_SHADER_PROGRAM(
 
     void main(void)
     {
-        float y = floor(a_position[2]);
-        v_y1y2[0] = a_position[1] - y;
-        v_y1y2[1] = floor(a_position[3]) - y;
-        v_y1y2[2] = fract(a_position[2]);
-        v_y1y2[3] = fract(a_position[3]);
+        float topLeftX = a_trapezoidXs[0];
+        float topRightX = a_trapezoidXs[1];
+        float bottomLeftX = a_trapezoidXs[2];
+        float bottomRightX = a_trapezoidXs[3];
+        float topY = a_trapezoidYsAndIndex[0];
+        float bottomY = a_trapezoidYsAndIndex[1];
+        float index = a_trapezoidYsAndIndex[2];
 
-        float x = floor(a_x1x2Cdx1dx2[0]);
-        v_x1x2[0] = a_position[0] - x;
-        v_x1x2[1] = floor(a_x1x2Cdx1dx2[1]) - x;
-        v_x1x2[2] = fract(a_x1x2Cdx1dx2[0]);
-        v_x1x2[3] = fract(a_x1x2Cdx1dx2[1]);
+        float height = topY - bottomY;
+        float dx1 = (topLeftX - bottomLeftX) / height;
+        float dx2 = (topRightX - bottomRightX) / height;
 
-        // slopeLeft
-        v_dx1dx2[0] = a_x1x2Cdx1dx2[2];
-        // slopeRight
-        v_dx1dx2[1] = a_x1x2Cdx1dx2[3];
+        float distance = fract(bottomY);
+        float x1 = bottomLeftX - distance * dx1;
+        float x2 = bottomRightX - distance * dx2;
 
-        gl_Position = vec4((2.0 * a_position.xy / u_size.xy) - 1.0, 0.0, 1.0);
+        // Fake attribute.
+        vec2 position = vec2(0.0, 0.0);
+        float floorBottomY = floor(bottomY);
+        const float minHeight = 3.0;
+
+        if (index <= 2.0) {
+            if (index == 0.0) {
+                if (height <= minHeight || abs(bottomLeftX - topLeftX) >= (abs(dx1) * 2.0))
+                    position.x = floor(min(bottomLeftX, topLeftX));
+                else
+                    position.x = floor(x1 - abs(dx1));
+            } else {
+                if (height <= minHeight || abs(bottomRightX - topRightX) >= (abs(dx2) * 2.0))
+                    position.x = ceil(max(bottomRightX, topRightX));
+                else
+                    position.x = ceil(x2 + abs(dx2));
+            }
+            position.y = floorBottomY;
+            v_y1y2[0] = 0.0;
+        } else {
+            distance = 1.0 - fract(topY);
+            if (index == 3.0) {
+                if (height <= minHeight || abs(bottomLeftX - topLeftX) >= (abs(dx1) * 2.0))
+                    position.x = floor(min(bottomLeftX, topLeftX));
+                else
+                    position.x = floor((topLeftX - distance * dx1) - abs(dx1));
+            } else {
+                if (height <= minHeight || abs(bottomRightX - topRightX) >= (abs(dx2) * 2.0))
+                    position.x = ceil(max(bottomRightX, topRightX));
+                else
+                    position.x = ceil((topRightX - distance * dx2) + abs(dx2));
+            }
+            position.y = ceil(topY);
+            v_y1y2[0] = position.y - floorBottomY;
+        }
+
+        v_y1y2[1] = floor(topY) - floorBottomY;
+        v_y1y2[2] = fract(bottomY);
+        v_y1y2[3] = fract(topY);
+
+        float floorX1 = floor(x1);
+        v_x1x2[0] = position.x - floorX1;
+        v_x1x2[1] = floor(x2) - floorX1;
+        v_x1x2[2] = fract(x1);
+        v_x1x2[3] = fract(x2);
+
+        v_dx1dx2[0] = dx1 * (1.0 / float(GD_GLES2_ANTIALIAS_LEVEL));
+        v_dx1dx2[1] = dx2 * (1.0 / float(GD_GLES2_ANTIALIAS_LEVEL));
+        gl_Position = vec4((2.0 * position.xy / u_size) - 1.0, 0.0, 1.0);
     }
 );
 
@@ -116,7 +163,7 @@ static const std::string s_fillPathFragmentShader = GD_GLES2_SHADER_PROGRAM(
                 to -= step;
             }
 
-            alpha = sum * (step);
+            alpha = sum * step;
         }
 
         gl_FragColor = vec4(0.0, 0.0, 0.0, alpha);
@@ -153,63 +200,17 @@ static const std::string s_copyPathFragmentShader = GD_GLES2_SHADER_PROGRAM(
     }
 );
 
-static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes, const int antiAliasingLevel)
+static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes)
 {
-    GLfloat slopeLeft = (trapezoid.bottomLeftX - trapezoid.topLeftX) / (trapezoid.bottomY - trapezoid.topY);
-    GLfloat slopeRight = (trapezoid.bottomRightX - trapezoid.topRightX) / (trapezoid.bottomY - trapezoid.topY);
-    const GLfloat bottomY = std::floor(trapezoid.topY);
-    const GLfloat topY = std::ceil(trapezoid.bottomY);
-    // The fraction is stored in a temporary variable.
-    GLfloat temp, x1, x2;
-    GLfloat bottomLeftX, bottomRightX, topLeftX, topRightX;
-
-    temp = std::ceil(trapezoid.bottomY) - (trapezoid.bottomY);
-    x1 = trapezoid.bottomLeftX - temp * slopeLeft;
-    x2 = trapezoid.bottomRightX - temp * slopeRight;
-    topLeftX = std::floor(x1 - fabs(slopeLeft));
-    topRightX = std::ceil(x2 + fabs(slopeRight));
-
-    temp = trapezoid.topY - std::floor(trapezoid.topY);
-    x1 = trapezoid.topLeftX - temp * slopeLeft;
-    x2 = trapezoid.topRightX - temp * slopeRight;
-    bottomLeftX = std::floor(x1 - std::fabs(slopeLeft));
-    bottomRightX = std::ceil(x2 + std::fabs(slopeRight));
-
-    slopeLeft /= antiAliasingLevel;
-    slopeRight /= antiAliasingLevel;
-
-    GD_ASSERT(topY != bottomY);
-    for (int i = 0; i < 4; i++) {
-        // Absolute coordinates are transformed to the [-1,+1] space.
-        switch (i) {
-        case 0:
-            *attributes++ = (bottomLeftX);
-            *attributes++ = (bottomY);
-            break;
-
-        case 1:
-            *attributes++ = (topLeftX);
-            *attributes++ = (topY);
-            break;
-
-        case 2:
-            *attributes++ = (bottomRightX);
-            *attributes++ = (bottomY);
-            break;
-
-        case 3:
-            *attributes++ = (topRightX);
-            *attributes++ = (topY);
-            break;
-        }
-
-        *attributes++ = (trapezoid.topY);
-        *attributes++ = (trapezoid.bottomY);
-
-        *attributes++ = (x1);
-        *attributes++ = (x2);
-        *attributes++ = (slopeLeft);
-        *attributes++ = (slopeRight);
+    for (int i = 0; i < 4; ++i) {
+        *attributes++ = trapezoid.bottomLeftX;
+        *attributes++ = trapezoid.bottomRightX;
+        *attributes++ = trapezoid.topLeftX;
+        *attributes++ = trapezoid.topRightX;
+        *attributes++ = trapezoid.bottomY;
+        *attributes++ = trapezoid.topY;
+        *attributes++ = i + ((i & 0x1) << 1);
+        *attributes++ = 0.9789;
     }
 }
 
@@ -240,6 +241,8 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, fboId);
 
+        // todo: clear
+        glClear(GL_COLOR_BUFFER_BIT);
         glBlendFunc(GL_ONE, GL_ONE);
     }
 
@@ -247,17 +250,16 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
         ShaderProgram& fillProgram = _shaderProgramManager.getProgram("fillPathProgram", s_fillPathVertexShader, s_fillPathFragmentShader);
         glUseProgram(fillProgram.id);
 
-        constexpr int strideLength = 8 * sizeof(GLfloat);
-
         {
             const GLint index = glGetUniformLocation(fillProgram.id, "u_size");
             glUniform2f(index, width, height);
         }
 
+        constexpr int strideLength = 8 * sizeof(GLfloat);
         int offset = 0;
         {
             const GLint size = 4;
-            const GLint index = glGetAttribLocation(fillProgram.id, "a_position");
+            const GLint index = glGetAttribLocation(fillProgram.id, "a_trapezoidXs");
             glEnableVertexAttribArray(index);
             glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, strideLength, _attributes + offset);
             offset += size;
@@ -265,7 +267,7 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
 
         {
             const GLint size = 4;
-            const GLint index = glGetAttribLocation(fillProgram.id, "a_x1x2Cdx1dx2");
+            const GLint index = glGetAttribLocation(fillProgram.id, "a_trapezoidYsAndIndex");
             glEnableVertexAttribArray(index);
             glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, strideLength, _attributes + offset);
             offset += size;
@@ -285,7 +287,7 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
             if (!trapezoid.leftId || !trapezoid.rightId)
                 continue;
 
-            setupAttributes(trapezoid, _attributes + trapezoidIndex * 32, tt.antiAliasingLevel());
+            setupAttributes(trapezoid, _attributes + trapezoidIndex * 32);
             trapezoidIndex++;
             if (trapezoidIndex >= min(kMaximumNumberOfUshortQuads, kMaximumNumberOfAttributes / 32)) {
                 GD_LOG2("Draw '" << trapezoidIndex << "' trapezoids with triangles in pairs.");
@@ -303,7 +305,9 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
         ShaderProgram& copyProgram = _shaderProgramManager.getProgram("copyPathProgram", s_copyPathVertexShader, s_copyPathFragmentShader);
         glUseProgram(copyProgram.id);

@@ -32,6 +32,7 @@
 #include "gepard-engine.h"
 #include "gepard-gles2-defs.h"
 #include "gepard-gles2-shader-factory.h"
+#include "gepard-png-surface.h"
 
 namespace gepard {
 namespace gles2 {
@@ -238,7 +239,7 @@ void GepardGLES2::render()
                 0.0, (GLfloat)height, 0.0, 0.0,
                 0.0, 0.0, 0.0, 1.0,
                 (GLfloat)width, (GLfloat)height, 1.0, 0.0,
-                (GLfloat)width, 0.0, 1.0, 1.0
+                (GLfloat)width, 0.0, 1.0, 1.0,
             };
 
             const GLint index = glGetAttribLocation(textureProgram.id, "a_position");
@@ -254,13 +255,19 @@ void GepardGLES2::render()
         glBindTexture(GL_TEXTURE_2D, _textureId);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//        glBlendFunc(GL_ONE, GL_ZERO);
+//        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+//PNGSurface xsurface(width, height);
+//glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, xsurface.getBuffer());
+//xsurface.save("fp.png");
 
         eglSwapBuffers(_eglDisplay, _eglSurface);
-        glClearColor(0.0, 0.0, 0.0, 0.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//        glClearColor(0.0, 0.0, 0.0, 0.0);
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     } else if (_context.surface->getBuffer()) {
         glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
         glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) _context.surface->getBuffer());

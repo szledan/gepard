@@ -595,10 +595,10 @@ const bool Trapezoid::isMergableInTo(const Trapezoid* other) const
     return false;
 }
 
-std::ostream& operator<<(std::ostream& os, const Trapezoid& t)
-{
-    return os << t.topY << "," << t.topLeftX << "," << t.topRightX << "," << t.bottomY << "," << t.bottomLeftX << "," << t.bottomRightX;
-}
+//std::ostream& operator<<(std::ostream& os, const Trapezoid& t)
+//{
+//    return os << t.topY << "," << t.topLeftX << "," << t.topRightX << "," << t.bottomY << "," << t.bottomLeftX << "," << t.bottomRightX;
+//}
 
 bool operator<(const Trapezoid& lhs, const Trapezoid& rhs)
 {
