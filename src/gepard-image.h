@@ -36,7 +36,7 @@ class Image {
 public:
     Image();
     Image(uint32_t width, uint32_t height);
-    Image(uint32_t width, uint32_t height, std::vector<uint32_t> data);
+    Image(uint32_t width, uint32_t height, const std::vector<uint32_t> &data);
     virtual ~Image();
 
     const uint32_t width();

@@ -275,7 +275,11 @@ void GepardEngine::putImage(Image imagedata, Float dx, Float dy, Float dirtyX, F
 void GepardEngine::drawImage(Image imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
 {
     GD_ASSERT(_engineBackend);
+#ifdef GD_USE_VULKAN
+    _engineBackend->drawImage(imagedata, sx, sy, sw, sh, dx, dy, dw, dh);
+#else // !GD_USE_VULKAN
     GD_NOT_IMPLEMENTED();
+#endif // GD_USE_VULKAN
 }
 
 /*!

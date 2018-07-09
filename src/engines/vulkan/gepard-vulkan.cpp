@@ -545,49 +545,33 @@ void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const F
     _vk.vkFreeMemory(_device, indexBufferMemory, _allocator);
 }
 
+void GepardVulkan::drawImage(Image imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
+{
+    GD_LOG2("drawImage " << sx << " " << sy << " " << sw << " " << sh << " " << dx << " " << dy << " " << dw << " " << dh);
+}
+
 void GepardVulkan::putImage(Image imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
 {
     GD_LOG2("putImage " << dx << " " << dy << " " << dirtyX << " " << dirtyY << " " << dirtyWidth << " " << dirtyHeight);
     VkResult vkResult;
-    VkBuffer buffer;
-    VkDeviceMemory bufferAlloc;
     const uint32_t width = imagedata.width();
     const uint32_t height = imagedata.height();
 
-    const VkDeviceSize dataSize = width * height * sizeof(uint32_t); // r8g8b8a8 format
-    // TODO: create function for buffer creation
-    const VkBufferCreateInfo bufferInfo = {
-        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,   // VkStructureType        sType;
-        nullptr,                                // const void*            pNext;
-        0u,                                     // VkBufferCreateFlags    flags;
-        dataSize,                               // VkDeviceSize           size;
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,       // VkBufferUsageFlags     usage;
-        VK_SHARING_MODE_EXCLUSIVE,              // VkSharingMode          sharingMode;
-        1u,                                     // uint32_t               queueFamilyIndexCount;
-        &_queueFamilyIndex,                     // const uint32_t*        pQueueFamilyIndices;
-    };
-
-    vkResult = _vk.vkCreateBuffer(_device, &bufferInfo, _allocator, &buffer);
-    GD_ASSERT(vkResult == VK_SUCCESS && "Creating the buffer is failed!");
+    VkBuffer buffer;
+    VkDeviceMemory bufferAlloc;
     VkMemoryRequirements bufferMemoryRequirements;
+    const VkDeviceSize bufferSize = width * height * sizeof(uint32_t); // r8g8b8a8 format
 
-    _vk.vkGetBufferMemoryRequirements(_device, buffer, &bufferMemoryRequirements);
-    const VkMemoryAllocateInfo allocationInfo = {
-        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,                                         // VkStructureType    sType;
-        nullptr,                                                                        // const void*        pNext;
-        bufferMemoryRequirements.size,                                                        // VkDeviceSize       allocationSize;
-        getMemoryTypeIndex(bufferMemoryRequirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),    // uint32_t           memoryTypeIndex;
-    };
-
-    _vk.vkAllocateMemory(_device, &allocationInfo, _allocator, &bufferAlloc);
-    _vk.vkBindBufferMemory(_device, buffer, bufferAlloc, 0);
+    createBuffer(buffer, bufferAlloc, bufferMemoryRequirements, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 
     void* bufferPtr;
     _vk.vkMapMemory(_device, bufferAlloc, 0, bufferMemoryRequirements.size, 0, &bufferPtr);
-    memcpy(bufferPtr, imagedata.data().data(), dataSize);
+    memcpy(bufferPtr, imagedata.data().data(), bufferSize);
     _vk.vkUnmapMemory(_device, bufferAlloc);
 
     VkImage image;
+    VkDeviceMemory imageMemory;
+    VkMemoryRequirements imageMemoryRequirements;
 
     // TODO: implement funiction for image creation
     const VkExtent3D imageSize = {
@@ -596,43 +580,7 @@ void GepardVulkan::putImage(Image imagedata, Float dx, Float dy, Float dirtyX, F
         1u,     // uint32_t    depth;
     };
 
-    const VkImageCreateInfo imageCreateInfo = {
-        VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,        // VkStructureType          sType;
-        nullptr,                                    // const void*              pNext;
-        0u,                                         // VkImageCreateFlags       flags;
-        VK_IMAGE_TYPE_2D,                           // VkImageType              imageType;
-        _imageFormat,                               // VkFormat                 format;
-        imageSize,                                  // VkExtent3D               extent;
-        1u,                                         // uint32_t                 mipLevels;
-        1u,                                         // uint32_t                 arrayLayers;
-        VK_SAMPLE_COUNT_1_BIT,                      // VkSampleCountFlagBits    samples;
-        VK_IMAGE_TILING_OPTIMAL,                    // VkImageTiling            tiling;
-        VK_IMAGE_USAGE_TRANSFER_SRC_BIT
-            | VK_IMAGE_USAGE_TRANSFER_DST_BIT,      // VkImageUsageFlags        usage;
-        VK_SHARING_MODE_EXCLUSIVE,                  // VkSharingMode            sharingMode;
-        1u,                                         // uint32_t                 queueFamilyIndexCount;
-        &_queueFamilyIndex,                         // const uint32_t*          pQueueFamilyIndices;
-        VK_IMAGE_LAYOUT_UNDEFINED,                  // VkImageLayout            initialLayout;
-    };
-
-    vkResult = _vk.vkCreateImage(_device, &imageCreateInfo, _allocator, &image);
-    GD_ASSERT(vkResult == VK_SUCCESS && "Creating the image is failed!");
-
-    VkMemoryRequirements imageMemoryRequirements;
-    _vk.vkGetImageMemoryRequirements(_device, _surfaceImage, &imageMemoryRequirements);
-
-    const VkMemoryAllocateInfo imageAllocateInfo = {
-        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,                                             // VkStructureType    sType;
-        nullptr,                                                                            // const void*        pNext;
-        imageMemoryRequirements.size,                                                       // VkDeviceSize       allocationSize;
-        getMemoryTypeIndex(imageMemoryRequirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),   // uint32_t           memoryTypeIndex;
-    };
-    VkDeviceMemory imageMemory;
-    vkResult = _vk.vkAllocateMemory(_device, &imageAllocateInfo, _allocator, &imageMemory);
-    GD_ASSERT(vkResult == VK_SUCCESS && "Memory allocation failed!");
-
-    vkResult = _vk.vkBindImageMemory(_device, image, imageMemory, static_cast<VkDeviceSize>(0u));
-    GD_ASSERT(vkResult == VK_SUCCESS && "Memory bind failed!");
+    createImage(image, imageMemory, imageMemoryRequirements, imageSize, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
 
     const VkCommandBuffer commandBuffer = _primaryCommandBuffers[0];
     const VkCommandBufferBeginInfo commandBufferBeginInfo = {
@@ -1043,50 +991,14 @@ void GepardVulkan::createSurfaceImage()
         1u,                         // uint32_t    depth;
     };
 
-    const VkImageCreateInfo imageCreateInfo = {
-        VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,        // VkStructureType          sType;
-        nullptr,                                    // const void*              pNext;
-        0u,                                         // VkImageCreateFlags       flags;
-        VK_IMAGE_TYPE_2D,                           // VkImageType              imageType;
-        _imageFormat,                               // VkFormat                 format;
-        imageSize,                                  // VkExtent3D               extent;
-        1u,                                         // uint32_t                 mipLevels;
-        1u,                                         // uint32_t                 arrayLayers;
-        VK_SAMPLE_COUNT_1_BIT,                      // VkSampleCountFlagBits    samples;
-        VK_IMAGE_TILING_OPTIMAL,                    // VkImageTiling            tiling;
-        VK_IMAGE_USAGE_TRANSFER_SRC_BIT
-            | VK_IMAGE_USAGE_TRANSFER_DST_BIT
-            | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,  // VkImageUsageFlags        usage;
-        VK_SHARING_MODE_EXCLUSIVE,                  // VkSharingMode            sharingMode;
-        1u,                                         // uint32_t                 queueFamilyIndexCount;
-        &_queueFamilyIndex,                         // const uint32_t*          pQueueFamilyIndices;
-        VK_IMAGE_LAYOUT_UNDEFINED,                  // VkImageLayout            initialLayout;
-    };
-
-    vkResult = _vk.vkCreateImage(_device, &imageCreateInfo, _allocator, &_surfaceImage);
-    GD_ASSERT(vkResult == VK_SUCCESS && "Creating the surface backing image failed!");
-
-    VkMemoryRequirements memoryRequirements;
-    _vk.vkGetImageMemoryRequirements(_device, _surfaceImage, &memoryRequirements);
-
-    const VkMemoryAllocateInfo memoryAllocateInfo = {
-        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,                                         // VkStructureType    sType;
-        nullptr,                                                                        // const void*        pNext;
-        memoryRequirements.size,                                                        // VkDeviceSize       allocationSize;
-        getMemoryTypeIndex(memoryRequirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),    // uint32_t           memoryTypeIndex;
-    };
-
     VkDeviceMemory deviceMemory;
-    vkResult = _vk.vkAllocateMemory(_device, &memoryAllocateInfo, _allocator, &deviceMemory);
-    GD_ASSERT(vkResult == VK_SUCCESS && "Memory allocation failed!");
+    VkMemoryRequirements memoryRequirements;
+    VkImageUsageFlags usageFlag = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
+    createImage(_surfaceImage, deviceMemory, memoryRequirements, imageSize, usageFlag);
     _memoryAllocations.push_back(deviceMemory);
 
-    vkResult = _vk.vkBindImageMemory(_device, _surfaceImage, deviceMemory, static_cast<VkDeviceSize>(0u));
-    GD_ASSERT(vkResult == VK_SUCCESS && "Memory bind failed!");
-
     // Clear the surface image
-
     const VkCommandBuffer commandBuffer = _primaryCommandBuffers[0];
 
     const VkCommandBufferBeginInfo commandBufferBeginInfo = {
@@ -1148,31 +1060,7 @@ void GepardVulkan::createDefaultFrameBuffer()
 {
     VkResult vkResult;
 
-    const VkImageViewCreateInfo imageViewCreateInfo = {
-        VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,   // VkStructureType            sType;
-        nullptr,                                    // const void*                pNext;
-        0,                                          // VkImageViewCreateFlags     flags;
-        _surfaceImage,                              // VkImage                    image;
-        VK_IMAGE_VIEW_TYPE_2D,                      // VkImageViewType            viewType;
-        _imageFormat,                               // VkFormat                   format;
-        {
-            VK_COMPONENT_SWIZZLE_IDENTITY, // swizzle r
-            VK_COMPONENT_SWIZZLE_IDENTITY, // swizzle g
-            VK_COMPONENT_SWIZZLE_IDENTITY, // swizzle b
-            VK_COMPONENT_SWIZZLE_IDENTITY, // swizzle a
-        },                                          // VkComponentMapping         components;
-        {
-            VK_IMAGE_ASPECT_COLOR_BIT,  // VkImageAspectFlags    aspectMask;
-            0u,                         // uint32_t              baseMipLevel;
-            1u,                         // uint32_t              levelCount;
-            0u,                         // uint32_t              baseArrayLayer;
-            1u,                         // uint32_t              layerCount;
-        },                                          // VkImageSubresourceRange    subresourceRange;
-    };
-
-    vkResult = _vk.vkCreateImageView(_device, &imageViewCreateInfo, _allocator, &_frameBufferColorAttachmentImageView);
-    GD_ASSERT(vkResult == VK_SUCCESS && "Creating the default frame buffer failed!");
-
+    createImageView(_frameBufferColorAttachmentImageView, _surfaceImage);
     std::vector<VkImageView> attachments;
     attachments.push_back(_frameBufferColorAttachmentImageView);
 
@@ -1485,34 +1373,12 @@ void GepardVulkan::readImage(uint32_t* memoryBuffer, int32_t x, int32_t y, uint3
 {
     VkBuffer buffer;
     VkDeviceMemory bufferAlloc;
+    VkMemoryRequirements memoryRequirements;
     const VkCommandBuffer commandBuffer = _primaryCommandBuffers[0];
     const VkDeviceSize dataSize = width * height * 4; // r8g8b8a8 format
 
     // Create destination buffer
-    const VkBufferCreateInfo bufferInfo = {
-        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,   // VkStructureType        sType;
-        nullptr,                                // const void*            pNext;
-        0u,                                     // VkBufferCreateFlags    flags;
-        dataSize,                               // VkDeviceSize           size;
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT,       // VkBufferUsageFlags     usage;
-        VK_SHARING_MODE_EXCLUSIVE,              // VkSharingMode          sharingMode;
-        1u,                                     // uint32_t               queueFamilyIndexCount;
-        &_queueFamilyIndex,                     // const uint32_t*        pQueueFamilyIndices;
-    };
-
-    _vk.vkCreateBuffer(_device, &bufferInfo, _allocator, &buffer);
-
-    VkMemoryRequirements memoryRequirements;
-    _vk.vkGetBufferMemoryRequirements(_device, buffer, &memoryRequirements);
-    const VkMemoryAllocateInfo allocationInfo = {
-        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,                                         // VkStructureType    sType;
-        nullptr,                                                                        // const void*        pNext;
-        memoryRequirements.size,                                                        // VkDeviceSize       allocationSize;
-        getMemoryTypeIndex(memoryRequirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),    // uint32_t           memoryTypeIndex;
-    };
-
-    _vk.vkAllocateMemory(_device, &allocationInfo, _allocator, &bufferAlloc);
-    _vk.vkBindBufferMemory(_device, buffer, bufferAlloc, 0);
+    createBuffer(buffer, bufferAlloc, memoryRequirements, dataSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 
     const VkImageSubresourceRange subresourceRange = {
         VK_IMAGE_ASPECT_COLOR_BIT,  // VkImageAspectFlags    aspectMask;
@@ -1643,6 +1509,106 @@ void GepardVulkan::readImage(uint32_t* memoryBuffer, int32_t x, int32_t y, uint3
     _vk.vkFreeMemory(_device, bufferAlloc, _allocator);
     _vk.vkDestroyFence(_device, fence, _allocator);
     _vk.vkDestroyBuffer(_device, buffer, _allocator);
+}
+
+void GepardVulkan::createBuffer(VkBuffer &buffer, VkDeviceMemory &bufferAlloc, VkMemoryRequirements &bufferRequirements, VkDeviceSize size, VkBufferUsageFlags usageFlag)
+{
+    VkResult vkResult;
+    const VkDeviceSize dataSize = size;
+    const VkBufferCreateInfo bufferInfo = {
+        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,   // VkStructureType        sType;
+        nullptr,                                // const void*            pNext;
+        0u,                                     // VkBufferCreateFlags    flags;
+        dataSize,                               // VkDeviceSize           size;
+        usageFlag,                              // VkBufferUsageFlags     usage;
+        VK_SHARING_MODE_EXCLUSIVE,              // VkSharingMode          sharingMode;
+        1u,                                     // uint32_t               queueFamilyIndexCount;
+        &_queueFamilyIndex,                     // const uint32_t*        pQueueFamilyIndices;
+    };
+
+    vkResult = _vk.vkCreateBuffer(_device, &bufferInfo, _allocator, &buffer);
+    GD_ASSERT(vkResult == VK_SUCCESS && "Creating the buffer is failed!");
+
+    _vk.vkGetBufferMemoryRequirements(_device, buffer, &bufferRequirements);
+    const VkMemoryAllocateInfo allocationInfo = {
+        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,                                         // VkStructureType    sType;
+        nullptr,                                                                        // const void*        pNext;
+        bufferRequirements.size,                                                        // VkDeviceSize       allocationSize;
+        getMemoryTypeIndex(bufferRequirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),    // uint32_t           memoryTypeIndex;
+    };
+
+    _vk.vkAllocateMemory(_device, &allocationInfo, _allocator, &bufferAlloc);
+    _vk.vkBindBufferMemory(_device, buffer, bufferAlloc, 0);
+}
+
+void GepardVulkan::createImage(VkImage &image, VkDeviceMemory &imageAlloc, VkMemoryRequirements &memReq, VkExtent3D imageSize, VkImageUsageFlags usageFlag)
+{
+    VkResult vkResult;
+    const VkImageCreateInfo imageCreateInfo = {
+        VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,        // VkStructureType          sType;
+        nullptr,                                    // const void*              pNext;
+        0u,                                         // VkImageCreateFlags       flags;
+        VK_IMAGE_TYPE_2D,                           // VkImageType              imageType;
+        _imageFormat,                               // VkFormat                 format;
+        imageSize,                                  // VkExtent3D               extent;
+        1u,                                         // uint32_t                 mipLevels;
+        1u,                                         // uint32_t                 arrayLayers;
+        VK_SAMPLE_COUNT_1_BIT,                      // VkSampleCountFlagBits    samples;
+        VK_IMAGE_TILING_OPTIMAL,                    // VkImageTiling            tiling;
+        usageFlag,                                  // VkImageUsageFlags        usage;
+        VK_SHARING_MODE_EXCLUSIVE,                  // VkSharingMode            sharingMode;
+        1u,                                         // uint32_t                 queueFamilyIndexCount;
+        &_queueFamilyIndex,                         // const uint32_t*          pQueueFamilyIndices;
+        VK_IMAGE_LAYOUT_UNDEFINED,                  // VkImageLayout            initialLayout;
+    };
+
+    vkResult = _vk.vkCreateImage(_device, &imageCreateInfo, _allocator, &image);
+    GD_ASSERT(vkResult == VK_SUCCESS && "Creating the image is failed!");
+
+    _vk.vkGetImageMemoryRequirements(_device, _surfaceImage, &memReq);
+
+    const VkMemoryAllocateInfo imageAllocateInfo = {
+        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,                                             // VkStructureType    sType;
+        nullptr,                                                                            // const void*        pNext;
+        memReq.size,                                                       // VkDeviceSize       allocationSize;
+        getMemoryTypeIndex(memReq, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),   // uint32_t           memoryTypeIndex;
+    };
+
+    vkResult = _vk.vkAllocateMemory(_device, &imageAllocateInfo, _allocator, &imageAlloc);
+    GD_ASSERT(vkResult == VK_SUCCESS && "Memory allocation failed!");
+
+    vkResult = _vk.vkBindImageMemory(_device, image, imageAlloc, static_cast<VkDeviceSize>(0u));
+    GD_ASSERT(vkResult == VK_SUCCESS && "Memory bind failed!");
+}
+
+void GepardVulkan::createImageView(VkImageView &imageView, VkImage image)
+{
+    VkResult vkResult;
+
+    const VkImageViewCreateInfo imageViewCreateInfo = {
+        VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,   // VkStructureType            sType;
+        nullptr,                                    // const void*                pNext;
+        0,                                          // VkImageViewCreateFlags     flags;
+        image,                                      // VkImage                    image;
+        VK_IMAGE_VIEW_TYPE_2D,                      // VkImageViewType            viewType;
+        _imageFormat,                               // VkFormat                   format;
+        {
+            VK_COMPONENT_SWIZZLE_IDENTITY, // swizzle r
+            VK_COMPONENT_SWIZZLE_IDENTITY, // swizzle g
+            VK_COMPONENT_SWIZZLE_IDENTITY, // swizzle b
+            VK_COMPONENT_SWIZZLE_IDENTITY, // swizzle a
+        },                                          // VkComponentMapping         components;
+        {
+            VK_IMAGE_ASPECT_COLOR_BIT,  // VkImageAspectFlags    aspectMask;
+            0u,                         // uint32_t              baseMipLevel;
+            1u,                         // uint32_t              levelCount;
+            0u,                         // uint32_t              baseArrayLayer;
+            1u,                         // uint32_t              layerCount;
+        },                                          // VkImageSubresourceRange    subresourceRange;
+    };
+
+    vkResult = _vk.vkCreateImageView(_device, &imageViewCreateInfo, _allocator, &imageView);
+    GD_ASSERT(vkResult == VK_SUCCESS && "Creating the image view failed!");
 }
 
 } // namespace vulkan

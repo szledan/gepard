@@ -51,6 +51,7 @@ public:
     ~GepardVulkan();
 
     void fillRect(const Float x, const Float y, const Float w, const Float h);
+    void drawImage(Image imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh);
     void putImage(Image imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight);
     Image getImage(Float sx, Float sy, Float sw, Float sh);
     void fill();
@@ -93,6 +94,10 @@ private:
     void presentImage();
     void presentToMemoryBuffer();
     void readImage(uint32_t* memoryBuffer, int32_t x, int32_t y, uint32_t width, uint32_t height);
+
+    void createBuffer(VkBuffer& buffer, VkDeviceMemory& bufferAlloc, VkMemoryRequirements& bufferRequirements, VkDeviceSize size, VkBufferUsageFlags usageFlag);
+    void createImage(VkImage& image, VkDeviceMemory& imageAlloc, VkMemoryRequirements& memReq, VkExtent3D size, VkImageUsageFlags usageFlag);
+    void createImageView(VkImageView& imageView, VkImage image);
 };
 
 } // namespace vulkan

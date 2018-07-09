@@ -42,7 +42,7 @@ Image::Image(uint32_t width, uint32_t height)
     _data.resize(width * height);
 }
 
-Image::Image(uint32_t width, uint32_t height, std::vector<uint32_t> data)
+Image::Image(uint32_t width, uint32_t height, const std::vector<uint32_t> &data)
     : _width(width)
     , _height(height)
     , _data(data)
