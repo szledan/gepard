@@ -23,7 +23,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "arg-parser.h"
 #include "gepard.h"
 #include "gepard-types.h"
 #define NANOSVG_IMPLEMENTATION
@@ -36,21 +35,33 @@
 #include <sstream>
 #include <thread>
 
+#define INIT_ARGS(AC, AV) struct _AP{int c;char**v;int*u;~_AP(){free(u);}}_ap={AC,AV,(int*)calloc(AC,sizeof(int))};
+#define CHECK_FLAG(FLAGS)[&](){char fs[]=FLAGS;char*f=strtok(fs,",");while(f){while(isspace(*f))f++;for(int i=1;i<_ap.c;++i){if(!strcmp(_ap.v[i],f)){_ap.u[i]++;return i;}}f=strtok(NULL,",");}return 0;}()
+#define GET_VALUE(FLAGS,DEF)[&](){int n=-2;if(strlen(FLAGS)){int f=CHECK_FLAG(FLAGS);n=f?f:-1;};if(n==-2){for(int i=1;i<_ap.c;++i)if(!_ap.u[i]){n=i-1;break;}}if(n>-1&&(++n)<_ap.c){_ap.u[n]++;return (const char*)_ap.v[n];}return DEF;}()
+
 void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img);
 
 int main(int argc, char* argv[])
 {
-    const bool a_help = PARSE_HELP_AND_USE("-h, --help, --usage", "show this help.", "SVG rastering with Gepard *** (C) 2018. Szilard Ledan\nUsage: %p [options] [SVGFILE=tiger.svg]\n\nOptions:");
-    const struct {
+    INIT_ARGS(argc, argv);
+    if (CHECK_FLAG("-h, --help, --usage")) {
+        std::cout << "SVG rastering with Gepard *** (C) 2018. Szilard Ledan" << std::endl;
+        std::cout << "Usage: " << std::string(argv[0]) << " [options] [SVGFILE=tiger.svg]" << std::endl
+                  << std::endl;
+        std::cout << "Options:" << std::endl;
+        std::cout << "  -h, --help      show this help." << std::endl;
+        std::cout << "  -p, --png FILE  use png output and set file name." << std::endl;
+        return 0;
+    }
+
+    struct {
         const bool isOn;
         const std::string file;
     } a_png = {
-        CHECK_FLAG("-p, --png", argc, argv),
-        PARSE_FLAG("-p, --png FILE", std::string("build/tiger.png"), "use png output and set file name; def is '%d'.")
+        CHECK_FLAG("-p, --png"),
+        GET_VALUE("-p, --png", "build/tiger.png")
     };
-    const std::string a_svgFile = PARSE_ARG(std::string("./apps/examples/rasterize-svg/tiger.svg"));
-    if (a_help)
-        return 0;
+    const std::string a_svgFile = GET_VALUE("", "./apps/examples/rasterize-svg/tiger.svg");
 
     NSVGimage* pImage = nsvgParseFromFile(a_svgFile.c_str(), "px", 96);
     if (!pImage) {
