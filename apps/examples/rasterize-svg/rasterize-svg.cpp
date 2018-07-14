@@ -194,17 +194,37 @@ const std::string strNSVGimage(const NSVGimage* i, const int level = 1)
     return ss.str();
 }
 
+bool isCollinear(const float x, const float y, const float* pts)
+{
+    const float threshold = 0.00001;
+    const bool first3pointCollinear = std::abs(pts[0] * (pts[3] - y) + pts[2] * (y - pts[1]) + x * (pts[1] - pts[3])) < threshold;
+    const bool last3pointCollinear = std::abs(pts[0] * (pts[3] - pts[5]) + pts[2] * (pts[5] - pts[1]) + pts[4] * (pts[1] - pts[3])) < threshold;
+    return first3pointCollinear && last3pointCollinear;
+}
+
 void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img)
 {
     NSVGshape* shp = img->shapes;
     while (shp) {
         NSVGpath* pth = shp->paths;
+        ctx.beginPath();
         while(pth) {
-            ctx.beginPath();
             float* pts = pth->pts;
-            ctx.moveTo(pts[0], pts[1]);
+            float fromX = pts[0];
+            float fromY = pts[1];
+            ctx.moveTo(fromX, fromY);
+
             for (int i = 1; i < pth->npts; i += 3) {
-                ctx.bezierCurveTo(pts[i * 2], pts[i * 2 + 1], pts[i * 2 + 2], pts[i * 2 + 3], pts[i * 2 + 4], pts[i * 2 + 5]);
+                const float toX = pts[i * 2 + 4];
+                const float toY = pts[i * 2 + 5];
+                const bool isLine = isCollinear(fromX, fromY, &(pts[i * 2]));
+                if (isLine) {
+                    ctx.lineTo(toX, toY);
+                } else {
+                    ctx.bezierCurveTo(pts[i * 2], pts[i * 2 + 1], pts[i * 2 + 2], pts[i * 2 + 3], toX, toY);
+                }
+                fromX = toX;
+                fromY = toY;
             }
             if (pth->closed) {
                 ctx.closePath();
