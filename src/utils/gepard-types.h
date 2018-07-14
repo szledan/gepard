@@ -41,10 +41,10 @@ class Surface;
 // TODO(szledan): use 'guards' for choosing precision of Float type
 // #ifdef double-precision:
 typedef double Float;
-const double precisionOfFloat = 1000 * 1000 * 1000;
+const double precisionOfFloat = 0x1L << 50;
 // #else
 //   typedef float Float;
-//   const float precisionOfFloat = 100 * 1000;
+//   const float precisionOfFloat = 0x1 << 20;
 // #endif
 
 inline const Float strToFloat(const std::string& str) { return std::stod(str); }
