@@ -35,78 +35,6 @@
 #include <sstream>
 #include <thread>
 
-#define INIT_ARGS(AC, AV) struct _AP{int c;char**v;int*u;~_AP(){free(u);}}_ap={AC,AV,(int*)calloc(AC,sizeof(int))};
-#define CHECK_FLAG(FLAGS)[&](){char fs[]=FLAGS;char*f=strtok(fs,",");while(f){while(isspace(*f))f++;for(int i=1;i<_ap.c;++i){if(!strcmp(_ap.v[i],f)){_ap.u[i]++;return i;}}f=strtok(NULL,",");}return 0;}()
-#define GET_VALUE(FLAGS,DEF)[&](){int n=-2;if(strlen(FLAGS)){int f=CHECK_FLAG(FLAGS);n=f?f:-1;};if(n==-2){for(int i=1;i<_ap.c;++i)if(!_ap.u[i]){n=i-1;break;}}if(n>-1&&(++n)<_ap.c){_ap.u[n]++;return (const char*)_ap.v[n];}return DEF;}()
-
-void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img);
-
-int main(int argc, char* argv[])
-{
-    INIT_ARGS(argc, argv);
-    if (CHECK_FLAG("-h, --help, --usage")) {
-        std::cout << "SVG rastering with Gepard *** (C) 2018. Szilard Ledan" << std::endl;
-        std::cout << "Usage: " << std::string(argv[0]) << " [options] [SVGFILE=tiger.svg]" << std::endl
-                  << std::endl;
-        std::cout << "Options:" << std::endl;
-        std::cout << "  -h, --help      show this help." << std::endl;
-        std::cout << "  -p, --png FILE  use png output and set file name." << std::endl;
-        return 0;
-    }
-
-    struct {
-        const bool isOn;
-        const std::string file;
-    } a_png = {
-        CHECK_FLAG("-p, --png"),
-        GET_VALUE("-p, --png", "build/tiger.png")
-    };
-    const std::string a_svgFile = GET_VALUE("", "./apps/examples/rasterize-svg/tiger.svg");
-
-    NSVGimage* pImage = nsvgParseFromFile(a_svgFile.c_str(), "px", 96);
-    if (!pImage) {
-        std::cerr << "Wrong SVG file or not exist." << std::endl;
-        return 1;
-    }
-
-    const uint width = pImage->width;
-    const uint height = pImage->height;
-    gepard::Surface* surface = a_png.isOn ? reinterpret_cast<gepard::Surface*>(new gepard::PNGSurface(width, height))
-                                          : reinterpret_cast<gepard::Surface*>(new gepard::XSurface(width, height));
-    gepard::Gepard gepard(surface);
-
-    // Clear the canvas.
-    gepard.fillStyle = "#fff";
-    gepard.fillRect(0, 0, width, height);
-
-    parseNSVGimage(gepard, pImage);
-
-    nsvgDelete(pImage);
-
-    if (a_png.isOn) {
-        gepard::PNGSurface* pngSurface = reinterpret_cast<gepard::PNGSurface*>(surface);
-        pngSurface->save(a_png.file);
-        if (pngSurface) {
-            delete pngSurface;
-        }
-    } else {
-        gepard::XSurface* xSurface = reinterpret_cast<gepard::XSurface*>(surface);
-
-        XEvent xEvent;
-        while (true) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            if (XCheckWindowEvent((Display*)xSurface->getDisplay(), (Window)xSurface->getWindow(), KeyPress | ClientMessage, &xEvent)) {
-                break;
-            }
-        }
-        if (xSurface) {
-            delete xSurface;
-        }
-    }
-
-    return 0;
-}
-
 const std::string strBounds(const float b[4], const int level = 1)
 {
     if (level < 1)
@@ -194,12 +122,20 @@ const std::string strNSVGimage(const NSVGimage* i, const int level = 1)
     return ss.str();
 }
 
-bool isCollinear(const float x, const float y, const float* pts)
+static const bool isCollinear(const float x, const float y, const float* pts)
 {
-    const float threshold = 0.00001;
+    const float threshold = 1.0f / float(0x1 << 20);
     const bool first3pointCollinear = std::abs(pts[0] * (pts[3] - y) + pts[2] * (y - pts[1]) + x * (pts[1] - pts[3])) < threshold;
     const bool last3pointCollinear = std::abs(pts[0] * (pts[3] - pts[5]) + pts[2] * (pts[5] - pts[1]) + pts[4] * (pts[1] - pts[3])) < threshold;
     return first3pointCollinear && last3pointCollinear;
+}
+
+static void convertRawDataToRGBA(uint32_t raw, int& red, int& green, int& blue, float& alpha)
+{
+    red = raw & 0x000000ff;
+    green = (raw & 0x00ff00) >> 8;
+    blue = (raw & 0x00ff0000) >> 16;
+    alpha = float((raw & 0xff000000) >> 24) / 255.0f;
 }
 
 void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img)
@@ -209,7 +145,7 @@ void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img)
         NSVGpath* pth = shp->paths;
         ctx.beginPath();
         while(pth) {
-            float* pts = pth->pts;
+            const float* pts = pth->pts;
             float fromX = pts[0];
             float fromY = pts[1];
             ctx.moveTo(fromX, fromY);
@@ -232,25 +168,45 @@ void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img)
             pth = pth->next;
         }
 
+        int red, green, blue;
+        float alpha;
         if (shp->fill.type != NSVG_PAINT_NONE) {
-            gepard::Color fillColor = gepard::Color::fromRawDataABGR(shp->fill.color);
-            ctx.setFillColor(fillColor.r * 255 * shp->opacity, fillColor.g * 255 * shp->opacity, fillColor.b * 255 * shp->opacity, fillColor.a * shp->opacity);
+            switch (shp->fill.type) {
+            case NSVG_PAINT_COLOR:
+                convertRawDataToRGBA(shp->fill.color, red, green, blue, alpha);
+                ctx.setFillColor(red * shp->opacity, green * shp->opacity, blue * shp->opacity, alpha * shp->opacity);
+                break;
+            case NSVG_PAINT_LINEAR_GRADIENT: /* unipmlemnted */; break;
+            case NSVG_PAINT_RADIAL_GRADIENT: /* unipmlemnted */; break;
+            case NSVG_PAINT_NONE:
+            default: break;
+            }
             ctx.fill();
         }
         if (shp->stroke.type != NSVG_PAINT_NONE) {
-            gepard::Color strokeColor = gepard::Color::fromRawDataABGR(shp->stroke.color);
-            ctx.setStrokeColor(strokeColor.r * 255 * shp->opacity, strokeColor.g * 255 * shp->opacity, strokeColor.b * 255 * shp->opacity, strokeColor.a * shp->opacity);
-            ctx.lineWidth = shp->strokeWidth / 2.0;
+            switch (shp->stroke.type) {
+            case NSVG_PAINT_COLOR:
+                convertRawDataToRGBA(shp->stroke.color, red, green, blue, alpha);
+                ctx.setStrokeColor(red * shp->opacity, green * shp->opacity, blue * shp->opacity, alpha * shp->opacity);
+                break;
+            case NSVG_PAINT_LINEAR_GRADIENT: /* unipmlemnted */; break;
+            case NSVG_PAINT_RADIAL_GRADIENT: /* unipmlemnted */; break;
+            case NSVG_PAINT_NONE:
+            default: break;
+            }
+            ctx.lineWidth = shp->strokeWidth;
             // strokeDashOffset strokeDashArray strokeDashCount
             switch (shp->strokeLineJoin) {
             case NSVG_JOIN_MITER: ctx.lineJoin = "miter"; break;
             case NSVG_JOIN_ROUND: ctx.lineJoin = "round"; break;
             case NSVG_JOIN_BEVEL: ctx.lineJoin = "bevel"; break;
+            default: assert(0 && "unreachable"); break;
             }
             switch (shp->strokeLineCap) {
             case NSVG_CAP_BUTT: ctx.lineCap = "butt"; break;
             case NSVG_CAP_ROUND: ctx.lineCap = "round"; break;
             case NSVG_CAP_SQUARE: ctx.lineCap = "square"; break;
+            default: assert(0 && "unreachable"); break;
             }
             ctx.miterLimit = shp->miterLimit;
             ctx.stroke();
@@ -259,15 +215,76 @@ void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img)
     }
 }
 
-void bug(gepard::Gepard& ctx)
+#define INIT_ARGS(AC, AV) struct _AP{int c;char**v;int*u;~_AP(){free(u);}}_ap={AC,AV,(int*)calloc(AC,sizeof(int))};
+#define CHECK_FLAG(FLAGS)[&](){char fs[]=FLAGS;char*f=strtok(fs,",");while(f){while(isspace(*f))f++;for(int i=1;i<_ap.c;++i){if(!strcmp(_ap.v[i],f)){_ap.u[i]++;return i;}}f=strtok(NULL,",");}return 0;}()
+#define GET_VALUE(FLAGS,DEF)[&](){int n=-2;if(strlen(FLAGS)){int f=CHECK_FLAG(FLAGS);n=f?f:-1;};if(n==-2){for(int i=1;i<_ap.c;++i)if(!_ap.u[i]){n=i-1;break;}}if(n>-1&&(++n)<_ap.c){_ap.u[n]++;return (const char*)_ap.v[n];}return DEF;}()
+
+int main(int argc, char* argv[])
 {
-    if (1) { // in gepard-trapezoid-tessellator.cpp:737 GD_ASSERT(trapezoid.topY == (fixPrecision(segment.topY() / denom)));
-        ctx.beginPath();
-        ctx.moveTo(151.33, 481.5);
-        ctx.quadraticCurveTo(151.33, 481.5, 151.81, 481.7);
-        ctx.quadraticCurveTo(152.29, 481.91, 152.83, 482.25);
-        ctx.fill();
-        ctx.stroke();
-    return;
+    INIT_ARGS(argc, argv);
+    if (CHECK_FLAG("-h, --help, --usage")) {
+        std::cout << "SVG rastering with Gepard *** (C) 2018. Szilard Ledan" << std::endl;
+        std::cout << "Usage: " << std::string(argv[0]) << " [options] SVGFILE" << std::endl
+                  << std::endl;
+        std::cout << "Options:" << std::endl;
+        std::cout << "  -h, --help      show this help." << std::endl;
+        std::cout << "  -p, --png FILE  use png output and set file name." << std::endl;
+        std::cout << "  -C, --no-clear  disable canvas clear." << std::endl;
+        return 0;
     }
+
+    struct {
+        const bool isOn;
+        const std::string file;
+    } a_png = {
+        CHECK_FLAG("-p, --png"),
+        GET_VALUE("-p, --png", "build/tiger.png")
+    };
+    const bool a_disableClear = CHECK_FLAG("-C, --no-clear");
+    const std::string a_svgFile = GET_VALUE("", "./apps/svggepard/tiger.svg");
+
+    NSVGimage* pImage = nsvgParseFromFile(a_svgFile.c_str(), "px", 96);
+    if (!pImage) {
+        std::cerr << "Wrong SVG file or not exist." << std::endl;
+        return 1;
+    }
+
+    const uint width = pImage->width;
+    const uint height = pImage->height;
+    gepard::Surface* surface = a_png.isOn ? reinterpret_cast<gepard::Surface*>(new gepard::PNGSurface(width, height))
+                                          : reinterpret_cast<gepard::Surface*>(new gepard::XSurface(width, height));
+    gepard::Gepard gepard(surface);
+
+    // Clear the canvas.
+    if (!a_disableClear) {
+        gepard.fillStyle = "#fff";
+        gepard.fillRect(0, 0, width, height);
+    }
+
+    parseNSVGimage(gepard, pImage);
+
+    nsvgDelete(pImage);
+
+    if (a_png.isOn) {
+        gepard::PNGSurface* pngSurface = reinterpret_cast<gepard::PNGSurface*>(surface);
+        pngSurface->save(a_png.file);
+        if (pngSurface) {
+            delete pngSurface;
+        }
+    } else {
+        gepard::XSurface* xSurface = reinterpret_cast<gepard::XSurface*>(surface);
+
+        XEvent xEvent;
+        while (true) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            if (XCheckWindowEvent((Display*)xSurface->getDisplay(), (Window)xSurface->getWindow(), KeyPress | ClientMessage, &xEvent)) {
+                break;
+            }
+        }
+        if (xSurface) {
+            delete xSurface;
+        }
+    }
+
+    return 0;
 }
