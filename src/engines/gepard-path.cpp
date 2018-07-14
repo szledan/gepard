@@ -348,13 +348,9 @@ void PathData::addCloseSubpathElement()
     _lastElement = _lastElement->next;
 }
 
-void PathData::applyTransform(const Transform transform)
+void PathData::applyTransform(const Transform& transform)
 {
     PathElement* element = _firstElement;
-
-    QuadraticCurveToElement* quadToElement;
-    BezierCurveToElement* curveToElement;
-    ArcElement* arcToElement;
 
     while (element) {
         switch (element->type) {
@@ -364,17 +360,20 @@ void PathData::applyTransform(const Transform transform)
             element->to = transform.apply(element->to);
             break;
         case PathElementTypes::QuadraticCurve:
+            QuadraticCurveToElement* quadToElement;
             quadToElement = reinterpret_cast<QuadraticCurveToElement*>(element);
             quadToElement->to = transform.apply(quadToElement->to);
             quadToElement->control = transform.apply(quadToElement->control);
             break;
         case PathElementTypes::BezierCurve:
+            BezierCurveToElement* curveToElement;
             curveToElement = reinterpret_cast<BezierCurveToElement*>(element);
             curveToElement->to = transform.apply(curveToElement->to);
             curveToElement->control1 = transform.apply(curveToElement->control1);
             curveToElement->control2 = transform.apply(curveToElement->control2);
             break;
         case PathElementTypes::Arc:
+            ArcElement* arcToElement;
             arcToElement = reinterpret_cast<ArcElement*>(element);
             arcToElement->to = transform.apply(arcToElement->to);
             arcToElement->multiply(transform);

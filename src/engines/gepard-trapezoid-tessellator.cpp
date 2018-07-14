@@ -406,19 +406,17 @@ void SegmentApproximator::arcToCurve(FloatPoint result[], const Float& startAngl
     result[2].y = sinEndAngle;
 }
 
-void SegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement, const Transform& t)
+void SegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement, const Transform& globalTransform)
 {
     Float startAngle = arcElement->startAngle;
     const Float endAngle = arcElement->endAngle;
     const bool antiClockwise = arcElement->counterClockwise;
 
-    Transform transform = t;
-    Transform arcTransform = arcElement->transform;
+    Transform arcTransform = globalTransform;
     Transform axesTransform = { arcElement->radius.x, 0.0, 0.0, arcElement->radius.y, arcElement->center.x, arcElement->center.y };
-    arcTransform *= axesTransform;
-    transform *= arcTransform;
+    arcTransform *= Transform::multiply(arcElement->transform, axesTransform);
 
-    FloatPoint startPoint = transform.apply(FloatPoint(std::cos(startAngle), std::sin(startAngle)));
+    FloatPoint startPoint = arcTransform.apply(FloatPoint(std::cos(startAngle), std::sin(startAngle)));
     insertLine(lastEndPoint, startPoint);
 
     GD_ASSERT(startAngle != endAngle);
@@ -428,18 +426,19 @@ void SegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcEle
     const int segments = calculateArcSegments(deltaAngle, std::max(arcElement->radius.x * 2, arcElement->radius.y * 2));
     Float step = deltaAngle / segments;
 
-    if (antiClockwise)
+    if (antiClockwise) {
         step = -step;
+    }
 
     FloatPoint bezierPoints[3];
     for (int i = 0; i < segments; i++, startAngle += step) {
         arcToCurve(bezierPoints, startAngle, (i == segments - 1) ? endAngle : startAngle + step);
-        bezierPoints[0] = transform.apply(bezierPoints[0]);
-        bezierPoints[1] = transform.apply(bezierPoints[1]);
+        bezierPoints[0] = arcTransform.apply(bezierPoints[0]);
+        bezierPoints[1] = arcTransform.apply(bezierPoints[1]);
         if (i == segments - 1) {
-            bezierPoints[2] = t.apply(arcElement->to);
+            bezierPoints[2] = globalTransform.apply(arcElement->to);
         } else {
-            bezierPoints[2] = transform.apply(bezierPoints[2]);
+            bezierPoints[2] = arcTransform.apply(bezierPoints[2]);
         }
         insertBezierCurve(startPoint, bezierPoints[0], bezierPoints[1], bezierPoints[2]);
         startPoint = bezierPoints[2];
@@ -594,11 +593,6 @@ const bool Trapezoid::isMergableInTo(const Trapezoid* other) const
 
     return false;
 }
-
-//std::ostream& operator<<(std::ostream& os, const Trapezoid& t)
-//{
-//    return os << t.topY << "," << t.topLeftX << "," << t.topRightX << "," << t.bottomY << "," << t.bottomLeftX << "," << t.bottomRightX;
-//}
 
 bool operator<(const Trapezoid& lhs, const Trapezoid& rhs)
 {

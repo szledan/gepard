@@ -202,6 +202,7 @@ static const std::string s_copyPathFragmentShader = GD_GLES2_SHADER_PROGRAM(
 
 static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes)
 {
+    GD_ASSERT(trapezoid.topY - trapezoid.bottomY);
     for (int i = 0; i < 4; ++i) {
         *attributes++ = trapezoid.bottomLeftX;
         *attributes++ = trapezoid.bottomRightX;
@@ -241,7 +242,7 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, fboId);
 
-        // todo: clear
+        //! \todo(szledan) check: are we really need this glClear?
         glClear(GL_COLOR_BUFFER_BIT);
         glBlendFunc(GL_ONE, GL_ONE);
     }
@@ -251,6 +252,7 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
         glUseProgram(fillProgram.id);
 
         {
+            GD_ASSERT(width && height);
             const GLint index = glGetUniformLocation(fillProgram.id, "u_size");
             glUniform2f(index, width, height);
         }

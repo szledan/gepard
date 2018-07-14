@@ -468,7 +468,7 @@ struct Transform {
         return FloatPoint(x, y);
     }
 
-    Transform&  multiply(const Transform& transform)
+    Transform& multiply(const Transform& transform)
     {
         const Float a = data[0];
         const Float b = data[1];
@@ -486,7 +486,19 @@ struct Transform {
         return *this;
     }
 
-    void operator*= (const Transform& transform) { multiply(transform); }
+    static const Transform multiply(const Transform& lhs, const Transform& rhs)
+    {
+        return Transform (
+            lhs.data[0] * rhs.data[0] + lhs.data[2] * rhs.data[1],
+            lhs.data[1] * rhs.data[0] + lhs.data[3] * rhs.data[1],
+            lhs.data[0] * rhs.data[2] + lhs.data[2] * rhs.data[3],
+            lhs.data[1] * rhs.data[2] + lhs.data[3] * rhs.data[3],
+            lhs.data[4] + lhs.data[0] * rhs.data[4] + lhs.data[2] * rhs.data[5],
+            lhs.data[5] + lhs.data[1] * rhs.data[4] + lhs.data[3] * rhs.data[5]
+        );
+    }
+
+    void operator*=(const Transform& transform) { multiply(transform); }
 
     Transform& translate(const Float x, const Float y)
     {
