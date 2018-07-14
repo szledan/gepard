@@ -522,19 +522,19 @@ SegmentList* SegmentApproximator::segments()
         // Fix intersection pairs.
         for (SegmentList::iterator segment = currentList->begin(); segment != currentList->end(); ++segment) {
             GD_ASSERT(segment->to.y - segment->from.y >= 1.0);
-            //! \todo(szledan): definitely this if statment is needed before the for
-            //!  if (segment->to.y - segment->from.y <= 1.0)
-            for (SegmentList::iterator furtherSegment = segment; furtherSegment != currentList->end() ; ++furtherSegment) {
-                GD_ASSERT(segment->from.y == furtherSegment->from.y);
-                GD_ASSERT(segment->to.y == furtherSegment->to.y);
-                //! \todo(szledan): need to test this assert:
-                //! GD_ASSERT(furtherSegment->from.x >= segment->from.x)
-                if (furtherSegment->to.x < segment->to.x) {
-                    if (furtherSegment->from.x - segment->from.x < segment->to.x - furtherSegment->to.x) {
-                        furtherSegment->from.x = segment->from.x;
-                        needSorting = true;
-                    } else {
-                        furtherSegment->to.x = segment->to.x;
+            if (segment->to.y - segment->from.y <= 1.0) {
+                for (SegmentList::iterator furtherSegment = segment; furtherSegment != currentList->end() ; ++furtherSegment) {
+                    GD_ASSERT(segment->from.y == furtherSegment->from.y);
+                    GD_ASSERT(segment->to.y == furtherSegment->to.y);
+                    //! \todo(szledan): need to test this assert:
+                    //! GD_ASSERT(furtherSegment->from.x >= segment->from.x)
+                    if (furtherSegment->to.x < segment->to.x) {
+                        if (furtherSegment->from.x - segment->from.x < segment->to.x - furtherSegment->to.x) {
+                            furtherSegment->from.x = segment->from.x;
+                            needSorting = true;
+                        } else {
+                            furtherSegment->to.x = segment->to.x;
+                        }
                     }
                 }
             }
@@ -572,10 +572,7 @@ void SegmentApproximator::insertSegment(const FloatPoint& from, const FloatPoint
 
 SegmentList* SegmentApproximator::insertSegmentList(const int y)
 {
-    auto search = _segments.find(y);
-    if (search == _segments.end())
-        return _segments.emplace(y, new SegmentList()).first->second;
-    return search->second;
+    return _segments[y] ? _segments[y] : _segments[y] = new SegmentList();
 }
 
 /* Trapezoid */
@@ -773,8 +770,9 @@ const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state
                 break;
             }
         }
-        if (current->leftId)
+        if (current->leftId) {
             trapezoidList.push_back(*current);
+        }
     }
 
     return trapezoidList;
