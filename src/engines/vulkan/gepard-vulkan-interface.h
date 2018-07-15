@@ -122,7 +122,17 @@ namespace vulkan {
     FUNC(vkDestroySwapchainKHR); \
     FUNC(vkGetSwapchainImagesKHR); \
     FUNC(vkAcquireNextImageKHR); \
-    FUNC(vkQueuePresentKHR);
+    FUNC(vkQueuePresentKHR); \
+    FUNC(vkCreateDescriptorSetLayout); \
+    FUNC(vkDestroyDescriptorSetLayout); \
+    FUNC(vkCreateDescriptorPool); \
+    FUNC(vkDestroyDescriptorPool); \
+    FUNC(vkAllocateDescriptorSets); \
+    FUNC(vkFreeDescriptorSets); \
+    FUNC(vkCreateSampler); \
+    FUNC(vkDestroySampler); \
+    FUNC(vkUpdateDescriptorSets); \
+    FUNC(vkCmdBindDescriptorSets);
 
 class GepardVulkanInterface {
 public:

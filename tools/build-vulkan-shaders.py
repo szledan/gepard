@@ -32,7 +32,7 @@ import subprocess
 import util
 
 glslang_path = os.path.join(util.get_base_path(), 'thirdparty', 'glslang')
-glslang_path_build = os.path.join(glslang_path, 'build')
+glslang_path_build = os.path.join(glslang_path, 'build', 'vulkan')
 glslang_git_url = 'https://github.com/KhronosGroup/glslang.git'
 
 shader_source_directory = os.path.join(util.get_base_path(), 'src', 'engines', 'vulkan', 'shaders')

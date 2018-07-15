@@ -145,147 +145,28 @@ void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const F
 
     const uint32_t rectIndicies[] = {0, 1, 2, 2, 1, 3};
 
-    const VkBufferCreateInfo vertexBufferInfo = {
-        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,   // VkStructureType        sType;
-        nullptr,                                // const void*            pNext;
-        0,                                      // VkBufferCreateFlags    flags;
-        (VkDeviceSize)sizeof(vertexData),       // VkDeviceSize           size;
-        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,      // VkBufferUsageFlags     usage;
-        VK_SHARING_MODE_EXCLUSIVE,              // VkSharingMode          sharingMode;
-        1u,                                     // uint32_t               queueFamilyIndexCount;
-        &_queueFamilyIndex,                     // const uint32_t*        pQueueFamilyIndices;
-    };
-
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
+    VkMemoryRequirements vertexMemoryRequirements;
     VkDeviceSize vertexBufferOffset = 0;
 
-    _vk.vkCreateBuffer(_device, &vertexBufferInfo, _allocator, &vertexBuffer);
-
-    // Upload vertex data.
-    {
-        VkMemoryRequirements memoryRequirements;
-        _vk.vkGetBufferMemoryRequirements(_device, vertexBuffer, &memoryRequirements);
-        const VkMemoryAllocateInfo allocationInfo = {
-            VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,                                         // VkStructureType    sType;
-            nullptr,                                                                        // const void*        pNext;
-            memoryRequirements.size,                                                        // VkDeviceSize       allocationSize;
-            getMemoryTypeIndex(memoryRequirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),    // uint32_t           memoryTypeIndex;
-        };
-
-        _vk.vkAllocateMemory(_device, &allocationInfo, _allocator, &vertexBufferMemory);
-        _vk.vkBindBufferMemory(_device, vertexBuffer, vertexBufferMemory, vertexBufferOffset);
-
-        void* data;
-        _vk.vkMapMemory(_device, vertexBufferMemory, 0, (VkDeviceSize)sizeof(vertexData), 0, &data);
-
-        std::memcpy(data, vertexData, (VkDeviceSize)sizeof(vertexData));
-
-        const VkMappedMemoryRange range = {
-            VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,  // VkStructureType    sType;
-            nullptr,                                // const void*        pNext;
-            vertexBufferMemory,                     // VkDeviceMemory     memory;
-            0,                                      // VkDeviceSize       offset;
-            (VkDeviceSize)sizeof(vertexData),       // VkDeviceSize       size;
-        };
-
-        _vk.vkFlushMappedMemoryRanges(_device, 1, &range);
-        _vk.vkUnmapMemory(_device, vertexBufferMemory);
-    }
+    createBuffer(vertexBuffer, vertexBufferMemory, vertexMemoryRequirements, (VkDeviceSize)sizeof(vertexData), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+    uploadToDeviceMemory(vertexBufferMemory, (void*)vertexData, vertexMemoryRequirements.size, vertexBufferOffset);
 
     VkBuffer indexBuffer;
     VkDeviceMemory indexBufferMemory;
+    VkMemoryRequirements indexMemoryRequirements;
 
-    // Upload index data.
-    {
-        const VkBufferCreateInfo indexBufferInfo = {
-            VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,   // VkStructureType        sType;
-            nullptr,                                // const void*            pNext;
-            0,                                      // VkBufferCreateFlags    flags;
-            (VkDeviceSize)sizeof(rectIndicies),     // VkDeviceSize           size;
-            VK_BUFFER_USAGE_INDEX_BUFFER_BIT,       // VkBufferUsageFlags     usage;
-            VK_SHARING_MODE_EXCLUSIVE,              // VkSharingMode          sharingMode;
-            1u,                                     // uint32_t               queueFamilyIndexCount;
-            &_queueFamilyIndex,                      // const uint32_t*        pQueueFamilyIndices;
-        };
-
-        _vk.vkCreateBuffer(_device, &indexBufferInfo, _allocator, &indexBuffer);
-
-        VkMemoryRequirements memoryRequirements;
-        _vk.vkGetBufferMemoryRequirements(_device, indexBuffer, &memoryRequirements);
-        const VkMemoryAllocateInfo allocationInfo = {
-            VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,                                         // VkStructureType    sType;
-            nullptr,                                                                        // const void*        pNext;
-            memoryRequirements.size,                                                        // VkDeviceSize       allocationSize;
-            getMemoryTypeIndex(memoryRequirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),    // uint32_t           memoryTypeIndex;
-        };
-
-        _vk.vkAllocateMemory(_device, &allocationInfo, _allocator, &indexBufferMemory);
-        _vk.vkBindBufferMemory(_device, indexBuffer, indexBufferMemory, 0);
-
-        void* data;
-        _vk.vkMapMemory(_device, indexBufferMemory, 0, (VkDeviceSize)sizeof(rectIndicies), 0, &data);
-
-        std::memcpy(data, rectIndicies, (VkDeviceSize)sizeof(rectIndicies));
-
-        const VkMappedMemoryRange range = {
-            VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,  // VkStructureType    sType;
-            nullptr,                                // const void*        pNext;
-            indexBufferMemory,                      // VkDeviceMemory     memory;
-            0,                                      // VkDeviceSize       offset;
-            (VkDeviceSize)sizeof(rectIndicies),     // VkDeviceSize       size;
-        };
-
-        _vk.vkFlushMappedMemoryRanges(_device, 1, &range);
-        _vk.vkUnmapMemory(_device, indexBufferMemory);
-    }
+    createBuffer(indexBuffer, indexBufferMemory, indexMemoryRequirements, (VkDeviceSize)sizeof(rectIndicies), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+    uploadToDeviceMemory(indexBufferMemory, (void*)rectIndicies, indexMemoryRequirements.size);
 
     // Pipeline creation
 
     VkShaderModule vertex;
     VkShaderModule fragment;
 
-    {
-        const VkShaderModuleCreateInfo vertexModulInfo = {
-            VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,            // VkStructureType              sType;
-            nullptr,                                                // const void*                  pNext;
-            0,                                                      // VkShaderModuleCreateFlags    flags;
-            sizeof(fillRectVert),                                   // size_t                       codeSize;
-            fillRectVert,                                           // const uint32_t*              pCode;
-        };
-        _vk.vkCreateShaderModule(_device, &vertexModulInfo, _allocator, &vertex);
-
-        const VkShaderModuleCreateInfo fragmentModulInfo = {
-            VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,            // VkStructureType              sType;
-            nullptr,                                                // const void*                  pNext;
-            0,                                                      // VkShaderModuleCreateFlags    flags;
-            sizeof(fillRectFrag),                                   // size_t                       codeSize;
-            fillRectFrag,                                           // const uint32_t*              pCode;
-        };
-
-        _vk.vkCreateShaderModule(_device, &fragmentModulInfo, _allocator, &fragment);
-    }
-
-    const VkPipelineShaderStageCreateInfo stages[] = {
-        {
-            VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,    // VkStructureType                     sType;
-            nullptr,                                                // const void*                         pNext;
-            0,                                                      // VkPipelineShaderStageCreateFlags    flags;
-            VK_SHADER_STAGE_VERTEX_BIT,                             // VkShaderStageFlagBits               stage;
-            vertex,                                                 // VkShaderModule                      module;
-            "main",                                                 // const char*                         pName;
-            nullptr,                                                // const VkSpecializationInfo*         pSpecializationInfo;
-        },
-        {
-            VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,    // VkStructureType                     sType;
-            nullptr,                                                // const void*                         pNext;
-            0,                                                      // VkPipelineShaderStageCreateFlags    flags;
-            VK_SHADER_STAGE_FRAGMENT_BIT,                           // VkShaderStageFlagBits               stage;
-            fragment,                                               // VkShaderModule                      module;
-            "main",                                                 // const char*                         pName;
-            nullptr,                                                // const VkSpecializationInfo*         pSpecializationInfo;
-        }
-    };
+    createShaderModule(vertex, fillRectVert,  sizeof(fillRectVert));
+    createShaderModule(fragment, fillRectFrag, sizeof(fillRectFrag));
 
     const VkVertexInputBindingDescription bindingDescription = {
         0u,                             // uint32_t             binding;
@@ -318,106 +199,9 @@ void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const F
         vertexAttributeDescriptions,                                // const VkVertexInputAttributeDescription*    pVertexAttributeDescriptions;
     };
 
-    const VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {
-        VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,    // VkStructureType                          sType
-        nullptr,                                                        // const void*                              pNext
-        0,                                                              // VkPipelineInputAssemblyStateCreateFlags  flags
-        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,                            // VkPrimitiveTopology                      topology
-        VK_FALSE,                                                       // VkBool32                                 primitiveRestartEnable
-    };
-
-    const uint32_t width = _context.surface->width();
-    const uint32_t height = _context.surface->height();
-    const VkViewport viewports[] = {
-        {
-            0.0f,           // float    x;
-            0.0f,           // float    y;
-            (float)width,   // float    width;
-            (float)height,  // float    height;
-            0.0f,           // float    minDepth;
-            1.0f,           // float    maxDepth;
-        }
-    };
-
-    const VkRect2D scissors[] = {
-        {
-            {
-                0,      // int32_t x
-                0,      // int32_t y
-            },  // VkOffset2D    offset;
-            {
-                width,  // uint32_t    width
-                height, // uint32_t    height
-            }, // VkExtent2D    extent;
-        }
-    };
-
-    const VkPipelineViewportStateCreateInfo viewportState = {
-        VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,  // VkStructureType                       sType;
-        nullptr,                                                // const void*                           pNext;
-        0,                                                      // VkPipelineViewportStateCreateFlags    flags;
-        1u,                                                     // uint32_t                              viewportCount;
-        viewports,                                              // const VkViewport*                     pViewports;
-        1u,                                                     // uint32_t                              scissorCount;
-        scissors,                                               // const VkRect2D*                       pScissors;
-    };
-
-    const VkPipelineRasterizationStateCreateInfo rasterizationState = {
-        VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO, // VkStructureType                            sType;
-        nullptr,                                                    // const void*                                pNext;
-        0,                                                          // VkPipelineRasterizationStateCreateFlags    flags;
-        VK_FALSE,                                                   // VkBool32                                   depthClampEnable;
-        VK_FALSE,                                                   // VkBool32                                   rasterizerDiscardEnable;
-        VK_POLYGON_MODE_FILL,                                       // VkPolygonMode                              polygonMode;
-        VK_CULL_MODE_NONE,                                          // VkCullModeFlags                            cullMode;
-        VK_FRONT_FACE_COUNTER_CLOCKWISE,                            // VkFrontFace                                frontFace;
-        VK_FALSE,                                                   // VkBool32                                   depthBiasEnable;
-        0.0f,                                                       // float                                      depthBiasConstantFactor;
-        0.0f,                                                       // float                                      depthBiasClamp;
-        0.0f,                                                       // float                                      depthBiasSlopeFactor;
-        1.0f,                                                       // float                                      lineWidth;
-    };
-
-    const VkPipelineMultisampleStateCreateInfo multisampleState = {
-        VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,   // VkStructureType                          sType;
-        nullptr,                                                    // const void*                              pNext;
-        0,                                                          // VkPipelineMultisampleStateCreateFlags    flags;
-        VK_SAMPLE_COUNT_1_BIT,                                      // VkSampleCountFlagBits                    rasterizationSamples;
-        VK_FALSE,                                                   // VkBool32                                 sampleShadingEnable;
-        0.0,                                                        // float                                    minSampleShading;
-        nullptr,                                                    // const VkSampleMask*                      pSampleMask;
-        VK_FALSE,                                                   // VkBool32                                 alphaToCoverageEnable;
-        VK_FALSE,                                                   // VkBool32                                 alphaToOneEnable;
-    };
-
-    const VkPipelineColorBlendAttachmentState colorBlendAttachmentState = {
-        VK_TRUE,                                                                                                    // VkBool32                 blendEnable;
-        VK_BLEND_FACTOR_SRC_ALPHA,                                                                                  // VkBlendFactor            srcColorBlendFactor;
-        VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,                                                                        // VkBlendFactor            dstColorBlendFactor;
-        VK_BLEND_OP_ADD,                                                                                            // VkBlendOp                colorBlendOp;
-        VK_BLEND_FACTOR_SRC_ALPHA,                                                                                  // VkBlendFactor            srcAlphaBlendFactor;
-        VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,                                                                        // VkBlendFactor            dstAlphaBlendFactor;
-        VK_BLEND_OP_ADD,                                                                                            // VkBlendOp                alphaBlendOp;
-        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT   // VkColorComponentFlags    colorWriteMask;
-    };
-
-    const VkPipelineColorBlendStateCreateInfo colorBlendState = {
-        VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,   // VkStructureType                               sType;
-        nullptr,                                                    // const void*                                   pNext;
-        0,                                                          // VkPipelineColorBlendStateCreateFlags          flags;
-        VK_FALSE,                                                   // VkBool32                                      logicOpEnable;
-        VK_LOGIC_OP_COPY,                                           // VkLogicOp                                     logicOp;
-        1u,                                                         // uint32_t                                      attachmentCount;
-        &colorBlendAttachmentState,                                 // const VkPipelineColorBlendAttachmentState*    pAttachments;
-        {
-            0.0f,   // float R
-            0.0f,   // float G
-            0.0f,   // float B
-            0.0f,   // float A
-        },                                                          // float                                         blendConstants[4];
-    };
-
     VkPipelineLayout layout;
+    VkPipeline pipeline;
+
     const VkPipelineLayoutCreateInfo layoutCreateInfo = {
           VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,  // VkStructureType                sType
           nullptr,                                        // const void                    *pNext
@@ -427,37 +211,9 @@ void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const F
           0u,                                             // uint32_t                       pushConstantRangeCount
           nullptr                                         // const VkPushConstantRange     *pPushConstantRanges
     };
-
-    _vk.vkCreatePipelineLayout(_device, &layoutCreateInfo, _allocator, &layout);
-
-    const VkGraphicsPipelineCreateInfo pipelineCreateInfo = {
-        VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,    // VkStructureType                                  sType;
-        nullptr,                                            // const void*                                      pNext;
-        0,                                                  // VkPipelineCreateFlags                            flags;
-        2u,                                                 // uint32_t                                         stageCount;
-        stages,                                             // const VkPipelineShaderStageCreateInfo*           pStages;
-        &vertexInputState,                                  // const VkPipelineVertexInputStateCreateInfo*      pVertexInputState;
-        &inputAssemblyState,                                // const VkPipelineInputAssemblyStateCreateInfo*    pInputAssemblyState;
-        nullptr,                                            // const VkPipelineTessellationStateCreateInfo*     pTessellationState;
-        &viewportState,                                     // const VkPipelineViewportStateCreateInfo*         pViewportState;
-        &rasterizationState,                                // const VkPipelineRasterizationStateCreateInfo*    pRasterizationState;
-        &multisampleState,                                  // const VkPipelineMultisampleStateCreateInfo*      pMultisampleState;
-        nullptr,                                            // const VkPipelineDepthStencilStateCreateInfo*     pDepthStencilState;
-        &colorBlendState,                                   // const VkPipelineColorBlendStateCreateInfo*       pColorBlendState;
-        nullptr,                                            // const VkPipelineDynamicStateCreateInfo*          pDynamicState;
-        layout,                                             // VkPipelineLayout                                 layout;
-        _renderPass,                                        // VkRenderPass                                     renderPass;
-        0u,                                                 // uint32_t                                         subpass;
-        VK_NULL_HANDLE,                                     // VkPipeline                                       basePipelineHandle;
-        0,                                                  // int32_t                                          basePipelineIndex;
-    };
-
-    VkPipeline pipeline;
-
-    _vk.vkCreateGraphicsPipelines(_device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, _allocator, &pipeline);
+    createSimplePipeline(pipeline, layout, vertex, fragment, vertexInputState, blendMode::oneMinusSrcAlpha, layoutCreateInfo);
 
     // Drawing
-
     const VkCommandBuffer commandBuffer = _primaryCommandBuffers[0];
 
     const VkCommandBufferBeginInfo commandBufferBeginInfo = {
@@ -476,7 +232,7 @@ void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const F
         nullptr,                                    // const void*            pNext;
         _renderPass,                                // VkRenderPass           renderPass;
         _frameBuffer,                               // VkFramebuffer          framebuffer;
-        scissors[0],                                // VkRect2D               renderArea;
+        getDefaultRenderArea(),                      // VkRect2D               renderArea;
         1u,                                         // uint32_t               clearValueCount;
         &clearValue,                                // const VkClearValue*    pClearValues;
     };
@@ -548,6 +304,331 @@ void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const F
 void GepardVulkan::drawImage(Image imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
 {
     GD_LOG2("drawImage " << sx << " " << sy << " " << sw << " " << sh << " " << dx << " " << dy << " " << dw << " " << dh);
+    VkResult vkResult;
+    const uint32_t width = imagedata.width();
+    const uint32_t height = imagedata.height();
+    VkBuffer buffer;
+    VkDeviceMemory bufferAlloc;
+    VkMemoryRequirements bufferMemoryRequirements;
+    const VkDeviceSize bufferSize = width * height * sizeof(uint32_t); // r8g8b8a8 format
+    createBuffer(buffer, bufferAlloc, bufferMemoryRequirements, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    uploadToDeviceMemory(bufferAlloc, imagedata.data().data(), bufferSize);
+
+    VkImage image;
+    VkImageView imageView;
+    VkDeviceMemory imageMemory;
+    VkMemoryRequirements imageMemoryRequirements;
+
+    const VkExtent3D imageSize = {
+        width,  // uint32_t    width;
+        height, // uint32_t    height;
+        1u,     // uint32_t    depth;
+    };
+
+    createImage(image, imageMemory, imageMemoryRequirements, imageSize, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+    createImageView(imageView, image);
+
+    // Vertex data setup
+
+    const float texLeft = static_cast<float>(sx / imagedata.width());
+    const float texRight = static_cast<float>((sx + sw) / imagedata.width());
+    const float texTop = static_cast<float>(sy / imagedata.height());
+    const float texBottom = static_cast<float>((sy + sh) / imagedata.height());
+    // TODO: create utility function for this
+    const float left = static_cast<float>((2.0 * dx / _context.surface->width()) - 1.0);
+    const float right = static_cast<float>((2.0 * (dx + dw) / _context.surface->width()) - 1.0);
+    const float top = static_cast<float>((2.0 * dy / _context.surface->height()) - 1.0);
+    const float bottom = static_cast<float>((2.0 * (dy + dh) / _context.surface->height()) - 1.0);
+
+    const float vertexData[] = {
+        left, top, texLeft, texTop,
+        right, top, texRight, texTop,
+        left, bottom, texLeft, texBottom,
+        right, bottom, texRight, texBottom,
+    };
+
+    const uint32_t rectIndicies[] = {0, 1, 2, 2, 1, 3};
+
+    VkBuffer vertexBuffer;
+    VkDeviceMemory vertexBufferMemory;
+    VkMemoryRequirements vertexMemoryRequirements;
+    VkDeviceSize vertexBufferOffset = 0;
+
+    createBuffer(vertexBuffer, vertexBufferMemory, vertexMemoryRequirements, (VkDeviceSize)sizeof(vertexData), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+    uploadToDeviceMemory(vertexBufferMemory, (void*)vertexData, vertexMemoryRequirements.size, vertexBufferOffset);
+
+    VkBuffer indexBuffer;
+    VkDeviceMemory indexBufferMemory;
+    VkMemoryRequirements indexMemoryRequirements;
+
+    createBuffer(indexBuffer, indexBufferMemory, indexMemoryRequirements, (VkDeviceSize)sizeof(rectIndicies), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+    uploadToDeviceMemory(indexBufferMemory, rectIndicies, indexMemoryRequirements.size);
+
+    // Pipeline creation
+    // TODO: use proper descriptors
+
+    VkShaderModule vertex;
+    VkShaderModule fragment;
+
+    createShaderModule(vertex, imageVert,  sizeof(imageVert));
+    createShaderModule(fragment, imageFrag, sizeof(imageFrag));
+
+    const VkVertexInputBindingDescription bindingDescription = {
+        0u,                             // uint32_t             binding;
+        2 * (2 * sizeof(float)),        // uint32_t             stride;
+        VK_VERTEX_INPUT_RATE_VERTEX,    // VkVertexInputRate    inputRate;
+    };
+
+    const VkVertexInputAttributeDescription vertexAttributeDescriptions[] = {
+        {
+            0u,                             // uint32_t location
+            0u,                             // uint32_t binding
+            VK_FORMAT_R32G32_SFLOAT,  // VkFormat format
+            0u,                             // uint32_t offset
+        },
+        {
+            1u,                             // uint32_t location
+            0u,                             // uint32_t binding
+            VK_FORMAT_R32G32_SFLOAT,  // VkFormat format
+            sizeof(float) * 2,              // uint32_t offset
+        },
+    };
+
+    const VkPipelineVertexInputStateCreateInfo vertexInputState = {
+        VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,  // VkStructureType                             sType;
+        nullptr,                                                    // const void*                                 pNext;
+        0,                                                          // VkPipelineVertexInputStateCreateFlags       flags;
+        1u,                                                         // uint32_t                                    vertexBindingDescriptionCount;
+        &bindingDescription,                                        // const VkVertexInputBindingDescription*      pVertexBindingDescriptions;
+        2u,                                                         // uint32_t                                    vertexAttributeDescriptionCount;
+        vertexAttributeDescriptions,                                // const VkVertexInputAttributeDescription*    pVertexAttributeDescriptions;
+    };
+
+    VkPipelineLayout layout;
+    VkPipeline pipeline;
+    VkDescriptorPool descriptorPool;
+    VkDescriptorSetLayout descriptorSetLayout;
+    VkDescriptorSet descriptorSet;
+    VkSampler sampler;
+
+    const VkSamplerCreateInfo samplerInfo = {
+        VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,      // VkStructureType         sType;
+        nullptr,                                    // const void*             pNext;
+        0,                                          // VkSamplerCreateFlags    flags;
+        VK_FILTER_LINEAR,                           // VkFilter                magFilter;
+        VK_FILTER_LINEAR,                           // VkFilter                minFilter;
+        VK_SAMPLER_MIPMAP_MODE_NEAREST,             // VkSamplerMipmapMode     mipmapMode;
+        VK_SAMPLER_ADDRESS_MODE_REPEAT,             // VkSamplerAddressMode    addressModeU;
+        VK_SAMPLER_ADDRESS_MODE_REPEAT,             // VkSamplerAddressMode    addressModeV;
+        VK_SAMPLER_ADDRESS_MODE_REPEAT,             // VkSamplerAddressMode    addressModeW;
+        0.0f,                                       // float                   mipLodBias;
+        VK_FALSE,                                   // VkBool32                anisotropyEnable;
+        16.0f,                                      // float                   maxAnisotropy;
+        VK_FALSE,                                   // VkBool32                compareEnable;
+        VK_COMPARE_OP_ALWAYS,                       // VkCompareOp             compareOp;
+        0.0f,                                       // float                   minLod;
+        0.0f,                                       // float                   maxLod;
+        VK_BORDER_COLOR_INT_TRANSPARENT_BLACK,      // VkBorderColor           borderColor;
+        VK_FALSE,                                   // VkBool32                unnormalizedCoordinates;
+    };
+    _vk.vkCreateSampler(_device, &samplerInfo, _allocator, &sampler);
+
+    const VkDescriptorPoolSize descriptorPoolSize = {
+        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,  // VkDescriptorType    type;
+        1u,                                         // uint32_t            descriptorCount;
+    };
+
+    const VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = {
+        VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,      // VkStructureType                sType;
+        nullptr,                                            // const void*                    pNext;
+        VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,  // VkDescriptorPoolCreateFlags    flags;
+        1u,                                                 // uint32_t                       maxSets;
+        1u,                                                 // uint32_t                       poolSizeCount;
+        &descriptorPoolSize, // const VkDescriptorPoolSize*    pPoolSizes;
+    };
+
+    // TODO: this might be moved to gepard instance level instead of function level
+    _vk.vkCreateDescriptorPool(_device, &descriptorPoolCreateInfo, _allocator, &descriptorPool);
+
+    const VkDescriptorSetLayoutBinding descriptoSetrLayoutBinding = {
+        0u,                                         // uint32_t              binding;
+        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,  // VkDescriptorType      descriptorType;
+        1u,                                         // uint32_t              descriptorCount;
+        VK_SHADER_STAGE_FRAGMENT_BIT,               // VkShaderStageFlags    stageFlags;
+        nullptr,                                    // const VkSampler*      pImmutableSamplers;
+    };
+
+    const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
+        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,    // VkStructureType                        sType;
+        nullptr,                                                // const void*                            pNext;
+        0,                                                      // VkDescriptorSetLayoutCreateFlags       flags;
+        1u,                                                     // uint32_t                               bindingCount;
+        &descriptoSetrLayoutBinding,                            // const VkDescriptorSetLayoutBinding*    pBindings;
+    };
+
+    _vk.vkCreateDescriptorSetLayout(_device, &descriptorSetLayoutCreateInfo, _allocator, &descriptorSetLayout);
+
+    const VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {
+        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO, // VkStructureType                 sType;
+        nullptr,                                        // const void*                     pNext;
+        descriptorPool,                                 // VkDescriptorPool                descriptorPool;
+        1u,                                             // uint32_t                        descriptorSetCount;
+        &descriptorSetLayout,                           // const VkDescriptorSetLayout*    pSetLayouts;
+    };
+
+    _vk.vkAllocateDescriptorSets(_device, &descriptorSetAllocateInfo, &descriptorSet);
+
+    const VkDescriptorImageInfo descriptorImageInfo = {
+        sampler,                                    // VkSampler        sampler;
+        imageView,                                  // VkImageView      imageView;
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,   // VkImageLayout    imageLayout;
+    };
+
+    const VkWriteDescriptorSet writeDescriptorSet = {
+        VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,     // VkStructureType                  sType;
+        nullptr,                                    // const void*                      pNext;
+        descriptorSet,                              // VkDescriptorSet                  dstSet;
+        0u,                                         // uint32_t                         dstBinding;
+        0u,                                         // uint32_t                         dstArrayElement;
+        1u,                                         // uint32_t                         descriptorCount;
+        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,  // VkDescriptorType                 descriptorType;
+        &descriptorImageInfo,                       // const VkDescriptorImageInfo*     pImageInfo;
+        nullptr,                                    // const VkDescriptorBufferInfo*    pBufferInfo;
+        nullptr,                                    // const VkBufferView*              pTexelBufferView;
+    };
+
+    _vk.vkUpdateDescriptorSets(_device, 1u, &writeDescriptorSet, 0u, nullptr);
+
+    const VkPipelineLayoutCreateInfo layoutCreateInfo = {
+          VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,  // VkStructureType                sType
+          nullptr,                                        // const void                    *pNext
+          0,                                              // VkPipelineLayoutCreateFlags    flags
+          1u,                                             // uint32_t                       setLayoutCount
+          &descriptorSetLayout,                           // const VkDescriptorSetLayout   *pSetLayouts
+          0u,                                             // uint32_t                       pushConstantRangeCount
+          nullptr                                         // const VkPushConstantRange     *pPushConstantRanges
+    };
+    createSimplePipeline(pipeline, layout, vertex, fragment, vertexInputState, blendMode::oneMinusSrcAlpha, layoutCreateInfo);
+
+    const VkCommandBuffer commandBuffer = _primaryCommandBuffers[0];
+    const VkCommandBufferBeginInfo commandBufferBeginInfo = {
+       VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, // VkStructureType                          sType;
+       nullptr,                                     // const void*                              pNext;
+       VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, // VkCommandBufferUsageFlags                flags;
+       nullptr,                                     // const VkCommandBufferInheritanceInfo*    pInheritanceInfo;
+    };
+
+    VkImageSubresourceLayers subResourceLayers = {
+        VK_IMAGE_ASPECT_COLOR_BIT,  //VkImageAspectFlags    aspectMask;
+        0u,                         //uint32_t              mipLevel;
+        0u,                         //uint32_t              baseArrayLayer;
+        1u,                         //uint32_t              layerCount;
+    };
+
+    VkBufferImageCopy bufferToImage = {
+        0,                      // VkDeviceSize                bufferOffset;
+        0,                      // uint32_t                    bufferRowLength;
+        0,                      // uint32_t                    bufferImageHeight;
+        subResourceLayers,      // VkImageSubresourceLayers    imageSubresource;
+        { 0, 0, 0 },            // VkOffset3D                  imageOffset;
+        {
+            imagedata.width(),
+            imagedata.height(),
+            1u,
+        },                      // VkExtent3D                  imageExtent;
+    };
+
+    const VkImageSubresourceRange subresourceRange = {
+        VK_IMAGE_ASPECT_COLOR_BIT,  // VkImageAspectFlags    aspectMask;
+        0u,                         // uint32_t              baseMipLevel;
+        1u,                         // uint32_t              levelCount;
+        0u,                         // uint32_t              baseArrayLayer;
+        1u,                         // uint32_t              layerCount;
+    };
+
+    const VkImageMemoryBarrier uploadImageBarrier = {
+        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,     // VkStructureType            sType;
+        nullptr,                                    // const void*                pNext;
+        0,                                          // VkAccessFlags              srcAccessMask;
+        VK_ACCESS_TRANSFER_WRITE_BIT,               // VkAccessFlags              dstAccessMask;
+        VK_IMAGE_LAYOUT_UNDEFINED,                  // VkImageLayout              oldLayout;
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,       // VkImageLayout              newLayout;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   dstQueueFamilyIndex;
+        image,                                      // VkImage                    image;
+        subresourceRange,                           // VkImageSubresourceRange    subresourceRange;
+    };
+
+    const VkImageMemoryBarrier sampleImageBarrier = {
+        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,     // VkStructureType            sType;
+        nullptr,                                    // const void*                pNext;
+        VK_ACCESS_TRANSFER_WRITE_BIT,               // VkAccessFlags              srcAccessMask;
+        VK_ACCESS_SHADER_READ_BIT,                  // VkAccessFlags              dstAccessMask;
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,       // VkImageLayout              oldLayout;
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,   // VkImageLayout              newLayout;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   dstQueueFamilyIndex;
+        image,                                      // VkImage                    image;
+        subresourceRange,                           // VkImageSubresourceRange    subresourceRange;
+    };
+
+    _vk.vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+
+    const VkClearValue clearValue = { 0.0, 0.0, 0.0, 0.0 };
+
+    const VkRenderPassBeginInfo renderPassInfo = {
+        VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,   // VkStructureType        sType;
+        nullptr,                                    // const void*            pNext;
+        _renderPass,                                // VkRenderPass           renderPass;
+        _frameBuffer,                               // VkFramebuffer          framebuffer;
+        getDefaultRenderArea(),                      // VkRect2D               renderArea;
+        1u,                                         // uint32_t               clearValueCount;
+        &clearValue,                                // const VkClearValue*    pClearValues;
+    };
+
+    // TODO: check if we need preCopy barrier
+    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 0, (const VkBufferMemoryBarrier*)nullptr, 1, &uploadImageBarrier);
+    _vk.vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferToImage);
+    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 0, (const VkBufferMemoryBarrier*)nullptr, 1, &sampleImageBarrier);
+
+    _vk.vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    _vk.vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+    _vk.vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, &vertexBufferOffset);
+    _vk.vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+    _vk.vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0u, 1u, &descriptorSet, 0u, nullptr);
+
+    const uint32_t indexCount = sizeof(rectIndicies) / sizeof(uint32_t);
+    _vk.vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
+
+    _vk.vkCmdEndRenderPass(commandBuffer);
+
+    _vk.vkEndCommandBuffer(commandBuffer);
+
+    submitAndWait(commandBuffer);
+    updateSurface();
+
+    // Clean up
+    _vk.vkFreeDescriptorSets(_device, descriptorPool, 1u, &descriptorSet);
+    _vk.vkDestroySampler(_device, sampler, _allocator);
+
+    _vk.vkDestroyDescriptorSetLayout(_device, descriptorSetLayout, _allocator);
+    _vk.vkDestroyDescriptorPool(_device, descriptorPool, _allocator);
+
+    _vk.vkDestroyPipeline(_device, pipeline, _allocator);
+    _vk.vkDestroyPipelineLayout(_device, layout, _allocator);
+
+    _vk.vkDestroyShaderModule(_device, vertex, _allocator);
+    _vk.vkDestroyShaderModule(_device, fragment, _allocator);
+
+    _vk.vkDestroyImageView(_device, imageView, _allocator);
+
+    _vk.vkFreeMemory(_device, imageMemory, _allocator);
+    _vk.vkFreeMemory(_device, bufferAlloc, _allocator);
+
+    _vk.vkDestroyImage(_device, image, _allocator);
+    _vk.vkDestroyBuffer(_device, buffer, _allocator);
 }
 
 void GepardVulkan::putImage(Image imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
@@ -618,6 +699,7 @@ void GepardVulkan::putImage(Image imagedata, Float dx, Float dy, Float dirtyX, F
         1u,                         // uint32_t              layerCount;
     };
 
+    // TODO: check the barriers!
     const VkImageMemoryBarrier srcImageBarrier = {
         VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,     // VkStructureType            sType;
         nullptr,                                    // const void*                pNext;
@@ -1609,6 +1691,224 @@ void GepardVulkan::createImageView(VkImageView &imageView, VkImage image)
 
     vkResult = _vk.vkCreateImageView(_device, &imageViewCreateInfo, _allocator, &imageView);
     GD_ASSERT(vkResult == VK_SUCCESS && "Creating the image view failed!");
+}
+
+void GepardVulkan::createShaderModule(VkShaderModule &shader, const uint32_t *code, const size_t codeSize)
+{
+    const VkShaderModuleCreateInfo shaderModulInfo = {
+        VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,            // VkStructureType              sType;
+        nullptr,                                                // const void*                  pNext;
+        0,                                                      // VkShaderModuleCreateFlags    flags;
+        codeSize,                                               // size_t                       codeSize;
+        code,                                                   // const uint32_t*              pCode;
+    };
+
+    _vk.vkCreateShaderModule(_device, &shaderModulInfo, _allocator, &shader);
+}
+
+void GepardVulkan::uploadToDeviceMemory(VkDeviceMemory buffer, const void *data, VkDeviceSize size, VkDeviceSize offset)
+{
+    void* rawPointer;
+    _vk.vkMapMemory(_device, buffer, offset, size, 0, &rawPointer);
+
+    std::memcpy(rawPointer, data, size);
+
+    const VkMappedMemoryRange range = {
+        VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,  // VkStructureType    sType;
+        nullptr,                                // const void*        pNext;
+        buffer,                                 // VkDeviceMemory     memory;
+        offset,                                 // VkDeviceSize       offset;
+        size,                                   // VkDeviceSize       size;
+    };
+
+    _vk.vkFlushMappedMemoryRanges(_device, 1, &range);
+    _vk.vkUnmapMemory(_device, buffer);
+}
+
+void GepardVulkan::createSimplePipeline(VkPipeline &pipeline, VkPipelineLayout &layout, const VkShaderModule vertex, const VkShaderModule fragment, const VkPipelineVertexInputStateCreateInfo vertexInputState, const VkPipelineColorBlendAttachmentState blendState, const VkPipelineLayoutCreateInfo layoutInfo)
+{
+    // Simple two stage pipeline
+    const VkPipelineShaderStageCreateInfo stages[] = {
+        {
+            VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,    // VkStructureType                     sType;
+            nullptr,                                                // const void*                         pNext;
+            0,                                                      // VkPipelineShaderStageCreateFlags    flags;
+            VK_SHADER_STAGE_VERTEX_BIT,                             // VkShaderStageFlagBits               stage;
+            vertex,                                                 // VkShaderModule                      module;
+            "main",                                                 // const char*                         pName;
+            nullptr,                                                // const VkSpecializationInfo*         pSpecializationInfo;
+        },
+        {
+            VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,    // VkStructureType                     sType;
+            nullptr,                                                // const void*                         pNext;
+            0,                                                      // VkPipelineShaderStageCreateFlags    flags;
+            VK_SHADER_STAGE_FRAGMENT_BIT,                           // VkShaderStageFlagBits               stage;
+            fragment,                                               // VkShaderModule                      module;
+            "main",                                                 // const char*                         pName;
+            nullptr,                                                // const VkSpecializationInfo*         pSpecializationInfo;
+        }
+    };
+
+    const VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {
+        VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,    // VkStructureType                          sType
+        nullptr,                                                        // const void*                              pNext
+        0,                                                              // VkPipelineInputAssemblyStateCreateFlags  flags
+        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,                            // VkPrimitiveTopology                      topology
+        VK_FALSE,                                                       // VkBool32                                 primitiveRestartEnable
+    };
+
+    const VkViewport viewport = getDefaultViewPort();
+    const VkRect2D scissor = getDefaultRenderArea();
+
+    const VkPipelineViewportStateCreateInfo viewportState = {
+        VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,  // VkStructureType                       sType;
+        nullptr,                                                // const void*                           pNext;
+        0,                                                      // VkPipelineViewportStateCreateFlags    flags;
+        1u,                                                     // uint32_t                              viewportCount;
+        &viewport,                                              // const VkViewport*                     pViewports;
+        1u,                                                     // uint32_t                              scissorCount;
+        &scissor,                                               // const VkRect2D*                       pScissors;
+    };
+
+    const VkPipelineRasterizationStateCreateInfo rasterizationState = {
+        VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO, // VkStructureType                            sType;
+        nullptr,                                                    // const void*                                pNext;
+        0,                                                          // VkPipelineRasterizationStateCreateFlags    flags;
+        VK_FALSE,                                                   // VkBool32                                   depthClampEnable;
+        VK_FALSE,                                                   // VkBool32                                   rasterizerDiscardEnable;
+        VK_POLYGON_MODE_FILL,                                       // VkPolygonMode                              polygonMode;
+        VK_CULL_MODE_NONE,                                          // VkCullModeFlags                            cullMode;
+        VK_FRONT_FACE_COUNTER_CLOCKWISE,                            // VkFrontFace                                frontFace;
+        VK_FALSE,                                                   // VkBool32                                   depthBiasEnable;
+        0.0f,                                                       // float                                      depthBiasConstantFactor;
+        0.0f,                                                       // float                                      depthBiasClamp;
+        0.0f,                                                       // float                                      depthBiasSlopeFactor;
+        1.0f,                                                       // float                                      lineWidth;
+    };
+
+    const VkPipelineMultisampleStateCreateInfo multisampleState = {
+        VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,   // VkStructureType                          sType;
+        nullptr,                                                    // const void*                              pNext;
+        0,                                                          // VkPipelineMultisampleStateCreateFlags    flags;
+        VK_SAMPLE_COUNT_1_BIT,                                      // VkSampleCountFlagBits                    rasterizationSamples;
+        VK_FALSE,                                                   // VkBool32                                 sampleShadingEnable;
+        0.0,                                                        // float                                    minSampleShading;
+        nullptr,                                                    // const VkSampleMask*                      pSampleMask;
+        VK_FALSE,                                                   // VkBool32                                 alphaToCoverageEnable;
+        VK_FALSE,                                                   // VkBool32                                 alphaToOneEnable;
+    };
+
+    const VkPipelineColorBlendStateCreateInfo colorBlendState = {
+        VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,   // VkStructureType                               sType;
+        nullptr,                                                    // const void*                                   pNext;
+        0,                                                          // VkPipelineColorBlendStateCreateFlags          flags;
+        VK_FALSE,                                                   // VkBool32                                      logicOpEnable;
+        VK_LOGIC_OP_COPY,                                           // VkLogicOp                                     logicOp;
+        1u,                                                         // uint32_t                                      attachmentCount;
+        &blendState,                                                // const VkPipelineColorBlendAttachmentState*    pAttachments;
+        {
+            0.0f,   // float R
+            0.0f,   // float G
+            0.0f,   // float B
+            0.0f,   // float A
+        },                                                          // float                                         blendConstants[4];
+    };
+    _vk.vkCreatePipelineLayout(_device, &layoutInfo, _allocator, &layout);
+
+    const VkGraphicsPipelineCreateInfo pipelineCreateInfo = {
+        VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,    // VkStructureType                                  sType;
+        nullptr,                                            // const void*                                      pNext;
+        0,                                                  // VkPipelineCreateFlags                            flags;
+        2u,                                                 // uint32_t                                         stageCount;
+        stages,                                             // const VkPipelineShaderStageCreateInfo*           pStages;
+        &vertexInputState,                                  // const VkPipelineVertexInputStateCreateInfo*      pVertexInputState;
+        &inputAssemblyState,                                // const VkPipelineInputAssemblyStateCreateInfo*    pInputAssemblyState;
+        nullptr,                                            // const VkPipelineTessellationStateCreateInfo*     pTessellationState;
+        &viewportState,                                     // const VkPipelineViewportStateCreateInfo*         pViewportState;
+        &rasterizationState,                                // const VkPipelineRasterizationStateCreateInfo*    pRasterizationState;
+        &multisampleState,                                  // const VkPipelineMultisampleStateCreateInfo*      pMultisampleState;
+        nullptr,                                            // const VkPipelineDepthStencilStateCreateInfo*     pDepthStencilState;
+        &colorBlendState,                                   // const VkPipelineColorBlendStateCreateInfo*       pColorBlendState;
+        nullptr,                                            // const VkPipelineDynamicStateCreateInfo*          pDynamicState;
+        layout,                                             // VkPipelineLayout                                 layout;
+        _renderPass,                                        // VkRenderPass                                     renderPass;
+        0u,                                                 // uint32_t                                         subpass;
+        VK_NULL_HANDLE,                                     // VkPipeline                                       basePipelineHandle;
+        0,                                                  // int32_t                                          basePipelineIndex;
+    };
+
+    _vk.vkCreateGraphicsPipelines(_device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, _allocator, &pipeline);
+}
+
+VkRect2D GepardVulkan::getDefaultRenderArea()
+{
+    VkRect2D renderArea = {
+        {
+            0,      // int32_t x
+            0,      // int32_t y
+        },  // VkOffset2D    offset;
+        {
+            _context.surface->width(),  // uint32_t    width
+            _context.surface->height(), // uint32_t    height
+        }, // VkExtent2D    extent;
+    };
+    return renderArea;
+}
+
+VkViewport GepardVulkan::getDefaultViewPort()
+{
+    VkViewport viewPort =         {
+        0.0f,                               // float    x;
+        0.0f,                               // float    y;
+        (float)_context.surface->width(),   // float    width;
+        (float)_context.surface->height(),  // float    height;
+        0.0f,                               // float    minDepth;
+        1.0f,                               // float    maxDepth;
+    };
+    return viewPort;
+}
+
+void GepardVulkan::submitAndWait(const VkCommandBuffer commandBuffer)
+{
+    VkResult vkResult;
+
+    const VkSubmitInfo submitInfo = {
+        VK_STRUCTURE_TYPE_SUBMIT_INFO,  // VkStructureType                sType;
+        nullptr,                        // const void*                    pNext;
+        0u,                             // uint32_t                       waitSemaphoreCount;
+        nullptr,                        // const VkSemaphore*             pWaitSemaphores;
+        nullptr,                        // const VkPipelineStageFlags*    pWaitDstStageMask;
+        1u,                             // uint32_t                       commandBufferCount;
+        &commandBuffer,                 // const VkCommandBuffer*         pCommandBuffers;
+        0u,                             // uint32_t                       signalSemaphoreCount;
+        nullptr,                        // const VkSemaphore*             pSignalSemaphores;
+    };
+
+    VkQueue queue;
+    _vk.vkGetDeviceQueue(_device, _queueFamilyIndex, 0, &queue);
+
+    const VkFenceCreateInfo fenceInfo = {
+        VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,    // VkStructureType       sType;
+        nullptr,                                // const void*           pNext;
+        0,                                      // VkFenceCreateFlags    flags;
+    };
+
+    VkFence fence;
+    _vk.vkCreateFence(_device, &fenceInfo, _allocator, &fence);
+    _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
+    vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
+    if (vkResult == VK_TIMEOUT)
+        GD_LOG1("TIMEOUT!");
+    _vk.vkDestroyFence(_device, fence, _allocator);
+}
+
+void GepardVulkan::updateSurface()
+{
+    if(_context.surface->getDisplay()) {
+        presentImage();
+    } else if(_context.surface->getBuffer()) {
+        presentToMemoryBuffer();
+    }
 }
 
 } // namespace vulkan
