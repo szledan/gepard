@@ -572,7 +572,7 @@ void SegmentApproximator::insertSegment(const FloatPoint& from, const FloatPoint
 SegmentList* SegmentApproximator::insertSegmentList(const int y)
 {
     auto search = _segments.find(y);
-    if(search == _segments.end())
+    if (search == _segments.end())
         return _segments.emplace(y, new SegmentList()).first->second;
     return search->second;
 }

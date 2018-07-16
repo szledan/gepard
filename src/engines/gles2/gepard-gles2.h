@@ -74,7 +74,8 @@ private:
 
     GLuint _fboId;
     GLuint _textureId;
-    GLfloat* _attributes;
+
+    GLfloat _attributes[];
 };
 
 } // namespace gles2
