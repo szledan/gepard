@@ -200,7 +200,7 @@ static const std::string s_copyPathFragmentShader = GD_GLES2_SHADER_PROGRAM(
     }
 );
 
-static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes)
+static void setupPathVertexAttributes(const Trapezoid& trapezoid, GLfloat* attributes)
 {
     GD_ASSERT(trapezoid.topY - trapezoid.bottomY);
     for (int i = 0; i < 4; ++i) {
@@ -211,7 +211,7 @@ static void setupAttributes(Trapezoid& trapezoid, GLfloat* attributes)
         *attributes++ = trapezoid.bottomY;
         *attributes++ = trapezoid.topY;
         *attributes++ = i + ((i & 0x1) << 1);
-        *attributes++ = 0.9789;
+        attributes++; // Advance to the end of the stride.
     }
 }
 
@@ -289,7 +289,7 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
             if (!trapezoid.leftId || !trapezoid.rightId)
                 continue;
 
-            setupAttributes(trapezoid, _attributes + trapezoidIndex * 32);
+            setupPathVertexAttributes(trapezoid, _attributes + trapezoidIndex * 32);
             trapezoidIndex++;
             if (trapezoidIndex >= min(kMaximumNumberOfUshortQuads, kMaximumNumberOfAttributes / 32)) {
                 GD_LOG2("Draw '" << trapezoidIndex << "' trapezoids with triangles in pairs.");
