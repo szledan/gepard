@@ -414,7 +414,7 @@ void SegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcEle
 
     Transform arcTransform = globalTransform;
     Transform axesTransform = { arcElement->radius.x, 0.0, 0.0, arcElement->radius.y, arcElement->center.x, arcElement->center.y };
-    arcTransform *= Transform::multiply(arcElement->transform, axesTransform);
+    arcTransform *= arcElement->transform * axesTransform;
 
     FloatPoint startPoint = arcTransform.apply(FloatPoint(std::cos(startAngle), std::sin(startAngle)));
     insertLine(lastEndPoint, startPoint);
