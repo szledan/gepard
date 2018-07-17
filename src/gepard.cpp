@@ -116,14 +116,16 @@ Gepard::~Gepard()
     }
 }
 
+/*! \todo missing docs */
 void Gepard::save()
 {
-/*! \todo unimplemented function */
+    _engine->save();
 }
 
+/*! \todo missing docs */
 void Gepard::restore()
 {
-/*! \todo unimplemented function */
+    _engine->restore();
 }
 
 /*!
@@ -339,29 +341,34 @@ void Gepard::arc(float x, float y, float radius, float startAngle, float endAngl
     _engine->arc(x, y, radius, startAngle, endAngle, counterclockwise);
 }
 
+/*! \todo missing docs */
 void Gepard::scale(float x, float y)
 {
-/*! \todo unimplemented function */
+    _engine->scale(x, y);
 }
 
+/*! \todo missing docs */
 void Gepard::rotate(float angle)
 {
-/*! \todo unimplemented function */
+    _engine->rotate(angle);
 }
 
+/*! \todo missing docs */
 void Gepard::translate(float x, float y)
 {
-/*! \todo unimplemented function */
+    _engine->translate(x, y);
 }
 
+/*! \todo missing docs */
 void Gepard::transform(float a, float b, float c, float d, float e, float f)
 {
-/*! \todo unimplemented function */
+    _engine->transform(a, b, c, d, e, f);
 }
 
+/*! \todo missing docs */
 void Gepard::setTransform(float a, float b, float c, float d, float e, float f)
 {
-/*! \todo unimplemented function */
+    _engine->setTransform(a, b, c, d, e, f);
 }
 
 void Gepard::clearRect(float x, float y, float w, float h)

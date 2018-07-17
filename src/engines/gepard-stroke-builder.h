@@ -23,18 +23,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_GLES2
-
-#ifndef GEPARD_GLES2_STROKE_BUILDER_H
-#define GEPARD_GLES2_STROKE_BUILDER_H
+#ifndef GEPARD_STROKE_BUILDER_H
+#define GEPARD_STROKE_BUILDER_H
 
 #include "gepard-defs.h"
-#include "gepard-gles2-trapezoid-tessellator.h"
+#include "gepard-trapezoid-tessellator.h"
 #include "gepard-path.h"
 #include "gepard-types.h"
 
 namespace gepard {
-namespace gles2 {
 
 class StrokePathBuilder {
     struct LineAttributes {
@@ -109,9 +106,6 @@ private:
     SegmentApproximator _segmentApproximator;
 };
 
-} // namespace gles2
 } // namespace gepard
 
-#endif // GEPARD_GLES2_STROKE_BUILDER_H
-
-#endif // GD_USE_GLES2
+#endif // GEPARD_STROKE_BUILDER_H

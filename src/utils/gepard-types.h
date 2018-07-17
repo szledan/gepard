@@ -429,6 +429,27 @@ typedef enum LineJoinTypes {
 
 LineJoinTypes strToLineJoin(const std::string& value);
 
+/* Transform */
+
+struct Transform {
+    Float data[6] = { 1.0, 0.0, 0.0, 1.0, 0.0, 0.0 };
+
+    Transform (const Float a = 1.0, const Float b = 0.0, const Float c = 0.0, const Float d = 1.0, const Float e = 0.0, const Float f = 0.0);
+
+    Transform& rotate(float angle);
+    Transform& scale(float sx, float sy);
+    Transform& translate(const Float x, const Float y);
+
+    const FloatPoint apply(const FloatPoint p) const;
+
+    Transform& multiply(const Transform& transform);
+    void operator*=(const Transform& transform);
+
+    const Transform inverse() const;
+};
+
+Transform operator*(const Transform& lhs , const Transform& rhs);
+
 /* GepardState */
 
 /*!
@@ -448,6 +469,7 @@ struct GepardState {
     LineJoinTypes lineJoinMode = BevelJoin;
     LineCapTypes lineCapMode = ButtCap;
     Float miterLimit = 10;
+    Transform transform;
 };
 
 } // namespace gepard

@@ -55,7 +55,7 @@ public:
     ~GepardGLES2();
 
     void fillRect(const Float x, const Float y, const Float w, const Float h, const Color& fillColor);
-    void fillPath(PathData*, const Color&);
+    void fillPath(PathData*, const GepardState&);
     void strokePath();
 
 private:
@@ -74,6 +74,7 @@ private:
 
     GLuint _fboId;
     GLuint _textureId;
+
     GLfloat* _attributes;
 };
 

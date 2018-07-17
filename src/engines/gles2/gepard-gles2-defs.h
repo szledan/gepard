@@ -40,8 +40,6 @@
 namespace gepard {
 namespace gles2 {
 
-#define GD_GLES2_ANTIALIAS_LEVEL 16
-
 } // namespace gles2
 } // namespace gepard
 
