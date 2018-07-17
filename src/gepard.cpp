@@ -60,7 +60,7 @@ Gepard::Attribute& Gepard::Attribute::operator=(const std::string& str)
     return *this;
 }
 
-Gepard::Attribute&Gepard::Attribute::operator=(const char* chs)
+Gepard::Attribute& Gepard::Attribute::operator=(const char* chs)
 {
     this->operator=(std::string(chs)); return *this;
 }
@@ -635,22 +635,18 @@ void Gepard::putImageData(Image /*imagedata*/, double dx, double dy, double dirt
     /*! \todo unimplemented function */
 }
 
-void Gepard::setFillColor(const std::string& color)
+void Gepard::setFillColor(const int red, const int green, const int blue, const float alpha)
 {
     GD_ASSERT(_engine);
-    _engine->setFillColor(Color(color));
-}
-
-void Gepard::setFillColor(const int red, const int green, const int blue, const int alpha)
-{
     const float ratio = 1.0f / 255.0f;
-    setFillColor(ratio * float(red), ratio * float(green), ratio * float(blue), ratio * float(alpha));
+    _engine->setFillColor(Color(ratio * float(red), ratio * float(green), ratio * float(blue), float(alpha)));
 }
 
-void Gepard::setFillColor(const float red, const float green, const float blue, const float alpha)
+void Gepard::setStrokeColor(const int red, const int green, const int blue, const float alpha)
 {
     GD_ASSERT(_engine);
-    _engine->setFillColor(red, green, blue, alpha);
+    const float ratio = 1.0f / 255.0f;
+    _engine->setStrokeColor(Color(ratio * float(red), ratio * float(green), ratio * float(blue), float(alpha)));
 }
 
 // Virtual destructor definition for the abstract Surface class.
