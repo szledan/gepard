@@ -522,7 +522,7 @@ SegmentList* SegmentApproximator::segments()
         // Fix intersection pairs.
         for (SegmentList::iterator segment = currentList->begin(); segment != currentList->end(); ++segment) {
             GD_ASSERT(segment->to.y - segment->from.y >= 1.0);
-            if (segment->to.y - segment->from.y <= 1.0) {
+            if (segment->to.y - segment->from.y == 1.0) {
                 for (SegmentList::iterator furtherSegment = segment; furtherSegment != currentList->end() ; ++furtherSegment) {
                     GD_ASSERT(segment->from.y == furtherSegment->from.y);
                     GD_ASSERT(segment->to.y == furtherSegment->to.y);
