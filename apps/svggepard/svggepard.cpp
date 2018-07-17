@@ -35,93 +35,6 @@
 #include <sstream>
 #include <thread>
 
-const std::string strBounds(const float b[4], const int level = 1)
-{
-    if (level < 1)
-        return "...";
-
-    std::stringstream ss;
-    ss << "[" << b[0] << ", " << b[1] << ", " << b[2] << ", " << b[3] << "]";
-    return ss.str();
-}
-
-const std::string strNSVGpaint(const NSVGpaint& p, const int level = 1)
-{
-    if (level < 1)
-        return "...";
-
-    std::stringstream ss;
-    ss << "[type: " << (int)p.type
-       << "; color: " << std::hex << p.color
-       << "]";
-    return ss.str();
-}
-
-const std::string strNSVGpath(const NSVGpath* p, const int level = 1)
-{
-    if (level < 1)
-        return "...";
-
-    const int newLevel = level - 1;
-    std::stringstream ss;
-    ss << "[npts: " << p->npts
-       << "; closed: " << (int)p->closed
-       << "; bounds: " << strBounds(p->bounds, newLevel)
-       << "; next : " << p->next
-       << "]";
-    return ss.str();
-}
-
-const std::string strNSVGshape(const NSVGshape* s, const int level = 1)
-{
-    if (level < 1)
-        return "...";
-
-    const int newLevel = level - 1;
-    std::stringstream ss;
-    ss << "[id: " << std::string(s->id)
-       << "; fill: " << strNSVGpaint(s->fill, newLevel)
-       << "; stroke: " << strNSVGpaint(s->stroke, newLevel)
-       << "; opacity: " << s->opacity
-       << "; strokeWidth: " << s->strokeWidth
-       << "; strokeDashOffset: " << s->strokeDashOffset
-       << "; strokeDashArray[8]: " << s->strokeDashArray
-       << "; strokeDashCount: " << (int)s->strokeDashCount
-       << "; strokeLineJoin: " << (int)s->strokeLineJoin
-       << "; strokeLineCap: " << (int)s->strokeLineCap
-       << "; miterLimit: " << s->miterLimit
-       << "; fillRule : " << (int)s->fillRule
-       << "; flags: " << s->flags
-       << "; bounds: " << strBounds(s->bounds, newLevel)
-       << "; path : " << strNSVGpath(s->paths, newLevel)
-       << "; next : " << s->next
-       << "]";
-    return ss.str();
-}
-
-const std::string strNSVGimage(const NSVGimage* i, const int level = 1)
-{
-    if (level < 1)
-        return "";
-
-    const int newLevel = level - 1;
-    std::stringstream ss;
-    ss << "[width: " << i->width
-       << "; height: " << i->height
-       << "; shapes: ";
-    if  (newLevel > 0) {
-        NSVGshape* shp = i->shapes;
-        while (shp) {
-            ss << strNSVGshape(shp, newLevel) << (shp->next ? ", " : "");
-            shp = shp->next;
-        }
-    } else {
-        ss << "...";
-    }
-    ss << "]";
-    return ss.str();
-}
-
 static const bool isCollinear(const float x, const float y, const float* pts)
 {
     const float threshold = 1.0f / float(0x1 << 20);
@@ -130,7 +43,7 @@ static const bool isCollinear(const float x, const float y, const float* pts)
     return first3pointCollinear && last3pointCollinear;
 }
 
-static void convertRawDataToRGBA(uint32_t raw, int& red, int& green, int& blue, float& alpha)
+static void convertRawDataToRGBA(const uint32_t raw, int& red, int& green, int& blue, float& alpha)
 {
     red = raw & 0x000000ff;
     green = (raw & 0x00ff00) >> 8;
@@ -143,6 +56,8 @@ void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img)
     NSVGshape* shp = img->shapes;
     while (shp) {
         NSVGpath* pth = shp->paths;
+
+        // Parse path (aka 'd' property).
         ctx.beginPath();
         while(pth) {
             const float* pts = pth->pts;
@@ -150,11 +65,12 @@ void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img)
             float fromY = pts[1];
             ctx.moveTo(fromX, fromY);
 
+            // Every path element is a cubic (Bézier) curve in NSVG struct.
+            // We need to try replace these functions to easier ones.
             for (int i = 1; i < pth->npts; i += 3) {
                 const float toX = pts[i * 2 + 4];
                 const float toY = pts[i * 2 + 5];
-                const bool isLine = isCollinear(fromX, fromY, &(pts[i * 2]));
-                if (isLine) {
+                if (isCollinear(fromX, fromY, &(pts[i * 2]))) {
                     ctx.lineTo(toX, toY);
                 } else {
                     ctx.bezierCurveTo(pts[i * 2], pts[i * 2 + 1], pts[i * 2 + 2], pts[i * 2 + 3], toX, toY);
@@ -170,57 +86,80 @@ void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img)
 
         int red, green, blue;
         float alpha;
+
+        // Parse fill style and call fill().
         if (shp->fill.type != NSVG_PAINT_NONE) {
             switch (shp->fill.type) {
             case NSVG_PAINT_COLOR:
                 convertRawDataToRGBA(shp->fill.color, red, green, blue, alpha);
                 ctx.setFillColor(red * shp->opacity, green * shp->opacity, blue * shp->opacity, alpha * shp->opacity);
                 break;
-            case NSVG_PAINT_LINEAR_GRADIENT: /* unipmlemnted */; break;
-            case NSVG_PAINT_RADIAL_GRADIENT: /* unipmlemnted */; break;
+            case NSVG_PAINT_LINEAR_GRADIENT: /*! \todo: unipmlemnted */; break;
+            case NSVG_PAINT_RADIAL_GRADIENT: /*! \todo: unipmlemnted */; break;
             case NSVG_PAINT_NONE:
             default: break;
             }
-            ctx.fill();
+
+            // Fill the path.
+            ctx.fill(); //! \todo: filltype: fill("nonzero"), fill("evenodd")
         }
+
+        // Parse stroke style and stroke().
         if (shp->stroke.type != NSVG_PAINT_NONE) {
+            // Parse stroke color style.
             switch (shp->stroke.type) {
             case NSVG_PAINT_COLOR:
                 convertRawDataToRGBA(shp->stroke.color, red, green, blue, alpha);
                 ctx.setStrokeColor(red * shp->opacity, green * shp->opacity, blue * shp->opacity, alpha * shp->opacity);
                 break;
-            case NSVG_PAINT_LINEAR_GRADIENT: /* unipmlemnted */; break;
-            case NSVG_PAINT_RADIAL_GRADIENT: /* unipmlemnted */; break;
+            case NSVG_PAINT_LINEAR_GRADIENT: /*! \todo: unipmlemnted */; break;
+            case NSVG_PAINT_RADIAL_GRADIENT: /*! \todo: unipmlemnted */; break;
             case NSVG_PAINT_NONE:
             default: break;
             }
+
+            // Parse stroke line width.
             ctx.lineWidth = shp->strokeWidth;
-            // strokeDashOffset strokeDashArray strokeDashCount
+
+            //! \todo: strokeDashOffset
+            //! \todo: strokeDashArray
+            //! \todo: strokeDashCount
+
+            // Parse join's type of lines.
             switch (shp->strokeLineJoin) {
             case NSVG_JOIN_MITER: ctx.lineJoin = "miter"; break;
             case NSVG_JOIN_ROUND: ctx.lineJoin = "round"; break;
             case NSVG_JOIN_BEVEL: ctx.lineJoin = "bevel"; break;
             default: assert(0 && "unreachable"); break;
             }
+
+            // Parse cap's type of lines.
             switch (shp->strokeLineCap) {
             case NSVG_CAP_BUTT: ctx.lineCap = "butt"; break;
             case NSVG_CAP_ROUND: ctx.lineCap = "round"; break;
             case NSVG_CAP_SQUARE: ctx.lineCap = "square"; break;
             default: assert(0 && "unreachable"); break;
             }
+
+            // Parse miter limit.
             ctx.miterLimit = shp->miterLimit;
+
+            // Draw the stroke of path.
             ctx.stroke();
         }
+
         shp = shp->next;
     }
 }
 
+// Define a very simple argument parser.
 #define INIT_ARGS(AC, AV) struct _AP{int c;char**v;int*u;~_AP(){free(u);}}_ap={AC,AV,(int*)calloc(AC,sizeof(int))};
 #define CHECK_FLAG(FLAGS)[&](){char fs[]=FLAGS;char*f=strtok(fs,",");while(f){while(isspace(*f))f++;for(int i=1;i<_ap.c;++i){if(!strcmp(_ap.v[i],f)){_ap.u[i]++;return i;}}f=strtok(NULL,",");}return 0;}()
 #define GET_VALUE(FLAGS,DEF)[&](){int n=-2;if(strlen(FLAGS)){int f=CHECK_FLAG(FLAGS);n=f?f:-1;};if(n==-2){for(int i=1;i<_ap.c;++i)if(!_ap.u[i]){n=i-1;break;}}if(n>-1&&(++n)<_ap.c){_ap.u[n]++;return (const char*)_ap.v[n];}return DEF;}()
 
 int main(int argc, char* argv[])
 {
+    // Parse arguments.
     INIT_ARGS(argc, argv);
     if (CHECK_FLAG("-h, --help, --usage")) {
         std::cout << "SVG rastering with Gepard *** (C) 2018. Szilard Ledan" << std::endl;
@@ -243,12 +182,14 @@ int main(int argc, char* argv[])
     const bool a_disableClear = CHECK_FLAG("-C, --no-clear");
     const std::string a_svgFile = GET_VALUE("", "./apps/svggepard/tiger.svg");
 
+    // Open and parse SVG file.
     NSVGimage* pImage = nsvgParseFromFile(a_svgFile.c_str(), "px", 96);
     if (!pImage) {
         std::cerr << "Wrong SVG file or not exist." << std::endl;
         return 1;
     }
 
+    // Set surface and initial the Gepard context.
     const uint width = pImage->width;
     const uint height = pImage->height;
     gepard::Surface* surface = a_png.isOn ? reinterpret_cast<gepard::Surface*>(new gepard::PNGSurface(width, height))
@@ -261,10 +202,12 @@ int main(int argc, char* argv[])
         gepard.fillRect(0, 0, width, height);
     }
 
+    // Parse NSVGImage.
     parseNSVGimage(gepard, pImage);
 
     nsvgDelete(pImage);
 
+    // Put the results.
     if (a_png.isOn) {
         gepard::PNGSurface* pngSurface = reinterpret_cast<gepard::PNGSurface*>(surface);
         pngSurface->save(a_png.file);
