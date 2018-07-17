@@ -72,6 +72,36 @@ Float& Vec4::operator[](std::size_t idx)
 const Color Color::BLACK(0.0f, 0.0f, 0.0f, 1.0f);
 const Color Color::WHITE(1.0f, 1.0f, 1.0f, 1.0f);
 
+Color::Color(const Float red, const Float green, const Float blue, const Float alpha)
+    : Vec4(clamp(red, Float(0.0f), Float(1.0f)), clamp(green, Float(0.0f), Float(1.0f)), clamp(blue, Float(0.0f), Float(1.0f)), clamp(alpha, Float(0.0f), Float(1.0f)))
+{
+}
+
+Color::Color(const std::string& color)
+    : Color(Float(0.0f), Float(0.0f), Float(0.0f), Float(1.0f))
+{
+    const size_t length = color.length();
+    int n;
+
+    // Convert string hex to unsgined int.
+    std::stringstream ss;
+    ss << std::hex << color.substr(1);
+    ss >> n;
+    GD_LOG3("Convert '" << color << "' string to hex number: " << std::hex << n);
+
+    a = 1.0;
+    if (length == 7) {
+        r = ((n & 0xff0000) >> 16) / 255.0;
+        g = ((n & 0x00ff00) >> 8) / 255.0;
+        b = (n & 0x0000ff) / 255.0;
+    } else if (length == 4) {
+        r = ((n & 0xf00) >> 8) / 15.0;
+        g = ((n & 0x0f0) >> 4) / 15.0;
+        b =  (n & 0x00f) / 15.0;
+    }
+    GD_LOG3("Color is: " << r << ", " << g << ", " << b << ", " << a << ".");
+}
+
 Color Color::fromRawDataABGR(uint32_t raw)
 {
     const Float red = Float(raw & 0x000000ff) / 255.0f;
