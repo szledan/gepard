@@ -33,22 +33,22 @@
 
 void pathShape(gepard::Gepard& gepard)
 {
-    gepard.setFillColor(0.5f, 0.4f, 0.1f, 0.2f);
+    gepard.setFillColor(128, 102, 26, 0.05f);
     gepard.fillRect(50, 50, 500, 500);
 
-    gepard.setFillColor(0.0f, 0.8f, 0.3f, 0.8f);
+    gepard.setFillColor(0, 204, 77, 0.8f);
     gepard.fillRect(100, 100, 80, 400);
 
-    gepard.setFillColor(0.0f, 0.0f, 1.0f, 0.8f);
+    gepard.setFillColor(0, 0, 26, 0.8f);
     gepard.fillRect(100, 420, 280, 80);
 
-    gepard.setFillColor(0.3f, 0.0f, 0.7f);
+    gepard.setFillColor(77, 0, 179);
     gepard.fillRect(180, 100, 200, 80);
 
-    gepard.setFillColor(0.3f, 0.7f, 0.2f);
+    gepard.setFillColor(77, 179, 51);
     gepard.fillRect(380, 80, 80, 130);
 
-    gepard.setFillColor("#af5f4f");
+    gepard.fillStyle = "#af5f4f";
     gepard.fillRect(380, 380, 80, 130);
 
     gepard.setFillColor(220, 180, 40);

@@ -438,29 +438,17 @@ public:
      * \param red  the red channel in range [0, 255]
      * \param green  the green channel in range [0, 255]
      * \param blue  the blue channel in range [0, 255]
-     * \param alpha  the alpha channel in range [0, 255]
-     */
-    void setFillColor(const int red, const int green, const int blue, const int alpha = 255);
-    /*!
-     * \brief Set fill color with red, green, blue and alpha components
-     * \param red  the red channel in range [0.0, 1.0]
-     * \param green  the green channel in range [0.0, 1.0]
-     * \param blue  the blue channel in range [0.0, 1.0]
      * \param alpha  the alpha channel in range [0.0, 1.0]
      */
-    void setFillColor(const float red, const float green, const float blue, const float alpha = 1.0f);
+    void setFillColor(const int red, const int green, const int blue, const float alpha = 1.0f);
     /*!
-     * \brief Set fill color with red, green and blue components using a string
-     * \param color  an '#RRGGBB' color string.
-     *
-     * Sets the red, green and blue channels with a hex string, where:
-     * * RR is the red channel in range '00'-'FF',
-     * * GG is the green channel in range '00'-'FF',
-     * * BB is the blue channel in range '00'-'FF'.
-     *
-     * \note A shorter form can also be used: '#RGB'.
+     * \brief Set stroke color with red, green, blue and alpha components
+     * \param red  the red channel in range [0, 255]
+     * \param green  the green channel in range [0, 255]
+     * \param blue  the blue channel in range [0, 255]
+     * \param alpha  the alpha channel in range [0.0, 1.0]
      */
-    void setFillColor(const std::string& color = "#000000");
+    void setStrokeColor(const int red, const int green, const int blue, const float alpha = 1.0f);
 
     /// \} A. NonCanvasAPI Functions
 
