@@ -24,7 +24,6 @@
  */
 
 #include "gepard.h"
-#include "gepard-types.h"
 #define NANOSVG_IMPLEMENTATION
 #include "nanosvg.h"
 #include "surfaces/gepard-png-surface.h"
@@ -32,7 +31,6 @@
 #include <chrono>
 #include <iostream>
 #include <string>
-#include <sstream>
 #include <thread>
 
 static const bool isCollinear(const float x, const float y, const float* pts)
@@ -130,7 +128,7 @@ void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img)
             case NSVG_JOIN_MITER: ctx.lineJoin = "miter"; break;
             case NSVG_JOIN_ROUND: ctx.lineJoin = "round"; break;
             case NSVG_JOIN_BEVEL: ctx.lineJoin = "bevel"; break;
-            default: assert(0 && "unreachable"); break;
+            default: break;
             }
 
             // Parse cap's type of lines.
@@ -138,7 +136,7 @@ void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img)
             case NSVG_CAP_BUTT: ctx.lineCap = "butt"; break;
             case NSVG_CAP_ROUND: ctx.lineCap = "round"; break;
             case NSVG_CAP_SQUARE: ctx.lineCap = "square"; break;
-            default: assert(0 && "unreachable"); break;
+            default: break;
             }
 
             // Parse miter limit.
