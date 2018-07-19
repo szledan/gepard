@@ -29,6 +29,7 @@
 #include "surfaces/gepard-png-surface.h"
 #include "surfaces/gepard-xsurface.h"
 #include <chrono>
+#include <cmath>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -36,8 +37,8 @@
 static const bool isCollinear(const float x, const float y, const float* pts)
 {
     const float threshold = 1.0f / float(0x1 << 20);
-    const bool first3pointCollinear = std::abs(pts[0] * (pts[3] - y) + pts[2] * (y - pts[1]) + x * (pts[1] - pts[3])) < threshold;
-    const bool last3pointCollinear = std::abs(pts[0] * (pts[3] - pts[5]) + pts[2] * (pts[5] - pts[1]) + pts[4] * (pts[1] - pts[3])) < threshold;
+    const bool first3pointCollinear = std::fabs(pts[0] * (pts[3] - y) + pts[2] * (y - pts[1]) + x * (pts[1] - pts[3])) < threshold;
+    const bool last3pointCollinear = std::fabs(pts[0] * (pts[3] - pts[5]) + pts[2] * (pts[5] - pts[1]) + pts[4] * (pts[1] - pts[3])) < threshold;
     return first3pointCollinear && last3pointCollinear;
 }
 
