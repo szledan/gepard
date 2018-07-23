@@ -24,6 +24,7 @@
  */
 
 #include "gepard.h"
+#include "nanoargparse.h"
 #define NANOSVG_IMPLEMENTATION
 #include "nanosvg.h"
 #include "surfaces/gepard-png-surface.h"
@@ -93,10 +94,15 @@ void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img)
                 convertRawDataToRGBA(shp->fill.color, red, green, blue, alpha);
                 ctx.setFillColor(red * shp->opacity, green * shp->opacity, blue * shp->opacity, alpha * shp->opacity);
                 break;
-            case NSVG_PAINT_LINEAR_GRADIENT: /*! \todo: unipmlemnted */; break;
-            case NSVG_PAINT_RADIAL_GRADIENT: /*! \todo: unipmlemnted */; break;
+            case NSVG_PAINT_LINEAR_GRADIENT:
+                /*! \todo: unipmlemnted */;
+                break;
+            case NSVG_PAINT_RADIAL_GRADIENT:
+                /*! \todo: unipmlemnted */;
+                break;
             case NSVG_PAINT_NONE:
-            default: break;
+            default:
+                break;
             }
 
             // Fill the path.
@@ -111,10 +117,15 @@ void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img)
                 convertRawDataToRGBA(shp->stroke.color, red, green, blue, alpha);
                 ctx.setStrokeColor(red * shp->opacity, green * shp->opacity, blue * shp->opacity, alpha * shp->opacity);
                 break;
-            case NSVG_PAINT_LINEAR_GRADIENT: /*! \todo: unipmlemnted */; break;
-            case NSVG_PAINT_RADIAL_GRADIENT: /*! \todo: unipmlemnted */; break;
+            case NSVG_PAINT_LINEAR_GRADIENT:
+                /*! \todo: unipmlemnted */;
+                break;
+            case NSVG_PAINT_RADIAL_GRADIENT:
+                /*! \todo: unipmlemnted */;
+                break;
             case NSVG_PAINT_NONE:
-            default: break;
+            default:
+                break;
             }
 
             // Parse stroke line width.
@@ -126,18 +137,32 @@ void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img)
 
             // Parse join's type of lines.
             switch (shp->strokeLineJoin) {
-            case NSVG_JOIN_MITER: ctx.lineJoin = "miter"; break;
-            case NSVG_JOIN_ROUND: ctx.lineJoin = "round"; break;
-            case NSVG_JOIN_BEVEL: ctx.lineJoin = "bevel"; break;
-            default: break;
+            case NSVG_JOIN_MITER:
+                ctx.lineJoin = "miter";
+                break;
+            case NSVG_JOIN_ROUND:
+                ctx.lineJoin = "round";
+                break;
+            case NSVG_JOIN_BEVEL:
+                ctx.lineJoin = "bevel";
+                break;
+            default:
+                break;
             }
 
             // Parse cap's type of lines.
             switch (shp->strokeLineCap) {
-            case NSVG_CAP_BUTT: ctx.lineCap = "butt"; break;
-            case NSVG_CAP_ROUND: ctx.lineCap = "round"; break;
-            case NSVG_CAP_SQUARE: ctx.lineCap = "square"; break;
-            default: break;
+            case NSVG_CAP_BUTT:
+                ctx.lineCap = "butt";
+                break;
+            case NSVG_CAP_ROUND:
+                ctx.lineCap = "round";
+                break;
+            case NSVG_CAP_SQUARE:
+                ctx.lineCap = "square";
+                break;
+            default:
+                break;
             }
 
             // Parse miter limit.
@@ -150,11 +175,6 @@ void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img)
         shp = shp->next;
     }
 }
-
-// Define a very simple argument parser.
-#define INIT_ARGS(AC, AV) struct _AP{int c;char**v;int*u;~_AP(){free(u);}}_ap={AC,AV,(int*)calloc(AC,sizeof(int))};
-#define CHECK_FLAG(FLAGS)[&](){char fs[]=FLAGS;char*f=strtok(fs,",");while(f){while(isspace(*f))f++;for(int i=1;i<_ap.c;++i){if(!strcmp(_ap.v[i],f)){_ap.u[i]++;return i;}}f=strtok(NULL,",");}return 0;}()
-#define GET_VALUE(FLAGS,DEF)[&](){int n=-2;if(strlen(FLAGS)){int f=CHECK_FLAG(FLAGS);n=f?f:-1;};if(n==-2){for(int i=1;i<_ap.c;++i)if(!_ap.u[i]){n=i-1;break;}}if(n>-1&&(++n)<_ap.c){_ap.u[n]++;return (const char*)_ap.v[n];}return DEF;}()
 
 int main(int argc, char* argv[])
 {
@@ -191,8 +211,8 @@ int main(int argc, char* argv[])
     // Set surface and initial the Gepard context.
     const uint width = pImage->width;
     const uint height = pImage->height;
-    gepard::Surface* surface = a_png.isOn ? reinterpret_cast<gepard::Surface*>(new gepard::PNGSurface(width, height))
-                                          : reinterpret_cast<gepard::Surface*>(new gepard::XSurface(width, height));
+    gepard::Surface* surface = a_png.isOn ? (gepard::Surface*)new gepard::PNGSurface(width, height)
+                                          : (gepard::Surface*)new gepard::XSurface(width, height);
     gepard::Gepard gepard(surface);
 
     // Clear the canvas.
@@ -208,13 +228,13 @@ int main(int argc, char* argv[])
 
     // Put the results.
     if (a_png.isOn) {
-        gepard::PNGSurface* pngSurface = reinterpret_cast<gepard::PNGSurface*>(surface);
+        gepard::PNGSurface* pngSurface = (gepard::PNGSurface*)surface;
         pngSurface->save(a_png.file);
         if (pngSurface) {
             delete pngSurface;
         }
     } else {
-        gepard::XSurface* xSurface = reinterpret_cast<gepard::XSurface*>(surface);
+        gepard::XSurface* xSurface = (gepard::XSurface*)(surface);
 
         XEvent xEvent;
         while (true) {
