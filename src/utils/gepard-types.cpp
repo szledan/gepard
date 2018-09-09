@@ -156,7 +156,7 @@ Transform::Transform(const Float a, const Float b, const Float c, const Float d,
     data[5] = f;
 }
 
-Transform&Transform::rotate(float angle)
+Transform&Transform::rotate(const Float angle)
 {
     const Float cosAngle = cos(angle);
     const Float sinAngle = sin(angle);
@@ -165,7 +165,7 @@ Transform&Transform::rotate(float angle)
     return *this;
 }
 
-Transform&Transform::scale(float sx, float sy)
+Transform&Transform::scale(const Float sx, const Float sy)
 {
     Transform matrix(sx, 0.0, 0.0, sy, 0.0, 0.0);
     multiply(matrix);

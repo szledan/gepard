@@ -410,8 +410,8 @@ struct Transform {
 
     Transform (const Float a = 1.0, const Float b = 0.0, const Float c = 0.0, const Float d = 1.0, const Float e = 0.0, const Float f = 0.0);
 
-    Transform& rotate(float angle);
-    Transform& scale(float sx, float sy);
+    Transform& rotate(const Float angle);
+    Transform& scale(const Float sx, const Float sy);
     Transform& translate(const Float x, const Float y);
 
     const FloatPoint apply(const FloatPoint p) const;
