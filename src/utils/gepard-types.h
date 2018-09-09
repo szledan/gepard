@@ -440,7 +440,7 @@ struct GepardState {
     Color strokeColor = Color(Color::BLACK);
     //! \brief CanvasDrawingStyles
     Float lineWitdh = 1.0;
-    LineJoinTypes lineJoinMode = BevelJoin;
+    LineJoinTypes lineJoinMode = MiterJoin;
     LineCapTypes lineCapMode = ButtCap;
     Float miterLimit = 10;
     Transform transform;
