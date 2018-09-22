@@ -1,4 +1,3 @@
-
 GEPARD [![Build Status](https://travis-ci.org/GepardGraphics/gepard.svg?branch=master)](https://travis-ci.org/GepardGraphics/gepard) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/GepardGraphics/gepard?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 =====
 
@@ -17,35 +16,38 @@ Check out the source code
 ```
 git clone https://github.com/GepardGraphics/gepard.git
 ```
+
 Install any necessary dependencies
 ```
-./tools/scripts/install-deps.sh
+./tools/install-deps.sh
 ```
+
 Build `gepard` dynamic library
 ```
-./tools/scripts/build.py
+./tools/build.py
 ```
+
+Note: To list all available options, run with the `-h` flag.
 
 ## Build & run examples
 
-Build all examples in `./example`
+Build all examples in `./apps/examples`
 ```
-./tools/scripts/build.py -e   # release mode
-./tools/scripts/build.py -ed  # debug mode
+./tools/build.py examples
 ```
-Run an example (now the _fill-rect_)
+
+Run a GLES2 example (now the _fill-rect_)
 ```
-./build/release/bin/fill-rect   # release mode
-./build/debug/bin/fill-rect     # debug mode
+./build/gles2/bin/fill-rect
 ```
 
 ## For developers
 
-Contribution to the project is done by using the fork model. ([GitHub help] (https://help.github.com/articles/working-with-forks/))
+Contribution to the project is done by using the fork model. ([GitHub help](https://help.github.com/articles/working-with-forks/))
 
 After you _fork_ and _clone_ the Gepard repository, you will need to install more dependencies for contributing.
 ```
-./tools/scripts/install-deps.sh --developer
+./tools/install-deps.sh --developer
 ```
 
 If you are looking for easy tasks, please check the [low hanging fruits](https://github.com/GepardGraphics/gepard/issues/48) (LHF).
@@ -70,4 +72,3 @@ Otherwise, feel free to browse other [issues](https://github.com/GepardGraphics/
 5. Your PR will be approved if you get 2 __lgtm__-s from the [reviewers](https://github.com/orgs/GepardGraphics/teams/gepard-reviewers).
 
 For more information see the [wiki](https://github.com/GepardGraphics/gepard/wiki) page's '__For contributors__' section.
-
