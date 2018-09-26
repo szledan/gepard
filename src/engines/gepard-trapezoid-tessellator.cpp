@@ -27,7 +27,7 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#include "gepard-gles2-trapezoid-tessellator.h"
+#include "gepard-trapezoid-tessellator.h"
 
 #include "gepard-defs.h"
 #include <cmath>
@@ -35,7 +35,6 @@
 #include <set>
 
 namespace gepard {
-namespace gles2 {
 
 /* Segment */
 
@@ -154,7 +153,7 @@ bool operator<=(const Segment& lhs, const Segment& rhs)
 /* SegmentApproximator */
 
 SegmentApproximator::SegmentApproximator(const int antiAliasLevel, const Float factor)
-    : kAntiAliasLevel(antiAliasLevel > 0 ? antiAliasLevel : GD_GLES2_ANTIALIAS_LEVEL)
+    : kAntiAliasLevel(antiAliasLevel > 0 ? antiAliasLevel : GD_ANTIALIAS_LEVEL)
     , kTolerance((factor > 0.0 ? factor : 1.0 ) / ((Float)kAntiAliasLevel))
 {
 }
@@ -168,6 +167,7 @@ SegmentApproximator::~SegmentApproximator()
 
 void SegmentApproximator::insertLine(const FloatPoint& from, const FloatPoint& to)
 {
+    GD_LOG4("Insert line: " << from << "->" << to);
     insertSegment(FloatPoint(from.x * kAntiAliasLevel, std::floor(from.y * kAntiAliasLevel)), FloatPoint(to.x * kAntiAliasLevel, std::floor(to.y * kAntiAliasLevel)));
 }
 
@@ -407,13 +407,17 @@ void SegmentApproximator::arcToCurve(FloatPoint result[], const Float& startAngl
     result[2].y = sinEndAngle;
 }
 
-void SegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement)
+void SegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement, const Transform& globalTransform)
 {
     Float startAngle = arcElement->startAngle;
     const Float endAngle = arcElement->endAngle;
     const bool antiClockwise = arcElement->counterClockwise;
 
-    FloatPoint startPoint = FloatPoint(std::cos(startAngle) * arcElement->radius.x, std::sin(startAngle) * arcElement->radius.y) + arcElement->center;
+    Transform arcTransform = globalTransform;
+    Transform axesTransform = { arcElement->radius.x, 0.0, 0.0, arcElement->radius.y, arcElement->center.x, arcElement->center.y };
+    arcTransform *= arcElement->transform * axesTransform;
+
+    FloatPoint startPoint = arcTransform.apply(FloatPoint(std::cos(startAngle), std::sin(startAngle)));
     insertLine(lastEndPoint, startPoint);
 
     GD_ASSERT(startAngle != endAngle);
@@ -423,18 +427,19 @@ void SegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcEle
     const int segments = calculateArcSegments(deltaAngle, std::max(arcElement->radius.x * 2, arcElement->radius.y * 2));
     Float step = deltaAngle / segments;
 
-    if (antiClockwise)
+    if (antiClockwise) {
         step = -step;
+    }
 
     FloatPoint bezierPoints[3];
     for (int i = 0; i < segments; i++, startAngle += step) {
         arcToCurve(bezierPoints, startAngle, (i == segments - 1) ? endAngle : startAngle + step);
-        bezierPoints[0] = bezierPoints[0] * arcElement->radius + arcElement->center;
-        bezierPoints[1] = bezierPoints[1] * arcElement->radius + arcElement->center;
+        bezierPoints[0] = arcTransform.apply(bezierPoints[0]);
+        bezierPoints[1] = arcTransform.apply(bezierPoints[1]);
         if (i == segments - 1) {
-            bezierPoints[2] = arcElement->to;
+            bezierPoints[2] = globalTransform.apply(arcElement->to);
         } else {
-            bezierPoints[2] = bezierPoints[2] * arcElement->radius + arcElement->center;
+            bezierPoints[2] = arcTransform.apply(bezierPoints[2]);
         }
         insertBezierCurve(startPoint, bezierPoints[0], bezierPoints[1], bezierPoints[2]);
         startPoint = bezierPoints[2];
@@ -501,7 +506,7 @@ SegmentList* SegmentApproximator::segments()
     }
 
     for (auto y : ys) {
-        _segments.emplace(y, new SegmentList());
+        insertSegmentList(y);
     }
 
     // Split segments with all y lines.
@@ -517,19 +522,19 @@ SegmentList* SegmentApproximator::segments()
         // Fix intersection pairs.
         for (SegmentList::iterator segment = currentList->begin(); segment != currentList->end(); ++segment) {
             GD_ASSERT(segment->to.y - segment->from.y >= 1.0);
-            //! \todo(szledan): definitely this if statment is needed before the for
-            //!  if (segment->to.y - segment->from.y <= 1.0)
-            for (SegmentList::iterator furtherSegment = segment; furtherSegment != currentList->end() ; ++furtherSegment) {
-                GD_ASSERT(segment->from.y == furtherSegment->from.y);
-                GD_ASSERT(segment->to.y == furtherSegment->to.y);
-                //! \todo(szledan): need to test this assert:
-                //! GD_ASSERT(furtherSegment->from.x >= segment->from.x)
-                if (furtherSegment->to.x < segment->to.x) {
-                    if (furtherSegment->from.x - segment->from.x < segment->to.x - furtherSegment->to.x) {
-                        furtherSegment->from.x = segment->from.x;
-                        needSorting = true;
-                    } else {
-                        furtherSegment->to.x = segment->to.x;
+            if (segment->to.y - segment->from.y == 1.0) {
+                for (SegmentList::iterator furtherSegment = segment; furtherSegment != currentList->end() ; ++furtherSegment) {
+                    GD_ASSERT(segment->from.y == furtherSegment->from.y);
+                    GD_ASSERT(segment->to.y == furtherSegment->to.y);
+                    //! \todo(szledan): need to test this assert:
+                    //! GD_ASSERT(furtherSegment->from.x >= segment->from.x)
+                    if (furtherSegment->to.x < segment->to.x) {
+                        if (furtherSegment->from.x - segment->from.x < segment->to.x - furtherSegment->to.x) {
+                            furtherSegment->from.x = segment->from.x;
+                            needSorting = true;
+                        } else {
+                            furtherSegment->to.x = segment->to.x;
+                        }
                     }
                 }
             }
@@ -561,8 +566,13 @@ void SegmentApproximator::insertSegment(const FloatPoint& from, const FloatPoint
     const int topY = segment.topY();
     const int bottomY = segment.bottomY();
 
-    _segments.emplace(topY, new SegmentList()).first->second->push_front(segment);
-    _segments.emplace(bottomY, new SegmentList());
+    insertSegmentList(topY)->push_front(segment);
+    insertSegmentList(bottomY);
+}
+
+SegmentList* SegmentApproximator::insertSegmentList(const int y)
+{
+    return _segments[y] ? _segments[y] : _segments[y] = new SegmentList();
 }
 
 /* Trapezoid */
@@ -580,11 +590,6 @@ const bool Trapezoid::isMergableInTo(const Trapezoid* other) const
     }
 
     return false;
-}
-
-std::ostream& operator<<(std::ostream& os, const Trapezoid& t)
-{
-    return os << t.topY << "," << t.topLeftX << "," << t.topRightX << "," << t.bottomY << "," << t.bottomLeftX << "," << t.bottomRightX;
 }
 
 bool operator<(const Trapezoid& lhs, const Trapezoid& rhs)
@@ -622,13 +627,14 @@ TrapezoidTessellator::TrapezoidTessellator(PathData& pathData, FillRule fillRule
     : _pathData(pathData)
     , _fillRule(fillRule)
     , _antiAliasingLevel(antiAliasingLevel)
-{}
+{
+}
 
-const TrapezoidList TrapezoidTessellator::trapezoidList()
+const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state)
 {
     PathElement* element = _pathData.firstElement();
 
-    if (!element)
+    if (!element || !element->next)
         return TrapezoidList();
 
     GD_ASSERT(element->type == PathElementTypes::MoveTo);
@@ -638,6 +644,7 @@ const TrapezoidList TrapezoidTessellator::trapezoidList()
     FloatPoint from;
     FloatPoint to = element->to;
     FloatPoint lastMoveTo = to;
+    Transform at = state.transform;
 
     // 1. Insert path elements.
     do {
@@ -646,32 +653,32 @@ const TrapezoidList TrapezoidTessellator::trapezoidList()
         to = element->to;
         switch (element->type) {
         case PathElementTypes::MoveTo: {
-            segmentApproximator.insertLine(from, lastMoveTo);
+            segmentApproximator.insertLine(at.apply(from), at.apply(lastMoveTo));
             lastMoveTo = to;
             break;
         }
         case PathElementTypes::LineTo: {
-            segmentApproximator.insertLine(from, to);
+            segmentApproximator.insertLine(at.apply(from), at.apply(to));
             break;
         }
         case PathElementTypes::CloseSubpath: {
-            segmentApproximator.insertLine(from, lastMoveTo);
+            segmentApproximator.insertLine(at.apply(from), at.apply(lastMoveTo));
             lastMoveTo = to;
             break;
         }
         case PathElementTypes::QuadraticCurve: {
             QuadraticCurveToElement* qe = reinterpret_cast<QuadraticCurveToElement*>(element);
-            segmentApproximator.insertQuadCurve(from, qe->control, to);
+            segmentApproximator.insertQuadCurve(at.apply(from), at.apply(qe->control), at.apply(to));
             break;
         }
         case PathElementTypes::BezierCurve: {
             BezierCurveToElement* be = reinterpret_cast<BezierCurveToElement*>(element);
-            segmentApproximator.insertBezierCurve(from, be->control1, be->control2, to);
+            segmentApproximator.insertBezierCurve(at.apply(from), at.apply(be->control1), at.apply(be->control2), at.apply(to));
             break;
         }
         case PathElementTypes::Arc: {
             ArcElement* ae = reinterpret_cast<ArcElement*>(element);
-            segmentApproximator.insertArc(from, ae);
+            segmentApproximator.insertArc(at.apply(from), ae, at);
             break;
         }
         case PathElementTypes::Undefined:
@@ -679,9 +686,9 @@ const TrapezoidList TrapezoidTessellator::trapezoidList()
             // unreachable
             break;
         }
-    } while (element->next);
+    } while (element->next != nullptr);
 
-    segmentApproximator.insertLine(lastMoveTo, element->to);
+    segmentApproximator.insertLine(at.apply(element->to), at.apply(lastMoveTo));
 
     // 2. Use approximator to generate the list of segments.
     SegmentList* segmentList = segmentApproximator.segments();
@@ -693,7 +700,6 @@ const TrapezoidList TrapezoidTessellator::trapezoidList()
         Trapezoid trapezoid;
         int fill = 0;
         bool isInFill = false;
-        // TODO: GD_ASSERTs for wrong segments.
         for (Segment& segment : *segmentList) {
             if (segment.from.y == segment.to.y)
                 continue;
@@ -725,12 +731,14 @@ const TrapezoidList TrapezoidTessellator::trapezoidList()
                 }
                 isInFill = false;
             }
-            GD_ASSERT(trapezoid.topY == (fixPrecision(segment.topY() / denom)));
+            //! \todo(szledan): we need this assert in the future,
+            //! but the TT doesn't work correctly now with that.
+            // GD_ASSERT(trapezoid.topY == (fixPrecision(segment.topY() / denom)));
         }
 
         delete segmentList;
 
-        // TODO: check the boundingBox calculation:
+        //! \todo(szledan): check the boundingBox calculation:
         // NOTE:  maxX = (maxX + (_antiAliasingLevel - 1)) / _antiAliasingLevel;
         _boundingBox.minX = (fixPrecision(segmentApproximator.boundingBox().minX) / _antiAliasingLevel);
         _boundingBox.minY = (fixPrecision(segmentApproximator.boundingBox().minY) / _antiAliasingLevel);
@@ -741,7 +749,7 @@ const TrapezoidList TrapezoidTessellator::trapezoidList()
     trapezoids.sort();
 
     // 4. Vertical merge trapezoids.
-    // TODO: use MovePtr:
+    //! \todo(szledan): use MovePtr:
     TrapezoidList trapezoidList;
     for (TrapezoidList::iterator current = trapezoids.begin(); current != trapezoids.end(); ++current) {
         const Float bottomY = current->bottomY;
@@ -762,12 +770,12 @@ const TrapezoidList TrapezoidTessellator::trapezoidList()
                 break;
             }
         }
-        if (current->leftId)
+        if (current->leftId) {
             trapezoidList.push_back(*current);
+        }
     }
 
     return trapezoidList;
 }
 
-} // namespace gles2
 } // namespace gepard

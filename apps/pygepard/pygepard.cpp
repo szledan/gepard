@@ -288,9 +288,10 @@ static PyObject* Gepard__isPointInPath(PyObject *self, PyObject* args)
 
 static PyObject* Gepard__setFillColor(PyObject *self, PyObject* args)
 {
-    float red, green, blue, alpha = 1.0f;
+    int red, green, blue;
+    float alpha = 1.0f;
 
-    if (!PyArg_ParseTuple(args, "fff|f", &red, &green, &blue, &alpha))
+    if (!PyArg_ParseTuple(args, "iii|f", &red, &green, &blue, &alpha))
         Py_RETURN_NONE;
 
     ((pygepard_GepardObject *)self)->gpd->setFillColor(red, green, blue, alpha);

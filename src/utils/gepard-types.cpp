@@ -72,6 +72,36 @@ Float& Vec4::operator[](std::size_t idx)
 const Color Color::BLACK(0.0f, 0.0f, 0.0f, 1.0f);
 const Color Color::WHITE(1.0f, 1.0f, 1.0f, 1.0f);
 
+Color::Color(const Float red, const Float green, const Float blue, const Float alpha)
+    : Vec4(clamp(red, Float(0.0f), Float(1.0f)), clamp(green, Float(0.0f), Float(1.0f)), clamp(blue, Float(0.0f), Float(1.0f)), clamp(alpha, Float(0.0f), Float(1.0f)))
+{
+}
+
+Color::Color(const std::string& color)
+    : Color(Float(0.0f), Float(0.0f), Float(0.0f), Float(1.0f))
+{
+    const size_t length = color.length();
+    int n;
+
+    // Convert string hex to unsgined int.
+    std::stringstream ss;
+    ss << std::hex << color.substr(1);
+    ss >> n;
+    GD_LOG3("Convert '" << color << "' string to hex number: " << std::hex << n);
+
+    a = 1.0;
+    if (length == 7) {
+        r = ((n & 0xff0000) >> 16) / 255.0;
+        g = ((n & 0x00ff00) >> 8) / 255.0;
+        b = (n & 0x0000ff) / 255.0;
+    } else if (length == 4) {
+        r = ((n & 0xf00) >> 8) / 15.0;
+        g = ((n & 0x0f0) >> 4) / 15.0;
+        b =  (n & 0x00f) / 15.0;
+    }
+    GD_LOG3("Color is: " << r << ", " << g << ", " << b << ", " << a << ".");
+}
+
 Color Color::fromRawDataABGR(uint32_t raw)
 {
     const Float red = Float(raw & 0x000000ff) / 255.0f;
@@ -112,6 +142,95 @@ LineJoinTypes strToLineJoin(const std::string& value)
     if (value == "round") return RoundJoin;
     if (value == "bevel") return BevelJoin;
     return MiterJoin;
+}
+
+/* Transform */
+
+Transform::Transform(const Float a, const Float b, const Float c, const Float d, const Float e, const Float f)
+{
+    data[0] = a;
+    data[1] = b;
+    data[2] = c;
+    data[3] = d;
+    data[4] = e;
+    data[5] = f;
+}
+
+Transform&Transform::rotate(float angle)
+{
+    const Float cosAngle = cos(angle);
+    const Float sinAngle = sin(angle);
+    Transform matrix(cosAngle, sinAngle, -sinAngle, cosAngle, 0.0, 0.0);
+    multiply(matrix);
+    return *this;
+}
+
+Transform&Transform::scale(float sx, float sy)
+{
+    Transform matrix(sx, 0.0, 0.0, sy, 0.0, 0.0);
+    multiply(matrix);
+    return *this;
+}
+
+Transform&Transform::translate(const Float x, const Float y)
+{
+    Transform matrix(1.0, 0.0, 0.0, 1.0, x, y);
+    multiply(matrix);
+    return *this;
+}
+
+const FloatPoint Transform::apply(const FloatPoint p) const
+{
+    const Float x = p.x * data[0] + p.y * data[2] + data[4];
+    const Float y = p.x * data[1] + p.y * data[3] + data[5];
+    return FloatPoint(x, y);
+}
+
+Transform&Transform::multiply(const Transform& transform)
+{
+    const Float a = data[0];
+    const Float b = data[1];
+    const Float c = data[2];
+    const Float d = data[3];
+
+    data[0] = a * transform.data[0] + c * transform.data[1];
+    data[1] = b * transform.data[0] + d * transform.data[1];
+    data[2] = a * transform.data[2] + c * transform.data[3];
+    data[3] = b * transform.data[2] + d * transform.data[3];
+    if (transform.data[4] || transform.data[5]) {
+        data[4] += a * transform.data[4] + c * transform.data[5];
+        data[5] += b * transform.data[4] + d * transform.data[5];
+    }
+    return *this;
+}
+
+void Transform::operator*=(const Transform& transform)
+{
+    multiply(transform);
+}
+
+const Transform Transform::inverse() const
+{
+    Transform result;
+    Float determinant = data[0] * data[3] - data[1] * data[2];
+    if (!determinant)
+        return result;
+
+    result.data[0] = data[3] / determinant;
+    result.data[1] = -data[1] / determinant;
+    result.data[2] = -data[2] / determinant;
+    result.data[3] = data[0] / determinant;
+    result.data[4] = (data[2] * data[5] - data[3] * data[4]) / determinant;
+    result.data[5] = (data[1] * data[4] - data[0] * data[5]) / determinant;
+
+    return result;
+}
+
+Transform operator*(const Transform& lhs, const Transform& rhs)
+{
+    Transform transform = lhs;
+    transform.multiply(rhs);
+    return transform;
 }
 
 } // namespace gepard

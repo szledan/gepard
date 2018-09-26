@@ -62,6 +62,10 @@ public:
         }
     }
 
+    /* 2. State */
+    void save();
+    void restore();
+
     /* 5. Building paths */
     void closePath();
     void moveTo(Float x, Float y);
@@ -71,6 +75,13 @@ public:
     void arcTo(Float x1, Float y1, Float x2, Float y2, Float radius);
     void rect(Float x, Float y, Float w, Float h);
     void arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise = false);
+
+    /* 6. Transformations */
+    void scale(Float x, Float y);
+    void rotate(Float angle);
+    void translate(Float x, Float y);
+    void transform(Float a, Float b, Float c, Float d, Float e, Float f);
+    void setTransform(Float a, Float b, Float c, Float d, Float e, Float f);
 
     /* 11. Drawing paths to the canvas */
     void beginPath();

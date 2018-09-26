@@ -159,6 +159,7 @@ void PathData::addMoveToElement(FloatPoint to)
     }
 
     PathElement* currentElement = static_cast<PathElement*>(new (_region.alloc(sizeof(MoveToElement))) MoveToElement(to));
+    GD_LOG4("Add path element: " << (*currentElement));
 
     if (!_firstElement) {
         _firstElement = currentElement;
@@ -183,6 +184,7 @@ void PathData::addLineToElement(FloatPoint to)
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(LineToElement))) LineToElement(to));
     _lastElement = _lastElement->next;
+    GD_LOG4("Add path element: " << (*_lastElement));
 }
 
 void PathData::addQuadaraticCurveToElement(FloatPoint control, FloatPoint to)
@@ -194,6 +196,7 @@ void PathData::addQuadaraticCurveToElement(FloatPoint control, FloatPoint to)
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(QuadraticCurveToElement))) QuadraticCurveToElement(control, to));
     _lastElement = _lastElement->next;
+    GD_LOG4("Add path element: " << (*_lastElement));
 }
 
 void PathData::addBezierCurveToElement(FloatPoint control1, FloatPoint control2, FloatPoint to)
@@ -205,6 +208,7 @@ void PathData::addBezierCurveToElement(FloatPoint control1, FloatPoint control2,
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(BezierCurveToElement))) BezierCurveToElement(control1, control2, to));
     _lastElement = _lastElement->next;
+    GD_LOG4("Add path element: " << (*_lastElement));
 }
 
 void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAngle, Float endAngle, bool antiClockwise)
@@ -262,6 +266,7 @@ void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAn
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(ArcElement))) ArcElement(center, radius, startAngle, endAngle, antiClockwise));
     _lastElement = _lastElement->next;
+    GD_LOG4("Add path element: " << (*_lastElement));
 }
 
 void PathData::addArcToElement(const FloatPoint& control, const FloatPoint& end, const Float& radius)
@@ -346,12 +351,51 @@ void PathData::addCloseSubpathElement()
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(CloseSubpathElement))) CloseSubpathElement(_lastMoveToElement->to));
     _lastElement = _lastElement->next;
+    GD_LOG4("Add path element: " << (*_lastElement));
+}
+
+void PathData::applyTransform(const Transform& transform)
+{
+    PathElement* element = _firstElement;
+
+    while (element) {
+        switch (element->type) {
+        case PathElementTypes::MoveTo:
+        case PathElementTypes::CloseSubpath:
+        case PathElementTypes::LineTo:
+            element->to = transform.apply(element->to);
+            break;
+        case PathElementTypes::QuadraticCurve:
+            QuadraticCurveToElement* quadToElement;
+            quadToElement = reinterpret_cast<QuadraticCurveToElement*>(element);
+            quadToElement->to = transform.apply(quadToElement->to);
+            quadToElement->control = transform.apply(quadToElement->control);
+            break;
+        case PathElementTypes::BezierCurve:
+            BezierCurveToElement* curveToElement;
+            curveToElement = reinterpret_cast<BezierCurveToElement*>(element);
+            curveToElement->to = transform.apply(curveToElement->to);
+            curveToElement->control1 = transform.apply(curveToElement->control1);
+            curveToElement->control2 = transform.apply(curveToElement->control2);
+            break;
+        case PathElementTypes::Arc:
+            ArcElement* arcToElement;
+            arcToElement = reinterpret_cast<ArcElement*>(element);
+            arcToElement->to = transform.apply(arcToElement->to);
+            arcToElement->multiply(transform);
+            break;
+        default:
+            break;
+        }
+
+        element = element->next;
+    }
 }
 
 const bool PathData::isEmpty() const
 {
     //! \todo(szledan): Need more investigation of condition.
-    return _firstElement == _lastElement;
+    return !_firstElement && _firstElement == _lastElement;
 }
 
 const PathElement* PathData::operator[](std::size_t idx) const

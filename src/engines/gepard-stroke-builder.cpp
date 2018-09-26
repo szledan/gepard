@@ -23,18 +23,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_GLES2
-
-#include "gepard-gles2-stroke-builder.h"
+#include "gepard-stroke-builder.h"
 
 #include "gepard-defs.h"
-#include "gepard-gles2-trapezoid-tessellator.h"
+#include "gepard-trapezoid-tessellator.h"
 #include "gepard-path.h"
 #include "gepard-types.h"
 #include <cmath>
 
 namespace gepard {
-namespace gles2 {
 
 static inline FloatPoint normalSize(const FloatPoint& size, Float halfWidth)
 {
@@ -572,7 +569,4 @@ void StrokePathBuilder::setCurrentLineAttribute()
     _currentLine = _currentLine->next;
 }
 
-} // namespace gles2
 } // namespace gepard
-
-#endif // GD_USE_GLES2

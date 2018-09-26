@@ -41,10 +41,10 @@ class Surface;
 // TODO(szledan): use 'guards' for choosing precision of Float type
 // #ifdef double-precision:
 typedef double Float;
-const double precisionOfFloat = 1000 * 1000 * 1000;
+const double precisionOfFloat = 0x1L << 50;
 // #else
 //   typedef float Float;
-//   const float precisionOfFloat = 100 * 1000;
+//   const float precisionOfFloat = 0x1 << 20;
 // #endif
 
 inline const Float strToFloat(const std::string& str) { return std::stod(str); }
@@ -338,34 +338,8 @@ struct Vec4 {
  */
 struct Color : public Vec4 {
     Color() : Vec4() {}
-    Color(const Float red, const Float green, const Float blue, const Float alpha)
-        : Vec4(clamp(red, Float(0.0f), Float(1.0f)), clamp(green, Float(0.0f), Float(1.0f)), clamp(blue, Float(0.0f), Float(1.0f)), clamp(alpha, Float(0.0f), Float(1.0f)))
-    {
-    }
-    Color(const std::string& color)
-        : Color(Float(0.0f), Float(0.0f), Float(0.0f), Float(1.0f))
-    {
-        const size_t length = color.length();
-        int n;
-
-        // Convert string hex to unsgined int.
-        std::stringstream ss;
-        ss << std::hex << color.substr(1);
-        ss >> n;
-        GD_LOG3("Convert '" << color << "' string to hex number: " << std::hex << n);
-
-        a = 1.0;
-        if (length == 7) {
-            r = ((n & 0xff0000) >> 16) / 255.0;
-            g = ((n & 0x00ff00) >> 8) / 255.0;
-            b = (n & 0x0000ff) / 255.0;
-        } else if (length == 4) {
-            r = ((n & 0xf00) >> 8) / 15.0;
-            g = ((n & 0x0f0) >> 4) / 15.0;
-            b =  (n & 0x00f) / 15.0;
-        }
-        GD_LOG3("Color is: " << r << ", " << g << ", " << b << ", " << a << ".");
-    }
+    Color(const Float red, const Float green, const Float blue, const Float alpha);
+    Color(const std::string& color);
     Color(const Color& color) : Color(color.r, color.g, color.b, color.a) {}
 
     /*!
@@ -429,6 +403,27 @@ typedef enum LineJoinTypes {
 
 LineJoinTypes strToLineJoin(const std::string& value);
 
+/* Transform */
+
+struct Transform {
+    Float data[6] = { 1.0, 0.0, 0.0, 1.0, 0.0, 0.0 };
+
+    Transform (const Float a = 1.0, const Float b = 0.0, const Float c = 0.0, const Float d = 1.0, const Float e = 0.0, const Float f = 0.0);
+
+    Transform& rotate(float angle);
+    Transform& scale(float sx, float sy);
+    Transform& translate(const Float x, const Float y);
+
+    const FloatPoint apply(const FloatPoint p) const;
+
+    Transform& multiply(const Transform& transform);
+    void operator*=(const Transform& transform);
+
+    const Transform inverse() const;
+};
+
+Transform operator*(const Transform& lhs , const Transform& rhs);
+
 /* GepardState */
 
 /*!
@@ -448,6 +443,7 @@ struct GepardState {
     LineJoinTypes lineJoinMode = BevelJoin;
     LineCapTypes lineCapMode = ButtCap;
     Float miterLimit = 10;
+    Transform transform;
 };
 
 } // namespace gepard

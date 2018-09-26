@@ -27,18 +27,18 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#ifndef GEPARD_GLES2_TRAPEZOID_TESSELLATOR_H
-#define GEPARD_GLES2_TRAPEZOID_TESSELLATOR_H
+#ifndef GEPARD_TRAPEZOID_TESSELLATOR_H
+#define GEPARD_TRAPEZOID_TESSELLATOR_H
 
 #include "gepard-defs.h"
-#include "gepard-gles2-defs.h"
 #include "gepard-path.h"
 #include "gepard-types.h"
 #include <list>
 #include <map>
 
 namespace gepard {
-namespace gles2 {
+
+#define GD_ANTIALIAS_LEVEL 16
 
 /* Segment */
 
@@ -82,13 +82,13 @@ typedef std::map<const int, SegmentList*> SegmentTree;
 
 class SegmentApproximator {
 public:
-    SegmentApproximator(const int antiAliasLevel = GD_GLES2_ANTIALIAS_LEVEL, const Float factor = 1.0);
+    SegmentApproximator(const int antiAliasLevel = GD_ANTIALIAS_LEVEL, const Float factor = 1.0);
     ~SegmentApproximator();
 
     void insertLine(const FloatPoint& from, const FloatPoint& to);
     void insertQuadCurve(const FloatPoint& from, const FloatPoint& control, const FloatPoint& to);
     void insertBezierCurve(const FloatPoint& from, const FloatPoint& control1, const FloatPoint& control2, const FloatPoint& to);
-    void insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement);
+    void insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement, const Transform& transform);
 
     SegmentList* segments();
     const BoundingBox boundingBox() const { return _boundingBox; }
@@ -112,6 +112,7 @@ public:
     const Float kTolerance;
 private:
     void insertSegment(const FloatPoint& from, const FloatPoint& to);
+    SegmentList* insertSegmentList(const int y);
 
     SegmentTree _segments;
 
@@ -136,7 +137,10 @@ struct Trapezoid {
     Float rightSlope;
 };
 
-inline std::ostream& operator<<(std::ostream& os, const Trapezoid& t);
+inline std::ostream& operator<<(std::ostream& os, const Trapezoid& t)
+{
+    return os << t.topY << "," << t.topLeftX << "," << t.topRightX << "," << t.bottomY << "," << t.bottomLeftX << "," << t.bottomRightX;
+}
 
 inline bool operator<(const Trapezoid& lhs, const Trapezoid& rhs);
 inline bool operator==(const Trapezoid& lhs, const Trapezoid& rhs);
@@ -155,10 +159,10 @@ public:
         NonZero,
     };
 
-    TrapezoidTessellator(PathData&, FillRule = NonZero, int antiAliasingLevel = GD_GLES2_ANTIALIAS_LEVEL);
+    TrapezoidTessellator(PathData&, FillRule = NonZero, int antiAliasingLevel = GD_ANTIALIAS_LEVEL);
 
     const FillRule fillRule() const { return _fillRule; }
-    const TrapezoidList trapezoidList();
+    const TrapezoidList trapezoidList(const GepardState& state);
     const BoundingBox boundingBox() const { return _boundingBox; }
     const int antiAliasingLevel() const { return _antiAliasingLevel; }
 
@@ -170,7 +174,6 @@ private:
     BoundingBox _boundingBox;
 };
 
-} // namespace gles2
 } // namespace gepard
 
-#endif // GEPARD_GLES2_TRAPEZOID_TESSELLATOR_H
+#endif // GEPARD_TRAPEZOID_TESSELLATOR_H

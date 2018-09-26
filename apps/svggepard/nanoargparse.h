@@ -1,5 +1,5 @@
-/* Copyright (C) 2016-2018, Gepard Graphics
- * Copyright (C) 2016-2018, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2018, Gepard Graphics
+ * Copyright (C) 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,67 +23,50 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_GLES2
+#ifndef NANOARGPARSE_H
+#define NANOARGPARSE_H
 
-#ifndef GEPARD_GLES2_H
-#define GEPARD_GLES2_H
+#define INIT_ARGS(ARGC, ARGV) \
+    struct _AP {\
+        int argc; char** argv; int* touched;\
+        ~_AP(){ free(touched); }\
+    } _ap = { ARGC, ARGV, (int*)calloc(ARGC, sizeof(int)) };
 
-#include "gepard-defs.h"
+#define CHECK_FLAG(FLAGS) [&](){\
+    char flags[] = FLAGS;\
+    char* f = strtok(flags, ",");\
+    while(f) {\
+        while(isspace(*f)) f++;\
+        for(int i = 1; i < _ap.argc;++i) {\
+            if (!strcmp(_ap.argv[i], f)) {\
+                _ap.touched[i]++;\
+                return i;\
+            }\
+        }\
+        f = strtok(NULL, ",");\
+    }\
+    return 0;\
+}()
 
-#include "gepard.h"
-#include "gepard-gles2-defs.h"
-#include "gepard-gles2-shader-factory.h"
-#include "gepard-context.h"
-#include "gepard-image.h"
-#include "gepard-types.h"
-#include <EGL/egl.h>
-#include <GLES2/gl2.h>
+#define GET_VALUE(FLAGS, DEFAULT) [&](){\
+    int n = -2;\
+    if (strlen(FLAGS)) {\
+        int f = CHECK_FLAG(FLAGS);\
+        n = f ? f : -1;\
+    };\
+    if (n == -2) {\
+        for (int i = 1; i < _ap.argc; ++i) {\
+            if (!_ap.touched[i]) {\
+                n = i - 1;\
+                break;\
+            }\
+        }\
+    }\
+    if (n > -1 && (++n) < _ap.argc) {\
+        _ap.touched[n]++;\
+        return (const char*)_ap.argv[n];\
+    }\
+    return DEFAULT;\
+}()
 
-namespace gepard {
-
-class Image;
-class Surface;
-
-namespace gles2 {
-
-class GepardGLES2 {
-public:
-    static const int kMaximumNumberOfAttributes;
-    static const int kMaximumNumberOfUshortQuads;
-
-    explicit GepardGLES2(GepardContext&);
-    ~GepardGLES2();
-
-    void fillRect(const Float x, const Float y, const Float w, const Float h, const Color& fillColor);
-    void fillPath(PathData*, const GepardState&);
-    void strokePath();
-
-private:
-    void makeCurrent();
-    void render();
-
-    ShaderProgramManager _shaderProgramManager;
-
-    GepardContext& _context;
-
-    GLuint _indexBufferObject;
-
-    EGLDisplay _eglDisplay;
-    EGLSurface _eglSurface;
-    EGLContext _eglContext;
-
-    GLuint _fboId;
-    GLuint _textureId;
-
-    GLfloat* _attributes;
-};
-
-} // namespace gles2
-
-typedef gles2::GepardGLES2 GepardEngineBackend;
-
-} // namespace gepard
-
-#endif // GEPARD_GLES2_H
-
-#endif // GD_USE_GLES2
+#endif // NANOARGPARSE_H

@@ -60,7 +60,7 @@ Gepard::Attribute& Gepard::Attribute::operator=(const std::string& str)
     return *this;
 }
 
-Gepard::Attribute&Gepard::Attribute::operator=(const char* chs)
+Gepard::Attribute& Gepard::Attribute::operator=(const char* chs)
 {
     this->operator=(std::string(chs)); return *this;
 }
@@ -116,14 +116,16 @@ Gepard::~Gepard()
     }
 }
 
+/*! \todo missing docs */
 void Gepard::save()
 {
-/*! \todo unimplemented function */
+    _engine->save();
 }
 
+/*! \todo missing docs */
 void Gepard::restore()
 {
-/*! \todo unimplemented function */
+    _engine->restore();
 }
 
 /*!
@@ -339,29 +341,34 @@ void Gepard::arc(float x, float y, float radius, float startAngle, float endAngl
     _engine->arc(x, y, radius, startAngle, endAngle, counterclockwise);
 }
 
+/*! \todo missing docs */
 void Gepard::scale(float x, float y)
 {
-/*! \todo unimplemented function */
+    _engine->scale(x, y);
 }
 
+/*! \todo missing docs */
 void Gepard::rotate(float angle)
 {
-/*! \todo unimplemented function */
+    _engine->rotate(angle);
 }
 
+/*! \todo missing docs */
 void Gepard::translate(float x, float y)
 {
-/*! \todo unimplemented function */
+    _engine->translate(x, y);
 }
 
+/*! \todo missing docs */
 void Gepard::transform(float a, float b, float c, float d, float e, float f)
 {
-/*! \todo unimplemented function */
+    _engine->transform(a, b, c, d, e, f);
 }
 
+/*! \todo missing docs */
 void Gepard::setTransform(float a, float b, float c, float d, float e, float f)
 {
-/*! \todo unimplemented function */
+    _engine->setTransform(a, b, c, d, e, f);
 }
 
 void Gepard::clearRect(float x, float y, float w, float h)
@@ -629,22 +636,18 @@ void Gepard::putImageData(Image imagedata, double dx, double dy, double dirtyX, 
     _engine->putImage(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
 }
 
-void Gepard::setFillColor(const std::string& color)
+void Gepard::setFillColor(const int red, const int green, const int blue, const float alpha)
 {
     GD_ASSERT(_engine);
-    _engine->setFillColor(Color(color));
-}
-
-void Gepard::setFillColor(const int red, const int green, const int blue, const int alpha)
-{
     const float ratio = 1.0f / 255.0f;
-    setFillColor(ratio * float(red), ratio * float(green), ratio * float(blue), ratio * float(alpha));
+    _engine->setFillColor(Color(ratio * float(red), ratio * float(green), ratio * float(blue), float(alpha)));
 }
 
-void Gepard::setFillColor(const float red, const float green, const float blue, const float alpha)
+void Gepard::setStrokeColor(const int red, const int green, const int blue, const float alpha)
 {
     GD_ASSERT(_engine);
-    _engine->setFillColor(red, green, blue, alpha);
+    const float ratio = 1.0f / 255.0f;
+    _engine->setStrokeColor(Color(ratio * float(red), ratio * float(green), ratio * float(blue), float(alpha)));
 }
 
 // Virtual destructor definition for the abstract Surface class.
