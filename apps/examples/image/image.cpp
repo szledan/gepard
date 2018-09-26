@@ -36,9 +36,9 @@ void generateCheckerBoard(gepard::Gepard& gepard)
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             if ((i+j) % 2) {
-                gepard.setFillColor(0.3f, 0.3f, 0.3f, 1.0f);
+                gepard.setFillColor(77, 77, 77, 1.0f);
             } else {
-                gepard.setFillColor(0.8f, 0.8f, 0.8f, 1.0f);
+                gepard.setFillColor(204, 204, 204, 1.0f);
             }
             gepard.fillRect(i * cellWidth, j * cellWidth, cellWidth, cellWidth);
         }
@@ -47,8 +47,8 @@ void generateCheckerBoard(gepard::Gepard& gepard)
 
 void fillImage(gepard::Image& image)
 {
-    for (int i = 0; i < image.width(); i++) {
-        for (int j = 0; j < image.height(); j++) {
+    for (uint32_t i = 0; i < image.width(); i++) {
+        for (uint32_t j = 0; j < image.height(); j++) {
             uint32_t color = 0x7f7f7f7f;
             image.data()[i * image.width() + j] = color;
         }
@@ -72,15 +72,15 @@ int main()
 
     gepard.putImageData(image2, 0, 0);
 
-    gepard.setFillColor(0.0f, 1.0f, 0.0f, 1.0f);
+    gepard.setFillColor(0, 255, 0, 1.0f);
     gepard.fillRect(400, 400, 10, 10);
     gepard::Image greenImage = gepard.getImageData(400, 400, 10, 10);
-    gepard.setFillColor(1.0f, 0.0f, 0.0f, 1.0f);
+    gepard.setFillColor(255, 0, 0, 1.0f);
     gepard.fillRect(400, 400, 10, 10);
     gepard.putImageData(greenImage, 405, 405);
 
     gepard::Image testImage = gepard.getImageData(380, 380, 50, 50);
-    gepard.setFillColor(1.0f, 0.0f, 0.0f, 1.0f);
+    gepard.setFillColor(255, 0, 0, 1.0f);
     gepard.drawImage(testImage, 200.0, 200.0, 100, 100);
 
     surface.save("image.png");
