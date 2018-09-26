@@ -117,6 +117,7 @@ def create_binary_data(shader, length):
     spirv_file = open(get_spirv_path(shader), 'rb')
     for i in range(length):
         word = (ord(spirv_file.read(1))) + (ord(spirv_file.read(1)) << 8) + (ord(spirv_file.read(1)) << 16) + (ord(spirv_file.read(1)) << 24)
+        # TODO: write hexa instead of decimals
         binary_data += '    {0},\n'.format(word)
     spirv_file.close()
     binary_data += '}'

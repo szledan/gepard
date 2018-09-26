@@ -402,7 +402,7 @@ public:
      * \endcond
      */
     /// \{
-
+// TODO use reference!
     void drawImage(Image image, float dx, float dy);
     void drawImage(Image image, float dx, float dy, float dw, float dh);
     void drawImage(Image image, float sx, float sy, float sw, float sh,

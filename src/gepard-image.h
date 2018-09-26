@@ -41,7 +41,9 @@ public:
 
     const uint32_t width();
     const uint32_t height();
+ // TODO: check array implementation
     std::vector<uint32_t> &data();
+
 private:
     uint32_t _width;
     uint32_t _height;
