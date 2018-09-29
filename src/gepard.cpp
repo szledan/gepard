@@ -587,19 +587,19 @@ bool Gepard::isPointInPath(float x, float y)
     return false;
 }
 
-void Gepard::drawImage(Image image, float dx, float dy)
+void Gepard::drawImage(Image& image, float dx, float dy)
 {
     float width = image.width();
     float height = image.height();
     _engine->drawImage(image, 0.0, 0.0, width, height, dx, dy, width, height);
 }
 
-void Gepard::drawImage(Image image, float dx, float dy, float dw, float dh)
+void Gepard::drawImage(Image& image, float dx, float dy, float dw, float dh)
 {
     _engine->drawImage(image, 0.0, 0.0, image.width(), image.height(), dx, dy, dw, dh);
 }
 
-void Gepard::drawImage(Image image, float sx, float sy, float sw, float sh,
+void Gepard::drawImage(Image& image, float sx, float sy, float sw, float sh,
     float dx, float dy, float dw, float dh)
 {
     _engine->drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
@@ -613,7 +613,7 @@ Image Gepard::createImageData(float sw, float sh)
     return Image(width, height);
 }
 
-Image Gepard::createImageData(Image imagedata)
+Image Gepard::createImageData(Image& imagedata)
 {
     uint32_t width = imagedata.width();
     uint32_t height = imagedata.height();
@@ -625,12 +625,12 @@ Image Gepard::getImageData(double sx, double sy, double sw, double sh)
     return _engine->getImage(sx, sy, sw, sh);
 }
 
-void Gepard::putImageData(Image imagedata, double dx, double dy)
+void Gepard::putImageData(Image& imagedata, double dx, double dy)
 {
     _engine->putImage(imagedata, dx, dy, 0.0, 0.0, imagedata.width(), imagedata.height());
 }
 
-void Gepard::putImageData(Image imagedata, double dx, double dy, double dirtyX, double dirtyY,
+void Gepard::putImageData(Image& imagedata, double dx, double dy, double dirtyX, double dirtyY,
     double dirtyWidth, double dirtyHeight)
 {
     _engine->putImage(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);

@@ -402,10 +402,9 @@ public:
      * \endcond
      */
     /// \{
-// TODO use reference!
-    void drawImage(Image image, float dx, float dy);
-    void drawImage(Image image, float dx, float dy, float dw, float dh);
-    void drawImage(Image image, float sx, float sy, float sw, float sh,
+    void drawImage(Image& image, float dx, float dy);
+    void drawImage(Image& image, float dx, float dy, float dw, float dh);
+    void drawImage(Image& image, float sx, float sy, float sw, float sh,
         float dx, float dy, float dw, float dh);
     /// \} 12. CanvasAPI Drawing images
 
@@ -418,10 +417,10 @@ public:
     /// \{
 
     Image createImageData(float sw, float sh);
-    Image createImageData(Image imagedata);
+    Image createImageData(Image& imagedata);
     Image getImageData(double sx, double sy, double sw, double sh);
-    void putImageData(Image imagedata, double dx, double dy);
-    void putImageData(Image imagedata, double dx, double dy, double dirtyX, double dirtyY,
+    void putImageData(Image& imagedata, double dx, double dy);
+    void putImageData(Image& imagedata, double dx, double dy, double dirtyX, double dirtyY,
         double dirtyWidth, double dirtyHeight);
     /// \} 14. CanvasAPI Pixel manipulation
 

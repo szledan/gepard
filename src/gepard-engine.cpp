@@ -317,7 +317,7 @@ void GepardEngine::fillRect(Float x, Float y, Float w, Float h)
  *
  * Copy the imageData into the canvas.
  */
-void GepardEngine::putImage(Image imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
+void GepardEngine::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
 {
     GD_ASSERT(_engineBackend);
 #ifdef GD_USE_VULKAN
@@ -327,7 +327,7 @@ void GepardEngine::putImage(Image imagedata, Float dx, Float dy, Float dirtyX, F
 #endif // GD_USE_VULKAN
 }
 
-void GepardEngine::drawImage(Image imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
+void GepardEngine::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
 {
     GD_ASSERT(_engineBackend);
 #ifdef GD_USE_VULKAN
