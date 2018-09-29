@@ -21,7 +21,6 @@ set(GLES2_SOURCES
 set(VULKAN_SOURCES
     engines/vulkan/gepard-vulkan-interface.cpp
     engines/vulkan/gepard-vulkan.cpp
-    engines/vulkan/shaders/gepard-vulkan-spirv-binaries.cpp
 )
 
 set(SOFTWARE_SOURCES
@@ -55,6 +54,10 @@ add_library(gepard SHARED ${SOURCES})
 
 if (BACKEND STREQUAL "VULKAN" AND NOT VULKAN_FOUND)
   add_dependencies(gepard vulkan_headers)
+endif()
+
+if (BACKEND STREQUAL "VULKAN")
+  add_dependencies(gepard vulkan_shaders)
 endif()
 
 target_compile_definitions(gepard PUBLIC "GD_USE_${BACKEND}")

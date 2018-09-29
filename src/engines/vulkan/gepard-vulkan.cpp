@@ -42,6 +42,8 @@
 #include <X11/Xlib-xcb.h>
 #endif // VK_USE_PLATFORM_XCB_KHR
 
+#include "gepard-vulkan-spirv-binaries.inc.h"
+
 namespace gepard {
 namespace vulkan {
 

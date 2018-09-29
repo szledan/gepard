@@ -130,7 +130,7 @@ def prepare_c_source(shaders):
     return source
 
 def write_c_source(source):
-    source_path = os.path.join(shader_source_directory, c_file_name+'.cpp')
+    source_path = os.path.join(shader_source_directory, c_file_name+'.inc.h')
     source_file = open(source_path, 'w')
     source_file.write(generated_warning)
     source_file.write(c_header)
