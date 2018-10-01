@@ -29,6 +29,13 @@ namespace gepard {
 
 /* BoundingBox */
 
+BoundingBox::BoundingBox()
+    : minX(INFINITY)
+    , minY(INFINITY)
+    , maxX(-INFINITY)
+    , maxY(-INFINITY)
+{}
+
 void BoundingBox::stretchX(const Float x)
 {
     if (x < minX) {
@@ -38,6 +45,7 @@ void BoundingBox::stretchX(const Float x)
         maxX = x;
     }
 }
+
 void BoundingBox::stretchY(const Float y)
 {
     if (y < minY) {
@@ -47,6 +55,7 @@ void BoundingBox::stretchY(const Float y)
         maxY = y;
     }
 }
+
 void BoundingBox::stretch(const FloatPoint& p)
 {
     stretchX(p.x);
@@ -54,6 +63,27 @@ void BoundingBox::stretch(const FloatPoint& p)
 }
 
 /* Vec4 */
+
+Vec4::Vec4()
+    : x(0.0f)
+    , y(0.0f)
+    , z(0.0f)
+    , w(0.0f)
+{}
+
+Vec4::Vec4(Float x_, Float y_, Float z_, Float w_)
+    : x(x_)
+    , y(y_)
+    , z(z_)
+    , w(w_)
+{}
+
+Vec4::Vec4(const Vec4 &vec4)
+    : x(vec4.x)
+    , y(vec4.y)
+    , z(vec4.z)
+    , w(vec4.w)
+{}
 
 Float& Vec4::operator[](std::size_t idx)
 {
@@ -72,10 +102,16 @@ Float& Vec4::operator[](std::size_t idx)
 const Color Color::BLACK(0.0f, 0.0f, 0.0f, 1.0f);
 const Color Color::WHITE(1.0f, 1.0f, 1.0f, 1.0f);
 
+Color::Color()
+    : Vec4()
+{}
+
 Color::Color(const Float red, const Float green, const Float blue, const Float alpha)
-    : Vec4(clamp(red, Float(0.0f), Float(1.0f)), clamp(green, Float(0.0f), Float(1.0f)), clamp(blue, Float(0.0f), Float(1.0f)), clamp(alpha, Float(0.0f), Float(1.0f)))
-{
-}
+    : Vec4(clamp(red, Float(0.0f), Float(1.0f)),
+           clamp(green, Float(0.0f), Float(1.0f)),
+           clamp(blue, Float(0.0f), Float(1.0f)),
+           clamp(alpha, Float(0.0f), Float(1.0f)))
+{}
 
 Color::Color(const std::string& color)
     : Color(Float(0.0f), Float(0.0f), Float(0.0f), Float(1.0f))
@@ -101,6 +137,10 @@ Color::Color(const std::string& color)
     }
     GD_LOG3("Color is: " << r << ", " << g << ", " << b << ", " << a << ".");
 }
+
+Color::Color(const Color &color)
+    : Color(color.r, color.g, color.b, color.a)
+{}
 
 Color Color::fromRawDataABGR(uint32_t raw)
 {
@@ -129,6 +169,8 @@ Color& Color::operator*=(const Float& rhs)
 
     return *this;
 }
+
+/* LineCapTypes */
 
 LineCapTypes strToLineCap(const std::string& value)
 {
@@ -231,6 +273,61 @@ Transform operator*(const Transform& lhs, const Transform& rhs)
     Transform transform = lhs;
     transform.multiply(rhs);
     return transform;
+}
+
+/* FloatPoint */
+
+FloatPoint::FloatPoint()
+    : x(0.0)
+    , y(0.0)
+{}
+
+FloatPoint::FloatPoint(Float x_, Float y_)
+    : x(x_)
+    , y(y_)
+{}
+
+const Float FloatPoint::lengthSquared() const
+{
+    return x * x + y * y;
+}
+
+const Float FloatPoint::length() const
+{
+    return std::sqrt(lengthSquared());
+}
+
+const Float FloatPoint::dot(const FloatPoint &p) const
+{
+    return x * p.x + y * p.y;
+}
+
+const Float FloatPoint::cross(const FloatPoint &p) const
+{
+    return x * p.y - y * p.x;
+}
+
+const FloatPoint FloatPoint::normal() const
+{
+    return FloatPoint(y, -x);
+}
+
+const bool FloatPoint::isZero() const
+{
+    return (std::fabs(x) < std::numeric_limits<Float>::epsilon()) &&
+            (std::fabs(y) < std::numeric_limits<Float>::epsilon());
+}
+
+void FloatPoint::set(const Float newX, const Float newY)
+{
+    x = newX;
+    y = newY;
+}
+
+void FloatPoint::scale(const Float scaleX, const Float scaleY)
+{
+    x *= scaleX;
+    y *= scaleY;
 }
 
 } // namespace gepard
