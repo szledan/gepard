@@ -81,16 +81,12 @@ Savanna::React MonkeyMark::stop()
 
 Savanna::React MonkeyMark::run()
 {
-    XEvent e;
-
     for (int i = 0; i <= iterateCount; ++i) {
         drawRects();
 
         std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.
-        if (XCheckWindowEvent((Display*)surface->getDisplay(), (Window)surface->getWindow(), KeyPress | ClientMessage, &e)) {
-            if (e.type == KeyPress && XLookupKeysym(&e.xkey, 0) == XK_Escape) {
-                return Savanna::React(Savanna::EXIT);
-            }
+        if (surface->hasToQuit()) {
+            return Savanna::React(Savanna::EXIT);
         }
     }
 
@@ -155,8 +151,6 @@ Savanna::React SnakeMark::run()
     int dx = std::rand() % maxVelocity - trunc(maxVelocity / 2);
     int dy = std::rand() % maxVelocity - trunc(maxVelocity / 2);
 
-    XEvent e;
-
     for (int i = 0; i <= iterateCount; ++i) {
         x += dx;
         if (x - paintRectSize < 0 || x + paintRectSize > windowWidth) {
@@ -175,10 +169,8 @@ Savanna::React SnakeMark::run()
         drawRects(x, y);
 
         std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.
-        if (XCheckWindowEvent((Display*)surface->getDisplay(), (Window)surface->getWindow(), KeyPress | ClientMessage, &e)) {
-            if (e.type == KeyPress && XLookupKeysym(&e.xkey, 0) == XK_Escape) {
-                return Savanna::React(Savanna::EXIT);
-            }
+        if (surface->hasToQuit()) {
+            return Savanna::React(Savanna::EXIT);
         }
     }
 

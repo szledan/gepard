@@ -65,6 +65,9 @@ public:
 
         XMapWindow(_display, _window); // make the window visible on the screen
         XStoreName(_display, _window, windowTitle.c_str());
+
+        _wmDeleteWindow = XInternAtom(_display, "WM_DELETE_WINDOW", False);
+        XSetWMProtocols(_display, _window, &_wmDeleteWindow, 1);
     }
 
     virtual ~XSurface()
@@ -81,9 +84,35 @@ public:
         //! TODO: not implemented: use buffer and copy to display.
     }
 
+    virtual bool hasToQuit()
+    {
+        XEvent xEvent;
+        while (XPending(_display)) {
+            XNextEvent(_display, &xEvent);
+
+            // Quit when the Close button is pressed.
+            if ((xEvent.type == ClientMessage) &&
+                (static_cast<unsigned int>(xEvent.xclient.data.l[0]) == _wmDeleteWindow)) {
+                return true;
+            }
+
+            // Quit when either 'Esc', 'q' or 'Q' keys are pressed.
+            if (xEvent.type == KeyPress) {
+                if (XLookupKeysym(&xEvent.xkey, 0) == XK_Escape
+                    || XLookupKeysym(&xEvent.xkey, 0) == XK_q
+                    || XLookupKeysym(&xEvent.xkey, 0) == XK_Q) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
 private:
     Display* _display;
     Window _window;
+    Atom _wmDeleteWindow;
 };
 
 } // namespace gepard

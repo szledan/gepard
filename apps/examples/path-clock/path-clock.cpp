@@ -58,14 +58,13 @@ public:
     void run()
     {
         clockFace();
-        XEvent xEvent;
         while (true) {
             std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
             struct std::tm* np = std::localtime(&now);
             showNow(np->tm_hour, np->tm_min, np->tm_sec);
 
             std::this_thread::sleep_for(std::chrono::milliseconds(1000 / _frequency));
-            if (XCheckWindowEvent((Display*)_surface->getDisplay(), (Window)_surface->getWindow(), KeyPress | ClientMessage, &xEvent)) {
+            if (_surface->hasToQuit()) {
                 break;
             }
 

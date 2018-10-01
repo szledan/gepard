@@ -74,10 +74,9 @@ int main()
 
         pathShape(gepard);
 
-        XEvent xEvent;
         while (true) {
             std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.
-            if (XCheckWindowEvent((Display*)surface.getDisplay(), (Window)surface.getWindow(), KeyPress | ClientMessage, &xEvent)) {
+            if (surface.hasToQuit()) {
                 break;
             }
         }
