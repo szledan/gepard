@@ -339,9 +339,8 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
             glActiveTexture(GL_TEXTURE0);
             const GLint index = glGetUniformLocation(copyProgram.id, "u_texture");
             glUniform1i(index, GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, textureId);
         }
-
-        glBindTexture(GL_TEXTURE_2D, textureId);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
