@@ -313,6 +313,11 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
         glUseProgram(copyProgram.id);
 
         {
+            const GLint index = glGetUniformLocation(copyProgram.id, "u_viewportSize");
+            glUniform2f(index, width, height);
+        }
+
+        {
             const GLfloat textureCoords[] = {
                 0.0, 0.0, 0.0, 0.0,
                 (GLfloat)width, 0.0, 1.0, 0.0,
@@ -331,8 +336,9 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
         }
 
         {
-            const GLint index = glGetUniformLocation(copyProgram.id, "u_viewportSize");
-            glUniform2f(index, width, height);
+            glActiveTexture(GL_TEXTURE0);
+            const GLint index = glGetUniformLocation(copyProgram.id, "u_texture");
+            glUniform1i(index, GL_TEXTURE0);
         }
 
         glBindTexture(GL_TEXTURE_2D, textureId);
