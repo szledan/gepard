@@ -1,5 +1,5 @@
-/* Copyright (C) 2015-2016, Gepard Graphics
- * Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2015-2016, 2018, Gepard Graphics
+ * Copyright (C) 2015, 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,4 +23,24 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-types.h"
+#include "gepard-line-types.h"
+
+#include <string>
+
+namespace gepard {
+
+LineCapTypes strToLineCap(const std::string& value)
+{
+    if (value == "round") return RoundCap;
+    if (value == "square") return SquareCap;
+    return ButtCap;
+}
+
+LineJoinTypes strToLineJoin(const std::string& value)
+{
+    if (value == "round") return RoundJoin;
+    if (value == "bevel") return BevelJoin;
+    return MiterJoin;
+}
+
+} // namespace gepard

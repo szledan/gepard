@@ -32,6 +32,8 @@
 
 namespace gepard {
 
+class  Surface;
+
 /*!
  * \brief The GepardContext struct
  *

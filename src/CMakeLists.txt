@@ -5,8 +5,14 @@ set(COMMON_SOURCES
     engines/gepard-trapezoid-tessellator.cpp
     gepard.cpp
     gepard-engine.cpp
-    utils/gepard-types.cpp
+    utils/gepard-bounding-box.cpp
+    utils/gepard-color.cpp
     utils/gepard-defs.cpp
+    utils/gepard-float-point.cpp
+    utils/gepard-line-types.cpp
+    utils/gepard-transform.cpp
+    utils/gepard-types.cpp
+    utils/gepard-vec4.cpp
 )
 
 set(GLES2_SOURCES

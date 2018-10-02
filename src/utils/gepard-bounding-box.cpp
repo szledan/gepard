@@ -1,5 +1,5 @@
-/* Copyright (C) 2015-2016, Gepard Graphics
- * Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2015-2016, 2018, Gepard Graphics
+ * Copyright (C) 2015, 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,4 +23,45 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-types.h"
+#include "gepard-bounding-box.h"
+
+#include "gepard-float-point.h"
+#include "gepard-float.h"
+#include <cmath>
+
+namespace gepard {
+
+BoundingBox::BoundingBox()
+    : minX(INFINITY)
+    , minY(INFINITY)
+    , maxX(-INFINITY)
+    , maxY(-INFINITY)
+{}
+
+void BoundingBox::stretchX(const Float x)
+{
+    if (x < minX) {
+        minX = x;
+    }
+    if (x > maxX) {
+        maxX = x;
+    }
+}
+
+void BoundingBox::stretchY(const Float y)
+{
+    if (y < minY) {
+        minY = y;
+    }
+    if (y > maxY) {
+        maxY = y;
+    }
+}
+
+void BoundingBox::stretch(const FloatPoint& p)
+{
+    stretchX(p.x);
+    stretchY(p.y);
+}
+
+} // namespace gepard
