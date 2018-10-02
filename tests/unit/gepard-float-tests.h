@@ -1,5 +1,5 @@
-/* Copyright (C) 2017, 2018, Gepard Graphics
- * Copyright (C) 2017, 2018, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2016-2017, 2018, Gepard Graphics
+ * Copyright (C) 2016-2017, 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,17 +23,32 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef GEPARD_FLOAT_TESTS_H
+#define GEPARD_FLOAT_TESTS_H
+
+#include "gepard-float.h"
 #include "gtest/gtest.h"
 
-#include "gepard-bounding-box-tests.h"
-#include "gepard-float-point-tests.h"
-#include "gepard-float-tests.h"
-#include "gepard-path-tests.h"
-#include "gepard-region-tests.h"
-#include "gepard-vec4-tests.h"
+namespace {
 
-int main(int argc, char* argv[])
+TEST(FloatTest, PiFloat)
 {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    gepard::Float pi100 = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679;
+    gepard::Float pi = gepard::fixPrecision(pi100);
+    gepard::Float gepardPi = gepard::fixPrecision(gepard::piFloat);
+    EXPECT_EQ(pi, gepardPi) << "Architecture used 'pi' is different than expected one.";
 }
+
+TEST(BasicMathFuncTest, Clamp)
+{
+    EXPECT_EQ(int(-1), gepard::clamp(int(-2), int(-1), int(1)));
+    EXPECT_EQ(int(0), gepard::clamp(int(-0), int(-1), int(1)));
+    EXPECT_EQ(int(1), gepard::clamp(int(2), int(-1), int(1)));
+    EXPECT_EQ(gepard::Float(-1.0), gepard::clamp(gepard::Float(-2.0), gepard::Float(-1.0), gepard::Float(1.0)));
+    EXPECT_EQ(gepard::Float(0.0), gepard::clamp(gepard::Float(-0.0), gepard::Float(-1.0), gepard::Float(1.0)));
+    EXPECT_EQ(gepard::Float(1.0), gepard::clamp(gepard::Float(2.0), gepard::Float(-1.0), gepard::Float(1.0)));
+}
+
+} // anonymous namespace
+
+#endif // GEPARD_FLOAT_TESTS_H
