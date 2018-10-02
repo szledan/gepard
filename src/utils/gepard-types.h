@@ -159,27 +159,19 @@ private:
  * \internal
  */
 struct FloatPoint {
-    FloatPoint() : x(0.0), y(0.0) {}
-    FloatPoint(Float x_, Float y_) : x(x_), y(y_) {}
+    FloatPoint();
+    FloatPoint(Float x_, Float y_);
 
-    const Float lengthSquared() const { return x * x + y * y; }
-    const Float length() const { return std::sqrt(lengthSquared()); }
-    const Float dot(const FloatPoint& p) const { return x * p.x + y * p.y; }
-    const Float cross(const FloatPoint& p) const { return x * p.y - y * p.x; }
-    const FloatPoint normal() const { return FloatPoint(y, -x); }
+    const Float lengthSquared() const;
+    const Float length() const;
+    const Float dot(const FloatPoint& p) const;
+    const Float cross(const FloatPoint& p) const;
+    const FloatPoint normal() const;
 
-    const bool isZero() const { return (std::fabs(x) < std::numeric_limits<Float>::epsilon()) && (std::fabs(y) < std::numeric_limits<Float>::epsilon()); }
+    const bool isZero() const;
 
-    void set(const Float newX, const Float newY)
-    {
-        x = newX;
-        y = newY;
-    }
-    void scale(const Float scaleX, const Float scaleY)
-    {
-        x *= scaleX;
-        y *= scaleY;
-    }
+    void set(const Float newX, const Float newY);
+    void scale(const Float scaleX, const Float scaleY);
 
     Float x;
     Float y;
@@ -258,12 +250,7 @@ inline FloatPoint operator*(const FloatPoint& fp, const FloatPoint& de)
  * \internal
  */
 struct BoundingBox {
-    BoundingBox()
-        : minX(INFINITY)
-        , minY(INFINITY)
-        , maxX(-INFINITY)
-        , maxY(-INFINITY)
-    {}
+    BoundingBox();
 
     void stretchX(const Float x);
     void stretchY(const Float y);
@@ -285,9 +272,9 @@ inline std::ostream& operator<<(std::ostream& os, const BoundingBox& bb)
  * \internal
  */
 struct Vec4 {
-    Vec4() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
-    Vec4(Float x_, Float y_, Float z_, Float w_) : x(x_), y(y_), z(z_), w(w_) {}
-    Vec4(const Vec4& vec4) : x(vec4.x), y(vec4.y), z(vec4.z), w(vec4.w) {}
+    Vec4();
+    Vec4(Float x_, Float y_, Float z_, Float w_);
+    Vec4(const Vec4& vec4);
 
     Float& operator[](std::size_t idx);
 
@@ -337,10 +324,10 @@ struct Vec4 {
  * \internal
  */
 struct Color : public Vec4 {
-    Color() : Vec4() {}
+    Color();
     Color(const Float red, const Float green, const Float blue, const Float alpha);
     Color(const std::string& color);
-    Color(const Color& color) : Color(color.r, color.g, color.b, color.a) {}
+    Color(const Color& color);
 
     /*!
      * \brief fromRawDataABGR
@@ -386,6 +373,8 @@ inline Color operator+(const Color& lhs, const Color& rhs)
 {
     return Color(lhs.r + rhs.r, lhs.g + rhs.g, lhs.b + rhs.b, lhs.a + rhs.a);
 }
+
+/* LineCapTypes */
 
 typedef enum LineCapTypes {
     ButtCap,
