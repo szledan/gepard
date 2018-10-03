@@ -51,12 +51,16 @@ def create_options(arguments=None):
     if hasattr(arguments, 'no_colored_logs') and arguments.no_colored_logs:
         opts.append('-DDISABLE_LOG_COLORS=ON')
 
+    if hasattr(arguments, 'install_prefix') and arguments.install_prefix:
+        opts.append('-DCMAKE_INSTALL_PREFIX=' + arguments.install_prefix)
+
     return opts
 
 
 def add_args(parser):
     """ Adds arguments to the parser. """
     parser.add_argument('--build-dir', '-b', action='store', dest='build_dir', help='Specify build directory.')
+    parser.add_argument('--install-prefix', action='store', dest='install_prefix', help='Specify install prefix.')
     parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='build_type', help='Build debug.')
     parser.add_argument('--backend', action='store', choices=['gles2', 'software', 'vulkan'], default='gles2', help='Specify which graphics back-end to use.')
     parser.add_argument('--log-level', '-l', action='store', type=int, choices=range(0,5), default=0, help='Set logging level.')
