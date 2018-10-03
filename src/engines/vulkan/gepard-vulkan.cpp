@@ -63,13 +63,10 @@ static const uint32_t imageFrag[] = {
 
 static const uint64_t oneMiliSec = 1000000;
 static const uint64_t timeout = (uint64_t)32 * oneMiliSec; // 32 ms
-#ifdef VK_USE_PLATFORM_XCB_KHR
-static xcb_connection_t* xcbConnection;
-#endif
 
 GepardVulkan::GepardVulkan(GepardContext& context)
     : _context(context)
-    , _vk("libvulkan.so.1")
+    , _vk("libvulkan.so")
     , _allocator(nullptr)
     , _instance(0)
     , _imageFormat(VK_FORMAT_R8G8B8A8_UNORM)
@@ -292,14 +289,11 @@ void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const F
     _vk.vkCreateFence(_device, &fenceInfo, _allocator, &fence);
     _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
-    if (vkResult == VK_TIMEOUT)
+    if (vkResult == VK_TIMEOUT) {
         GD_LOG1("TIMEOUT!");
-
-    if(_context.surface->getDisplay()) {
-        presentImage();
-    } else if(_context.surface->getBuffer()) {
-        presentToMemoryBuffer();
     }
+
+    updateSurface();
 
     // Clean up
     _vk.vkDestroyFence(_device, fence, _allocator);
@@ -762,7 +756,7 @@ void GepardVulkan::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, 
         dirtyY,
         0,
     };
-    const VkOffset3D dstOffset{
+    const VkOffset3D dstOffset = {
         dx,
         dy,
         0,
@@ -816,14 +810,11 @@ void GepardVulkan::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, 
     GD_ASSERT(vkResult == VK_SUCCESS && "Queue submit failed!");
 
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
-    if (vkResult == VK_TIMEOUT)
+    if (vkResult == VK_TIMEOUT) {
         GD_LOG1("TIMEOUT!");
-
-    if(_context.surface->getDisplay()) {
-        presentImage();
-    } else if(_context.surface->getBuffer()) {
-        presentToMemoryBuffer();
     }
+
+    updateSurface();
 
     // Clean up
     _vk.vkFreeMemory(_device, imageMemory, _allocator);
@@ -1149,8 +1140,10 @@ void GepardVulkan::createSurfaceImage()
     _vk.vkCreateFence(_device, &fenceInfo, _allocator, &fence);
     _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
-    if (vkResult == VK_TIMEOUT)
+    if (vkResult == VK_TIMEOUT) {
         GD_LOG1("TIMEOUT!");
+    }
+
     _vk.vkDestroyFence(_device, fence, _allocator);
 }
 
@@ -1210,13 +1203,13 @@ void GepardVulkan::createSwapChain()
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
     XSync((Display*)_context.surface->getDisplay(), false);
 
-    xcbConnection = XGetXCBConnection((Display*)_context.surface->getDisplay());
+    _xcbConnection = XGetXCBConnection((Display*)_context.surface->getDisplay());
 
     const VkXcbSurfaceCreateInfoKHR surfaceCreateInfo = {
         VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR,  // VkStructureType                sType;
         nullptr,                                        // const void*                    pNext;
         0,                                              // VkXlibSurfaceCreateFlagsKHR    flags;
-        xcbConnection,                                  // xcb_connection_t*              connection;
+        _xcbConnection,                                  // xcb_connection_t*              connection;
         (xcb_window_t)_context.surface->getWindow(),    // xcb_window_t                   window;
     };
 
@@ -1442,8 +1435,9 @@ void GepardVulkan::presentImage()
     VkResult vkResult;
     _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
-    if (vkResult == VK_TIMEOUT)
+    if (vkResult == VK_TIMEOUT) {
         GD_LOG1("TIMEOUT!");
+    }
 
     const VkPresentInfoKHR presentInfo = {
         VK_STRUCTURE_TYPE_PRESENT_INFO_KHR, // VkStructureType          sType;
@@ -1584,8 +1578,9 @@ void GepardVulkan::readImage(uint32_t* memoryBuffer, int32_t x, int32_t y, uint3
     _vk.vkCreateFence(_device, &fenceInfo, _allocator, &fence);
     _vk.vkQueueSubmit(queque, 1, &submitInfo, fence);
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
-    if (vkResult == VK_TIMEOUT)
+    if (vkResult == VK_TIMEOUT) {
         GD_LOG1("TIMEOUT!");
+    }
 
     void* data;
     _vk.vkMapMemory(_device, bufferAlloc, 0, dataSize, 0, &data);
@@ -1612,12 +1607,11 @@ void GepardVulkan::readImage(uint32_t* memoryBuffer, int32_t x, int32_t y, uint3
 void GepardVulkan::createBuffer(VkBuffer &buffer, VkDeviceMemory &bufferAlloc, VkMemoryRequirements &bufferRequirements, VkDeviceSize size, VkBufferUsageFlags usageFlag)
 {
     VkResult vkResult;
-    const VkDeviceSize dataSize = size;
     const VkBufferCreateInfo bufferInfo = {
         VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,   // VkStructureType        sType;
         nullptr,                                // const void*            pNext;
         0u,                                     // VkBufferCreateFlags    flags;
-        dataSize,                               // VkDeviceSize           size;
+        size,                                   // VkDeviceSize           size;
         usageFlag,                              // VkBufferUsageFlags     usage;
         VK_SHARING_MODE_EXCLUSIVE,              // VkSharingMode          sharingMode;
         1u,                                     // uint32_t               queueFamilyIndexCount;
@@ -1873,7 +1867,7 @@ VkRect2D GepardVulkan::getDefaultRenderArea()
 
 VkViewport GepardVulkan::getDefaultViewPort()
 {
-    VkViewport viewPort =         {
+    VkViewport viewPort = {
         0.0f,                               // float    x;
         0.0f,                               // float    y;
         (float)_context.surface->width(),   // float    width;
@@ -1913,8 +1907,10 @@ void GepardVulkan::submitAndWait(const VkCommandBuffer commandBuffer)
     _vk.vkCreateFence(_device, &fenceInfo, _allocator, &fence);
     _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
-    if (vkResult == VK_TIMEOUT)
+    if (vkResult == VK_TIMEOUT) {
         GD_LOG1("TIMEOUT!");
+    }
+
     _vk.vkDestroyFence(_device, fence, _allocator);
 }
 

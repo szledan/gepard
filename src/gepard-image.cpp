@@ -25,8 +25,6 @@
 
 #include "gepard-image.h"
 
-#include <cstring>
-
 namespace gepard {
 
 Image::Image()

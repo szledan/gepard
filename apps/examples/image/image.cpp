@@ -60,7 +60,6 @@ int main()
     gepard::PNGSurface surface(SURFACE_SIZE, SURFACE_SIZE);
     gepard::Gepard gepard(&surface);
 
-
     generateCheckerBoard(gepard);
 
     gepard::Image image = gepard.createImageData(200.0, 200.0);

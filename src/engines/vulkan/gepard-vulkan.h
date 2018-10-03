@@ -79,6 +79,9 @@ private:
     VkSurfaceKHR _wsiSurface;
     VkSwapchainKHR _wsiSwapChain;
     std::vector<VkImage> _wsiSwapChainImages;
+#ifdef VK_USE_PLATFORM_XCB_KHR
+    xcb_connection_t* _xcbConnection;
+#endif
 
     void createDefaultInstance();
     void chooseDefaultPhysicalDevice();
@@ -101,8 +104,10 @@ private:
     void createShaderModule(VkShaderModule& shader, const uint32_t* code, const size_t codeSize);
 
     void uploadToDeviceMemory(VkDeviceMemory buffer, const void* data, VkDeviceSize size, VkDeviceSize offset = 0);
-    void createSimplePipeline(VkPipeline& pipeline, VkPipelineLayout& layout,
-                              const VkShaderModule vertex, const VkShaderModule fragment,
+    void createSimplePipeline(VkPipeline& pipeline,
+                              VkPipelineLayout& layout,
+                              const VkShaderModule vertex,
+                              const VkShaderModule fragment,
                               const VkPipelineVertexInputStateCreateInfo vertexInputState,
                               const VkPipelineColorBlendAttachmentState blendState,
                               const VkPipelineLayoutCreateInfo layoutInfo);
