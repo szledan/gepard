@@ -11,7 +11,6 @@ set(COMMON_SOURCES
     utils/gepard-float-point.cpp
     utils/gepard-line-types.cpp
     utils/gepard-transform.cpp
-    utils/gepard-types.cpp
     utils/gepard-vec4.cpp
 )
 

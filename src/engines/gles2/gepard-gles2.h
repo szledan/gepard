@@ -28,14 +28,14 @@
 #ifndef GEPARD_GLES2_H
 #define GEPARD_GLES2_H
 
-#include "gepard-defs.h"
-
-#include "gepard.h"
+#include "gepard-color.h"
+#include "gepard-context.h"
+#include "gepard-float.h"
 #include "gepard-gles2-defs.h"
 #include "gepard-gles2-shader-factory.h"
-#include "gepard-context.h"
 #include "gepard-image.h"
-#include "gepard-types.h"
+#include "gepard-state.h"
+#include "gepard.h"
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
 

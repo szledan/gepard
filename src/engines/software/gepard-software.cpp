@@ -27,8 +27,9 @@
 
 #include "gepard-software.h"
 
+#include "gepard-color.h"
 #include "gepard-defs.h"
-#include "gepard-types.h"
+#include "gepard-float.h"
 
 namespace gepard {
 namespace software {

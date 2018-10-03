@@ -32,7 +32,6 @@
 #include "gepard-engine.h"
 #include "gepard-gles2-defs.h"
 #include "gepard-gles2-shader-factory.h"
-#include "gepard-png-surface.h"
 
 namespace gepard {
 namespace gles2 {
