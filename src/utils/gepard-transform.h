@@ -1,5 +1,5 @@
-/* Copyright (C) 2017, Gepard Graphics
- * Copyright (C) 2017, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2015-2016, 2018, Gepard Graphics
+ * Copyright (C) 2015, 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,17 +23,33 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-context.h"
+#ifndef GEPARD_TRANSFORM_H
+#define GEPARD_TRANSFORM_H
 
-#include "gepard-defs.h"
-#include "gepard-state.h"
+#include "gepard-float-point.h"
+#include "gepard-float.h"
 
 namespace gepard {
 
-GepardContext::GepardContext(Surface *surface_)
-    : surface(surface_)
-{
-    states.push_back(GepardState());
-}
+struct Transform {
+    Float data[6] = { 1.0, 0.0, 0.0, 1.0, 0.0, 0.0 };
+
+    Transform (const Float a = 1.0, const Float b = 0.0, const Float c = 0.0, const Float d = 1.0, const Float e = 0.0, const Float f = 0.0);
+
+    Transform& rotate(const Float angle);
+    Transform& scale(const Float sx, const Float sy);
+    Transform& translate(const Float x, const Float y);
+
+    const FloatPoint apply(const FloatPoint& p) const;
+
+    Transform& multiply(const Transform& transform);
+    void operator*=(const Transform& transform);
+
+    const Transform inverse() const;
+};
+
+Transform operator*(const Transform& lhs , const Transform& rhs);
 
 } // namespace gepard
+
+#endif // GEPARD_TRANSFORM_H

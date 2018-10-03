@@ -30,9 +30,13 @@
 #ifndef GEPARD_TRAPEZOID_TESSELLATOR_H
 #define GEPARD_TRAPEZOID_TESSELLATOR_H
 
+#include "gepard-bounding-box.h"
 #include "gepard-defs.h"
+#include "gepard-float-point.h"
+#include "gepard-float.h"
+#include "gepard-line-types.h"
 #include "gepard-path.h"
-#include "gepard-types.h"
+#include "gepard-state.h"
 #include <list>
 #include <map>
 

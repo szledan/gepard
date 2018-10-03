@@ -1,5 +1,5 @@
-/* Copyright (C) 2017, Gepard Graphics
- * Copyright (C) 2017, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2015-2016, 2018, Gepard Graphics
+ * Copyright (C) 2015-2016, 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,17 +23,28 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-context.h"
+#ifndef GEPARD_FLOAT_H
+#define GEPARD_FLOAT_H
 
-#include "gepard-defs.h"
-#include "gepard-state.h"
+#include <cmath>
+#include <string>
 
 namespace gepard {
 
-GepardContext::GepardContext(Surface *surface_)
-    : surface(surface_)
+typedef double Float;
+const double precisionOfFloat = 0x1L << 50;
+
+inline const Float strToFloat(const std::string& str) { return std::stod(str); }
+inline Float fixPrecision(Float f) { return std::floor(f * precisionOfFloat) / precisionOfFloat; }
+
+static const Float piFloat = 2.0 * std::asin(1.0);
+
+template<class T>
+static inline const T& clamp(const T& value, const T& min, const T& max)
 {
-    states.push_back(GepardState());
+    return (value < min) ? min : ((value > max) ? max : value);
 }
 
 } // namespace gepard
+
+#endif // GEPARD_FLOAT_H

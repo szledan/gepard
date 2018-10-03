@@ -1,5 +1,5 @@
-/* Copyright (C) 2017, Gepard Graphics
- * Copyright (C) 2017, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2015-2016, 2018, Gepard Graphics
+ * Copyright (C) 2015, 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,17 +23,64 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-context.h"
-
-#include "gepard-defs.h"
-#include "gepard-state.h"
+#include "gepard-float-point.h"
+#include "gepard-float.h"
+#include <cmath>
+#include <limits>
 
 namespace gepard {
 
-GepardContext::GepardContext(Surface *surface_)
-    : surface(surface_)
+FloatPoint::FloatPoint()
+    : x(0.0)
+    , y(0.0)
+{}
+
+FloatPoint::FloatPoint(const Float x_, const Float y_)
+    : x(x_)
+    , y(y_)
+{}
+
+const Float FloatPoint::lengthSquared() const
 {
-    states.push_back(GepardState());
+    return x * x + y * y;
+}
+
+const Float FloatPoint::length() const
+{
+    return std::sqrt(lengthSquared());
+}
+
+const Float FloatPoint::dot(const FloatPoint& p) const
+{
+    return x * p.x + y * p.y;
+}
+
+const Float FloatPoint::cross(const FloatPoint& p) const
+{
+    return x * p.y - y * p.x;
+}
+
+const FloatPoint FloatPoint::normal() const
+{
+    return FloatPoint(y, -x);
+}
+
+const bool FloatPoint::isZero() const
+{
+    return (std::fabs(x) < std::numeric_limits<Float>::epsilon())
+            && (std::fabs(y) < std::numeric_limits<Float>::epsilon());
+}
+
+void FloatPoint::set(const Float newX, const Float newY)
+{
+    x = newX;
+    y = newY;
+}
+
+void FloatPoint::scale(const Float scaleX, const Float scaleY)
+{
+    x *= scaleX;
+    y *= scaleY;
 }
 
 } // namespace gepard

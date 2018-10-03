@@ -1,5 +1,5 @@
-/* Copyright (C) 2017, Gepard Graphics
- * Copyright (C) 2017, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2015-2016, 2018, Gepard Graphics
+ * Copyright (C) 2015, 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,17 +23,39 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-context.h"
+#ifndef GEPARD_BOUNDING_BOX_H
+#define GEPARD_BOUNDING_BOX_H
 
-#include "gepard-defs.h"
-#include "gepard-state.h"
+#include "gepard-float-point.h"
+#include "gepard-float.h"
+#include <ostream>
 
 namespace gepard {
 
-GepardContext::GepardContext(Surface *surface_)
-    : surface(surface_)
+/*!
+ * \brief The BoundingBox struct
+ *
+ * The BoundignBox struct describes a rectangle with four Float values.
+ * Each value determines either minimum or maximum values from
+ * the given points.
+ *
+ * \internal
+ */
+struct BoundingBox {
+    BoundingBox();
+
+    void stretchX(const Float x);
+    void stretchY(const Float y);
+    void stretch(const FloatPoint& p);
+
+    Float minX, minY, maxX, maxY;
+};
+
+inline std::ostream& operator<<(std::ostream& os, const BoundingBox& bb)
 {
-    states.push_back(GepardState());
+    return os << bb.minX << "," << bb.minY << "," << bb.maxX << "," << bb.maxY;
 }
 
 } // namespace gepard
+
+#endif // GEPARD_BOUNDING_BOX_H

@@ -27,10 +27,12 @@
 
 #include "gepard-gles2.h"
 
+#include "gepard-color.h"
 #include "gepard-defs.h"
-#include "gepard-stroke-builder.h"
+#include "gepard-float.h"
 #include "gepard-path.h"
-#include "gepard-types.h"
+#include "gepard-state.h"
+#include "gepard-stroke-builder.h"
 #include <memory>
 
 namespace gepard {

@@ -1,5 +1,5 @@
-/* Copyright (C) 2017, Gepard Graphics
- * Copyright (C) 2017, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2015-2016, 2018, Gepard Graphics
+ * Copyright (C) 2015, 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,17 +23,29 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-context.h"
+#ifndef GEPARD_LINE_TYPES_H
+#define GEPARD_LINE_TYPES_H
 
-#include "gepard-defs.h"
-#include "gepard-state.h"
+#include <string>
 
 namespace gepard {
 
-GepardContext::GepardContext(Surface *surface_)
-    : surface(surface_)
-{
-    states.push_back(GepardState());
-}
+typedef enum LineCapTypes {
+    ButtCap,
+    RoundCap,
+    SquareCap,
+} LineCapType;
+
+LineCapTypes strToLineCap(const std::string& value);
+
+typedef enum LineJoinTypes {
+    RoundJoin,
+    BevelJoin,
+    MiterJoin,
+} LineJoinType;
+
+LineJoinTypes strToLineJoin(const std::string& value);
 
 } // namespace gepard
+
+#endif // GEPARD_LINE_TYPES_H

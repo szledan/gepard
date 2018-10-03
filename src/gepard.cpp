@@ -26,11 +26,11 @@
 
 #include "gepard.h"
 
+#include "gepard-color.h"
 #include "gepard-context.h"
 #include "gepard-defs.h"
 #include "gepard-engine.h"
 #include "gepard-image.h"
-#include "gepard-types.h"
 #include <map>
 
 namespace gepard {

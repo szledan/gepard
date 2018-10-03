@@ -1,5 +1,5 @@
-/* Copyright (C) 2017, Gepard Graphics
- * Copyright (C) 2017, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2015-2016, 2018, Gepard Graphics
+ * Copyright (C) 2015, 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,17 +23,59 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-context.h"
+#ifndef GEPARD_VEC4_H
+#define GEPARD_VEC4_H
 
-#include "gepard-defs.h"
-#include "gepard-state.h"
+#include "gepard-float.h"
 
 namespace gepard {
 
-GepardContext::GepardContext(Surface *surface_)
-    : surface(surface_)
-{
-    states.push_back(GepardState());
-}
+/*!
+ * \brief The Vec4 struct
+ *
+ * \internal
+ */
+struct Vec4 {
+    Vec4();
+    Vec4(const Float x_, const Float y_, const Float z_, const Float w_);
+    Vec4(const Vec4& vec4);
+
+    Float& operator[](std::size_t idx);
+
+    /*!
+     * \brief The x/r/s component union
+     */
+    union {
+        Float x; /*!< the x coordinate */
+        Float r; /*!< red channel */
+        Float s; /*!< the s parameter */
+    };
+    /*!
+     * \brief The y/g/t component union
+     */
+    union {
+        Float y; /*!< the y coordinate */
+        Float g; /*!< green channel */
+        Float t; /*!< the t parameter */
+    };
+    /*!
+     * \brief The z/b/p component union
+     */
+    union {
+        Float z; /*!< the z coordinate */
+        Float b; /*!< blue channel */
+        Float p; /*!< the p parameter */
+    };
+    /*!
+     * \brief The w/a/q component union
+     */
+    union {
+        Float w; /*!< the w coordinate */
+        Float a; /*!< alpha channel */
+        Float q; /*!< the q parameter */
+    };
+};
 
 } // namespace gepard
+
+#endif // GEPARD_VEC4_H

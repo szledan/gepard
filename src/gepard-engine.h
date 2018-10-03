@@ -28,9 +28,13 @@
 
 #include "gepard-defs.h"
 
+#include "gepard-color.h"
 #include "gepard-context.h"
+#include "gepard-float.h"
+#include "gepard-float-point.h"
 #include "gepard-image.h"
-#include "gepard-types.h"
+#include "gepard-state.h"
+
 
 // Include engine backend.
 #if defined(GD_USE_GLES2)

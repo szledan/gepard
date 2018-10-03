@@ -26,8 +26,7 @@
 #ifndef GEPARD_IMAGE_H
 #define GEPARD_IMAGE_H
 
-#include "gepard-defs.h"
-
+#include <cstdint>
 #include <vector>
 
 namespace gepard {

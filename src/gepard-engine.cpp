@@ -25,7 +25,10 @@
 
 #include "gepard-engine.h"
 
-#include "gepard-types.h"
+#include "gepard-color.h"
+#include "gepard-float-point.h"
+#include "gepard-float.h"
+#include "gepard-transform.h"
 
 namespace gepard {
 

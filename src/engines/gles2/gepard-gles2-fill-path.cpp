@@ -28,9 +28,12 @@
 
 #include "gepard-gles2.h"
 
+#include "gepard-color.h"
 #include "gepard-defs.h"
+#include "gepard-float.h"
 #include "gepard-gles2-defs.h"
 #include "gepard-gles2-shader-factory.h"
+#include "gepard-state.h"
 #include "gepard-trapezoid-tessellator.h"
 #include <string>
 
@@ -291,7 +294,7 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
 
             setupPathVertexAttributes(trapezoid, _attributes + trapezoidIndex * 32);
             trapezoidIndex++;
-            if (trapezoidIndex >= min(kMaximumNumberOfUshortQuads, kMaximumNumberOfAttributes / 32)) {
+            if (trapezoidIndex >= std::min(kMaximumNumberOfUshortQuads, kMaximumNumberOfAttributes / 32)) {
                 GD_LOG2("Draw '" << trapezoidIndex << "' trapezoids with triangles in pairs.");
                 glDrawElements(GL_TRIANGLES, 6 * trapezoidIndex, GL_UNSIGNED_SHORT, nullptr);
                 trapezoidIndex = 0;
@@ -313,6 +316,11 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
         glUseProgram(copyProgram.id);
 
         {
+            const GLint index = glGetUniformLocation(copyProgram.id, "u_viewportSize");
+            glUniform2f(index, width, height);
+        }
+
+        {
             const GLfloat textureCoords[] = {
                 0.0, 0.0, 0.0, 0.0,
                 (GLfloat)width, 0.0, 1.0, 0.0,
@@ -331,11 +339,11 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
         }
 
         {
-            const GLint index = glGetUniformLocation(copyProgram.id, "u_viewportSize");
-            glUniform2f(index, width, height);
+            glActiveTexture(GL_TEXTURE0);
+            const GLint index = glGetUniformLocation(copyProgram.id, "u_texture");
+            glUniform1i(index, GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, textureId);
         }
-
-        glBindTexture(GL_TEXTURE_2D, textureId);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

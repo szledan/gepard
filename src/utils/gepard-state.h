@@ -1,5 +1,5 @@
-/* Copyright (C) 2017, Gepard Graphics
- * Copyright (C) 2017, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2015-2016, 2018, Gepard Graphics
+ * Copyright (C) 2015, 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,17 +23,36 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-context.h"
+#ifndef GEPARD_STATE_H
+#define GEPARD_STATE_H
 
-#include "gepard-defs.h"
-#include "gepard-state.h"
+#include "gepard-color.h"
+#include "gepard-float.h"
+#include "gepard-line-types.h"
+#include "gepard-transform.h"
 
 namespace gepard {
 
-GepardContext::GepardContext(Surface *surface_)
-    : surface(surface_)
-{
-    states.push_back(GepardState());
-}
+/*!
+ * \brief The GepardState struct
+ *
+ * Describes the Drawing state.
+ * -- <a href="https://www.w3.org/TR/2dcontext/#the-canvas-state">[W3C-2DContext]</a>
+ *
+ * \internal
+ */
+struct GepardState {
+    Color fillColor = Color(Color::BLACK);
+
+    Color strokeColor = Color(Color::BLACK);
+    //! \brief CanvasDrawingStyles
+    Float lineWitdh = 1.0;
+    LineJoinTypes lineJoinMode = MiterJoin;
+    LineCapTypes lineCapMode = ButtCap;
+    Float miterLimit = 10;
+    Transform transform;
+};
 
 } // namespace gepard
+
+#endif // GEPARD_STATE_H

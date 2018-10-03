@@ -9,3 +9,9 @@ __pycache__
 
 # 'temp' directory for local usage
 temp
+
+# thirdparty directories
+thirdparty/src
+thirdparty/bin
+thirdparty/lib
+thirdparty/include

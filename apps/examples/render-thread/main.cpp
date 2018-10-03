@@ -138,13 +138,11 @@ int main()
         }
 
         if (XCheckWindowEvent((Display*)surface.getDisplay(), (Window)surface.getWindow(), KeyPress | ClientMessage, &e)) {
-            if (e.type == KeyPress) {
-                if (XLookupKeysym(&e.xkey, 0) == XK_Escape
-                    || XLookupKeysym(&e.xkey, 0) == XK_q
-                    || XLookupKeysym(&e.xkey, 0) == XK_Q) {
-                    break;
-                }
+            if (surface.hasToQuit()) {
+                break;
+            }
 
+            if (e.type == KeyPress) {
                 bool wasRenderingDensityChanged = false;
                 switch (XLookupKeysym(&e.xkey, 0)) {
                 case XK_Up:
