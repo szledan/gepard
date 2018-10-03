@@ -73,7 +73,7 @@ if (BACKEND STREQUAL "VULKAN" AND NOT VULKAN_FOUND)
 endif()
 
 if (BACKEND STREQUAL "VULKAN")
-  include(engines/vulkan/shaders/VulkanShaders.cmake)
+  include(VulkanShaders)
   add_dependencies(gepard vulkan_shaders)
 endif()
 

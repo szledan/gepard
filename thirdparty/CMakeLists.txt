@@ -22,14 +22,14 @@ set(INCLUDE_OUTPUT_DIR ${PROJECT_SOURCE_DIR}/include)
 # - A subdirectory in PROJECT_BINARY_DIR can be used as a build directory.
 
 add_custom_target(common ALL
-                  DEPENDS gtest
-                          glslang)
+                  DEPENDS gtest)
 
 add_custom_target(gles2 ALL
                   DEPENDS common)
 
 add_custom_target(vulkan ALL
-                  DEPENDS common)
+                  DEPENDS common
+                          glslang)
 
 add_custom_target(software ALL
                   DEPENDS common)
