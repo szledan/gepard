@@ -30,11 +30,11 @@
 
 #include "gepard-defs.h"
 
-#include "gepard.h"
 #include "gepard-context.h"
+#include "gepard-float.h"
 #include "gepard-image.h"
-#include "gepard-types.h"
 #include "gepard-vulkan-interface.h"
+#include "gepard.h"
 #include <vector>
 
 namespace gepard {

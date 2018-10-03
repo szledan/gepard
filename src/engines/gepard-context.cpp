@@ -26,7 +26,7 @@
 #include "gepard-context.h"
 
 #include "gepard-defs.h"
-#include "gepard-types.h"
+#include "gepard-state.h"
 
 namespace gepard {
 

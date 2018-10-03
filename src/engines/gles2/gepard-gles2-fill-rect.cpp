@@ -27,7 +27,9 @@
 
 #include "gepard-gles2.h"
 
+#include "gepard-color.h"
 #include "gepard-defs.h"
+#include "gepard-float.h"
 #include "gepard-gles2-defs.h"
 #include "gepard-gles2-shader-factory.h"
 

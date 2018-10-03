@@ -48,7 +48,6 @@ file(MAKE_DIRECTORY ${INCLUDE_OUTPUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_OUTPUT_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIB_OUTPUT_DIR})
 
-add_subdirectory(thirdparty)
 add_subdirectory(src)
 add_subdirectory(apps EXCLUDE_FROM_ALL)
 add_subdirectory(tests/unit EXCLUDE_FROM_ALL)

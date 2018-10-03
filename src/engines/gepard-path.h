@@ -26,7 +26,10 @@
 #ifndef GEPARD_PATH_H
 #define GEPARD_PATH_H
 
-#include "gepard-types.h"
+#include "gepard-float-point.h"
+#include "gepard-float.h"
+#include "gepard-region.h"
+#include "gepard-transform.h"
 #include <ostream>
 
 namespace gepard {
