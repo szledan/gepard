@@ -283,7 +283,7 @@ void GepardEngine::clip()
  *
  * \todo unimplemented function
  */
-bool GepardEngine::isPointInPath(Float x, Float y)
+bool GepardEngine::isPointInPath(const Float x, const Float y)
 {
     GD_NOT_IMPLEMENTED();
     return false;
@@ -298,7 +298,7 @@ bool GepardEngine::isPointInPath(Float x, Float y)
  *
  * \todo documentation is missing
  */
-void GepardEngine::fillRect(Float x, Float y, Float w, Float h)
+void GepardEngine::fillRect(const Float x, const Float y, const Float w, const Float h)
 {
     GD_ASSERT(_engineBackend);
 #ifdef GD_USE_GLES2

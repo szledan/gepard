@@ -93,9 +93,9 @@ public:
     void stroke();
     void drawFocusIfNeeded(/*Element element*/);
     void clip();
-    bool isPointInPath(Float x, Float y);
+    bool isPointInPath(const Float x, const Float y);
 
-    void fillRect(Float x, Float y, Float w, Float h);
+    void fillRect(const Float x, const Float y, const Float w, const Float h);
 
     void setFillColor(const Color& color);
     void setFillColor(const Float red, const Float green, const Float blue, const Float alpha = 1.0f);
