@@ -27,7 +27,6 @@
 #define GEPARD_PATH_TESTS_H
 
 #include "gepard-path.h"
-#include "gepard-types.h"
 #include "gtest/gtest.h"
 #include <iostream>
 

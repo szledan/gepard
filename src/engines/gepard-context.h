@@ -27,7 +27,7 @@
 #define GEPARD_CONTEXT_H
 
 #include "gepard-path.h"
-#include "gepard-types.h"
+#include "gepard-state.h"
 #include <vector>
 
 namespace gepard {

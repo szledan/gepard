@@ -30,6 +30,9 @@
 #include "gepard-trapezoid-tessellator.h"
 
 #include "gepard-defs.h"
+#include "gepard-float-point.h"
+#include "gepard-float.h"
+#include "gepard-transform.h"
 #include <cmath>
 #include <list>
 #include <set>
