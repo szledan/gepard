@@ -75,7 +75,7 @@ void GepardEngine::closePath()
  * \internal
  * \todo unit tests missing
  */
-void GepardEngine::moveTo(Float x, Float y)
+void GepardEngine::moveTo(const Float x, const Float y)
 {
     _context.path.pathData()->addMoveToElement(FloatPoint(x, y));
 }
@@ -88,7 +88,7 @@ void GepardEngine::moveTo(Float x, Float y)
  * \internal
  * \todo unit tests missing
  */
-void GepardEngine::lineTo(Float x, Float y)
+void GepardEngine::lineTo(const Float x, const Float y)
 {
     _context.path.pathData()->addLineToElement(FloatPoint(x, y));
 }
@@ -103,7 +103,7 @@ void GepardEngine::lineTo(Float x, Float y)
  * \internal
  * \todo unit tests missing
  */
-void GepardEngine::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
+void GepardEngine::quadraticCurveTo(const Float cpx, const Float cpy, const Float x, const Float y)
 {
     _context.path.pathData()->addQuadaraticCurveToElement(FloatPoint(cpx, cpy), FloatPoint(x, y));
 }
@@ -120,7 +120,7 @@ void GepardEngine::quadraticCurveTo(Float cpx, Float cpy, Float x, Float y)
  * \internal
  * \todo unit tests missing
  */
-void GepardEngine::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y)
+void GepardEngine::bezierCurveTo(const Float cp1x, const Float cp1y, const Float cp2x, const Float cp2y, const Float x, const Float y)
 {
     _context.path.pathData()->addBezierCurveToElement(FloatPoint(cp1x, cp1y), FloatPoint(cp2x, cp2y), FloatPoint(x, y));
 }
@@ -136,7 +136,7 @@ void GepardEngine::bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y,
  * \internal
  * \todo unit tests missing
  */
-void GepardEngine::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
+void GepardEngine::arcTo(const Float x1, const Float y1, const Float x2, const Float y2, const Float radius)
 {
     _context.path.pathData()->addArcToElement(FloatPoint(x1, y1), FloatPoint(x2, y2), radius);
 }
@@ -151,7 +151,7 @@ void GepardEngine::arcTo(Float x1, Float y1, Float x2, Float y2, Float radius)
  * \internal
  * \todo unit tests missing
  */
-void GepardEngine::rect(Float x, Float y, Float w, Float h)
+void GepardEngine::rect(const Float x, const Float y, const Float w, const Float h)
 {
     moveTo(x, y);
     lineTo(x + w, y);
@@ -172,7 +172,7 @@ void GepardEngine::rect(Float x, Float y, Float w, Float h)
  * \internal
  * \todo unit tests missing
  */
-void GepardEngine::arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise)
+void GepardEngine::arc(const Float x, const Float y, const Float radius, const Float startAngle, const Float endAngle, const bool counterclockwise)
 {
     _context.path.pathData()->addArcElement(FloatPoint(x, y), FloatPoint(radius, radius), startAngle, endAngle, counterclockwise);
 }
