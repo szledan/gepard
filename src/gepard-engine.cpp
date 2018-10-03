@@ -177,32 +177,32 @@ void GepardEngine::arc(const Float x, const Float y, const Float radius, const F
     _context.path.pathData()->addArcElement(FloatPoint(x, y), FloatPoint(radius, radius), startAngle, endAngle, counterclockwise);
 }
 
-void GepardEngine::scale(Float x, Float y)
+void GepardEngine::scale(const Float x, const Float y)
 {
     state().transform.scale(x, y);
     _context.path.pathData()->applyTransform(Transform(1, 0, 0, 1, 0, 0).scale(x, y).inverse());
 }
 
-void GepardEngine::rotate(Float angle)
+void GepardEngine::rotate(const Float angle)
 {
     state().transform.rotate(angle);
     _context.path.pathData()->applyTransform(Transform(1, 0, 0, 1, 0, 0).rotate(angle).inverse());
 }
 
-void GepardEngine::translate(Float x, Float y)
+void GepardEngine::translate(const Float x, const Float y)
 {
     state().transform.translate(x, y);
     _context.path.pathData()->applyTransform(Transform(1, 0, 0, 1, 0, 0).translate(x, y).inverse());
 }
 
-void GepardEngine::transform(Float a, Float b, Float c, Float d, Float e, Float f)
+void GepardEngine::transform(const Float a, const Float b, const Float c, const Float d, const Float e, const Float f)
 {
     Transform t = Transform(a, b, c, d, e, f);
     state().transform.multiply(t);
     _context.path.pathData()->applyTransform(t.inverse());
 }
 
-void GepardEngine::setTransform(Float a, Float b, Float c, Float d, Float e, Float f)
+void GepardEngine::setTransform(const Float a, const Float b, const Float c, const Float d, const Float e, const Float f)
 {
     state().transform = Transform(a, b, c, d, e, f);
     _context.path.pathData()->applyTransform(state().transform.inverse());

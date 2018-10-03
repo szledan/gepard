@@ -81,11 +81,11 @@ public:
     void arc(const Float x, const Float y, const Float radius, const Float startAngle, const Float endAngle, const bool counterclockwise = false);
 
     /* 6. Transformations */
-    void scale(Float x, Float y);
-    void rotate(Float angle);
-    void translate(Float x, Float y);
-    void transform(Float a, Float b, Float c, Float d, Float e, Float f);
-    void setTransform(Float a, Float b, Float c, Float d, Float e, Float f);
+    void scale(const Float x, const Float y);
+    void rotate(const Float angle);
+    void translate(const Float x, const Float y);
+    void transform(const Float a, const Float b, const Float c, const Float d, const Float e, const Float f);
+    void setTransform(const Float a, const Float b, const Float c, const Float d, const Float e, const Float f);
 
     /* 11. Drawing paths to the canvas */
     void beginPath();
