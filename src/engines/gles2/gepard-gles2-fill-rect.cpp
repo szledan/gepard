@@ -23,8 +23,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_GLES2
-
 #include "gepard-gles2.h"
 
 #include "gepard-color.h"
@@ -134,5 +132,3 @@ void GepardGLES2::fillRect(const Float x, const Float y, const Float w, const Fl
 
 } // namespace gles2
 } // namespace gepard
-
-#endif // GD_USE_GLES2

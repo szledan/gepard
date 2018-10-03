@@ -24,8 +24,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_GLES2
-
 #ifndef GEPARD_GLES2_DEFS_H
 #define GEPARD_GLES2_DEFS_H
 
@@ -44,5 +42,3 @@ namespace gles2 {
 } // namespace gepard
 
 #endif // GEPARD_GLES2_DEFS_H
-
-#endif // GD_USE_GLES2

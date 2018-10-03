@@ -23,8 +23,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_GLES2
-
 #ifndef GEPARD_GLES2_SHADER_FACTORY_H
 #define GEPARD_GLES2_SHADER_FACTORY_H
 
@@ -86,5 +84,3 @@ private:
 } // namespace gepard
 
 #endif // GEPARD_GLES2_SHADER_FACTORY_H
-
-#endif // GD_USE_GLES2

@@ -23,8 +23,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_SOFTWARE
-
 #ifndef GEPARD_SOFTWARE_H
 #define GEPARD_SOFTWARE_H
 
@@ -66,5 +64,3 @@ typedef software::GepardSoftware GepardEngineBackend;
 } // namespace gepard
 
 #endif // GEPARD_SOFTWARE_H
-
-#endif // GD_USE_SOFTWARE

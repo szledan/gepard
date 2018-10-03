@@ -23,8 +23,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_VULKAN
-
 #ifndef GEPARD_VULKAN_INTERFACE_H
 #define GEPARD_VULKAN_INTERFACE_H
 
@@ -154,5 +152,3 @@ private:
 } // namespace gepard
 
 #endif // GEPARD_VULKAN_INTERFACE_H
-
-#endif // USE_VULKAN
