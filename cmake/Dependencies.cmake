@@ -27,15 +27,10 @@ elseif (BACKEND STREQUAL "VULKAN")
 
     set(VULKAN_INCLUDE_DIR ${PROJECT_BINARY_DIR}/thirdparty/include)
   endif()
-  add_custom_command(OUTPUT ${PROJECT_SOURCE_DIR}/src/engines/vulkan/shaders/gepard-vulkan-spirv-binaries.h
-                            ${PROJECT_SOURCE_DIR}/src/engines/vulkan/shaders/gepard-vulkan-spirv-binaries.inc.h
-                     COMMAND python ${PROJECT_SOURCE_DIR}/tools/build-vulkan-shaders.py
-                     DEPENDS ${PROJECT_SOURCE_DIR}/src/engines/vulkan/shaders/*.vert
-                             ${PROJECT_SOURCE_DIR}/src/engines/vulkan/shaders/*.frag)
 
-  add_custom_target(vulkan_shaders
-                    DEPENDS ${PROJECT_SOURCE_DIR}/src/engines/vulkan/shaders/gepard-vulkan-spirv-binaries.h
-                            ${PROJECT_SOURCE_DIR}/src/engines/vulkan/shaders/gepard-vulkan-spirv-binaries.inc.h)
+  find_program(GLSLANG_VALIDATOR
+               NAMES glslangValidator
+               HINTS ${PROJECT_SOURCE_DIR}/thirdparty/bin)
 
   # TODO(kkristof) remove this once XSync has been removed from GepardVulkan::createSwapChain
   find_package(X11)

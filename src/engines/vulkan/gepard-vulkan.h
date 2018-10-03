@@ -34,7 +34,6 @@
 #include "gepard-float.h"
 #include "gepard-image.h"
 #include "gepard-vulkan-interface.h"
-#include "gepard-vulkan-spirv-binaries.h"
 #include "gepard.h"
 
 #include <vector>

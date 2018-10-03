@@ -42,10 +42,24 @@
 #include <X11/Xlib-xcb.h>
 #endif // VK_USE_PLATFORM_XCB_KHR
 
-#include "gepard-vulkan-spirv-binaries.inc.h"
-
 namespace gepard {
 namespace vulkan {
+
+static const uint32_t fillRectVert[] = {
+#include "fill-rect.vert.inc"
+};
+
+static const uint32_t fillRectFrag[] = {
+#include "fill-rect.frag.inc"
+};
+
+static const uint32_t imageVert[] = {
+#include "image.vert.inc"
+};
+
+static const uint32_t imageFrag[] = {
+#include "image.frag.inc"
+};
 
 static const uint64_t oneMiliSec = 1000000;
 static const uint64_t timeout = (uint64_t)32 * oneMiliSec; // 32 ms

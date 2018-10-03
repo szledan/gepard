@@ -45,7 +45,7 @@ set(GLES2_INCLUDE_DIRS
 
 set(VULKAN_INCLUDE_DIRS
     engines/vulkan
-    engines/vulkan/shaders
+    ${PROJECT_BINARY_DIR}/spirv
 )
 
 set(SOFTWARE_INCLUDE_DIRS
@@ -73,6 +73,7 @@ if (BACKEND STREQUAL "VULKAN" AND NOT VULKAN_FOUND)
 endif()
 
 if (BACKEND STREQUAL "VULKAN")
+  include(engines/vulkan/shaders/VulkanShaders.cmake)
   add_dependencies(gepard vulkan_shaders)
 endif()
 
