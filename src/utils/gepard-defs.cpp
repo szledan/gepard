@@ -24,6 +24,9 @@
  */
 
 #include "gepard-defs.h"
+#include <iostream>
+#include <sstream>
+#include <string>
 
 namespace gepard {
 

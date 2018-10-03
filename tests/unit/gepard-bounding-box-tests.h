@@ -1,5 +1,5 @@
-/* Copyright (C) 2015-2016, Gepard Graphics
- * Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2016-2017, 2018, Gepard Graphics
+ * Copyright (C) 2016-2017, 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,4 +23,47 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-types.h"
+#ifndef GEPARD_BOUNDING_BOX_TESTS_H
+#define GEPARD_BOUNDING_BOX_TESTS_H
+
+#include "gepard-bounding-box.h"
+#include "gtest/gtest.h"
+
+namespace {
+
+TEST(BoundingBoxTest, Initialize)
+{
+    gepard::BoundingBox bb;
+
+    bb.stretchX(NAN);
+    bb.stretchY(NAN);
+
+    EXPECT_EQ(INFINITY, bb.minX);
+    EXPECT_EQ(INFINITY, bb.minY);
+    EXPECT_EQ(-INFINITY, bb.maxX);
+    EXPECT_EQ(-INFINITY, bb.maxY);
+}
+
+TEST(BoundingBoxTest, Stretch)
+{
+    gepard::BoundingBox bb;
+    bb.stretchX(1.0);
+    EXPECT_EQ(1.0, bb.minX);
+    EXPECT_EQ(1.0, bb.maxX);
+
+    bb.stretchY(1.0);
+    EXPECT_EQ(1.0, bb.minY);
+    EXPECT_EQ(1.0, bb.maxY);
+
+    bb.stretch(gepard::FloatPoint(0.0, 0.5));
+    EXPECT_EQ(0.0, bb.minX);
+    EXPECT_EQ(0.5, bb.minY);
+
+    bb.stretch(gepard::FloatPoint(2.0, 2.5));
+    EXPECT_EQ(2.0, bb.maxX);
+    EXPECT_EQ(2.5, bb.maxY);
+}
+
+} // anonymous namespace
+
+#endif // GEPARD_BOUNDING_BOX_TESTS_H

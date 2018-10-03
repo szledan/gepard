@@ -1,5 +1,5 @@
-/* Copyright (C) 2017, Gepard Graphics
- * Copyright (C) 2017, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2017, 2018, Gepard Graphics
+ * Copyright (C) 2017, 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,8 +25,12 @@
 
 #include "gtest/gtest.h"
 
+#include "gepard-bounding-box-tests.h"
+#include "gepard-float-point-tests.h"
+#include "gepard-float-tests.h"
 #include "gepard-path-tests.h"
-#include "gepard-type-tests.h"
+#include "gepard-region-tests.h"
+#include "gepard-vec4-tests.h"
 
 int main(int argc, char* argv[])
 {

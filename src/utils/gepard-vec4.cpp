@@ -1,5 +1,5 @@
-/* Copyright (C) 2015-2016, Gepard Graphics
- * Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2015-2016, 2018, Gepard Graphics
+ * Copyright (C) 2015, 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,4 +23,44 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-types.h"
+#include "gepard-vec4.h"
+
+#include "gepard-defs.h"
+#include "gepard-float.h"
+
+namespace gepard {
+
+Vec4::Vec4()
+    : x(0.0f)
+    , y(0.0f)
+    , z(0.0f)
+    , w(0.0f)
+{}
+
+Vec4::Vec4(const Float x_, const Float y_, const Float z_, const Float w_)
+    : x(x_)
+    , y(y_)
+    , z(z_)
+    , w(w_)
+{}
+
+Vec4::Vec4(const Vec4& vec4)
+    : x(vec4.x)
+    , y(vec4.y)
+    , z(vec4.z)
+    , w(vec4.w)
+{}
+
+Float& Vec4::operator[](std::size_t idx)
+{
+    switch (idx) {
+    case 0: return x;
+    case 1: return y;
+    case 2: return z;
+    case 3: return w;
+    default:
+        GD_CRASH("Index out of bound!");
+    }
+}
+
+} // namespace gepard
