@@ -23,8 +23,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_GLES2
-
 #include "gepard-gles2.h"
 
 #include "gepard-color.h"
@@ -60,5 +58,3 @@ void GepardGLES2::strokePath()
 
 } // namespace gles2
 } // namespace gepard
-
-#endif // GD_USE_GLES2

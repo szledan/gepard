@@ -23,8 +23,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_VULKAN
-
 #include "gepard-vulkan.h"
 
 #include "gepard-float.h"
@@ -1359,5 +1357,3 @@ void GepardVulkan::readImage()
 
 } // namespace vulkan
 } // namespace gepard
-
-#endif // GD_USE_VULKAN

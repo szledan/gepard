@@ -23,8 +23,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_SOFTWARE
-
 #include "gepard-software.h"
 
 #include "gepard-color.h"
@@ -94,5 +92,3 @@ void GepardSoftware::stroke()
 
 } // namespace software
 } // namespace gepard
-
-#endif // GD_USE_SOFTWARE

@@ -23,8 +23,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_VULKAN
-
 #include "gepard-vulkan-interface.h"
 
 #include <dlfcn.h>
@@ -88,5 +86,3 @@ void GepardVulkanInterface::loadDeviceFunctions(const VkDevice device)
 
 } // namespace vulkan
 } // namespace gepard
-
-#endif // USE_VULKAN
