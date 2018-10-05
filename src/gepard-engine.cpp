@@ -308,6 +308,59 @@ void GepardEngine::fillRect(const Float x, const Float y, const Float w, const F
 #endif // GD_USE_GLES2
 }
 
+/*!
+ * \brief GepardEngine::putImage
+ * \param imagedata
+ * \param dx Horizontal position on the _destination_
+ * \param dy Vertical position on the _destination_
+ * \param dirtyX Horizontal position on the _source_
+ * \param dirtyY Vertical position on the _source_
+ * \param dirtyWidth width of the rectangle to be painted
+ * \param dirtyHeight height of the rectangle to be painted.
+ *
+ * Copy the imageData into the canvas.
+ */
+void GepardEngine::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
+{
+    GD_ASSERT(_engineBackend);
+#ifdef GD_USE_VULKAN
+    _engineBackend->putImage(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+#else // !GD_USE_VULKAN
+    GD_NOT_IMPLEMENTED();
+#endif // GD_USE_VULKAN
+}
+
+void GepardEngine::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
+{
+    GD_ASSERT(_engineBackend);
+#ifdef GD_USE_VULKAN
+    _engineBackend->drawImage(imagedata, sx, sy, sw, sh, dx, dy, dw, dh);
+#else // !GD_USE_VULKAN
+    GD_NOT_IMPLEMENTED();
+#endif // GD_USE_VULKAN
+}
+
+/*!
+ * \brief GepardEngine::getImage
+ * \param sx Horizontal position on the _canvas_
+ * \param sy Vertical position on the _canvas_
+ * \param sw width of the rectangle to be copied
+ * \param sh height of the rectangle to be copied
+ * \return imageData
+ *
+ * Read back the canvas' data on the given rectangle.
+ */
+Image GepardEngine::getImage(Float sx, Float sy, Float sw, Float sh)
+{
+    GD_ASSERT(_engineBackend);
+#ifdef GD_USE_VULKAN
+    return _engineBackend->getImage(sx, sy, sw, sh);
+#else // !GD_USE_VULKAN
+    GD_NOT_IMPLEMENTED();
+    return Image();
+#endif // GD_USE_VULKAN
+}
+
 void GepardEngine::setFillColor(const Color& color)
 {
     GD_LOG1("Set fill color (" << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ")");

@@ -69,6 +69,9 @@ void GepardVulkanInterface::loadInstanceFunctions(const VkInstance instance)
 #if defined(VK_USE_PLATFORM_XLIB_KHR)
     GD_VK_LOAD_FUNCTION(vkCreateXlibSurfaceKHR);
 #endif // VK_USE_PLATFORM_XLIB_KHR
+#if defined(VK_USE_PLATFORM_XCB_KHR)
+    GD_VK_LOAD_FUNCTION(vkCreateXcbSurfaceKHR);
+#endif // VK_USE_PLATFORM_XCB_KHR
 
 #undef GD_VK_LOAD_FUNCTION
 }

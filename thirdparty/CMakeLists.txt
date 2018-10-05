@@ -52,7 +52,8 @@ add_custom_target(gles2 ALL
                   DEPENDS common)
 
 add_custom_target(vulkan ALL
-                  DEPENDS common)
+                  DEPENDS common
+                          glslang)
 
 add_custom_target(software ALL
                   DEPENDS common)
@@ -66,6 +67,15 @@ ExternalProject_Add(gtest
                     GIT_TAG release-1.8.1
                     BINARY_DIR ${PROJECT_BINARY_DIR}/googletest
                     BUILD_COMMAND make gtest
+                    INSTALL_COMMAND make install > /dev/null)
+
+ExternalProject_Add(glslang
+                    PREFIX ${PROJECT_SOURCE_DIR}/src/glslang
+                    GIT_REPOSITORY https://github.com/KhronosGroup/glslang.git
+                    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${PROJECT_SOURCE_DIR} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_INSTALL_INCLUDEDIR=include
+                    GIT_TAG master-tot
+                    BINARY_DIR ${PROJECT_BINARY_DIR}/glslang
+                    BUILD_COMMAND make glslangValidator
                     INSTALL_COMMAND make install > /dev/null)
 
 file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/stamps)

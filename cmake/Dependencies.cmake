@@ -54,6 +54,10 @@ elseif (BACKEND STREQUAL "VULKAN")
     set(VULKAN_INCLUDE_DIR ${PROJECT_BINARY_DIR}/thirdparty/include)
   endif()
 
+  find_program(GLSLANG_VALIDATOR
+               NAMES glslangValidator
+               HINTS ${PROJECT_SOURCE_DIR}/thirdparty/bin)
+
   # TODO(kkristof) remove this once XSync has been removed from GepardVulkan::createSwapChain
   find_package(X11)
   list(APPEND GEPARD_DEP_LIBS ${X11_LIBRARIES})

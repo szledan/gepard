@@ -32,6 +32,7 @@ set(COMMON_SOURCES
     engines/gepard-trapezoid-tessellator.cpp
     gepard.cpp
     gepard-engine.cpp
+    gepard-image.cpp
     utils/gepard-bounding-box.cpp
     utils/gepard-color.cpp
     utils/gepard-defs.cpp
@@ -71,6 +72,7 @@ set(GLES2_INCLUDE_DIRS
 
 set(VULKAN_INCLUDE_DIRS
     engines/vulkan
+    ${PROJECT_BINARY_DIR}/spirv
 )
 
 set(SOFTWARE_INCLUDE_DIRS
@@ -79,6 +81,7 @@ set(SOFTWARE_INCLUDE_DIRS
 
 set(GEPARD_HEADERS
     gepard.h
+    gepard-image.h
 )
 
 set(SURFACE_HEADERS
@@ -96,6 +99,11 @@ if (BACKEND STREQUAL "VULKAN" AND NOT VULKAN_FOUND)
   add_dependencies(gepard vulkan_headers)
 endif()
 
+if (BACKEND STREQUAL "VULKAN")
+  include(VulkanShaders)
+  add_dependencies(gepard vulkan_shaders)
+endif()
+
 target_compile_definitions(gepard PRIVATE "GD_USE_${BACKEND}")
 
 target_include_directories(gepard PRIVATE ${COMMON_INCLUDE_DIRS})
@@ -104,6 +112,7 @@ target_include_directories(gepard PRIVATE ${GEPARD_DEP_INCLUDES})
 
 # TODO(dbatyai): Add a target to do this instead of doing it at configure time
 file(COPY gepard.h DESTINATION ${INCLUDE_OUTPUT_DIR})
+file(COPY gepard-image.h DESTINATION ${INCLUDE_OUTPUT_DIR})
 file(COPY surfaces DESTINATION ${INCLUDE_OUTPUT_DIR})
 
 set_target_properties(gepard
