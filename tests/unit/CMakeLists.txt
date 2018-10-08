@@ -47,5 +47,5 @@ find_package(Threads)
 target_include_directories(unittest PUBLIC ${PROJECT_SOURCE_DIR}/thirdparty/include)
 target_include_directories(unittest PUBLIC ${COMMON_INCLUDE_DIRS})
 
-# TODO(dbatyai): use find_package for gtest
-target_link_libraries(unittest ${PROJECT_SOURCE_DIR}/thirdparty/lib/libgtest.a ${CMAKE_THREAD_LIBS_INIT})
+add_dependencies(unittest gtest)
+target_link_libraries(unittest ${THIRDPARTY_LIB_DIR}/libgtest.a ${CMAKE_THREAD_LIBS_INIT})

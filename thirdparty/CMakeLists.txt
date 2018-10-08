@@ -23,68 +23,58 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 cmake_minimum_required(VERSION 2.8.10)
-project(gepard-thirdparty)
-set(PROJECT_VERSION 0.0.1)
+
+set(THIRDPARTY_BINARY_DIR ${CMAKE_CURRENT_LIST_DIR}/bin)
+set(THIRDPARTY_LIB_DIR ${CMAKE_CURRENT_LIST_DIR}/lib)
+set(THIRDPARTY_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include)
+set(THIRDPARTY_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
+set(THIRDPARTY_BUILD_DIR ${CMAKE_CURRENT_LIST_DIR}/build)
+set(THIRDPARTY_INSTALL_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 # The outer build system will look in these folders for required files
-set(BINARY_OUTPUT_DIR ${PROJECT_SOURCE_DIR}/bin)
-set(LIB_OUTPUT_DIR ${PROJECT_SOURCE_DIR}/lib)
-set(INCLUDE_OUTPUT_DIR ${PROJECT_SOURCE_DIR}/include)
+set(THIRDPARTY_BINARY_DIR ${THIRDPARTY_BINARY_DIR} PARENT_SCOPE)
+set(THIRDPARTY_LIB_DIR ${THIRDPARTY_LIB_DIR} PARENT_SCOPE)
+set(THIRDPARTY_INCLUDE_DIR ${THIRDPARTY_INCLUDE_DIR} PARENT_SCOPE)
 
-# Dependencies are handled by the custom targets listed below this comment
-# block. The build script will call these respective targets when building
-# dependencies for a specific backend.
-# The process of adding a new dependency should consist of creating a build
-# step that is responsible for building and installing the library, and then
-# adding this step as a dependency to the the custom target of the backend
-# that requires this dependency.
-#
-# When creating the build step, the following general rules apply:
+# When creating a build target, the following general rules apply:
 # - Source code should be fetched into a subdirectory of the 'src' directory.
 # - Created output files should be installed into their respective directories
 #   defined above this comment block.
-# - A subdirectory in PROJECT_BINARY_DIR can be used as a build directory.
-
-add_custom_target(common ALL
-                  DEPENDS gtest)
-
-add_custom_target(gles2 ALL
-                  DEPENDS common)
-
-add_custom_target(vulkan ALL
-                  DEPENDS common
-                          glslang)
-
-add_custom_target(software ALL
-                  DEPENDS common)
+# - A subdirectory in PROJECT_BUILD_DIR can be used as a build directory.
+# - Stamp files should be stored in the same build directory.
 
 include(ExternalProject)
 
 ExternalProject_Add(gtest
-                    PREFIX ${PROJECT_SOURCE_DIR}/src/googletest
-                    GIT_REPOSITORY https://github.com/google/googletest.git
-                    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${PROJECT_SOURCE_DIR} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_INSTALL_INCLUDEDIR=include -DBUILD_GMOCK=OFF
-                    GIT_TAG release-1.8.1
-                    BINARY_DIR ${PROJECT_BINARY_DIR}/googletest
+                    PREFIX ${THIRDPARTY_SRC_DIR}/googletest
+                    URL https://github.com/google/googletest/archive/release-1.8.1.tar.gz
+                    DOWNLOAD_DIR ${THIRDPARTY_SRC_DIR}/googletest
+                    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${THIRDPARTY_INSTALL_DIR} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_INSTALL_INCLUDEDIR=include -DBUILD_GMOCK=OFF
+                    BINARY_DIR ${THIRDPARTY_BUILD_DIR}/googletest
+                    STAMP_DIR ${THIRDPARTY_BUILD_DIR}/googletest/stamp
                     BUILD_COMMAND make gtest
                     INSTALL_COMMAND make install > /dev/null)
 
 ExternalProject_Add(glslang
-                    PREFIX ${PROJECT_SOURCE_DIR}/src/glslang
-                    GIT_REPOSITORY https://github.com/KhronosGroup/glslang.git
-                    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${PROJECT_SOURCE_DIR} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_INSTALL_INCLUDEDIR=include
-                    GIT_TAG master-tot
-                    BINARY_DIR ${PROJECT_BINARY_DIR}/glslang
+                    PREFIX ${THIRDPARTY_SRC_DIR}/glslang
+                    URL https://github.com/KhronosGroup/glslang/archive/7.9.2888.tar.gz
+                    DOWNLOAD_DIR ${THIRDPARTY_SRC_DIR}/glslang
+                    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${THIRDPARTY_INSTALL_DIR} -DCMAKE_INSTALL_BINDIR=bin
+                    BINARY_DIR ${THIRDPARTY_BUILD_DIR}/glslang
+                    STAMP_DIR ${THIRDPARTY_BUILD_DIR}/glslang/stamp
                     BUILD_COMMAND make glslangValidator
                     INSTALL_COMMAND make install > /dev/null)
 
-file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/stamps)
-add_custom_command(TARGET gles2
-                  POST_BUILD
-                  COMMAND touch ${PROJECT_BINARY_DIR}/stamps/gles2.stamp)
-add_custom_command(TARGET vulkan
-                  POST_BUILD
-                  COMMAND touch ${PROJECT_BINARY_DIR}/stamps/vulkan.stamp)
-add_custom_command(TARGET software
-                  POST_BUILD
-                  COMMAND touch ${PROJECT_BINARY_DIR}/stamps/software.stamp)
+add_custom_command(OUTPUT ${THIRDPARTY_INCLUDE_DIR}/vulkan/vulkan.h
+                   COMMAND mkdir -p "${THIRDPARTY_INCLUDE_DIR}/vulkan"
+                   COMMAND wget -O "${THIRDPARTY_INCLUDE_DIR}/vulkan/vulkan.h"
+                                   "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/1.0/src/vulkan/vulkan.h")
+
+add_custom_command(OUTPUT ${THIRDPARTY_INCLUDE_DIR}/vulkan/vk_platform.h
+                   COMMAND mkdir -p "${THIRDPARTY_INCLUDE_DIR}/vulkan"
+                   COMMAND wget -O "${THIRDPARTY_INCLUDE_DIR}/vulkan/vk_platform.h"
+                                   "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/1.0/src/vulkan/vk_platform.h")
+
+add_custom_target(vulkan_headers
+                  DEPENDS ${THIRDPARTY_INCLUDE_DIR}/vulkan/vulkan.h
+                          ${THIRDPARTY_INCLUDE_DIR}/vulkan/vk_platform.h)

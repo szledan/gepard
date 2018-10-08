@@ -26,7 +26,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import argparse
-import dependencies
 import build
 import sys
 import util
@@ -45,7 +44,6 @@ def run_unittest(throw=True):
 
     print('')
     print("Building unit-tests...")
-    dependencies.build_dependencies([args.backend])
     build.configure(util.get_base_path(), build_path, args)
     build.build_targets(build_path, args.targets)
 

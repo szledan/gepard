@@ -95,13 +95,13 @@ list(APPEND SOURCES ${${BACKEND}_SOURCES})
 
 add_library(gepard SHARED ${SOURCES})
 
-if (BACKEND STREQUAL "VULKAN" AND NOT VULKAN_FOUND)
-  add_dependencies(gepard vulkan_headers)
-endif()
-
 if (BACKEND STREQUAL "VULKAN")
   include(VulkanShaders)
   add_dependencies(gepard vulkan_shaders)
+  if (NOT VULKAN_FOUND)
+    add_dependencies(gepard vulkan_headers)
+    target_include_directories(gepard PRIVATE ${THIRDPARTY_INCLUDE_DIR})
+  endif()
 endif()
 
 target_compile_definitions(gepard PRIVATE "GD_USE_${BACKEND}")

@@ -26,7 +26,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import argparse
-import dependencies
 import subprocess
 import sys
 import util
@@ -63,7 +62,6 @@ def add_args(parser):
     parser.add_argument('--build-dir', '-b', action='store', dest='build_dir', help='Specify build directory.')
     parser.add_argument('--install-prefix', action='store', dest='install_prefix', help='Specify install prefix.')
     parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='build_type', help='Build debug.')
-    parser.add_argument('--rebuild-deps', action='store_true', default=False, help='Rebuild thirdparty dependencies.')
     parser.add_argument('--backend', action='store', choices=['gles2', 'software', 'vulkan'], default='gles2', help='Specify which graphics back-end to use.')
     parser.add_argument('--log-level', '-l', action='store', type=int, choices=range(0,5), default=0, help='Set logging level.')
     parser.add_argument('--no-colored-logs', action='store_true', default=False, help='Disable colored log messages.')
@@ -108,7 +106,6 @@ def main():
     arguments = get_args()
 
     try:
-        dependencies.build_dependencies([arguments.backend], arguments.rebuild_deps)
         build_path = util.get_build_path(arguments)
         configure(util.get_base_path(), build_path, arguments)
         build_targets(build_path, arguments.targets)
