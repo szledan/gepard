@@ -26,7 +26,7 @@
 
 cmake_minimum_required(VERSION 2.8.10)
 project(gepard C CXX)
-set(PROJECT_VERSION 0.0.2)
+set(PROJECT_VERSION 0.1.0)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake ${PROJECT_SOURCE_DIR}/cmake/modules)
 
