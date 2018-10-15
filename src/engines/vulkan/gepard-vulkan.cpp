@@ -26,6 +26,7 @@
 #include "gepard-vulkan.h"
 
 #include "gepard-float.h"
+#include "gepard-logging.h"
 #include <cstring>
 #include <fstream>
 #include <string>
@@ -71,24 +72,24 @@ GepardVulkan::GepardVulkan(GepardContext& context)
     , _wsiSurface(0)
     , _wsiSwapChain(0)
 {
-    GD_LOG1("GepardVulkan");
+    GD_LOG(INFO) << "Initialize GepardVulkan";
     _vk.loadGlobalFunctions();
-    GD_LOG2(" - Global functions are loaded");
+    GD_LOG(INFO) << "Global functions are loaded";
     createDefaultInstance();
     _vk.loadInstanceFunctions(_instance);
-    GD_LOG2(" - Instance functions are loaded");
+    GD_LOG(INFO) << "Instance functions are loaded";
     chooseDefaultDevice();
     _vk.loadDeviceFunctions(_device);
-    GD_LOG2(" - Device functions are loaded");
+    GD_LOG(INFO) << "Device functions are loaded";
     createCommandPool();
     allocatePrimaryCommandBuffer();
-    GD_LOG2(" - Command buffer is allocated");
+    GD_LOG(INFO) << "Command buffer is allocated";
     createDefaultRenderPass();
-    GD_LOG2(" - Default render pass is created");
+    GD_LOG(INFO) << "Default render pass is created";
     createSurfaceImage();
-    GD_LOG2(" - Surface backing image is created");
+    GD_LOG(INFO) << "Surface backing image is created";
     createDefaultFrameBuffer();
-    GD_LOG2(" - Default frame buffer is created");
+    GD_LOG(INFO) << "Default frame buffer is created";
     if (_context.surface->getDisplay())
         createSwapChain();
 }
@@ -288,7 +289,7 @@ void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const F
     _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
     if (vkResult == VK_TIMEOUT) {
-        GD_LOG1("TIMEOUT!");
+        GD_LOG(WARNING) << "TIMEOUT!";
     }
 
     updateSurface();
@@ -311,7 +312,7 @@ void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const F
 
 void GepardVulkan::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
 {
-    GD_LOG2("drawImage " << sx << " " << sy << " " << sw << " " << sh << " " << dx << " " << dy << " " << dw << " " << dh);
+    GD_LOG(DEBUG) << "drawImage " << sx << " " << sy << " " << sw << " " << sh << " " << dx << " " << dy << " " << dw << " " << dh;
     VkResult vkResult;
     const uint32_t width = imagedata.width();
     const uint32_t height = imagedata.height();
@@ -649,7 +650,7 @@ void GepardVulkan::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Flo
 
 void GepardVulkan::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
 {
-    GD_LOG2("putImage " << dx << " " << dy << " " << dirtyX << " " << dirtyY << " " << dirtyWidth << " " << dirtyHeight);
+    GD_LOG(DEBUG) << "putImage " << dx << " " << dy << " " << dirtyX << " " << dirtyY << " " << dirtyWidth << " " << dirtyHeight;
     VkResult vkResult;
     const uint32_t width = imagedata.width();
     const uint32_t height = imagedata.height();
@@ -832,7 +833,7 @@ void GepardVulkan::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, 
 
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
     if (vkResult == VK_TIMEOUT) {
-        GD_LOG1("TIMEOUT!");
+        GD_LOG(WARNING) << "TIMEOUT!";
     }
 
     updateSurface();
@@ -905,7 +906,7 @@ void GepardVulkan::chooseDefaultPhysicalDevice()
     uint32_t deviceCount;
     _vk.vkEnumeratePhysicalDevices(_instance, &deviceCount, nullptr);
     GD_ASSERT(deviceCount && "Couldn't find any device!");
-    GD_LOG3("Physical devices found: " << deviceCount);
+    GD_LOG(DEBUG) << "Physical devices found: " << deviceCount;
     std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
 
     std::vector<VkPhysicalDevice> integratedDevices;
@@ -915,9 +916,9 @@ void GepardVulkan::chooseDefaultPhysicalDevice()
     for (auto& physicalDevice: physicalDevices) {
            VkPhysicalDeviceProperties deviceProperties;
            _vk.vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
-           GD_LOG3("device name " << deviceProperties.deviceName);
-           GD_LOG3("api version " << (deviceProperties.apiVersion >> 22) << "."
-               << ((deviceProperties.apiVersion >> 12) & 0x1ff) << "."  << (deviceProperties.apiVersion & 0x7ff));
+           GD_LOG(DEBUG) << "device name " << deviceProperties.deviceName;
+           GD_LOG(DEBUG) << "api version " << (deviceProperties.apiVersion >> 22) << "."
+               << ((deviceProperties.apiVersion >> 12) & 0x1ff) << "."  << (deviceProperties.apiVersion & 0x7ff);
            if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
                integratedDevices.push_back(physicalDevice);
                continue;
@@ -1184,7 +1185,7 @@ void GepardVulkan::createSurfaceImage()
     _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
     if (vkResult == VK_TIMEOUT) {
-        GD_LOG1("TIMEOUT!");
+        GD_LOG(WARNING) << "TIMEOUT!";
     }
 
     _vk.vkDestroyFence(_device, fence, _allocator);
@@ -1484,7 +1485,7 @@ void GepardVulkan::presentImage()
     // We need to have the next image before we submit the blit commands to it, let's wait for it.
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
     if (vkResult == VK_TIMEOUT) {
-        GD_LOG3("TIMEOUT before acquiring the next surface image, waiting for it.");
+        GD_LOG(WARNING) << "TIMEOUT before acquiring the next surface image, waiting for it.";
         _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, -1);
     }
     _vk.vkResetFences(_device, 1, &fence);
@@ -1492,7 +1493,7 @@ void GepardVulkan::presentImage()
     _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
     if (vkResult == VK_TIMEOUT) {
-        GD_LOG1("TIMEOUT!");
+        GD_LOG(WARNING) << "TIMEOUT!";
     }
 
     const VkPresentInfoKHR presentInfo = {
@@ -1639,7 +1640,7 @@ void GepardVulkan::readImage(uint32_t* memoryBuffer, int32_t x, int32_t y, uint3
     _vk.vkQueueSubmit(queque, 1, &submitInfo, fence);
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
     if (vkResult == VK_TIMEOUT) {
-        GD_LOG1("TIMEOUT!");
+        GD_LOG(WARNING) << "TIMEOUT!";
     }
 
     void* data;
@@ -1968,7 +1969,7 @@ void GepardVulkan::submitAndWait(const VkCommandBuffer commandBuffer)
     _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
     if (vkResult == VK_TIMEOUT) {
-        GD_LOG1("TIMEOUT!");
+        GD_LOG(WARNING) << "TIMEOUT!";
     }
 
     _vk.vkDestroyFence(_device, fence, _allocator);

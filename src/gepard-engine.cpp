@@ -26,8 +26,10 @@
 #include "gepard-engine.h"
 
 #include "gepard-color.h"
+#include "gepard-defs.h"
 #include "gepard-float-point.h"
 #include "gepard-float.h"
+#include "gepard-logging.h"
 #include "gepard-transform.h"
 
 namespace gepard {
@@ -219,7 +221,7 @@ void GepardEngine::setTransform(const Float a, const Float b, const Float c, con
  */
 void GepardEngine::beginPath()
 {
-    GD_LOG1("Clear path data.");
+    GD_LOG(DEBUG) << "Clear path data.";
     _context.path.clear();
 }
 
@@ -363,7 +365,7 @@ Image GepardEngine::getImage(Float sx, Float sy, Float sw, Float sh)
 
 void GepardEngine::setFillColor(const Color& color)
 {
-    GD_LOG1("Set fill color (" << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ")");
+    GD_LOG(DEBUG) << "Set fill color (" << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ")";
     state().fillColor = color;
 }
 
@@ -374,7 +376,7 @@ void GepardEngine::setFillColor(const Float red, const Float green, const Float 
 
 void GepardEngine::setStrokeColor(const Color& color)
 {
-    GD_LOG1("Set stroke color (" << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ")");
+    GD_LOG(DEBUG) << "Set stroke color (" << color.r << ", " << color.g << ", " << color.b << ", " << color.a << ")";
     state().strokeColor = color;
 }
 

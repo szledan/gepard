@@ -28,6 +28,7 @@
 #include "gepard-defs.h"
 #include "gepard-float-point.h"
 #include "gepard-float.h"
+#include "gepard-logging.h"
 #include "gepard-transform.h"
 #include <cmath>
 #include <ostream>
@@ -161,7 +162,7 @@ void PathData::addMoveToElement(FloatPoint to)
     }
 
     PathElement* currentElement = static_cast<PathElement*>(new (_region.alloc(sizeof(MoveToElement))) MoveToElement(to));
-    GD_LOG4("Add path element: " << (*currentElement));
+    GD_LOG(TRACE) << "Add path element: " << (*currentElement);
 
     if (!_firstElement) {
         _firstElement = currentElement;
@@ -186,7 +187,7 @@ void PathData::addLineToElement(FloatPoint to)
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(LineToElement))) LineToElement(to));
     _lastElement = _lastElement->next;
-    GD_LOG4("Add path element: " << (*_lastElement));
+    GD_LOG(TRACE) << "Add path element: " << (*_lastElement);
 }
 
 void PathData::addQuadaraticCurveToElement(FloatPoint control, FloatPoint to)
@@ -198,7 +199,7 @@ void PathData::addQuadaraticCurveToElement(FloatPoint control, FloatPoint to)
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(QuadraticCurveToElement))) QuadraticCurveToElement(control, to));
     _lastElement = _lastElement->next;
-    GD_LOG4("Add path element: " << (*_lastElement));
+    GD_LOG(TRACE) << "Add path element: " << (*_lastElement);
 }
 
 void PathData::addBezierCurveToElement(FloatPoint control1, FloatPoint control2, FloatPoint to)
@@ -210,7 +211,7 @@ void PathData::addBezierCurveToElement(FloatPoint control1, FloatPoint control2,
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(BezierCurveToElement))) BezierCurveToElement(control1, control2, to));
     _lastElement = _lastElement->next;
-    GD_LOG4("Add path element: " << (*_lastElement));
+    GD_LOG(TRACE) << "Add path element: " << (*_lastElement);
 }
 
 void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAngle, Float endAngle, bool antiClockwise)
@@ -268,7 +269,7 @@ void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAn
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(ArcElement))) ArcElement(center, radius, startAngle, endAngle, antiClockwise));
     _lastElement = _lastElement->next;
-    GD_LOG4("Add path element: " << (*_lastElement));
+    GD_LOG(TRACE) << "Add path element: " << (*_lastElement);
 }
 
 void PathData::addArcToElement(const FloatPoint& control, const FloatPoint& end, const Float& radius)
@@ -353,7 +354,7 @@ void PathData::addCloseSubpathElement()
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(CloseSubpathElement))) CloseSubpathElement(_lastMoveToElement->to));
     _lastElement = _lastElement->next;
-    GD_LOG4("Add path element: " << (*_lastElement));
+    GD_LOG(TRACE) << "Add path element: " << (*_lastElement);
 }
 
 void PathData::applyTransform(const Transform& transform)

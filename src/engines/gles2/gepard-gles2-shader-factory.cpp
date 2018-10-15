@@ -27,6 +27,7 @@
 
 #include "gepard-defs.h"
 #include "gepard-gles2-defs.h"
+#include "gepard-logging.h"
 #include <string>
 #include <vector>
 
@@ -44,7 +45,7 @@ void ShaderProgram::logShaderCompileError(const GLuint shader)
     GLsizei length = 0;
     glGetShaderInfoLog(shader, maxLength, &length, &errorLog[0]);
 
-    GD_LOG_ERR("Shader compilation failed with: " << std::string(errorLog.begin(), errorLog.end()));
+    GD_LOG(ERROR) << "Shader compilation failed with: " << std::string(errorLog.begin(), errorLog.end());
 }
 
 void ShaderProgram::logProgramLinkError(const GLuint program)
@@ -56,12 +57,12 @@ void ShaderProgram::logProgramLinkError(const GLuint program)
     GLsizei length = 0;
     glGetProgramInfoLog(program, maxLength, &length, &errorLog[0]);
 
-    GD_LOG_ERR("Shader program link failed with: " << std::string(errorLog.begin(), errorLog.end()));
+    GD_LOG(ERROR) << "Shader program link failed with: " << std::string(errorLog.begin(), errorLog.end());
 }
 
 const GLuint ShaderProgram::compileShader(const GLenum type, const GLchar* shaderSource)
 {
-    GD_LOG1("Compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader program.");
+    GD_LOG(DEBUG) << "Compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader program";
 
     const GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &shaderSource, NULL);
@@ -80,7 +81,7 @@ const GLuint ShaderProgram::compileShader(const GLenum type, const GLchar* shade
 
 const GLuint ShaderProgram::linkPrograms(const GLuint vertexShader, const GLuint fragmentShader)
 {
-    GD_LOG1("Link shader programs; vertex shader: " << vertexShader << ", fragment shader: " << fragmentShader);
+    GD_LOG(DEBUG) << "Link shader programs; vertex shader: " << vertexShader << ", fragment shader: " << fragmentShader;
     GD_ASSERT(vertexShader && "Vertex shader program doesn't exist!");
     GD_ASSERT(fragmentShader && "Fragment shader program doesn't exist!");
 
@@ -104,7 +105,7 @@ void ShaderProgram::compileShaderProgram(const std::string& name, const std::str
     if (id != kInvalidProgramID)
         return;
 
-    GD_LOG1("Compile '" << name << "' shader program.");
+    GD_LOG(INFO) << "Compile '" << name << "' shader program.";
 
     GLuint vertexShader = 0;
     vertexShader = compileShader(GL_VERTEX_SHADER, (const GLchar*)vertexShaderSource.c_str());
@@ -114,7 +115,7 @@ void ShaderProgram::compileShaderProgram(const std::string& name, const std::str
 
     if (vertexShader && fragmentShader) {
         id = linkPrograms(vertexShader, fragmentShader);
-        GD_LOG2("The '" << name << "' linked program is: " << id << ".");
+        GD_LOG(DEBUG) << "The '" << name << "' linked program is: " << id;
     }
 
     // According to the specification, the shaders are kept
@@ -132,7 +133,7 @@ ShaderProgram& ShaderProgramManager::getProgram(const std::string& name, const s
     ShaderProgram& program = _programs[name];
     if (program.isInvalid()) {
         program.compileShaderProgram(name, vertexShaderSource, fragmentShaderSource);
-        GD_LOG2("Add new shader program: " << name << " with ID: " << program.id);
+        GD_LOG(DEBUG) << "Add new shader program: " << name << " with ID: " << program.id;
     }
 
     return program;

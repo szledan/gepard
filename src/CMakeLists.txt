@@ -35,9 +35,9 @@ set(COMMON_SOURCES
     gepard-image.cpp
     utils/gepard-bounding-box.cpp
     utils/gepard-color.cpp
-    utils/gepard-defs.cpp
     utils/gepard-float-point.cpp
     utils/gepard-line-types.cpp
+    utils/gepard-logging.cpp
     utils/gepard-transform.cpp
     utils/gepard-vec4.cpp
 )
