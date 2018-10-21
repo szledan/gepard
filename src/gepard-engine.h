@@ -28,9 +28,13 @@
 
 #include "gepard-defs.h"
 
+#include "gepard-color.h"
 #include "gepard-context.h"
+#include "gepard-float.h"
+#include "gepard-float-point.h"
 #include "gepard-image.h"
-#include "gepard-types.h"
+#include "gepard-state.h"
+
 
 // Include engine backend.
 #if defined(GD_USE_GLES2)
@@ -68,20 +72,20 @@ public:
 
     /* 5. Building paths */
     void closePath();
-    void moveTo(Float x, Float y);
-    void lineTo(Float x, Float y);
-    void quadraticCurveTo(Float cpx, Float cpy, Float x, Float y);
-    void bezierCurveTo(Float cp1x, Float cp1y, Float cp2x, Float cp2y, Float x, Float y);
-    void arcTo(Float x1, Float y1, Float x2, Float y2, Float radius);
-    void rect(Float x, Float y, Float w, Float h);
-    void arc(Float x, Float y, Float radius, Float startAngle, Float endAngle, bool counterclockwise = false);
+    void moveTo(const Float x, const Float y);
+    void lineTo(const Float x, const Float y);
+    void quadraticCurveTo(const Float cpx, const Float cpy, const Float x, const Float y);
+    void bezierCurveTo(const Float cp1x, const Float cp1y, const Float cp2x, const Float cp2y, const Float x, const Float y);
+    void arcTo(const Float x1, const Float y1, const Float x2, const Float y2, const Float radius);
+    void rect(const Float x, const Float y, const Float w, const Float h);
+    void arc(const Float x, const Float y, const Float radius, const Float startAngle, const Float endAngle, const bool counterclockwise = false);
 
     /* 6. Transformations */
-    void scale(Float x, Float y);
-    void rotate(Float angle);
-    void translate(Float x, Float y);
-    void transform(Float a, Float b, Float c, Float d, Float e, Float f);
-    void setTransform(Float a, Float b, Float c, Float d, Float e, Float f);
+    void scale(const Float x, const Float y);
+    void rotate(const Float angle);
+    void translate(const Float x, const Float y);
+    void transform(const Float a, const Float b, const Float c, const Float d, const Float e, const Float f);
+    void setTransform(const Float a, const Float b, const Float c, const Float d, const Float e, const Float f);
 
     /* 11. Drawing paths to the canvas */
     void beginPath();
@@ -89,9 +93,13 @@ public:
     void stroke();
     void drawFocusIfNeeded(/*Element element*/);
     void clip();
-    bool isPointInPath(Float x, Float y);
+    bool isPointInPath(const Float x, const Float y);
 
-    void fillRect(Float x, Float y, Float w, Float h);
+    void fillRect(const Float x, const Float y, const Float w, const Float h);
+
+    void drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh);
+    Image getImage(Float sx, Float sy, Float sw, Float sh);
+    void putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight);
 
     void setFillColor(const Color& color);
     void setFillColor(const Float red, const Float green, const Float blue, const Float alpha = 1.0f);

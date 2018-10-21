@@ -23,8 +23,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_VULKAN
-
 #ifndef GEPARD_VULKAN_INTERFACE_H
 #define GEPARD_VULKAN_INTERFACE_H
 
@@ -32,6 +30,7 @@
 
 // TODO: move this define to the build system
 #define VK_USE_PLATFORM_XLIB_KHR
+//#define VK_USE_PLATFORM_XCB_KHR
 
 #include <vulkan/vulkan.h>
 
@@ -105,6 +104,7 @@ namespace vulkan {
     FUNC(vkCmdDrawIndexedIndirect); \
     FUNC(vkCreateFence); \
     FUNC(vkDestroyFence); \
+    FUNC(vkResetFences); \
     FUNC(vkWaitForFences); \
     FUNC(vkCmdBindVertexBuffers); \
     FUNC(vkCmdBindIndexBuffer); \
@@ -120,7 +120,17 @@ namespace vulkan {
     FUNC(vkDestroySwapchainKHR); \
     FUNC(vkGetSwapchainImagesKHR); \
     FUNC(vkAcquireNextImageKHR); \
-    FUNC(vkQueuePresentKHR);
+    FUNC(vkQueuePresentKHR); \
+    FUNC(vkCreateDescriptorSetLayout); \
+    FUNC(vkDestroyDescriptorSetLayout); \
+    FUNC(vkCreateDescriptorPool); \
+    FUNC(vkDestroyDescriptorPool); \
+    FUNC(vkAllocateDescriptorSets); \
+    FUNC(vkFreeDescriptorSets); \
+    FUNC(vkCreateSampler); \
+    FUNC(vkDestroySampler); \
+    FUNC(vkUpdateDescriptorSets); \
+    FUNC(vkCmdBindDescriptorSets);
 
 class GepardVulkanInterface {
 public:
@@ -141,6 +151,9 @@ public:
 #if defined(VK_USE_PLATFORM_XLIB_KHR)
     GD_VK_DECLARE_FUNCTION(vkCreateXlibSurfaceKHR);
 #endif // VK_USE_PLATFORM_XLIB_KHR
+#if defined(VK_USE_PLATFORM_XCB_KHR)
+    GD_VK_DECLARE_FUNCTION(vkCreateXcbSurfaceKHR);
+#endif // VK_USE_PLATFORM_XCB_KHR
 
     GD_VK_DEVICE_FUNTION_LIST(GD_VK_DECLARE_FUNCTION)
 
@@ -154,5 +167,3 @@ private:
 } // namespace gepard
 
 #endif // GEPARD_VULKAN_INTERFACE_H
-
-#endif // USE_VULKAN

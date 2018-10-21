@@ -27,9 +27,11 @@
 #define GEPARD_STROKE_BUILDER_H
 
 #include "gepard-defs.h"
-#include "gepard-trapezoid-tessellator.h"
+#include "gepard-float-point.h"
+#include "gepard-float.h"
+#include "gepard-line-types.h"
 #include "gepard-path.h"
-#include "gepard-types.h"
+#include "gepard-trapezoid-tessellator.h"
 
 namespace gepard {
 

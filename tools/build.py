@@ -51,12 +51,16 @@ def create_options(arguments=None):
     if hasattr(arguments, 'no_colored_logs') and arguments.no_colored_logs:
         opts.append('-DDISABLE_LOG_COLORS=ON')
 
+    if hasattr(arguments, 'install_prefix') and arguments.install_prefix:
+        opts.append('-DCMAKE_INSTALL_PREFIX=' + arguments.install_prefix)
+
     return opts
 
 
 def add_args(parser):
     """ Adds arguments to the parser. """
     parser.add_argument('--build-dir', '-b', action='store', dest='build_dir', help='Specify build directory.')
+    parser.add_argument('--install-prefix', action='store', dest='install_prefix', help='Specify install prefix.')
     parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='build_type', help='Build debug.')
     parser.add_argument('--backend', action='store', choices=['gles2', 'software', 'vulkan'], default='gles2', help='Specify which graphics back-end to use.')
     parser.add_argument('--log-level', '-l', action='store', type=int, choices=range(0,5), default=0, help='Set logging level.')
@@ -72,22 +76,20 @@ def get_args(skip_unknown=False):
     return parser.parse_args()
 
 
-def configure(arguments):
+def configure(source_path, build_path, arguments=None):
     """ Configures the build based on the supplied arguments. """
-    build_path = util.get_build_path(arguments)
-
     try:
         makedirs(build_path)
     except OSError:
         pass
 
-    util.call(['cmake', '-B' + build_path, '-H' + util.get_base_path()] + create_options(arguments))
+    util.call(['cmake', '-B' + build_path, '-H' + source_path] + create_options(arguments))
 
 
-def build_targets(arguments):
-    """ Runs the build. """
-    build_command = ['make', '-s', '-C', util.get_build_path(arguments)]
-    build_command.extend(arguments.targets)
+def build_targets(build_path, targets):
+    """ Builds the specified targets. """
+    build_command = ['make', '-s', '-C', build_path]
+    build_command.extend(targets)
 
     util.call(build_command)
 
@@ -104,8 +106,9 @@ def main():
     arguments = get_args()
 
     try:
-        configure(arguments)
-        build_targets(arguments)
+        build_path = util.get_build_path(arguments)
+        configure(util.get_base_path(), build_path, arguments)
+        build_targets(build_path, arguments.targets)
     except util.CommandError as e:
         print("Build failed: %s" % e)
         sys.exit(e.code)

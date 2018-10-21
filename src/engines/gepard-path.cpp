@@ -26,7 +26,9 @@
 #include "gepard-path.h"
 
 #include "gepard-defs.h"
-#include "gepard-types.h"
+#include "gepard-float-point.h"
+#include "gepard-float.h"
+#include "gepard-transform.h"
 #include <cmath>
 #include <ostream>
 

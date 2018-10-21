@@ -44,8 +44,8 @@ def run_unittest(throw=True):
 
     print('')
     print("Building unit-tests...")
-    build.configure(args)
-    build.build_targets(args)
+    build.configure(util.get_base_path(), build_path, args)
+    build.build_targets(build_path, args.targets)
 
     print('')
     print("Running unit-tests...")

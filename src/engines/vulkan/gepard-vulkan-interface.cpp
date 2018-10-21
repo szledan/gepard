@@ -23,8 +23,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_VULKAN
-
 #include "gepard-vulkan-interface.h"
 
 #include <dlfcn.h>
@@ -71,6 +69,9 @@ void GepardVulkanInterface::loadInstanceFunctions(const VkInstance instance)
 #if defined(VK_USE_PLATFORM_XLIB_KHR)
     GD_VK_LOAD_FUNCTION(vkCreateXlibSurfaceKHR);
 #endif // VK_USE_PLATFORM_XLIB_KHR
+#if defined(VK_USE_PLATFORM_XCB_KHR)
+    GD_VK_LOAD_FUNCTION(vkCreateXcbSurfaceKHR);
+#endif // VK_USE_PLATFORM_XCB_KHR
 
 #undef GD_VK_LOAD_FUNCTION
 }
@@ -88,5 +89,3 @@ void GepardVulkanInterface::loadDeviceFunctions(const VkDevice device)
 
 } // namespace vulkan
 } // namespace gepard
-
-#endif // USE_VULKAN

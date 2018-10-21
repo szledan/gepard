@@ -23,12 +23,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_SOFTWARE
-
 #include "gepard-software.h"
 
+#include "gepard-color.h"
 #include "gepard-defs.h"
-#include "gepard-types.h"
+#include "gepard-float.h"
 
 namespace gepard {
 namespace software {
@@ -93,5 +92,3 @@ void GepardSoftware::stroke()
 
 } // namespace software
 } // namespace gepard
-
-#endif // GD_USE_SOFTWARE

@@ -24,15 +24,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_GLES2
-
 #include "gepard-gles2.h"
 
 #include "gepard-defs.h"
 #include "gepard-engine.h"
 #include "gepard-gles2-defs.h"
 #include "gepard-gles2-shader-factory.h"
-#include "gepard-png-surface.h"
 
 namespace gepard {
 namespace gles2 {
@@ -273,5 +270,3 @@ void GepardGLES2::render()
 
 } // namespace gles2
 } // namespace gepard
-
-#endif // GD_USE_GLES2

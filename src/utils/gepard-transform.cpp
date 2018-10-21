@@ -1,5 +1,5 @@
-/* Copyright (C) 2015-2016, Gepard Graphics
- * Copyright (C) 2015, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2015-2016, 2018, Gepard Graphics
+ * Copyright (C) 2015, 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,128 +23,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-types.h"
+#include "gepard-transform.h"
+
+#include "gepard-float-point.h"
+#include "gepard-float.h"
+#include <cmath>
 
 namespace gepard {
-
-/* BoundingBox */
-
-void BoundingBox::stretchX(const Float x)
-{
-    if (x < minX) {
-        minX = x;
-    }
-    if (x > maxX) {
-        maxX = x;
-    }
-}
-void BoundingBox::stretchY(const Float y)
-{
-    if (y < minY) {
-        minY = y;
-    }
-    if (y > maxY) {
-        maxY = y;
-    }
-}
-void BoundingBox::stretch(const FloatPoint& p)
-{
-    stretchX(p.x);
-    stretchY(p.y);
-}
-
-/* Vec4 */
-
-Float& Vec4::operator[](std::size_t idx)
-{
-    switch (idx) {
-    case 0: return x;
-    case 1: return y;
-    case 2: return z;
-    case 3: return w;
-    default:
-        GD_CRASH("Index out of bound!");
-    }
-}
-
-/* Color */
-
-const Color Color::BLACK(0.0f, 0.0f, 0.0f, 1.0f);
-const Color Color::WHITE(1.0f, 1.0f, 1.0f, 1.0f);
-
-Color::Color(const Float red, const Float green, const Float blue, const Float alpha)
-    : Vec4(clamp(red, Float(0.0f), Float(1.0f)), clamp(green, Float(0.0f), Float(1.0f)), clamp(blue, Float(0.0f), Float(1.0f)), clamp(alpha, Float(0.0f), Float(1.0f)))
-{
-}
-
-Color::Color(const std::string& color)
-    : Color(Float(0.0f), Float(0.0f), Float(0.0f), Float(1.0f))
-{
-    const size_t length = color.length();
-    int n;
-
-    // Convert string hex to unsgined int.
-    std::stringstream ss;
-    ss << std::hex << color.substr(1);
-    ss >> n;
-    GD_LOG3("Convert '" << color << "' string to hex number: " << std::hex << n);
-
-    a = 1.0;
-    if (length == 7) {
-        r = ((n & 0xff0000) >> 16) / 255.0;
-        g = ((n & 0x00ff00) >> 8) / 255.0;
-        b = (n & 0x0000ff) / 255.0;
-    } else if (length == 4) {
-        r = ((n & 0xf00) >> 8) / 15.0;
-        g = ((n & 0x0f0) >> 4) / 15.0;
-        b =  (n & 0x00f) / 15.0;
-    }
-    GD_LOG3("Color is: " << r << ", " << g << ", " << b << ", " << a << ".");
-}
-
-Color Color::fromRawDataABGR(uint32_t raw)
-{
-    const Float red = Float(raw & 0x000000ff) / 255.0f;
-    const Float green = Float((raw & 0x00ff00) >> 8) / 255.0f;
-    const Float blue = Float((raw & 0x00ff0000) >> 16) / 255.0f;
-    const Float alpha = Float((raw & 0xff000000) >> 24) / 255.0f;
-    return Color(red, green, blue, alpha);
-}
-
-uint32_t Color::toRawDataABGR(Color color)
-{
-    const uint32_t alphaByte = (uint32_t(color.a * 255.0f) & 0xff) << 24;
-    const uint32_t blueByte = (uint32_t(color.b * 255.0f) & 0xff) << 16;
-    const uint32_t greenByte = (uint32_t(color.g * 255.0f) & 0xff) << 8;
-    const uint32_t redByte = (uint32_t(color.r * 255.0f) & 0xff);
-    return alphaByte | blueByte | greenByte | redByte;
-}
-
-Color& Color::operator*=(const Float& rhs)
-{
-    this->r = clamp(this->r * rhs, Float(0.0f), Float(1.0f));
-    this->g = clamp(this->g * rhs, Float(0.0f), Float(1.0f));
-    this->b = clamp(this->b * rhs, Float(0.0f), Float(1.0f));
-    this->a = clamp(this->a * rhs, Float(0.0f), Float(1.0f));
-
-    return *this;
-}
-
-LineCapTypes strToLineCap(const std::string& value)
-{
-    if (value == "round") return RoundCap;
-    if (value == "square") return SquareCap;
-    return ButtCap;
-}
-
-LineJoinTypes strToLineJoin(const std::string& value)
-{
-    if (value == "round") return RoundJoin;
-    if (value == "bevel") return BevelJoin;
-    return MiterJoin;
-}
-
-/* Transform */
 
 Transform::Transform(const Float a, const Float b, const Float c, const Float d, const Float e, const Float f)
 {
@@ -179,7 +64,7 @@ Transform&Transform::translate(const Float x, const Float y)
     return *this;
 }
 
-const FloatPoint Transform::apply(const FloatPoint p) const
+const FloatPoint Transform::apply(const FloatPoint& p) const
 {
     const Float x = p.x * data[0] + p.y * data[2] + data[4];
     const Float y = p.x * data[1] + p.y * data[3] + data[5];

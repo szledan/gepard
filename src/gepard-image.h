@@ -1,5 +1,5 @@
-/* Copyright (C) 2015-2016, Gepard Graphics
- * Copyright (C) 2016, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
+/* Copyright (C) 2015-2018, Gepard Graphics
+ * Copyright (C) 2016, 2018 Kristof Kosztyo <kkristof@inf.u-szeged.hu>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,12 +26,27 @@
 #ifndef GEPARD_IMAGE_H
 #define GEPARD_IMAGE_H
 
-#include "gepard-defs.h"
+#include <cstdint>
+#include <vector>
 
 namespace gepard {
 
 class Image {
-/*! \todo Implement Image */
+public:
+    Image();
+    Image(uint32_t width, uint32_t height);
+    Image(uint32_t width, uint32_t height, const std::vector<uint32_t> &data);
+    virtual ~Image();
+
+    const uint32_t width();
+    const uint32_t height();
+ // TODO: check array implementation
+    std::vector<uint32_t> &data();
+
+private:
+    uint32_t _width;
+    uint32_t _height;
+    std::vector<uint32_t> _data;
 };
 
 } // namespace gepard

@@ -23,8 +23,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef GD_USE_GLES2
-
 #include "gepard-gles2-shader-factory.h"
 
 #include "gepard-defs.h"
@@ -142,5 +140,3 @@ ShaderProgram& ShaderProgramManager::getProgram(const std::string& name, const s
 
 } // namespace gles2
 } // namespace gepard
-
-#endif // GD_USE_GLES2
