@@ -192,7 +192,7 @@ inline std::ostream& operator<<(std::ostream& os, const FloatPoint& p)
 
 inline bool operator==(const FloatPoint& a, const FloatPoint& b)
 {
-    return a.x == b.x && a.y == b.y;
+    return std::fabs(a.x - b.x) < 0.000005 && std::fabs(a.y - b.y) < 0.000005;
 }
 
 inline bool operator!=(const FloatPoint& a, const FloatPoint& b)
