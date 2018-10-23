@@ -32,10 +32,8 @@
 namespace gepard {
 
 typedef double Float;
-const double precisionOfFloat = 0x1L << 50;
 
 inline const Float strToFloat(const std::string& str) { return std::stod(str); }
-inline Float fixPrecision(Float f) { return std::floor(f * precisionOfFloat) / precisionOfFloat; }
 
 static const Float piFloat = 2.0 * std::asin(1.0);
 
