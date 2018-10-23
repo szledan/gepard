@@ -636,9 +636,13 @@ void GepardVulkan::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Flo
 
     _vk.vkDestroyImageView(_device, imageView, _allocator);
 
+    _vk.vkFreeMemory(_device, vertexBufferMemory, _allocator);
+    _vk.vkFreeMemory(_device, indexBufferMemory, _allocator);
     _vk.vkFreeMemory(_device, imageMemory, _allocator);
     _vk.vkFreeMemory(_device, bufferAlloc, _allocator);
 
+    _vk.vkDestroyBuffer(_device, vertexBuffer, _allocator);
+    _vk.vkDestroyBuffer(_device, indexBuffer, _allocator);
     _vk.vkDestroyImage(_device, image, _allocator);
     _vk.vkDestroyBuffer(_device, buffer, _allocator);
 }
