@@ -236,10 +236,9 @@ int main(int argc, char* argv[])
     } else {
         gepard::XSurface* xSurface = (gepard::XSurface*)(surface);
 
-        XEvent xEvent;
         while (true) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            if (XCheckWindowEvent((Display*)xSurface->getDisplay(), (Window)xSurface->getWindow(), KeyPress | ClientMessage, &xEvent)) {
+            if (xSurface->hasToQuit()) {
                 break;
             }
         }
