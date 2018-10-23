@@ -28,6 +28,7 @@
 
 #include "gepard-defs.h"
 #include "gepard-float.h"
+#include <limits>
 #include <ostream>
 
 namespace gepard {
@@ -65,7 +66,7 @@ inline std::ostream& operator<<(std::ostream& os, const FloatPoint& p)
 
 inline bool operator==(const FloatPoint& a, const FloatPoint& b)
 {
-    return a.x == b.x && a.y == b.y;
+    return std::abs(a.x - b.x) < 16*std::numeric_limits<float>::epsilon() && std::abs(a.y - b.y) < 16*std::numeric_limits<float>::epsilon();
 }
 
 inline bool operator!=(const FloatPoint& a, const FloatPoint& b)

@@ -714,10 +714,10 @@ const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state
 
             if (fill) {
                 if (!isInFill) {
-                    trapezoid.topY = (fixPrecision(segment.topY() / denom));
-                    trapezoid.bottomY = (fixPrecision(segment.bottomY() / denom));
-                    trapezoid.topLeftX = (fixPrecision(segment.from.x) / denom);
-                    trapezoid.bottomLeftX = (fixPrecision(segment.to.x) / denom);
+                    trapezoid.topY = ((segment.topY() / denom));
+                    trapezoid.bottomY = ((segment.bottomY() / denom));
+                    trapezoid.topLeftX = ((segment.from.x) / denom);
+                    trapezoid.bottomLeftX = ((segment.to.x) / denom);
                     trapezoid.leftId = segment.id;
                     trapezoid.leftSlope = segment.realSlope;
                     if (trapezoid.topY != trapezoid.bottomY)
@@ -725,8 +725,8 @@ const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state
                 }
             } else {
                 // TODO: Horizontal merge trapezoids.
-                trapezoid.topRightX = (fixPrecision(segment.from.x) / denom);
-                trapezoid.bottomRightX = (fixPrecision(segment.to.x) / denom);
+                trapezoid.topRightX = ((segment.from.x) / denom);
+                trapezoid.bottomRightX = ((segment.to.x) / denom);
                 trapezoid.rightId = segment.id;
                 trapezoid.rightSlope = segment.realSlope;
                 if (trapezoid.topY != trapezoid.bottomY) {
@@ -743,10 +743,10 @@ const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state
 
         //! \todo(szledan): check the boundingBox calculation:
         // NOTE:  maxX = (maxX + (_antiAliasingLevel - 1)) / _antiAliasingLevel;
-        _boundingBox.minX = (fixPrecision(segmentApproximator.boundingBox().minX) / _antiAliasingLevel);
-        _boundingBox.minY = (fixPrecision(segmentApproximator.boundingBox().minY) / _antiAliasingLevel);
-        _boundingBox.maxX = (fixPrecision(segmentApproximator.boundingBox().maxX) / _antiAliasingLevel);
-        _boundingBox.maxY = (fixPrecision(segmentApproximator.boundingBox().maxY) / _antiAliasingLevel);
+        _boundingBox.minX = ((segmentApproximator.boundingBox().minX) / _antiAliasingLevel);
+        _boundingBox.minY = ((segmentApproximator.boundingBox().minY) / _antiAliasingLevel);
+        _boundingBox.maxX = ((segmentApproximator.boundingBox().maxX) / _antiAliasingLevel);
+        _boundingBox.maxY = ((segmentApproximator.boundingBox().maxY) / _antiAliasingLevel);
     }
 
     trapezoids.sort();
