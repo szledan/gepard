@@ -969,9 +969,8 @@ void GepardVulkan::chooseDefaultDevice()
     enabledInstanceLayers.push_back("VK_LAYER_LUNARG_standard_validation");
 #endif
 
-    if (_context.surface->getDisplay()) {
-        enabledInstanceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-    }
+    // TODO: enable this only when it is needed
+    enabledInstanceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
     const char* const* enabledLayerNames = enabledInstanceLayers.empty() ? nullptr : enabledInstanceLayers.data();
     const char* const* enabledExtensionNames = enabledInstanceExtensions.empty() ? nullptr : enabledInstanceExtensions.data();
