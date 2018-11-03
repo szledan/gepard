@@ -68,13 +68,31 @@ ExternalProject_Add(glslang
 add_custom_command(OUTPUT ${THIRDPARTY_INCLUDE_DIR}/vulkan/vulkan.h
                    COMMAND mkdir -p "${THIRDPARTY_INCLUDE_DIR}/vulkan"
                    COMMAND wget -O "${THIRDPARTY_INCLUDE_DIR}/vulkan/vulkan.h"
-                                   "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/1.0/src/vulkan/vulkan.h")
+                                   "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/v1.1.90/include/vulkan/vulkan.h")
 
 add_custom_command(OUTPUT ${THIRDPARTY_INCLUDE_DIR}/vulkan/vk_platform.h
                    COMMAND mkdir -p "${THIRDPARTY_INCLUDE_DIR}/vulkan"
                    COMMAND wget -O "${THIRDPARTY_INCLUDE_DIR}/vulkan/vk_platform.h"
-                                   "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/1.0/src/vulkan/vk_platform.h")
+                                   "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/v1.1.90/include/vulkan/vk_platform.h")
+
+add_custom_command(OUTPUT ${THIRDPARTY_INCLUDE_DIR}/vulkan/vulkan_core.h
+                   COMMAND mkdir -p "${THIRDPARTY_INCLUDE_DIR}/vulkan"
+                   COMMAND wget -O "${THIRDPARTY_INCLUDE_DIR}/vulkan/vulkan_core.h"
+                                   "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/v1.1.90/include/vulkan/vulkan_core.h")
+
+add_custom_command(OUTPUT ${THIRDPARTY_INCLUDE_DIR}/vulkan/vulkan_xcb.h
+                   COMMAND mkdir -p "${THIRDPARTY_INCLUDE_DIR}/vulkan"
+                   COMMAND wget -O "${THIRDPARTY_INCLUDE_DIR}/vulkan/vulkan_xcb.h"
+                                   "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/v1.1.90/include/vulkan/vulkan_xcb.h")
+
+add_custom_command(OUTPUT ${THIRDPARTY_INCLUDE_DIR}/vulkan/vulkan_xlib.h
+                   COMMAND mkdir -p "${THIRDPARTY_INCLUDE_DIR}/vulkan"
+                   COMMAND wget -O "${THIRDPARTY_INCLUDE_DIR}/vulkan/vulkan_xlib.h"
+                                   "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/v1.1.90/include/vulkan/vulkan_xlib.h")
 
 add_custom_target(vulkan_headers
                   DEPENDS ${THIRDPARTY_INCLUDE_DIR}/vulkan/vulkan.h
-                          ${THIRDPARTY_INCLUDE_DIR}/vulkan/vk_platform.h)
+                          ${THIRDPARTY_INCLUDE_DIR}/vulkan/vk_platform.h
+                          ${THIRDPARTY_INCLUDE_DIR}/vulkan/vulkan_core.h
+                          ${THIRDPARTY_INCLUDE_DIR}/vulkan/vulkan_xcb.h
+                          ${THIRDPARTY_INCLUDE_DIR}/vulkan/vulkan_xlib.h)
