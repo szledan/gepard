@@ -25,6 +25,10 @@
 
 #include "gepard-image.h"
 
+#include "gepard-logging.h"
+#include <cstring>
+#include <png.h>
+
 namespace gepard {
 
 Image::Image()
@@ -51,19 +55,70 @@ Image::~Image()
 {
 }
 
-const uint32_t Image::width()
+const uint32_t Image::width() const
 {
     return _width;
 }
 
-const uint32_t Image::height()
+const uint32_t Image::height() const
 {
     return _height;
 }
 
-std::vector<uint32_t> &Image::data()
+const std::vector<uint32_t> &Image::data() const
 {
     return _data;
+}
+
+bool utils::savePng(const Image &image, const std::string &fileName)
+{
+    if (image.data().size() == 0u) {
+        GD_LOG(WARNING) << "The image is empty!";
+        return false;
+    }
+    png_image pngImage;
+    std::memset(&pngImage, 0, sizeof(pngImage));
+    pngImage.version = PNG_IMAGE_VERSION;
+    pngImage.opaque = nullptr;
+    pngImage.width = image.width();
+    pngImage.height = image.height();
+    pngImage.format = PNG_FORMAT_RGBA;
+    pngImage.flags = 0u;
+    pngImage.colormap_entries = 0u;
+    pngImage.warning_or_error = 0u;
+
+    png_image_write_to_file(&pngImage, fileName.c_str(), 0, image.data().data(), 0, nullptr);
+    if(pngImage.warning_or_error) {
+        GD_LOG(ERROR) << "Saving the PNG has failed! Error code: " << pngImage.warning_or_error
+                << " Error message: '" << pngImage.message << "'";
+    }
+    return !pngImage.warning_or_error;
+}
+
+Image utils::loadPng(const std::string &fileName)
+{
+    png_image pngImage;
+    std::memset(&pngImage, 0, sizeof(pngImage));
+    pngImage.version = PNG_IMAGE_VERSION;
+    pngImage.opaque = nullptr;
+    png_image_begin_read_from_file(&pngImage, fileName.c_str());
+
+    std::vector<uint32_t> imageData;
+    if(!pngImage.warning_or_error) {
+        imageData.resize(pngImage.width * pngImage.height);
+
+        pngImage.format = PNG_FORMAT_RGBA;
+        png_image_finish_read(&pngImage, nullptr, imageData.data(), 0, nullptr);
+    }
+
+    if (pngImage.warning_or_error) {
+        GD_LOG(ERROR) << "Image (" << fileName << ") loading has failed! Error code: "
+                << pngImage.warning_or_error << " Error message: '" << pngImage.message << "'";
+        return Image(0u, 0u);
+    }
+    Image image(pngImage.width, pngImage.height, imageData);
+    png_image_free(&pngImage);
+    return image;
 }
 
 } // namespace gepard
