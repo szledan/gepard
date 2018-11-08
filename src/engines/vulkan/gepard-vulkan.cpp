@@ -765,8 +765,8 @@ void GepardVulkan::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, 
         VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,       // VkAccessFlags              dstAccessMask;
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,       // VkImageLayout              oldLayout;
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout              newLayout;
-        _queueFamilyIndex,                          // uint32_t                   srcQueueFamilyIndex;
-        _queueFamilyIndex,                          // uint32_t                   dstQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   dstQueueFamilyIndex;
         _surfaceImage,                              // VkImage                    image;
         subresourceRange,                           // VkImageSubresourceRange    subresourceRange;
     };
@@ -1146,8 +1146,8 @@ void GepardVulkan::createSurfaceImage()
         VK_ACCESS_TRANSFER_WRITE_BIT,           // VkAccessFlags              dstAccessMask;
         VK_IMAGE_LAYOUT_UNDEFINED,              // VkImageLayout              oldLayout;
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,   // VkImageLayout              newLayout;
-        _queueFamilyIndex,                      // uint32_t                   srcQueueFamilyIndex;
-        _queueFamilyIndex,                      // uint32_t                   dstQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                // uint32_t                   dstQueueFamilyIndex;
         _surfaceImage,                          // VkImage                    image;
         subresourceRange,                       // VkImageSubresourceRange    subresourceRange;
     };
@@ -1407,8 +1407,8 @@ void GepardVulkan::presentImage()
         VK_ACCESS_TRANSFER_READ_BIT,                // VkAccessFlags              dstAccessMask;
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout              oldLayout;
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,       // VkImageLayout              newLayout;
-        _queueFamilyIndex,                          // uint32_t                   srcQueueFamilyIndex;
-        _queueFamilyIndex,                          // uint32_t                   dstQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   dstQueueFamilyIndex;
         _surfaceImage,                              // VkImage                    image;
         subresourceRange,                           // VkImageSubresourceRange    subresourceRange;
     };
@@ -1420,8 +1420,8 @@ void GepardVulkan::presentImage()
         VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,       // VkAccessFlags              dstAccessMask;
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,       // VkImageLayout              oldLayout;
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout              newLayout;
-        _queueFamilyIndex,                          // uint32_t                   srcQueueFamilyIndex;
-        _queueFamilyIndex,                          // uint32_t                   dstQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   dstQueueFamilyIndex;
         _surfaceImage,                              // VkImage                    image;
         subresourceRange,                           // VkImageSubresourceRange    subresourceRange;
     };
@@ -1436,8 +1436,8 @@ void GepardVulkan::presentImage()
         VK_ACCESS_TRANSFER_WRITE_BIT,           // VkAccessFlags              dstAccessMask;
         VK_IMAGE_LAYOUT_UNDEFINED,              // VkImageLayout              oldLayout;
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,   // VkImageLayout              newLayout;
-        _queueFamilyIndex,                      // uint32_t                   srcQueueFamilyIndex;
-        _queueFamilyIndex,                      // uint32_t                   dstQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                // uint32_t                   dstQueueFamilyIndex;
         _wsiSwapChainImages[imageIndex],        // VkImage                    image;
         subresourceRange,                       // VkImageSubresourceRange    subresourceRange;
     };
@@ -1449,8 +1449,8 @@ void GepardVulkan::presentImage()
         VK_ACCESS_MEMORY_READ_BIT,              // VkAccessFlags              dstAccessMask;
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,   // VkImageLayout              oldLayout;
         VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,        // VkImageLayout              newLayout;
-        _queueFamilyIndex,                      // uint32_t                   srcQueueFamilyIndex;
-        _queueFamilyIndex,                      // uint32_t                   dstQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                // uint32_t                   dstQueueFamilyIndex;
         _wsiSwapChainImages[imageIndex],        // VkImage                    image;
         subresourceRange,                       // VkImageSubresourceRange    subresourceRange;
     };
@@ -1557,8 +1557,8 @@ void GepardVulkan::readImage(uint32_t* memoryBuffer, int32_t x, int32_t y, uint3
         VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,       // VkAccessFlags              dstAccessMask;
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,       // VkImageLayout              oldLayout;
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout              newLayout;
-        _queueFamilyIndex,                          // uint32_t                   srcQueueFamilyIndex;
-        _queueFamilyIndex,                          // uint32_t                   dstQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   dstQueueFamilyIndex;
         _surfaceImage,                              // VkImage                    image;
         subresourceRange,                           // VkImageSubresourceRange    subresourceRange;
     };
