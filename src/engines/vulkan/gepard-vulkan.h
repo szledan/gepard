@@ -26,8 +26,6 @@
 #ifndef GEPARD_VULKAN_H
 #define GEPARD_VULKAN_H
 
-#include "gepard-defs.h"
-
 #include "gepard-context.h"
 #include "gepard-float.h"
 #include "gepard-image.h"

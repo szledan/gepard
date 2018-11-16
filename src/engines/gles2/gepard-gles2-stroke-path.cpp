@@ -26,8 +26,8 @@
 #include "gepard-gles2.h"
 
 #include "gepard-color.h"
-#include "gepard-defs.h"
 #include "gepard-float.h"
+#include "gepard-logging.h"
 #include "gepard-path.h"
 #include "gepard-state.h"
 #include "gepard-stroke-builder.h"
@@ -41,7 +41,7 @@ void GepardGLES2::strokePath()
     PathData* pathData = _context.path.pathData();
     GepardState& state = _context.currentState();
 
-    GD_LOG3("Path: " << pathData->firstElement());
+    GD_LOG(DEBUG) << "Path: " << pathData->firstElement();
     if (!pathData || pathData->isEmpty())
         return;
 

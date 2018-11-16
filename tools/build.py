@@ -45,11 +45,8 @@ def create_options(arguments=None):
     if hasattr(arguments, 'backend'):
         opts.append('-DBACKEND=' + arguments.backend.upper())
 
-    if hasattr(arguments, 'log_level'):
-        opts.append('-DLOG_LEVEL=' + str(arguments.log_level))
-
-    if hasattr(arguments, 'no_colored_logs') and arguments.no_colored_logs:
-        opts.append('-DDISABLE_LOG_COLORS=ON')
+    if hasattr(arguments, 'logging') and arguments.logging:
+        opts.append('-DLOGGING=ON')
 
     if hasattr(arguments, 'install_prefix') and arguments.install_prefix:
         opts.append('-DCMAKE_INSTALL_PREFIX=' + arguments.install_prefix)
@@ -63,8 +60,7 @@ def add_args(parser):
     parser.add_argument('--install-prefix', action='store', dest='install_prefix', help='Specify install prefix.')
     parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='build_type', help='Build debug.')
     parser.add_argument('--backend', action='store', choices=['gles2', 'software', 'vulkan'], default='gles2', help='Specify which graphics back-end to use.')
-    parser.add_argument('--log-level', '-l', action='store', type=int, choices=range(0,5), default=0, help='Set logging level.')
-    parser.add_argument('--no-colored-logs', action='store_true', default=False, help='Disable colored log messages.')
+    parser.add_argument('--logging', '-l', action='store_true', default=False, dest='logging', help='Enable log messages.')
     parser.add_argument('targets', action='store', nargs='*', default=['gepard'], help='List of targets to build')
 
 

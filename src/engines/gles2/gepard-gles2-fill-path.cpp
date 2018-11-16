@@ -31,6 +31,7 @@
 #include "gepard-float.h"
 #include "gepard-gles2-defs.h"
 #include "gepard-gles2-shader-factory.h"
+#include "gepard-logging.h"
 #include "gepard-state.h"
 #include "gepard-trapezoid-tessellator.h"
 #include <string>
@@ -293,14 +294,14 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
             setupPathVertexAttributes(trapezoid, _attributes + trapezoidIndex * 32);
             trapezoidIndex++;
             if (trapezoidIndex >= std::min(kMaximumNumberOfUshortQuads, kMaximumNumberOfAttributes / 32)) {
-                GD_LOG2("Draw '" << trapezoidIndex << "' trapezoids with triangles in pairs.");
+                GD_LOG(TRACE) << "Draw '" << trapezoidIndex << "' trapezoids with triangles in pairs.";
                 glDrawElements(GL_TRIANGLES, 6 * trapezoidIndex, GL_UNSIGNED_SHORT, nullptr);
                 trapezoidIndex = 0;
             }
         }
 
         if (trapezoidIndex) {
-            GD_LOG2("Draw '" << trapezoidIndex << "' trapezoids with triangles in pairs.");
+            GD_LOG(TRACE) << "Draw '" << trapezoidIndex << "' trapezoids with triangles in pairs.";
             glDrawElements(GL_TRIANGLES, 6 * trapezoidIndex, GL_UNSIGNED_SHORT, nullptr);
         }
     }

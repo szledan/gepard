@@ -32,6 +32,7 @@
 #include "gepard-defs.h"
 #include "gepard-float-point.h"
 #include "gepard-float.h"
+#include "gepard-logging.h"
 #include "gepard-transform.h"
 #include <cmath>
 #include <list>
@@ -170,7 +171,7 @@ SegmentApproximator::~SegmentApproximator()
 
 void SegmentApproximator::insertLine(const FloatPoint& from, const FloatPoint& to)
 {
-    GD_LOG4("Insert line: " << from << "->" << to);
+    GD_LOG(TRACE) << "Insert line: " << from << "->" << to;
     insertSegment(FloatPoint(from.x * kAntiAliasLevel, std::floor(from.y * kAntiAliasLevel)), FloatPoint(to.x * kAntiAliasLevel, std::floor(to.y * kAntiAliasLevel)));
 }
 

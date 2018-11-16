@@ -30,6 +30,7 @@
 #include "gepard-engine.h"
 #include "gepard-gles2-defs.h"
 #include "gepard-gles2-shader-factory.h"
+#include "gepard-logging.h"
 
 namespace gepard {
 namespace gles2 {
@@ -69,7 +70,7 @@ const int GepardGLES2::kMaximumNumberOfUshortQuads = GepardGLES2::kMaximumNumber
 GepardGLES2::GepardGLES2(GepardContext& context)
     : _context(context)
 {
-    GD_LOG1("Create GepardGLES2 with surface: " << context.surface);
+    GD_LOG(INFO) << "Create GepardGLES2 with surface: " << context.surface;
 
     const EGLint configAttribs[] = {
         EGL_RED_SIZE, 8,
@@ -92,15 +93,15 @@ GepardGLES2::GepardGLES2(GepardContext& context)
         EGL_NONE,
     };
 
-    GD_LOG2("Get and set EGL display and surface.");
+    GD_LOG(INFO) << "Get and set EGL display and surface";
     EGLDisplay eglDisplay = 0;
     EGLSurface eglSurface = 0;
     EGLint numOfConfigs = 0;
     EGLConfig eglConfig = 0;
     void* display = context.surface->getDisplay();
-    GD_LOG3("Display is: " << display  << ".");
+    GD_LOG(DEBUG) << "Display is: " << display;
 
-    GD_LOG2("Initialize EGL.");
+    GD_LOG(INFO) << "Initialize EGL";
     // 1. Get the default display.
     eglDisplay = eglGetDisplay((EGLNativeDisplayType)display);
 
@@ -139,7 +140,7 @@ GepardGLES2::GepardGLES2(GepardContext& context)
     // Set EGL display & surface.
     _eglDisplay = eglDisplay;
     _eglSurface = eglSurface;
-    GD_LOG3("EGL display and surface are: " << _eglDisplay  << " and " << _eglSurface << ".");
+    GD_LOG(DEBUG) << "EGL display and surface are: " << _eglDisplay  << " and " << _eglSurface;
 
     makeCurrent();
 
@@ -199,7 +200,7 @@ GepardGLES2::~GepardGLES2()
         eglDestroyContext(_eglDisplay, _eglContext);
         eglDestroySurface(_eglDisplay, _eglSurface);
         eglTerminate(_eglDisplay);
-        GD_LOG1("Destroyed GepardGLES2 (display and surface were: " << _eglDisplay  << " and " << _eglSurface << ".");
+        GD_LOG(DEBUG) << "Destroyed GepardGLES2 (display and surface were: " << _eglDisplay  << " and " << _eglSurface;
     } else if (_eglContext != EGL_NO_CONTEXT) {
         //! \todo destroy EGL Context
     }
@@ -210,14 +211,14 @@ void GepardGLES2::makeCurrent()
     static GepardGLES2* currentGepardGLES2 = nullptr;
 
     if (this != currentGepardGLES2) {
-        GD_LOG1("Make current binds the EGL rendering context.");
+        GD_LOG(DEBUG) << "Make current binds the EGL rendering context";
         if (eglMakeCurrent(_eglDisplay, _eglSurface, _eglSurface, _eglContext) != EGL_TRUE) {
             GD_CRASH("eglMakeCurrent returned EGL_FALSE");
         }
         currentGepardGLES2 = this;
     }
 
-    GD_LOG3("Current GepardGLES2: " << this);
+    GD_LOG(TRACE) << "Current GepardGLES2: " << this;
 }
 
 void GepardGLES2::render()

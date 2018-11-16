@@ -26,8 +26,8 @@
 #include "gepard-gles2.h"
 
 #include "gepard-color.h"
-#include "gepard-defs.h"
 #include "gepard-float.h"
+#include "gepard-logging.h"
 #include "gepard-gles2-defs.h"
 #include "gepard-gles2-shader-factory.h"
 
@@ -78,7 +78,7 @@ void GepardGLES2::fillRect(const Float x, const Float y, const Float w, const Fl
     makeCurrent();
     glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
 
-    GD_LOG1("Fill rect with GLES2 (" << x << ", " << y << ", " << w << ", " << h << ")");
+    GD_LOG(DEBUG) << "Fill rect with GLES2 (" << x << ", " << y << ", " << w << ", " << h << ")";
 
     const uint32_t width = _context.surface->width();
     const uint32_t height = _context.surface->height();
@@ -94,13 +94,13 @@ void GepardGLES2::fillRect(const Float x, const Float y, const Float w, const Fl
         GLfloat(x + w), GLfloat(y + h), GLfloat(fillColor.r), GLfloat(fillColor.g), GLfloat(fillColor.b), GLfloat(fillColor.a),
     };
 
-    GD_LOG2("1. Set blending.");
+    GD_LOG(TRACE) << "Set blending.";
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    GD_LOG2("2. Use shader programs with '" << program.id << "' ID.");
+    GD_LOG(TRACE) << "Use shader programs with ID '" << program.id << "'";
     glUseProgram(program.id);
 
-    GD_LOG2("3. Binding attributes.");
+    GD_LOG(TRACE) << "Binding attributes.";
     {
         const GLuint index = glGetUniformLocation(program.id, "u_size");
         glUniform2f(index, width, height);
@@ -124,7 +124,7 @@ void GepardGLES2::fillRect(const Float x, const Float y, const Float w, const Fl
         offset += size;
     }
 
-    GD_LOG2("4. Draw '" << quadCount << "' quads with triangles in pairs.");
+    GD_LOG(TRACE) << "Draw '" << quadCount << "' quads with triangles in pairs";
     glDrawElements(GL_TRIANGLES, quadCount * 6, GL_UNSIGNED_SHORT, nullptr);
 
     render();
