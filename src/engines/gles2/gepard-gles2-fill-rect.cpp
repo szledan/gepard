@@ -95,7 +95,8 @@ void GepardGLES2::fillRect(const Float x, const Float y, const Float w, const Fl
     };
 
     GD_LOG2("1. Set blending.");
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
     GD_LOG2("2. Use shader programs with '" << program.id << "' ID.");
     glUseProgram(program.id);

@@ -249,6 +249,7 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
         glBindFramebuffer(GL_FRAMEBUFFER, fboId);
 
         //! \todo(szledan) check: are we really need this glClear?
+        glClearColor(0.0, 0.0, 0.0, 0.0);
         glClear(GL_COLOR_BUFFER_BIT);
         glBlendFunc(GL_ONE, GL_ONE);
     }
@@ -309,6 +310,8 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
         glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
 
         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+//        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//        glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
 
         ShaderProgram& copyProgram = _shaderProgramManager.getProgram("copyPathProgram", s_copyPathVertexShader, s_copyPathFragmentShader);
         glUseProgram(copyProgram.id);
