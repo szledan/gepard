@@ -62,12 +62,13 @@ Segment::Segment(FloatPoint from, FloatPoint to, unsigned sameId, Float slope)
             this->direction = Positive;
         }
 
-        slopeInv = (this->to.x - this->from.x) / (denom);
     } else {
         this->direction = EqualOrNonExist;
-        slopeInv = INFINITY;
     }
-    realSlope = (slope == NAN) ? slopeInv : slope;
+    slopeInv = (this->to.x - this->from.x) / (denom);
+
+    realSlope = (std::isnan(slope)) ? slopeInv : slope;
+    GD_ASSERT(!std::isnan(realSlope));
 }
 
 const int Segment::topY() const
@@ -121,16 +122,28 @@ const bool Segment::computeIntersectionY(Segment* segment, Float& y) const
     if (this == segment)
         return false;
 
-    if (this->from.x != segment->from.x && this->to.x != segment->to.x) {
-        Float denom = (this->slopeInv() - segment->slopeInv());
-        if (denom) {
-            y = (this->factor() - segment->factor()) / denom;
-        }
-        if (!isOnSegment(y)) {
-            y = INFINITY;
-            return false;
-        }
-    } //! \todo: else: y is NaN.
+    GD_ASSERT(this->from.y == segment->from.y);
+    GD_ASSERT(this->to.y == segment->to.y);
+
+    if (this->from.x == segment->from.x) {
+        return true;
+    }
+
+    if (this->to.x == segment->to.x) {
+        return true;
+    }
+
+    Float denom = (this->slopeInv() - segment->slopeInv());
+    y = (this->factor() - segment->factor()) / denom;
+
+    if (std::isnan(y))
+        return false;
+
+    if (!isOnSegment(y)) {
+        y = INFINITY;
+        return false;
+    }
+
     return true;
 }
 
@@ -141,6 +154,7 @@ std::ostream& operator<<(std::ostream& os, const Segment& s)
 
 bool operator<(const Segment& lhs, const Segment& rhs)
 {
+    GD_ASSERT(lhs.from.y <= lhs.to.y);
     GD_ASSERT(lhs.from <= lhs.to && rhs.from <= rhs.to);
     return (lhs.from < rhs.from) || (lhs.from == rhs.from && lhs.to < rhs.to);
 }
@@ -172,6 +186,9 @@ SegmentApproximator::~SegmentApproximator()
 
 void SegmentApproximator::insertLine(const FloatPoint& from, const FloatPoint& to)
 {
+    if (from.y == to.y)
+        return;
+
     GD_LOG4("Insert line: " << from << "->" << to);
     insertSegment(FloatPoint(from.x * kAntiAliasLevel, std::floor(from.y * kAntiAliasLevel)), FloatPoint(to.x * kAntiAliasLevel, std::floor(to.y * kAntiAliasLevel)));
 }
@@ -495,7 +512,7 @@ SegmentList* SegmentApproximator::segments()
         SegmentList::iterator currentSegment = currentList->begin();
         for (SegmentList::iterator segment = currentSegment; currentSegment != currentList->end(); ++segment) {
             if (segment != currentList->end()) {
-                Float y;
+                Float y = 0;
                 if (currentSegment->computeIntersectionY(&(*segment), y)) {
                     const int intersectionY = std::floor(y);
                     ys.insert(intersectionY);
