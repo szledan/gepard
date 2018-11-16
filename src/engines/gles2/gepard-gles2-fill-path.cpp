@@ -218,14 +218,19 @@ static void setupPathVertexAttributes(const Trapezoid& trapezoid, GLfloat* attri
 
 void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
 {
-    makeCurrent();
     if (!pathData->firstElement())
         return;
+
+    TrapezoidTessellator::FillRule fillRule = TrapezoidTessellator::FillRule::NonZero;
+
+    TrapezoidTessellator tt(*pathData, fillRule, GD_ANTIALIAS_LEVEL);
+    const TrapezoidList trapezoidList = tt.trapezoidList(state);
 
     const Color& fillColor = state.fillColor;
     const uint32_t width = _context.surface->width();
     const uint32_t height = _context.surface->height();
 
+    makeCurrent();
     GLuint textureId;
     {
         GLuint fboId;
@@ -275,11 +280,6 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
             glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, strideLength, _attributes + offset);
             offset += size;
         }
-
-        TrapezoidTessellator::FillRule fillRule = TrapezoidTessellator::FillRule::NonZero;
-
-        TrapezoidTessellator tt(*pathData, fillRule, GD_ANTIALIAS_LEVEL);
-        const TrapezoidList trapezoidList = tt.trapezoidList(state);
 
         int trapezoidIndex = 0;
         for (Trapezoid trapezoid : trapezoidList) {
@@ -347,7 +347,6 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
 
         glDeleteTextures(1, &textureId);
     }
-
 
     render();
 }
