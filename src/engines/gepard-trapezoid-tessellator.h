@@ -42,8 +42,6 @@
 
 namespace gepard {
 
-#define GD_ANTIALIAS_LEVEL 16
-
 /* Segment */
 
 struct Segment {

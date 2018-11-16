@@ -25,6 +25,7 @@
 
 include(OptionMacros)
 
+ADD_OPTION (ANTIALIAS_LEVEL "Set antialiassing level" 16)
 ADD_OPTION (BACKEND_GLES2 "Enable GLESv2 backend" ON)
 ADD_OPTION (BACKEND_VULKAN "Enable Vulkan backend" ON)
 ADD_OPTION (BACKEND_SOFTWARE "Enable Software backend" ON)
