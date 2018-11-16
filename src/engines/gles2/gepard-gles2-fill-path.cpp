@@ -250,6 +250,7 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
         glBindFramebuffer(GL_FRAMEBUFFER, fboId);
 
         //! \todo(szledan) check: are we really need this glClear?
+        glClearColor(0.0, 0.0, 0.0, 0.0);
         glClear(GL_COLOR_BUFFER_BIT);
         glBlendFunc(GL_ONE, GL_ONE);
     }

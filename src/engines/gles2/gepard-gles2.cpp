@@ -88,7 +88,7 @@ GepardGLES2::GepardGLES2(GepardContext& context)
     };
 
     const EGLint contextAttribs[] = {
-        // Identify OpenGL 2 ES context
+        // Identify OpenGL ES 2 context
         EGL_CONTEXT_CLIENT_VERSION, 2,
         EGL_NONE,
     };
