@@ -62,6 +62,13 @@ class Gepard {
     };
 
 public:
+    static unsigned long s_nOfGepradPathCall;
+    static unsigned long s_nOfFillCall;
+    static unsigned long s_nOfStrokeCall;
+    static unsigned long s_nOfStrokePathElement;
+    static unsigned long s_nOfPathElement;
+    static unsigned long s_nOfTrapezoids;
+    static unsigned long s_nOfTrapezoidsVM;
     explicit Gepard(Surface* surface);
     ~Gepard();
 
