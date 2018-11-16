@@ -170,7 +170,7 @@ void Gepard::closePath()
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-moveto">[W3C-2DContext]</a>
  *   </blockquote>
  */
-void Gepard::moveTo(float x, float y)
+void Gepard::moveTo(double x, double y)
 {
     GD_ASSERT(_engine);
     _engine->moveTo(x, y);
@@ -189,7 +189,7 @@ void Gepard::moveTo(float x, float y)
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-lineto">[W3C-2DContext]</a>
  *   </blockquote>
  */
-void Gepard::lineTo(float x, float y)
+void Gepard::lineTo(double x, double y)
 {
     GD_ASSERT(_engine);
     _engine->lineTo(x, y);
@@ -208,7 +208,7 @@ void Gepard::lineTo(float x, float y)
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-quadraticcurveto">[W3C-2DContext]</a>
  *   </blockquote>
  */
-void Gepard::quadraticCurveTo(float cpx, float cpy, float x, float y)
+void Gepard::quadraticCurveTo(double cpx, double cpy, double x, double y)
 {
     GD_ASSERT(_engine);
     _engine->quadraticCurveTo(cpx, cpy, x, y);
@@ -228,7 +228,7 @@ void Gepard::quadraticCurveTo(float cpx, float cpy, float x, float y)
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-beziercurveto">[W3C-2DContext]</a>
  *   </blockquote>
  */
-void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
+void Gepard::bezierCurveTo(double cp1x, double cp1y, double cp2x, double cp2y, double x, double y)
 {
     GD_ASSERT(_engine);
     _engine->bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
@@ -272,7 +272,7 @@ void Gepard::bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-arcto">[W3C-2DContext]</a>
  *   </blockquote>
  */
-void Gepard::arcTo(float x1, float y1, float x2, float y2, float radius)
+void Gepard::arcTo(double x1, double y1, double x2, double y2, double radius)
 {
     GD_ASSERT(_engine);
     _engine->arcTo(x1, y1, x2, y2, radius);
@@ -292,7 +292,7 @@ void Gepard::arcTo(float x1, float y1, float x2, float y2, float radius)
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-rect">[W3C-2DContext]</a>
  *   </blockquote>
  */
-void Gepard::rect(float x, float y, float w, float h)
+void Gepard::rect(double x, double y, double w, double h)
 {
     GD_ASSERT(_engine);
     _engine->rect(x, y, w, h);
@@ -336,43 +336,43 @@ void Gepard::rect(float x, float y, float w, float h)
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-arc">[W3C-2DContext]</a>
  *   </blockquote>
  */
-void Gepard::arc(float x, float y, float radius, float startAngle, float endAngle, bool counterclockwise)
+void Gepard::arc(double x, double y, double radius, double startAngle, double endAngle, bool counterclockwise)
 {
     GD_ASSERT(_engine);
     _engine->arc(x, y, radius, startAngle, endAngle, counterclockwise);
 }
 
 /*! \todo missing docs */
-void Gepard::scale(float x, float y)
+void Gepard::scale(double x, double y)
 {
     _engine->scale(x, y);
 }
 
 /*! \todo missing docs */
-void Gepard::rotate(float angle)
+void Gepard::rotate(double angle)
 {
     _engine->rotate(angle);
 }
 
 /*! \todo missing docs */
-void Gepard::translate(float x, float y)
+void Gepard::translate(double x, double y)
 {
     _engine->translate(x, y);
 }
 
 /*! \todo missing docs */
-void Gepard::transform(float a, float b, float c, float d, float e, float f)
+void Gepard::transform(double a, double b, double c, double d, double e, double f)
 {
     _engine->transform(a, b, c, d, e, f);
 }
 
 /*! \todo missing docs */
-void Gepard::setTransform(float a, float b, float c, float d, float e, float f)
+void Gepard::setTransform(double a, double b, double c, double d, double e, double f)
 {
     _engine->setTransform(a, b, c, d, e, f);
 }
 
-void Gepard::clearRect(float x, float y, float w, float h)
+void Gepard::clearRect(double x, double y, double w, double h)
 {
 /*! \todo unimplemented function */
 }
@@ -389,13 +389,13 @@ void Gepard::clearRect(float x, float y, float w, float h)
  * -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-fillrect">[W3C-2DContext]</a>
  *   </blockquote>
  */
-void Gepard::fillRect(float x, float y, float w, float h)
+void Gepard::fillRect(double x, double y, double w, double h)
 {
     GD_ASSERT(_engine);
     _engine->fillRect(x, y, w, h);
 }
 
-void Gepard::strokeRect(float x, float y, float w, float h)
+void Gepard::strokeRect(double x, double y, double w, double h)
 {
 /*! \todo unimplemented function */
 }
@@ -582,31 +582,31 @@ void Gepard::clip()
  *
  * \todo unimplemented function
  */
-bool Gepard::isPointInPath(float x, float y)
+bool Gepard::isPointInPath(double x, double y)
 {
     GD_NOT_IMPLEMENTED();
     return false;
 }
 
-void Gepard::drawImage(Image& image, float dx, float dy)
+void Gepard::drawImage(Image& image, double dx, double dy)
 {
-    float width = image.width();
-    float height = image.height();
+    double width = image.width();
+    double height = image.height();
     _engine->drawImage(image, 0.0, 0.0, width, height, dx, dy, width, height);
 }
 
-void Gepard::drawImage(Image& image, float dx, float dy, float dw, float dh)
+void Gepard::drawImage(Image& image, double dx, double dy, double dw, double dh)
 {
     _engine->drawImage(image, 0.0, 0.0, image.width(), image.height(), dx, dy, dw, dh);
 }
 
-void Gepard::drawImage(Image& image, float sx, float sy, float sw, float sh,
-    float dx, float dy, float dw, float dh)
+void Gepard::drawImage(Image& image, double sx, double sy, double sw, double sh,
+    double dx, double dy, double dw, double dh)
 {
     _engine->drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
 }
 
-Image Gepard::createImageData(float sw, float sh)
+Image Gepard::createImageData(double sw, double sh)
 {
     GD_ASSERT(sw >= 0.0 && sh >= 0.0);
     uint32_t width = (uint32_t) sw;
