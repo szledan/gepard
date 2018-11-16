@@ -29,24 +29,32 @@
 
 void pathShape(gepard::Gepard& ctx)
 {
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, 600, 600);
 
-    ctx.fillStyle = "#0f0";
     ctx.beginPath();
-    ctx.moveTo(300, 100);
-    ctx.lineTo(50, 230);
-    ctx.lineTo(380, 200);
-    ctx.closePath();
+    ctx.fillStyle = "#000";  // Green path
+    ctx.rect(0, 0, 300, 150);
     ctx.fill();
 
-    ctx.fillStyle = "#f00";
     ctx.beginPath();
-    ctx.moveTo(100, 100);
-    ctx.lineTo(180, 200);
-    ctx.bezierCurveTo(400, 200, 40, 50, 300, 250);
-    ctx.closePath();
-    ctx.fill();
+    ctx.lineWidth = "5";
+    ctx.strokeStyle = "#abc";  // Green path
+    ctx.moveTo(0, 75);
+    ctx.lineTo(250, 75);
+    ctx.stroke();  // Draw it
+
+    ctx.beginPath();
+    ctx.lineWidth = "5";
+    ctx.strokeStyle = "#abc";  // Green path
+    ctx.moveTo(75, 0);
+    ctx.lineTo(75, 250);
+    ctx.stroke();  // Draw it
+
+    ctx.beginPath();
+    ctx.strokeStyle = "#0120ff";  // Purple path
+    ctx.moveTo(50, 0);
+    ctx.lineTo(150, 130);
+    ctx.stroke();  // Draw it
+
 }
 
 int main(int argc, char* argv[])
