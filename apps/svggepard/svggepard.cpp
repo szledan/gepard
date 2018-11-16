@@ -202,7 +202,7 @@ int main(int argc, char* argv[])
     const std::string a_svgFile = GET_VALUE("", "./apps/svggepard/tiger.svg");
 
     // Open and parse SVG file.
-    NSVGimage* pImage = nsvgParseFromFile(a_svgFile.c_str(), "px", 96);
+    NSVGimage* pImage = nsvgParseFromFile(a_svgFile.c_str(), "", 96);
     if (!pImage) {
         std::cerr << "Wrong SVG file or not exist." << std::endl;
         return 1;
