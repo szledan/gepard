@@ -38,6 +38,8 @@
 #include <list>
 #include <set>
 
+#include "gepard.h"
+
 namespace gepard {
 
 /* Segment */
@@ -669,6 +671,7 @@ const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state
 
     // 1. Insert path elements.
     do {
+Gepard::s_nOfPathElement++;
         from = to;
         element = element->next;
         to = element->to;
@@ -769,6 +772,7 @@ const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state
 
     trapezoids.sort();
     GD_LOG(TRACE) << "Number of horizontal merged trapezoids: " << trapezoids.size();
+Gepard::s_nOfTrapezoids += trapezoids.size();
 
     // 4. Vertical merge trapezoids.
     //! \todo(szledan): use MovePtr:
@@ -797,6 +801,7 @@ const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state
         }
     }
     GD_LOG(TRACE) << "Number of vertical merged trapezoids: " << trapezoidList.size();
+Gepard::s_nOfTrapezoidsVM += trapezoidList.size();
 
     return trapezoidList;
 }
