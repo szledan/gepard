@@ -35,6 +35,14 @@
 
 namespace gepard {
 
+unsigned long Gepard::s_nOfGepradPathCall = 0;
+unsigned long Gepard::s_nOfFillCall = 0;
+unsigned long Gepard::s_nOfStrokeCall = 0;
+unsigned long Gepard::s_nOfStrokePathElement = 0;
+unsigned long Gepard::s_nOfPathElement = 0;
+unsigned long Gepard::s_nOfTrapezoids = 0;
+unsigned long Gepard::s_nOfTrapezoidsVM = 0;
+
 Gepard::Attribute::Attribute(const char* chs, void (*cbf)(GepardEngine*, const std::string&), GepardEngine* eng)
     : callBackFunction(cbf)
     , engine(eng)
@@ -111,6 +119,13 @@ Gepard::Gepard(Surface* surface)
 
 Gepard::~Gepard()
 {
+GD_LOG_ERR("s_nOfGepradPathCall: " << Gepard::s_nOfGepradPathCall);
+GD_LOG_ERR("s_nOfFillCall: " << Gepard::s_nOfFillCall);
+GD_LOG_ERR("s_nOfStrokeCall: " << Gepard::s_nOfStrokeCall);
+GD_LOG_ERR("s_nOfStrokePathElement: " << Gepard::s_nOfStrokePathElement);
+GD_LOG_ERR("s_nOfPathElement: " << Gepard::s_nOfPathElement);
+GD_LOG_ERR("s_nOfTrapezoids: " << Gepard::s_nOfTrapezoids);
+GD_LOG_ERR("s_nOfTrapezoidsVM: " << Gepard::s_nOfTrapezoidsVM);
     if (_engine) {
         delete _engine;
     }

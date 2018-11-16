@@ -30,6 +30,8 @@
 #include "gepard-float.h"
 #include "gepard-transform.h"
 
+#include "gepard.h"
+
 namespace gepard {
 
 /*!
@@ -64,6 +66,7 @@ void GepardEngine::restore()
  */
 void GepardEngine::closePath()
 {
+Gepard::s_nOfGepradPathCall++;
     _context.path.pathData()->addCloseSubpathElement();
 }
 
@@ -77,6 +80,7 @@ void GepardEngine::closePath()
  */
 void GepardEngine::moveTo(const Float x, const Float y)
 {
+Gepard::s_nOfGepradPathCall++;
     _context.path.pathData()->addMoveToElement(FloatPoint(x, y));
 }
 
@@ -90,6 +94,7 @@ void GepardEngine::moveTo(const Float x, const Float y)
  */
 void GepardEngine::lineTo(const Float x, const Float y)
 {
+Gepard::s_nOfGepradPathCall++;
     _context.path.pathData()->addLineToElement(FloatPoint(x, y));
 }
 
@@ -105,6 +110,7 @@ void GepardEngine::lineTo(const Float x, const Float y)
  */
 void GepardEngine::quadraticCurveTo(const Float cpx, const Float cpy, const Float x, const Float y)
 {
+Gepard::s_nOfGepradPathCall++;
     _context.path.pathData()->addQuadaraticCurveToElement(FloatPoint(cpx, cpy), FloatPoint(x, y));
 }
 
@@ -122,6 +128,7 @@ void GepardEngine::quadraticCurveTo(const Float cpx, const Float cpy, const Floa
  */
 void GepardEngine::bezierCurveTo(const Float cp1x, const Float cp1y, const Float cp2x, const Float cp2y, const Float x, const Float y)
 {
+Gepard::s_nOfGepradPathCall++;
     _context.path.pathData()->addBezierCurveToElement(FloatPoint(cp1x, cp1y), FloatPoint(cp2x, cp2y), FloatPoint(x, y));
 }
 
@@ -138,6 +145,7 @@ void GepardEngine::bezierCurveTo(const Float cp1x, const Float cp1y, const Float
  */
 void GepardEngine::arcTo(const Float x1, const Float y1, const Float x2, const Float y2, const Float radius)
 {
+Gepard::s_nOfGepradPathCall++;
     _context.path.pathData()->addArcToElement(FloatPoint(x1, y1), FloatPoint(x2, y2), radius);
 }
 
@@ -174,6 +182,7 @@ void GepardEngine::rect(const Float x, const Float y, const Float w, const Float
  */
 void GepardEngine::arc(const Float x, const Float y, const Float radius, const Float startAngle, const Float endAngle, const bool counterclockwise)
 {
+Gepard::s_nOfGepradPathCall++;
     _context.path.pathData()->addArcElement(FloatPoint(x, y), FloatPoint(radius, radius), startAngle, endAngle, counterclockwise);
 }
 
@@ -231,6 +240,7 @@ void GepardEngine::beginPath()
  */
 void GepardEngine::fill()
 {
+Gepard::s_nOfFillCall++;
     GD_ASSERT(_engineBackend);
 #ifdef GD_USE_GLES2
     _engineBackend->fillPath(context().path.pathData(), state());
@@ -247,6 +257,7 @@ void GepardEngine::fill()
  */
 void GepardEngine::stroke()
 {
+Gepard::s_nOfStrokeCall++;
     GD_ASSERT(_engineBackend);
 #ifdef GD_USE_GLES2
     _engineBackend->strokePath();
