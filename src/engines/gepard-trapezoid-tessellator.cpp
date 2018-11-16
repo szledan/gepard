@@ -746,10 +746,10 @@ Gepard::s_nOfPathElement++;
 
         //! \todo(szledan): check the boundingBox calculation:
         // NOTE:  maxX = (maxX + (_antiAliasingLevel - 1)) / _antiAliasingLevel;
-        _boundingBox.minX = ((segmentApproximator.boundingBox().minX) / _antiAliasingLevel);
-        _boundingBox.minY = ((segmentApproximator.boundingBox().minY) / _antiAliasingLevel);
-        _boundingBox.maxX = ((segmentApproximator.boundingBox().maxX) / _antiAliasingLevel);
-        _boundingBox.maxY = ((segmentApproximator.boundingBox().maxY) / _antiAliasingLevel);
+        _boundingBox.minX = ((segmentApproximator.boundingBox().minX) / float(_antiAliasingLevel));
+        _boundingBox.minY = ((segmentApproximator.boundingBox().minY) / float(_antiAliasingLevel));
+        _boundingBox.maxX = ((segmentApproximator.boundingBox().maxX) / float(_antiAliasingLevel));
+        _boundingBox.maxY = ((segmentApproximator.boundingBox().maxY) / float(_antiAliasingLevel));
     }
 
     trapezoids.sort();
