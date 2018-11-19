@@ -67,15 +67,23 @@ GepardEngine::GepardEngine(Surface* surface, BackendType backendType)
     }
 
     switch (backendType) {
+#if defined(GD_BACKEND_GLES2)
     case BackendGLES2:
         _engineBackend = new gles2::GepardGLES2(_context);
         break;
+#endif // GD_BACKEND_GLES2
+#if defined(GD_BACKEND_SOFTWARE)
     case BackendSoftware:
         _engineBackend = new software::GepardSoftware(_context);
         break;
+#endif // GD_BACKEND_SOFTWARE
+#if defined(GD_BACKEND_VULKAN)
     case BackendVulkan:
         _engineBackend = new vulkan::GepardVulkan(_context);
         break;
+#endif // GD_BACKEND_VULKAN
+    default:
+        GD_CRASH("No backand found!");
     }
 
     GD_LOG(INFO) << "Using backend: " << nameOfBackend(backendType);
