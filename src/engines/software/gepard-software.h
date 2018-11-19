@@ -50,9 +50,9 @@ public:
     virtual void fillRect(const Float x, const Float y, const Float w, const Float h) override;
     virtual void fillPath(PathData*, const GepardState&) override;
     virtual void strokePath() override;
-    virtual void drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh) override;
-    virtual void putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight) override;
-    virtual Image getImage(Float sx, Float sy, Float sw, Float sh) override;
+    virtual void drawImage(const Image& imagedata, const Float sx, const Float sy, const Float sw, const Float sh, const Float dxconst , const Float dy, const Float dw, const Float dh) override;
+    virtual void putImage(const Image& imagedata, const Float dx, const Float dy, const Float dirtyX, const Float dirtyY, const Float dirtyWidth, const Float dirtyHeight) override;
+    virtual Image getImage(const Float sx, const Float sy, const Float sw, const Float sh) override;
 
 private:
     GepardContext& _context;

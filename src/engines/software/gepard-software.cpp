@@ -117,7 +117,7 @@ void GepardSoftware::strokePath()
  * \internal
  * \todo unimplemented function
  */
-void GepardSoftware::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
+void GepardSoftware::drawImage(const Image& imagedata, const Float sx, const Float sy, const Float sw, const Float sh, const Float dxconst, const Float dy, const Float dw, const Float dh)
 {
     GD_NOT_IMPLEMENTED();
 }
@@ -135,7 +135,7 @@ void GepardSoftware::drawImage(Image& imagedata, Float sx, Float sy, Float sw, F
  * \internal
  * \todo unimplemented function
  */
-void GepardSoftware::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
+void GepardSoftware::putImage(const Image& imagedata, const Float dx, const Float dy, const Float dirtyX, const Float dirtyY, const Float dirtyWidth, const Float dirtyHeight)
 {
     GD_NOT_IMPLEMENTED();
 }
@@ -151,7 +151,7 @@ void GepardSoftware::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX
  * \internal
  * \todo unimplemented function
  */
-Image GepardSoftware::getImage(Float sx, Float sy, Float sw, Float sh)
+Image GepardSoftware::getImage(const Float sx, const Float sy, const Float sw, const Float sh)
 {
     GD_NOT_IMPLEMENTED();
     return Image();

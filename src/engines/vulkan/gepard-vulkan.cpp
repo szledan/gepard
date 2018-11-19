@@ -310,7 +310,7 @@ void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const F
     _vk.vkFreeMemory(_device, indexBufferMemory, _allocator);
 }
 
-void GepardVulkan::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
+void GepardVulkan::drawImage(const Image& imagedata, const Float sx, const Float sy, const Float sw, const Float sh, const Float dx, const Float dy, const Float dw, const Float dh)
 {
     GD_LOG(DEBUG) << "drawImage " << sx << " " << sy << " " << sw << " " << sh << " " << dx << " " << dy << " " << dw << " " << dh;
     const uint32_t width = imagedata.width();
@@ -647,7 +647,7 @@ void GepardVulkan::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Flo
     _vk.vkDestroyBuffer(_device, buffer, _allocator);
 }
 
-void GepardVulkan::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
+void GepardVulkan::putImage(const Image& imagedata, const Float dx, const Float dy, const Float dirtyX, const Float dirtyY, const Float dirtyWidth, const Float dirtyHeight)
 {
     GD_LOG(DEBUG) << "putImage " << dx << " " << dy << " " << dirtyX << " " << dirtyY << " " << dirtyWidth << " " << dirtyHeight;
     VkResult vkResult;
@@ -845,7 +845,7 @@ void GepardVulkan::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, 
     _vk.vkDestroyBuffer(_device, buffer, _allocator);
 }
 
-Image GepardVulkan::getImage(Float sx, Float sy, Float sw, Float sh)
+Image GepardVulkan::getImage(const Float sx, const Float sy, const Float sw, const Float sh)
 {
     std::vector<uint32_t> imageData;
     int32_t x = sx;

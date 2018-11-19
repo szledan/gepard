@@ -43,9 +43,9 @@ public:
     virtual void fillRect(const Float x, const Float y, const Float w, const Float h) = 0;
     virtual void fillPath(PathData*, const GepardState&) = 0;
     virtual void strokePath() = 0;
-    virtual void drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh) = 0;
-    virtual void putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight) = 0;
-    virtual Image getImage(Float sx, Float sy, Float sw, Float sh) = 0;
+    virtual void drawImage(const Image& imagedata, const Float sx, const Float sy, const Float sw, const Float sh, const Float dx, const Float dy, const Float dw, const Float dh) = 0;
+    virtual void putImage(const Image& imagedata, const Float dx, const Float dy, const Float dirtyX, const Float dirtyY, const Float dirtyWidth, const Float dirtyHeight) = 0;
+    virtual Image getImage(const Float sx, const Float sy, const Float sw, const Float sh) = 0;
 };
 
 } // namespace gepard

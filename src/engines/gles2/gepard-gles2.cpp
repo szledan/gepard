@@ -284,7 +284,7 @@ void GepardGLES2::render()
  * \internal
  * \todo documentation is missing
  */
-void GepardGLES2::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
+void GepardGLES2::drawImage(const Image& imagedata, const Float sx, const Float sy, const Float sw, const Float sh, const Float dx, const Float dy, const Float dw, const Float dh)
 {
     GD_NOT_IMPLEMENTED();
 }
@@ -302,7 +302,7 @@ void GepardGLES2::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Floa
  * \internal
  * \todo documentation is missing
  */
-void GepardGLES2::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
+void GepardGLES2::putImage(const Image& imagedata, const Float dx, const Float dy, const Float dirtyX, const Float dirtyY, const Float dirtyWidth, const Float dirtyHeight)
 {
     GD_NOT_IMPLEMENTED();
 }
@@ -318,12 +318,11 @@ void GepardGLES2::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, F
  * \internal
  * \todo documentation is missing
  */
-Image GepardGLES2::getImage(Float sx, Float sy, Float sw, Float sh)
+Image GepardGLES2::getImage(const Float sx, const Float sy, const Float sw, const Float sh)
 {
     GD_NOT_IMPLEMENTED();
     return Image();
 }
-
 
 } // namespace gles2
 } // namespace gepard
