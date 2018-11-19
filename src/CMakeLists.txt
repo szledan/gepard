@@ -90,12 +90,9 @@ set(SURFACE_HEADERS
     surfaces/gepard-memory-buffer-surface.h
 )
 
-set(SOURCES ${COMMON_SOURCES})
-list(APPEND SOURCES ${${BACKEND}_SOURCES})
+add_library(gepard SHARED)
 
-add_library(gepard SHARED ${SOURCES})
-
-if (BACKEND STREQUAL "VULKAN")
+if (BACKEND_VULKAN)
   include(VulkanShaders)
   add_dependencies(gepard vulkan_shaders)
   if (NOT VULKAN_FOUND)
@@ -104,11 +101,23 @@ if (BACKEND STREQUAL "VULKAN")
   endif()
 endif()
 
-target_compile_definitions(gepard PRIVATE "GD_USE_${BACKEND}")
-
+target_sources(gepard PRIVATE ${COMMON_SOURCES})
 target_include_directories(gepard PRIVATE ${COMMON_INCLUDE_DIRS})
-target_include_directories(gepard PRIVATE ${${BACKEND}_INCLUDE_DIRS})
 target_include_directories(gepard PRIVATE ${GEPARD_DEP_INCLUDES})
+
+if (BACKEND_GLES2)
+    target_sources(gepard PRIVATE ${GLES2_SOURCES})
+    target_include_directories(gepard PRIVATE ${GLES2_INCLUDE_DIRS})
+endif()
+if (BACKEND_VULKAN)
+    target_sources(gepard PRIVATE ${VULKAN_SOURCES})
+    target_include_directories(gepard PRIVATE ${VULKAN_INCLUDE_DIRS})
+endif()
+if (BACKEND_SOFTWARE)
+    target_sources(gepard PRIVATE ${SOFTWARE_SOURCES})
+    target_include_directories(gepard PRIVATE ${SOFTWARE_INCLUDE_DIRS})
+endif()
+
 
 # TODO(dbatyai): Add a target to do this instead of doing it at configure time
 file(COPY gepard.h DESTINATION ${INCLUDE_OUTPUT_DIR})

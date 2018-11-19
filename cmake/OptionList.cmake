@@ -25,5 +25,7 @@
 
 include(OptionMacros)
 
-ADD_CHOICE (BACKEND "Backend to use" "GLES2 SOFTWARE VULKAN" GLES2)
+ADD_OPTION (BACKEND_GLES2 "Enable GLESv2 backend" ON)
+ADD_OPTION (BACKEND_VULKAN "Enable Vulkan backend" ON)
+ADD_OPTION (BACKEND_SOFTWARE "Enable Software backend" ON)
 ADD_OPTION (LOGGING "Enable log messages" OFF)

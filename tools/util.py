@@ -40,7 +40,7 @@ def get_build_path(arguments):
         return arguments.build_dir
 
     basedir = get_base_path()
-    return path.join(basedir, 'build', arguments.backend)
+    return path.join(basedir, 'build')
 
 
 def call(command, throw=True):
