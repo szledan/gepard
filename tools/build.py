@@ -65,6 +65,7 @@ def add_args(parser):
     parser.add_argument('--build-dir', '-b', action='store', dest='build_dir', help='Specify build directory.')
     parser.add_argument('--install-prefix', action='store', dest='install_prefix', help='Specify install prefix.')
     parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='build_type', help='Build debug.')
+    parser.add_argument('--logging', '-l', action='store_true', default=False, dest='logging', help='Enable log messages.')
     parser.add_argument('--gles2', action='store_true', default=True, dest='gles2', help='Enable GLESv2 backend.')
     parser.add_argument('--no-gles2', action='store_false', default=True, dest='gles2', help='Disable GLESv2 backend.')
     parser.add_argument('--vulkan', action='store_true', default=True, dest='vulken', help='Enable Vulkan backend.')
