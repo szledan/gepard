@@ -154,6 +154,7 @@ void GepardSoftware::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX
 Image GepardSoftware::getImage(Float sx, Float sy, Float sw, Float sh)
 {
     GD_NOT_IMPLEMENTED();
+    return Image();
 }
 
 } // namespace software
