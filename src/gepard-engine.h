@@ -54,8 +54,12 @@ class GepardEngine {
 public:
     explicit GepardEngine(Surface* surface)
         : _context(surface)
-        , _engineBackend(new gles2::GepardGLES2(_context))
     {
+#ifdef GD_USE_GLES2
+        _engineBackend = new gles2::GepardGLES2(_context);
+#else
+        _engineBackend = new vulkan::GepardVulkan(_context);
+#endif
     }
     ~GepardEngine()
     {

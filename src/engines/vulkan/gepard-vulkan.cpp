@@ -858,12 +858,12 @@ Image GepardVulkan::getImage(Float sx, Float sy, Float sw, Float sh)
     return Image(w, h, imageData);
 }
 
-void GepardVulkan::fill()
+void GepardVulkan::fillPath(PathData*, const GepardState&)
 {
     GD_NOT_IMPLEMENTED();
 }
 
-void GepardVulkan::stroke()
+void GepardVulkan::strokePath()
 {
     GD_NOT_IMPLEMENTED();
 }

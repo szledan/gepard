@@ -40,9 +40,12 @@ class GepardEngineBackend {
 public:
     virtual ~GepardEngineBackend() = 0;
 
-    virtual void fillRect(const Float x, const Float y, const Float w, const Float h, const Color& fillColor) = 0;
+    virtual void fillRect(const Float x, const Float y, const Float w, const Float h) = 0;
     virtual void fillPath(PathData*, const GepardState&) = 0;
     virtual void strokePath() = 0;
+    virtual void drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh) = 0;
+    virtual void putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight) = 0;
+    virtual Image getImage(Float sx, Float sy, Float sw, Float sh) = 0;
 };
 
 } // namespace gepard

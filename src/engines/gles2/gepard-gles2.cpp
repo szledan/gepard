@@ -269,5 +269,22 @@ void GepardGLES2::render()
     }
 }
 
+// TODO: implement and move these functions to separate file
+void GepardGLES2::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
+{
+    GD_NOT_IMPLEMENTED();
+}
+
+void GepardGLES2::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
+{
+    GD_NOT_IMPLEMENTED();
+}
+
+Image GepardGLES2::getImage(Float sx, Float sy, Float sw, Float sh)
+{
+    GD_NOT_IMPLEMENTED();
+}
+
+
 } // namespace gles2
 } // namespace gepard

@@ -53,9 +53,12 @@ public:
     explicit GepardGLES2(GepardContext&);
     ~GepardGLES2();
 
-    virtual void fillRect(const Float x, const Float y, const Float w, const Float h, const Color& fillColor) override;
+    virtual void fillRect(const Float x, const Float y, const Float w, const Float h) override;
     virtual void fillPath(PathData*, const GepardState&) override;
     virtual void strokePath() override;
+    virtual void drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh) override;
+    virtual void putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight) override;
+    virtual Image getImage(Float sx, Float sy, Float sw, Float sh) override;
 
 private:
     void makeCurrent();

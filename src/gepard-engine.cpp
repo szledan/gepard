@@ -234,11 +234,7 @@ void GepardEngine::beginPath()
 void GepardEngine::fill()
 {
     GD_ASSERT(_engineBackend);
-#ifdef GD_USE_GLES2
     _engineBackend->fillPath(context().path.pathData(), state());
-#else // !GD_USE_GLES2
-    _engineBackend->fill();
-#endif // GD_USE_GLES2
 }
 
 /*!
@@ -250,11 +246,7 @@ void GepardEngine::fill()
 void GepardEngine::stroke()
 {
     GD_ASSERT(_engineBackend);
-#ifdef GD_USE_GLES2
     _engineBackend->strokePath();
-#else // !GD_USE_GLES2
-    _engineBackend->stroke();
-#endif // GD_USE_GLES2
 }
 
 /*!
@@ -303,11 +295,7 @@ bool GepardEngine::isPointInPath(const Float x, const Float y)
 void GepardEngine::fillRect(const Float x, const Float y, const Float w, const Float h)
 {
     GD_ASSERT(_engineBackend);
-#ifdef GD_USE_GLES2
-    _engineBackend->fillRect(x, y, w, h, state().fillColor);
-#else // !GD_USE_GLES2
     _engineBackend->fillRect(x, y, w, h);
-#endif // GD_USE_GLES2
 }
 
 /*!
