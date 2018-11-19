@@ -1,5 +1,5 @@
-/* Copyright (C) 2016-2018, Gepard Graphics
- * Copyright (C) 2016-2018, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2018, Gepard Graphics
+ * Copyright (C) 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,62 +23,28 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GEPARD_GLES2_H
-#define GEPARD_GLES2_H
+#ifndef GEPARD_ENGINE_BACKEND_H
+#define GEPARD_ENGINE_BACKEND_H
 
 #include "gepard-color.h"
-#include "gepard-context.h"
 #include "gepard-float.h"
-#include "gepard-engine-backend.h"
-#include "gepard-gles2-defs.h"
-#include "gepard-gles2-shader-factory.h"
 #include "gepard-image.h"
 #include "gepard-state.h"
-#include "gepard.h"
-#include <EGL/egl.h>
-#include <GLES2/gl2.h>
 
 namespace gepard {
 
 class Image;
 class Surface;
 
-namespace gles2 {
-
-class GepardGLES2 : public GepardEngineBackend {
+class GepardEngineBackend {
 public:
-    static const int kMaximumNumberOfAttributes;
-    static const int kMaximumNumberOfUshortQuads;
+    virtual ~GepardEngineBackend() = 0;
 
-    explicit GepardGLES2(GepardContext&);
-    ~GepardGLES2();
-
-    virtual void fillRect(const Float x, const Float y, const Float w, const Float h, const Color& fillColor) override;
-    virtual void fillPath(PathData*, const GepardState&) override;
-    virtual void strokePath() override;
-
-private:
-    void makeCurrent();
-    void render();
-
-    ShaderProgramManager _shaderProgramManager;
-
-    GepardContext& _context;
-
-    GLuint _indexBufferObject;
-
-    EGLDisplay _eglDisplay;
-    EGLSurface _eglSurface;
-    EGLContext _eglContext;
-
-    GLuint _fboId;
-    GLuint _textureId;
-
-    GLfloat* _attributes;
+    virtual void fillRect(const Float x, const Float y, const Float w, const Float h, const Color& fillColor) = 0;
+    virtual void fillPath(PathData*, const GepardState&) = 0;
+    virtual void strokePath() = 0;
 };
-
-} // namespace gles2
 
 } // namespace gepard
 
-#endif // GEPARD_GLES2_H
+#endif // GEPARD_ENGINE_BACKEND_H
