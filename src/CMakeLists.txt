@@ -90,7 +90,7 @@ set(SURFACE_HEADERS
     surfaces/gepard-memory-buffer-surface.h
 )
 
-add_library(gepard SHARED)
+add_library(gepard SHARED ${COMMON_SOURCES})
 
 if (BACKEND_VULKAN)
   include(VulkanShaders)
@@ -101,7 +101,6 @@ if (BACKEND_VULKAN)
   endif()
 endif()
 
-target_sources(gepard PRIVATE ${COMMON_SOURCES})
 target_include_directories(gepard PRIVATE ${COMMON_INCLUDE_DIRS})
 target_include_directories(gepard PRIVATE ${GEPARD_DEP_INCLUDES})
 
