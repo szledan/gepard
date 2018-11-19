@@ -33,17 +33,9 @@
 #include "gepard-image.h"
 #include "gepard-state.h"
 
-
-// Include engine backend.
-#if defined(GD_USE_GLES2)
 #include "gepard-gles2.h"
-#elif defined(GD_USE_SOFTWARE)
 #include "gepard-software.h"
-#elif defined(GD_USE_VULKAN)
 #include "gepard-vulkan.h"
-#else
-#error "No engine backend defined!"
-#endif // Include engine backend.
 
 namespace gepard {
 
@@ -55,11 +47,19 @@ public:
     explicit GepardEngine(Surface* surface)
         : _context(surface)
     {
-#ifdef GD_USE_GLES2
-        _engineBackend = new gles2::GepardGLES2(_context);
-#else
-        _engineBackend = new vulkan::GepardVulkan(_context);
-#endif
+        const char* backendEnv = std::getenv("GEPARD_BACKEND");
+        if (backendEnv) {
+            const std::string backend = std::string(backendEnv);
+            if (backend == "GLES2") {
+                _engineBackend = new gles2::GepardGLES2(_context);
+            } else if (backend == "VULKAN") {
+                _engineBackend = new vulkan::GepardVulkan(_context);
+            } else if (backend == "SOFTWARE") {
+                _engineBackend = new software::GepardSoftware(_context);
+            }
+        } else {
+            _engineBackend = new gles2::GepardGLES2(_context);
+        }
     }
     ~GepardEngine()
     {

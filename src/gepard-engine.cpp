@@ -252,6 +252,7 @@ void GepardEngine::stroke()
 /*!
  * \brief GepardEngine::drawFocusIfNeeded
  *
+ * \internal
  * \todo unimplemented function
  */
 void GepardEngine::drawFocusIfNeeded(/*Element element*/)
@@ -262,6 +263,7 @@ void GepardEngine::drawFocusIfNeeded(/*Element element*/)
 /*!
  * \brief GepardEngine::clip
  *
+ * \internal
  * \todo unimplemented function
  */
 void GepardEngine::clip()
@@ -313,21 +315,13 @@ void GepardEngine::fillRect(const Float x, const Float y, const Float w, const F
 void GepardEngine::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
 {
     GD_ASSERT(_engineBackend);
-#ifdef GD_USE_VULKAN
     _engineBackend->putImage(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-#else // !GD_USE_VULKAN
-    GD_NOT_IMPLEMENTED();
-#endif // GD_USE_VULKAN
 }
 
 void GepardEngine::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
 {
     GD_ASSERT(_engineBackend);
-#ifdef GD_USE_VULKAN
     _engineBackend->drawImage(imagedata, sx, sy, sw, sh, dx, dy, dw, dh);
-#else // !GD_USE_VULKAN
-    GD_NOT_IMPLEMENTED();
-#endif // GD_USE_VULKAN
 }
 
 /*!
@@ -343,12 +337,7 @@ void GepardEngine::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Flo
 Image GepardEngine::getImage(Float sx, Float sy, Float sw, Float sh)
 {
     GD_ASSERT(_engineBackend);
-#ifdef GD_USE_VULKAN
     return _engineBackend->getImage(sx, sy, sw, sh);
-#else // !GD_USE_VULKAN
-    GD_NOT_IMPLEMENTED();
-    return Image();
-#endif // GD_USE_VULKAN
 }
 
 void GepardEngine::setFillColor(const Color& color)

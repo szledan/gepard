@@ -38,7 +38,7 @@ class Surface;
 
 class GepardEngineBackend {
 public:
-    virtual ~GepardEngineBackend() = 0;
+    virtual ~GepardEngineBackend() {}
 
     virtual void fillRect(const Float x, const Float y, const Float w, const Float h) = 0;
     virtual void fillPath(PathData*, const GepardState&) = 0;

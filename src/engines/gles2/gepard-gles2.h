@@ -81,7 +81,6 @@ private:
 };
 
 } // namespace gles2
-
 } // namespace gepard
 
 #endif // GEPARD_GLES2_H

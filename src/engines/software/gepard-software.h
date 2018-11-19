@@ -1,5 +1,5 @@
-/* Copyright (C) 2016, Gepard Graphics
- * Copyright (C) 2016, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2016, 2018, Gepard Graphics
+ * Copyright (C) 2016, 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,12 +26,11 @@
 #ifndef GEPARD_SOFTWARE_H
 #define GEPARD_SOFTWARE_H
 
-#include "gepard-defs.h"
-
 #include "gepard-color.h"
 #include "gepard-context.h"
 #include "gepard-defs.h"
 #include "gepard-float.h"
+#include "gepard-engine-backend.h"
 #include "gepard-image.h"
 #include "gepard.h"
 #include <vector>
@@ -43,14 +42,17 @@ class Surface;
 
 namespace software {
 
-class GepardSoftware {
+class GepardSoftware : public GepardEngineBackend {
 public:
     explicit GepardSoftware(GepardContext&);
     ~GepardSoftware();
 
-    void fillRect(const Float x, const Float y, const Float w, const Float h);
-    void fill();
-    void stroke();
+    virtual void fillRect(const Float x, const Float y, const Float w, const Float h) override;
+    virtual void fillPath(PathData*, const GepardState&) override;
+    virtual void strokePath() override;
+    virtual void drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh) override;
+    virtual void putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight) override;
+    virtual Image getImage(Float sx, Float sy, Float sw, Float sh) override;
 
 private:
     GepardContext& _context;
@@ -58,9 +60,6 @@ private:
 };
 
 } // namespace software
-
-typedef software::GepardSoftware GepardEngineBackend;
-
 } // namespace gepard
 
 #endif // GEPARD_SOFTWARE_H
