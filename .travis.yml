@@ -19,7 +19,7 @@ before_install:
 
 install:
   - if [ "$CMD" == "cppcheck" ]; then sudo apt-get install -qq cppcheck; fi
-  - sudo apt-get install -qq freeglut3-dev libegl1-mesa-dev libgles2-mesa-dev; fi
+  - sudo apt-get install -qq freeglut3-dev libegl1-mesa-dev libgles2-mesa-dev;
   - sudo apt-get install -qq libpng16-dev
 
 env:
