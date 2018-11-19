@@ -35,9 +35,58 @@
 namespace gepard {
 
 /*!
+ * \brief GepardEngine::GepardEngine
+ * \param surface
+ * \param backendType
+ *
+ * \internal
+ * \todo documentation is missing
+ */
+GepardEngine::GepardEngine(Surface* surface, BackendType backendType)
+    : _context(surface)
+{
+    const char* backendEnv = std::getenv("GEPARD_BACKEND");
+
+    if (backendEnv) {
+        if (!strcasecmp(backendEnv, "SOFTWARE")) {
+            backendType = BackendSoftware;
+        } else if (!strcasecmp(backendEnv, "VULKAN")) {
+            backendType = BackendVulkan;
+        }
+    }
+    GD_LOG(INFO) << "Using backend: " << backendType;
+
+    switch (backendType) {
+    case BackendGLES2:
+        _engineBackend = new gles2::GepardGLES2(_context);
+        break;
+    case BackendSoftware:
+        _engineBackend = new software::GepardSoftware(_context);
+        break;
+    case BackendVulkan:
+        _engineBackend = new vulkan::GepardVulkan(_context);
+        break;
+    }
+}
+
+/*!
+ * \brief GepardEngine::~GepardEngine
+ *
+ * \internal
+ * \todo documentation is missing
+ */
+GepardEngine::~GepardEngine()
+{
+    if (_engineBackend) {
+        delete _engineBackend;
+    }
+}
+
+/*!
  * \brief GepardEngine::save
  *
  * \internal
+ * \todo documentation is missing
  * \todo unit tests missing
  */
 void GepardEngine::save()
@@ -292,6 +341,7 @@ bool GepardEngine::isPointInPath(const Float x, const Float y)
  * \param w  size on X-axis
  * \param h  size on Y-axis
  *
+ * \internal
  * \todo documentation is missing
  */
 void GepardEngine::fillRect(const Float x, const Float y, const Float w, const Float h)

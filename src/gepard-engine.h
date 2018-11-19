@@ -30,43 +30,30 @@
 #include "gepard-context.h"
 #include "gepard-float.h"
 #include "gepard-float-point.h"
-#include "gepard-image.h"
-#include "gepard-state.h"
-
 #include "gepard-gles2.h"
+#include "gepard-image.h"
+#include "gepard-logging.h"
 #include "gepard-software.h"
+#include "gepard-state.h"
 #include "gepard-vulkan.h"
+#include <string.h>
+#include <string>
 
 namespace gepard {
 
 class Image;
 class Surface;
 
+enum BackendType {
+    BackendGLES2,
+    BackendSoftware,
+    BackendVulkan,
+};
+
 class GepardEngine {
 public:
-    explicit GepardEngine(Surface* surface)
-        : _context(surface)
-    {
-        const char* backendEnv = std::getenv("GEPARD_BACKEND");
-        if (backendEnv) {
-            const std::string backend = std::string(backendEnv);
-            if (backend == "GLES2") {
-                _engineBackend = new gles2::GepardGLES2(_context);
-            } else if (backend == "VULKAN") {
-                _engineBackend = new vulkan::GepardVulkan(_context);
-            } else if (backend == "SOFTWARE") {
-                _engineBackend = new software::GepardSoftware(_context);
-            }
-        } else {
-            _engineBackend = new gles2::GepardGLES2(_context);
-        }
-    }
-    ~GepardEngine()
-    {
-        if (_engineBackend) {
-            delete _engineBackend;
-        }
-    }
+    explicit GepardEngine(Surface* surface, BackendType backendType = BackendGLES2);
+    ~GepardEngine();
 
     /* 2. State */
     void save();
