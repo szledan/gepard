@@ -31,8 +31,19 @@
 #include "gepard-float.h"
 #include "gepard-logging.h"
 #include "gepard-transform.h"
+#include <string>
 
 namespace gepard {
+
+static const std::string nameOfBackend(const BackendType backendType)
+{
+    switch (backendType) {
+    default:
+    case BackendGLES2: return "GLES2";
+    case BackendSoftware: return "SOFTWARE";
+    case BackendVulkan: return "VULKAN";
+    }
+}
 
 /*!
  * \brief GepardEngine::GepardEngine
@@ -54,7 +65,6 @@ GepardEngine::GepardEngine(Surface* surface, BackendType backendType)
             backendType = BackendVulkan;
         }
     }
-    GD_LOG(INFO) << "Using backend: " << backendType;
 
     switch (backendType) {
     case BackendGLES2:
@@ -67,6 +77,8 @@ GepardEngine::GepardEngine(Surface* surface, BackendType backendType)
         _engineBackend = new vulkan::GepardVulkan(_context);
         break;
     }
+
+    GD_LOG(INFO) << "Using backend: " << nameOfBackend(backendType);
 }
 
 /*!
