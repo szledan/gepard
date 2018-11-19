@@ -269,20 +269,59 @@ void GepardGLES2::render()
     }
 }
 
-// TODO: implement and move these functions to separate file
+/*!
+ * \brief GepardGLES2::drawImage
+ * \param imagedata
+ * \param sx
+ * \param sy
+ * \param sw
+ * \param sh
+ * \param dx
+ * \param dy
+ * \param dw
+ * \param dh
+ *
+ * \internal
+ * \todo documentation is missing
+ */
 void GepardGLES2::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
 {
     GD_NOT_IMPLEMENTED();
 }
 
+/*!
+ * \brief GepardGLES2::putImage
+ * \param imagedata
+ * \param dx
+ * \param dy
+ * \param dirtyX
+ * \param dirtyY
+ * \param dirtyWidth
+ * \param dirtyHeight
+ *
+ * \internal
+ * \todo documentation is missing
+ */
 void GepardGLES2::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
 {
     GD_NOT_IMPLEMENTED();
 }
 
+/*!
+ * \brief GepardGLES2::getImage
+ * \param sx
+ * \param sy
+ * \param sw
+ * \param sh
+ * \return
+ *
+ * \internal
+ * \todo documentation is missing
+ */
 Image GepardGLES2::getImage(Float sx, Float sy, Float sw, Float sh)
 {
     GD_NOT_IMPLEMENTED();
+    return Image();
 }
 
 
