@@ -83,7 +83,7 @@ GepardEngine::GepardEngine(Surface* surface, BackendType backendType)
         break;
 #endif // GD_BACKEND_VULKAN
     default:
-        GD_CRASH("No backand found!");
+        GD_CRASH("No backend found!");
     }
 
     GD_LOG(INFO) << "Using backend: " << nameOfBackend(backendType);
