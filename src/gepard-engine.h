@@ -36,7 +36,6 @@
 #include "gepard-software.h"
 #include "gepard-state.h"
 #include "gepard-vulkan.h"
-#include <string.h>
 #include <string>
 
 namespace gepard {

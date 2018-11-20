@@ -31,6 +31,7 @@
 #include "gepard-float.h"
 #include "gepard-logging.h"
 #include "gepard-transform.h"
+#include <cstring>
 #include <string>
 
 namespace gepard {
