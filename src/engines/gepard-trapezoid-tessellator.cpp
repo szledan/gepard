@@ -796,7 +796,7 @@ const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state
             trapezoidList.push_back(*current);
         }
     }
-    GD_LOG(TRACE) << "Number of vertical merged trapezoids: " << trapezoids.size();
+    GD_LOG(TRACE) << "Number of vertical merged trapezoids: " << trapezoidList.size();
 
     return trapezoidList;
 }
