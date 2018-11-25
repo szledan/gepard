@@ -44,8 +44,6 @@
 #include "gepard-software.h"
 #endif
 
-#include "gepard.h"
-
 namespace gepard {
 
 static const std::string nameOfBackend(const BackendType backendType)
@@ -148,7 +146,7 @@ void GepardEngine::restore()
  */
 void GepardEngine::closePath()
 {
-Gepard::s_nOfGepradPathCall++;
+    GD_LOG(DEBUG) << "Call " << __func__;
     _context.path.pathData()->addCloseSubpathElement();
 }
 
@@ -162,7 +160,7 @@ Gepard::s_nOfGepradPathCall++;
  */
 void GepardEngine::moveTo(const Float x, const Float y)
 {
-Gepard::s_nOfGepradPathCall++;
+    GD_LOG(DEBUG) << "Call " << __func__;
     _context.path.pathData()->addMoveToElement(FloatPoint(x, y));
 }
 
@@ -176,7 +174,7 @@ Gepard::s_nOfGepradPathCall++;
  */
 void GepardEngine::lineTo(const Float x, const Float y)
 {
-Gepard::s_nOfGepradPathCall++;
+    GD_LOG(DEBUG) << "Call " << __func__;
     _context.path.pathData()->addLineToElement(FloatPoint(x, y));
 }
 
@@ -192,7 +190,7 @@ Gepard::s_nOfGepradPathCall++;
  */
 void GepardEngine::quadraticCurveTo(const Float cpx, const Float cpy, const Float x, const Float y)
 {
-Gepard::s_nOfGepradPathCall++;
+    GD_LOG(DEBUG) << "Call " << __func__;
     _context.path.pathData()->addQuadaraticCurveToElement(FloatPoint(cpx, cpy), FloatPoint(x, y));
 }
 
@@ -210,7 +208,7 @@ Gepard::s_nOfGepradPathCall++;
  */
 void GepardEngine::bezierCurveTo(const Float cp1x, const Float cp1y, const Float cp2x, const Float cp2y, const Float x, const Float y)
 {
-Gepard::s_nOfGepradPathCall++;
+    GD_LOG(DEBUG) << "Call " << __func__;
     _context.path.pathData()->addBezierCurveToElement(FloatPoint(cp1x, cp1y), FloatPoint(cp2x, cp2y), FloatPoint(x, y));
 }
 
@@ -227,7 +225,7 @@ Gepard::s_nOfGepradPathCall++;
  */
 void GepardEngine::arcTo(const Float x1, const Float y1, const Float x2, const Float y2, const Float radius)
 {
-Gepard::s_nOfGepradPathCall++;
+    GD_LOG(DEBUG) << "Call " << __func__;
     _context.path.pathData()->addArcToElement(FloatPoint(x1, y1), FloatPoint(x2, y2), radius);
 }
 
@@ -264,7 +262,7 @@ void GepardEngine::rect(const Float x, const Float y, const Float w, const Float
  */
 void GepardEngine::arc(const Float x, const Float y, const Float radius, const Float startAngle, const Float endAngle, const bool counterclockwise)
 {
-Gepard::s_nOfGepradPathCall++;
+    GD_LOG(DEBUG) << "Call " << __func__;
     _context.path.pathData()->addArcElement(FloatPoint(x, y), FloatPoint(radius, radius), startAngle, endAngle, counterclockwise);
 }
 
@@ -310,7 +308,7 @@ void GepardEngine::setTransform(const Float a, const Float b, const Float c, con
  */
 void GepardEngine::beginPath()
 {
-    GD_LOG(DEBUG) << "Clear path data.";
+    GD_LOG(DEBUG) << "Call " << __func__;
     _context.path.clear();
 }
 
@@ -322,7 +320,7 @@ void GepardEngine::beginPath()
  */
 void GepardEngine::fill()
 {
-Gepard::s_nOfFillCall++;
+    GD_LOG(DEBUG) << "Call " << __func__;
     GD_ASSERT(_engineBackend);
     _engineBackend->fillPath(context().path.pathData(), state());
 }
@@ -335,7 +333,7 @@ Gepard::s_nOfFillCall++;
  */
 void GepardEngine::stroke()
 {
-Gepard::s_nOfStrokeCall++;
+    GD_LOG(DEBUG) << "Call " << __func__;
     GD_ASSERT(_engineBackend);
     _engineBackend->strokePath();
 }

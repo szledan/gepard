@@ -33,8 +33,6 @@
 #include "gepard-trapezoid-tessellator.h"
 #include <cmath>
 
-#include "gepard.h"
-
 namespace gepard {
 
 static inline FloatPoint normalSize(const FloatPoint& size, Float halfWidth)
@@ -103,7 +101,6 @@ void StrokePathBuilder::convertStrokeToFill(const PathData* path)
 
     FloatPoint from;
     while (element) {
-Gepard::s_nOfStrokePathElement++;
         FloatPoint to = element->to;
 
         switch (element->type) {
