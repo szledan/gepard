@@ -18,18 +18,14 @@ before_install:
   - sudo apt-get -qq update
 
 install:
-  - if [ "$CXX" == "clang++" ]; then sudo apt-get install --allow-unauthenticated -qq clang-3.8; fi
-  - if [ "$CXX" == "clang++" ]; then export CXX="clang++-3.8"; fi
   - if [ "$CMD" == "cppcheck" ]; then sudo apt-get install -qq cppcheck; fi
-  - if [ "$BACKEND" == "gles2" ]; then sudo apt-get install -qq freeglut3-dev libegl1-mesa-dev libgles2-mesa-dev; fi
-  - sudo apt-get install libpng16-dev
+  - sudo apt-get install -qq freeglut3-dev libegl1-mesa-dev libgles2-mesa-dev;
+  - sudo apt-get install -qq libpng16-dev
 
 env:
   - CMD=cppcheck
+  - CMD=build
   - CMD=unittest
-  - CMD=build BACKEND=gles2
-  - CMD=build BACKEND=vulkan
-  - CMD=build BACKEND=software
 
 matrix:
   exclude:

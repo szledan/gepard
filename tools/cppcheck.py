@@ -43,6 +43,9 @@ def run_cppcheck(throw=True):
         '--enable=all',
 #        '--error-exitcode=2', # Uncomment when cppcheck issues are fixed
         '-UGD_ENABLE_LOGGING',
+        '-UGD_BACKEND_GLES2',
+        '-UGD_BACKEND_VULKAN',
+        '-UGD_BACKEND_SOFTWARE',
         '--suppressions-list=%s' % (path.join('tools', 'cppcheck-suppr-list')),
         '--includes-file=%s' % (path.join('tools', 'cppcheck-incl-list')),
         'src',

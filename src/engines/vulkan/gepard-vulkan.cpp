@@ -310,10 +310,9 @@ void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const F
     _vk.vkFreeMemory(_device, indexBufferMemory, _allocator);
 }
 
-void GepardVulkan::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
+void GepardVulkan::drawImage(const Image& imagedata, const Float sx, const Float sy, const Float sw, const Float sh, const Float dx, const Float dy, const Float dw, const Float dh)
 {
     GD_LOG(DEBUG) << "drawImage " << sx << " " << sy << " " << sw << " " << sh << " " << dx << " " << dy << " " << dw << " " << dh;
-    VkResult vkResult;
     const uint32_t width = imagedata.width();
     const uint32_t height = imagedata.height();
     VkBuffer buffer;
@@ -648,7 +647,7 @@ void GepardVulkan::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Flo
     _vk.vkDestroyBuffer(_device, buffer, _allocator);
 }
 
-void GepardVulkan::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
+void GepardVulkan::putImage(const Image& imagedata, const Float dx, const Float dy, const Float dirtyX, const Float dirtyY, const Float dirtyWidth, const Float dirtyHeight)
 {
     GD_LOG(DEBUG) << "putImage " << dx << " " << dy << " " << dirtyX << " " << dirtyY << " " << dirtyWidth << " " << dirtyHeight;
     VkResult vkResult;
@@ -775,19 +774,19 @@ void GepardVulkan::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, 
     const VkImageMemoryBarrier imageBarriers[] = { srcImageBarrier, dstImageBarrier };
 
     const VkOffset3D srcOffset = {
-        dirtyX, // int32_t    x;
-        dirtyY, // int32_t    y;
-        0,      // int32_t    z;
+        (int32_t) dirtyX,   // int32_t    x;
+        (int32_t) dirtyY,   // int32_t    y;
+        0,                  // int32_t    z;
     };
     const VkOffset3D dstOffset = {
-        dx,     // int32_t    x;
-        dy,     // int32_t    y;
-        0,      // int32_t    z;
+        (int32_t) dx,   // int32_t    x;
+        (int32_t) dy,   // int32_t    y;
+        0,              // int32_t    z;
     };
     const VkExtent3D extent = {
-        dirtyWidth,     // uint32_t    width;
-        dirtyHeight,    // uint32_t    height;
-        1,              // uint32_t    depth;
+        (uint32_t) dirtyWidth,  // uint32_t    width;
+        (uint32_t) dirtyHeight, // uint32_t    height;
+        1u,                     // uint32_t    depth;
     };
     const VkImageCopy imageCopy = {
         subResourceLayers,   // VkImageSubresourceLayers    srcSubresource;
@@ -846,7 +845,7 @@ void GepardVulkan::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, 
     _vk.vkDestroyBuffer(_device, buffer, _allocator);
 }
 
-Image GepardVulkan::getImage(Float sx, Float sy, Float sw, Float sh)
+Image GepardVulkan::getImage(const Float sx, const Float sy, const Float sw, const Float sh)
 {
     std::vector<uint32_t> imageData;
     int32_t x = sx;
@@ -858,12 +857,12 @@ Image GepardVulkan::getImage(Float sx, Float sy, Float sw, Float sh)
     return Image(w, h, imageData);
 }
 
-void GepardVulkan::fill()
+void GepardVulkan::fillPath(PathData*, const GepardState&)
 {
     GD_NOT_IMPLEMENTED();
 }
 
-void GepardVulkan::stroke()
+void GepardVulkan::strokePath()
 {
     GD_NOT_IMPLEMENTED();
 }
@@ -896,8 +895,10 @@ void GepardVulkan::createDefaultInstance()
         enabledExtensionNames,                  // const char* const*          ppEnabledExtensionNames;
     };
 
-    VkResult result = _vk.vkCreateInstance(&instanceCreateInfo, _allocator, &_instance);
+    VkResult vkResult = _vk.vkCreateInstance(&instanceCreateInfo, _allocator, &_instance);
+    (void) vkResult;
 
+    GD_ASSERT(vkResult == VK_SUCCESS && "vkCreateInstace is failed!");
     GD_ASSERT(_instance);
 }
 
@@ -967,6 +968,8 @@ void GepardVulkan::chooseDefaultDevice()
     _vk.vkGetPhysicalDeviceFeatures(_physicalDevice, &_physicalDeviceFeatures);
 
     VkResult vkResult;
+    // TODO: handle these in better way
+    (void) vkResult;
     const float queuePriorities[] = { 1.0f };
 
     const VkDeviceQueueCreateInfo deviceQueueCreateInfo = {
@@ -1018,6 +1021,7 @@ void GepardVulkan::createCommandPool()
     };
 
     VkResult vkResult;
+    (void) vkResult;
     vkResult = _vk.vkCreateCommandPool(_device, &commandPoolCreateInfo, _allocator, &_commandPool);
 
     GD_ASSERT(vkResult == VK_SUCCESS && "Command pool creation failed!");
@@ -1034,6 +1038,7 @@ void GepardVulkan::allocatePrimaryCommandBuffer()
     };
 
     VkResult vkResult;
+    (void) vkResult;
     VkCommandBuffer commandBuffer;
     vkResult = _vk.vkAllocateCommandBuffers(_device, &commandBufferAllocateInfo, &commandBuffer);
 
@@ -1044,6 +1049,7 @@ void GepardVulkan::allocatePrimaryCommandBuffer()
 void GepardVulkan::createDefaultRenderPass()
 {
     VkResult vkResult;
+    (void) vkResult;
 
     const VkAttachmentDescription attachmentDescription = {
         0u,                                         // VkAttachmentDescriptionFlags flags;
@@ -1194,6 +1200,7 @@ void GepardVulkan::createSurfaceImage()
 void GepardVulkan::createDefaultFrameBuffer()
 {
     VkResult vkResult;
+    (void) vkResult;
 
     createImageView(_frameBufferColorAttachmentImageView, _surfaceImage);
     std::vector<VkImageView> attachments;
@@ -1668,6 +1675,7 @@ void GepardVulkan::readImage(uint32_t* memoryBuffer, int32_t x, int32_t y, uint3
 void GepardVulkan::createBuffer(VkBuffer &buffer, VkDeviceMemory &bufferAlloc, VkMemoryRequirements &bufferRequirements, VkDeviceSize size, VkBufferUsageFlags usageFlag)
 {
     VkResult vkResult;
+    (void) vkResult;
     const VkBufferCreateInfo bufferInfo = {
         VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,   // VkStructureType        sType;
         nullptr,                                // const void*            pNext;
@@ -1697,6 +1705,7 @@ void GepardVulkan::createBuffer(VkBuffer &buffer, VkDeviceMemory &bufferAlloc, V
 void GepardVulkan::createImage(VkImage &image, VkDeviceMemory &imageAlloc, VkMemoryRequirements &memReq, VkExtent3D imageSize, VkImageUsageFlags usageFlag)
 {
     VkResult vkResult;
+    (void) vkResult;
     const VkImageCreateInfo imageCreateInfo = {
         VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,        // VkStructureType          sType;
         nullptr,                                    // const void*              pNext;
@@ -1737,6 +1746,7 @@ void GepardVulkan::createImage(VkImage &image, VkDeviceMemory &imageAlloc, VkMem
 void GepardVulkan::createImageView(VkImageView &imageView, VkImage image)
 {
     VkResult vkResult;
+    (void) vkResult;
 
     const VkImageViewCreateInfo imageViewCreateInfo = {
         VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,   // VkStructureType            sType;

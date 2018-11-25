@@ -31,13 +31,83 @@
 #include "gepard-float.h"
 #include "gepard-logging.h"
 #include "gepard-transform.h"
+#include <cstring>
+#include <string>
 
 namespace gepard {
+
+static const std::string nameOfBackend(const BackendType backendType)
+{
+    switch (backendType) {
+    default:
+    case BackendGLES2: return "GLES2";
+    case BackendSoftware: return "SOFTWARE";
+    case BackendVulkan: return "VULKAN";
+    }
+}
+
+/*!
+ * \brief GepardEngine::GepardEngine
+ * \param surface
+ * \param backendType
+ *
+ * \internal
+ * \todo documentation is missing
+ */
+GepardEngine::GepardEngine(Surface* surface, BackendType backendType)
+    : _context(surface)
+{
+    const char* backendEnv = std::getenv("GEPARD_BACKEND");
+
+    if (backendEnv) {
+        if (!strcasecmp(backendEnv, "SOFTWARE")) {
+            backendType = BackendSoftware;
+        } else if (!strcasecmp(backendEnv, "VULKAN")) {
+            backendType = BackendVulkan;
+        }
+    }
+
+    switch (backendType) {
+#if defined(GD_BACKEND_GLES2)
+    case BackendGLES2:
+        _engineBackend = new gles2::GepardGLES2(_context);
+        break;
+#endif // GD_BACKEND_GLES2
+#if defined(GD_BACKEND_SOFTWARE)
+    case BackendSoftware:
+        _engineBackend = new software::GepardSoftware(_context);
+        break;
+#endif // GD_BACKEND_SOFTWARE
+#if defined(GD_BACKEND_VULKAN)
+    case BackendVulkan:
+        _engineBackend = new vulkan::GepardVulkan(_context);
+        break;
+#endif // GD_BACKEND_VULKAN
+    default:
+        GD_CRASH("No backend found!");
+    }
+
+    GD_LOG(INFO) << "Using backend: " << nameOfBackend(backendType);
+}
+
+/*!
+ * \brief GepardEngine::~GepardEngine
+ *
+ * \internal
+ * \todo documentation is missing
+ */
+GepardEngine::~GepardEngine()
+{
+    if (_engineBackend) {
+        delete _engineBackend;
+    }
+}
 
 /*!
  * \brief GepardEngine::save
  *
  * \internal
+ * \todo documentation is missing
  * \todo unit tests missing
  */
 void GepardEngine::save()
@@ -242,11 +312,7 @@ void GepardEngine::fill()
 {
     GD_LOG(DEBUG) << "Call " << __func__;
     GD_ASSERT(_engineBackend);
-#ifdef GD_USE_GLES2
     _engineBackend->fillPath(context().path.pathData(), state());
-#else // !GD_USE_GLES2
-    _engineBackend->fill();
-#endif // GD_USE_GLES2
 }
 
 /*!
@@ -259,16 +325,13 @@ void GepardEngine::stroke()
 {
     GD_LOG(DEBUG) << "Call " << __func__;
     GD_ASSERT(_engineBackend);
-#ifdef GD_USE_GLES2
     _engineBackend->strokePath();
-#else // !GD_USE_GLES2
-    _engineBackend->stroke();
-#endif // GD_USE_GLES2
 }
 
 /*!
  * \brief GepardEngine::drawFocusIfNeeded
  *
+ * \internal
  * \todo unimplemented function
  */
 void GepardEngine::drawFocusIfNeeded(/*Element element*/)
@@ -279,6 +342,7 @@ void GepardEngine::drawFocusIfNeeded(/*Element element*/)
 /*!
  * \brief GepardEngine::clip
  *
+ * \internal
  * \todo unimplemented function
  */
 void GepardEngine::clip()
@@ -307,16 +371,13 @@ bool GepardEngine::isPointInPath(const Float x, const Float y)
  * \param w  size on X-axis
  * \param h  size on Y-axis
  *
+ * \internal
  * \todo documentation is missing
  */
 void GepardEngine::fillRect(const Float x, const Float y, const Float w, const Float h)
 {
     GD_ASSERT(_engineBackend);
-#ifdef GD_USE_GLES2
-    _engineBackend->fillRect(x, y, w, h, state().fillColor);
-#else // !GD_USE_GLES2
     _engineBackend->fillRect(x, y, w, h);
-#endif // GD_USE_GLES2
 }
 
 /*!
@@ -334,21 +395,13 @@ void GepardEngine::fillRect(const Float x, const Float y, const Float w, const F
 void GepardEngine::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
 {
     GD_ASSERT(_engineBackend);
-#ifdef GD_USE_VULKAN
     _engineBackend->putImage(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-#else // !GD_USE_VULKAN
-    GD_NOT_IMPLEMENTED();
-#endif // GD_USE_VULKAN
 }
 
 void GepardEngine::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
 {
     GD_ASSERT(_engineBackend);
-#ifdef GD_USE_VULKAN
     _engineBackend->drawImage(imagedata, sx, sy, sw, sh, dx, dy, dw, dh);
-#else // !GD_USE_VULKAN
-    GD_NOT_IMPLEMENTED();
-#endif // GD_USE_VULKAN
 }
 
 /*!
@@ -364,12 +417,7 @@ void GepardEngine::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Flo
 Image GepardEngine::getImage(Float sx, Float sy, Float sw, Float sh)
 {
     GD_ASSERT(_engineBackend);
-#ifdef GD_USE_VULKAN
     return _engineBackend->getImage(sx, sy, sw, sh);
-#else // !GD_USE_VULKAN
-    GD_NOT_IMPLEMENTED();
-    return Image();
-#endif // GD_USE_VULKAN
 }
 
 void GepardEngine::setFillColor(const Color& color)

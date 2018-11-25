@@ -29,6 +29,7 @@
 #include "gepard-color.h"
 #include "gepard-context.h"
 #include "gepard-float.h"
+#include "gepard-engine-backend.h"
 #include "gepard-gles2-defs.h"
 #include "gepard-gles2-shader-factory.h"
 #include "gepard-image.h"
@@ -44,7 +45,7 @@ class Surface;
 
 namespace gles2 {
 
-class GepardGLES2 {
+class GepardGLES2 : public GepardEngineBackend {
 public:
     static const int kMaximumNumberOfAttributes;
     static const int kMaximumNumberOfUshortQuads;
@@ -52,9 +53,12 @@ public:
     explicit GepardGLES2(GepardContext&);
     ~GepardGLES2();
 
-    void fillRect(const Float x, const Float y, const Float w, const Float h, const Color& fillColor);
-    void fillPath(PathData*, const GepardState&);
-    void strokePath();
+    virtual void fillRect(const Float x, const Float y, const Float w, const Float h) override;
+    virtual void fillPath(PathData*, const GepardState&) override;
+    virtual void strokePath() override;
+    virtual void drawImage(const Image& imagedata, const Float sx, const Float sy, const Float sw, Float const sh, Float const dx, Float const dy, Float const dw, Float const dh) override;
+    virtual void putImage(const Image& imagedata, const Float dx, const Float dy, const Float dirtyX, const Float dirtyY, const Float dirtyWidth, const Float dirtyHeight) override;
+    virtual Image getImage(const Float sx, const Float sy, const Float sw, const Float sh) override;
 
 private:
     void makeCurrent();
@@ -77,9 +81,6 @@ private:
 };
 
 } // namespace gles2
-
-typedef gles2::GepardGLES2 GepardEngineBackend;
-
 } // namespace gepard
 
 #endif // GEPARD_GLES2_H

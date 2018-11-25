@@ -38,7 +38,6 @@ def run_unittest(throw=True):
     args = lambda: None
     args.build_dir = "build/unittest"
     args.build_type = "debug"
-    args.backend = "software"
     args.targets = ["unittest"]
     build_path = util.get_build_path(args)
 

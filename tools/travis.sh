@@ -25,17 +25,13 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 if [ "$CMD" == "build" ]; then
-    if [ $BACKEND ]; then
-        backend="--backend=$BACKEND"
-    fi
-
     targets="gepard examples pygepard"
 
     echo "Running Release build."
-    if ! python tools/build.py $backend $ARGS $targets; then ret=1; fi
+    if ! python tools/build.py -l $ARGS $targets; then ret=1; fi
 
     echo "Running Debug build.";
-    if ! python tools/build.py -d $backend $ARGS $targets; then ret=1; fi
+    if ! python tools/build.py -d -l $ARGS $targets; then ret=1; fi
 
     exit $ret
 else
