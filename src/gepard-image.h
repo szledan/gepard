@@ -27,6 +27,7 @@
 #define GEPARD_IMAGE_H
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace gepard {
@@ -38,16 +39,20 @@ public:
     Image(uint32_t width, uint32_t height, const std::vector<uint32_t> &data);
     virtual ~Image();
 
-    const uint32_t width();
-    const uint32_t height();
- // TODO: check array implementation
-    std::vector<uint32_t> &data();
+    const uint32_t width() const;
+    const uint32_t height() const;
+    const std::vector<uint32_t> &data() const;
 
 private:
     uint32_t _width;
     uint32_t _height;
     std::vector<uint32_t> _data;
 };
+
+namespace utils {
+    bool savePng(const Image &image, const std::string &fileName);
+    Image loadPng(const std::string &fileName);
+}
 
 } // namespace gepard
 

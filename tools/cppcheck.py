@@ -42,7 +42,7 @@ def run_cppcheck(throw=True):
         'cppcheck',
         '--enable=all',
 #        '--error-exitcode=2', # Uncomment when cppcheck issues are fixed
-        '-UGD_LOG_LEVEL', '-UGD_DISABLE_LOG_COLORS',
+        '-UGD_ENABLE_LOGGING',
         '--suppressions-list=%s' % (path.join('tools', 'cppcheck-suppr-list')),
         '--includes-file=%s' % (path.join('tools', 'cppcheck-incl-list')),
         'src',

@@ -26,8 +26,8 @@
 #include "gepard-software.h"
 
 #include "gepard-color.h"
-#include "gepard-defs.h"
 #include "gepard-float.h"
+#include "gepard-logging.h"
 
 namespace gepard {
 namespace software {
@@ -52,14 +52,14 @@ GepardSoftware::~GepardSoftware()
  */
 void GepardSoftware::fillRect(const Float x, const Float y, const Float w, const Float h)
 {
-    GD_LOG1("Fill rect with Software backend (" << x << ", " << y << ", " << w << ", " << h << ")");
+    GD_LOG(DEBUG) << "Fill rect with Software backend (" << x << ", " << y << ", " << w << ", " << h << ")";
 
     const Color fillColor = _context.currentState().fillColor;
     const uint32_t width = _context.surface->width();
 
     //! \todo (szledan): anti-aliassing
     //! \fixme (szledan): checking boundary
-    GD_LOG2("1. Fill destination buffer.");
+    GD_LOG(TRACE) << "Fill destination buffer";
     for (int j = y; j < y + h; ++j)
         for (int i = x; i < x + w; ++i) {
             uint32_t& dstRaw = _buffer[j * width + i];
@@ -76,7 +76,7 @@ void GepardSoftware::fillRect(const Float x, const Float y, const Float w, const
             dstRaw = Color::toRawDataABGR(src + dst);
         }
 
-    GD_LOG2("2. Call drawBuffer method of surface.");
+    GD_LOG(TRACE) << "Call drawBuffer method of surface";
     _context.surface->drawBuffer(_buffer.data());
 }
 

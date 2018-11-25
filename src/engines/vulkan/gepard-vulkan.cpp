@@ -26,6 +26,7 @@
 #include "gepard-vulkan.h"
 
 #include "gepard-float.h"
+#include "gepard-logging.h"
 #include <cstring>
 #include <fstream>
 #include <string>
@@ -71,24 +72,24 @@ GepardVulkan::GepardVulkan(GepardContext& context)
     , _wsiSurface(0)
     , _wsiSwapChain(0)
 {
-    GD_LOG1("GepardVulkan");
+    GD_LOG(INFO) << "Initialize GepardVulkan";
     _vk.loadGlobalFunctions();
-    GD_LOG2(" - Global functions are loaded");
+    GD_LOG(INFO) << "Global functions are loaded";
     createDefaultInstance();
     _vk.loadInstanceFunctions(_instance);
-    GD_LOG2(" - Instance functions are loaded");
+    GD_LOG(INFO) << "Instance functions are loaded";
     chooseDefaultDevice();
     _vk.loadDeviceFunctions(_device);
-    GD_LOG2(" - Device functions are loaded");
+    GD_LOG(INFO) << "Device functions are loaded";
     createCommandPool();
     allocatePrimaryCommandBuffer();
-    GD_LOG2(" - Command buffer is allocated");
+    GD_LOG(INFO) << "Command buffer is allocated";
     createDefaultRenderPass();
-    GD_LOG2(" - Default render pass is created");
+    GD_LOG(INFO) << "Default render pass is created";
     createSurfaceImage();
-    GD_LOG2(" - Surface backing image is created");
+    GD_LOG(INFO) << "Surface backing image is created";
     createDefaultFrameBuffer();
-    GD_LOG2(" - Default frame buffer is created");
+    GD_LOG(INFO) << "Default frame buffer is created";
     if (_context.surface->getDisplay())
         createSwapChain();
 }
@@ -288,7 +289,7 @@ void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const F
     _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
     if (vkResult == VK_TIMEOUT) {
-        GD_LOG1("TIMEOUT!");
+        GD_LOG(WARNING) << "TIMEOUT!";
     }
 
     updateSurface();
@@ -311,7 +312,7 @@ void GepardVulkan::fillRect(const Float x, const Float y, const Float w, const F
 
 void GepardVulkan::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh)
 {
-    GD_LOG2("drawImage " << sx << " " << sy << " " << sw << " " << sh << " " << dx << " " << dy << " " << dw << " " << dh);
+    GD_LOG(DEBUG) << "drawImage " << sx << " " << sy << " " << sw << " " << sh << " " << dx << " " << dy << " " << dw << " " << dh;
     VkResult vkResult;
     const uint32_t width = imagedata.width();
     const uint32_t height = imagedata.height();
@@ -636,16 +637,20 @@ void GepardVulkan::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Flo
 
     _vk.vkDestroyImageView(_device, imageView, _allocator);
 
+    _vk.vkFreeMemory(_device, vertexBufferMemory, _allocator);
+    _vk.vkFreeMemory(_device, indexBufferMemory, _allocator);
     _vk.vkFreeMemory(_device, imageMemory, _allocator);
     _vk.vkFreeMemory(_device, bufferAlloc, _allocator);
 
+    _vk.vkDestroyBuffer(_device, vertexBuffer, _allocator);
+    _vk.vkDestroyBuffer(_device, indexBuffer, _allocator);
     _vk.vkDestroyImage(_device, image, _allocator);
     _vk.vkDestroyBuffer(_device, buffer, _allocator);
 }
 
 void GepardVulkan::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight)
 {
-    GD_LOG2("putImage " << dx << " " << dy << " " << dirtyX << " " << dirtyY << " " << dirtyWidth << " " << dirtyHeight);
+    GD_LOG(DEBUG) << "putImage " << dx << " " << dy << " " << dirtyX << " " << dirtyY << " " << dirtyWidth << " " << dirtyHeight;
     VkResult vkResult;
     const uint32_t width = imagedata.width();
     const uint32_t height = imagedata.height();
@@ -715,13 +720,25 @@ void GepardVulkan::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, 
         1u,                         // uint32_t              layerCount;
     };
 
-    // TODO: check the barriers!
-    const VkImageMemoryBarrier srcImageBarrier = {
+    const VkImageMemoryBarrier bufferToImageCopyBarrier = {
         VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,     // VkStructureType            sType;
         nullptr,                                    // const void*                pNext;
         VK_ACCESS_TRANSFER_WRITE_BIT,               // VkAccessFlags              srcAccessMask;
         VK_ACCESS_TRANSFER_READ_BIT,                // VkAccessFlags              dstAccessMask;
         VK_IMAGE_LAYOUT_UNDEFINED,                  // VkImageLayout              oldLayout;
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,       // VkImageLayout              newLayout;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   dstQueueFamilyIndex;
+        image,                                      // VkImage                    image;
+        subresourceRange,                           // VkImageSubresourceRange    subresourceRange;
+    };
+
+    const VkImageMemoryBarrier srcImageBarrier = {
+        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,     // VkStructureType            sType;
+        nullptr,                                    // const void*                pNext;
+        VK_ACCESS_TRANSFER_READ_BIT,                // VkAccessFlags              srcAccessMask;
+        VK_ACCESS_TRANSFER_READ_BIT,                // VkAccessFlags              dstAccessMask;
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,       // VkImageLayout              oldLayout;
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,       // VkImageLayout              newLayout;
         VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   srcQueueFamilyIndex;
         VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   dstQueueFamilyIndex;
@@ -749,8 +766,8 @@ void GepardVulkan::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, 
         VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,       // VkAccessFlags              dstAccessMask;
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,       // VkImageLayout              oldLayout;
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout              newLayout;
-        _queueFamilyIndex,                          // uint32_t                   srcQueueFamilyIndex;
-        _queueFamilyIndex,                          // uint32_t                   dstQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   dstQueueFamilyIndex;
         _surfaceImage,                              // VkImage                    image;
         subresourceRange,                           // VkImageSubresourceRange    subresourceRange;
     };
@@ -781,12 +798,11 @@ void GepardVulkan::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, 
     };
 
     _vk.vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
-
+    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 0, (const VkBufferMemoryBarrier*)nullptr, 1, &bufferToImageCopyBarrier);
     _vk.vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferToImage);
-    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 0, (const VkBufferMemoryBarrier*)nullptr, 2, imageBarriers);
+    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 0, (const VkBufferMemoryBarrier*)nullptr, 2, imageBarriers);
     _vk.vkCmdCopyImage(commandBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, _surfaceImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageCopy);
-    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 0, (const VkBufferMemoryBarrier*)nullptr, 1, &postImageBarrier);
-
+    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 0, (const VkBufferMemoryBarrier*)nullptr, 1, &postImageBarrier);
     _vk.vkEndCommandBuffer(commandBuffer);
 
     const VkSubmitInfo submitInfo = {
@@ -817,7 +833,7 @@ void GepardVulkan::putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, 
 
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
     if (vkResult == VK_TIMEOUT) {
-        GD_LOG1("TIMEOUT!");
+        GD_LOG(WARNING) << "TIMEOUT!";
     }
 
     updateSurface();
@@ -890,7 +906,7 @@ void GepardVulkan::chooseDefaultPhysicalDevice()
     uint32_t deviceCount;
     _vk.vkEnumeratePhysicalDevices(_instance, &deviceCount, nullptr);
     GD_ASSERT(deviceCount && "Couldn't find any device!");
-    GD_LOG3("Physical devices found: " << deviceCount);
+    GD_LOG(DEBUG) << "Physical devices found: " << deviceCount;
     std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
 
     std::vector<VkPhysicalDevice> integratedDevices;
@@ -900,9 +916,9 @@ void GepardVulkan::chooseDefaultPhysicalDevice()
     for (auto& physicalDevice: physicalDevices) {
            VkPhysicalDeviceProperties deviceProperties;
            _vk.vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
-           GD_LOG3("device name " << deviceProperties.deviceName);
-           GD_LOG3("api version " << (deviceProperties.apiVersion >> 22) << "."
-               << ((deviceProperties.apiVersion >> 12) & 0x1ff) << "."  << (deviceProperties.apiVersion & 0x7ff));
+           GD_LOG(DEBUG) << "device name " << deviceProperties.deviceName;
+           GD_LOG(DEBUG) << "api version " << (deviceProperties.apiVersion >> 22) << "."
+               << ((deviceProperties.apiVersion >> 12) & 0x1ff) << "."  << (deviceProperties.apiVersion & 0x7ff);
            if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
                integratedDevices.push_back(physicalDevice);
                continue;
@@ -969,9 +985,8 @@ void GepardVulkan::chooseDefaultDevice()
     enabledInstanceLayers.push_back("VK_LAYER_LUNARG_standard_validation");
 #endif
 
-    if (_context.surface->getDisplay()) {
-        enabledInstanceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-    }
+    // TODO: enable this only when it is needed
+    enabledInstanceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
     const char* const* enabledLayerNames = enabledInstanceLayers.empty() ? nullptr : enabledInstanceLayers.data();
     const char* const* enabledExtensionNames = enabledInstanceExtensions.empty() ? nullptr : enabledInstanceExtensions.data();
@@ -1115,8 +1130,31 @@ void GepardVulkan::createSurfaceImage()
         1u,                         // uint32_t              layerCount;
     };
 
+    // TODO: add utility function for this.
+    const VkImageSubresourceRange subresourceRange = {
+        VK_IMAGE_ASPECT_COLOR_BIT,  // VkImageAspectFlags    aspectMask;
+        0u,                         // uint32_t              baseMipLevel;
+        1u,                         // uint32_t              levelCount;
+        0u,                         // uint32_t              baseArrayLayer;
+        1u,                         // uint32_t              layerCount;
+    };
+
+    const VkImageMemoryBarrier transferBarrier = {
+        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER, // VkStructureType            sType;
+        nullptr,                                // const void*                pNext;
+        0u,                                     // VkAccessFlags              srcAccessMask;
+        VK_ACCESS_TRANSFER_WRITE_BIT,           // VkAccessFlags              dstAccessMask;
+        VK_IMAGE_LAYOUT_UNDEFINED,              // VkImageLayout              oldLayout;
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,   // VkImageLayout              newLayout;
+        VK_QUEUE_FAMILY_IGNORED,                // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                // uint32_t                   dstQueueFamilyIndex;
+        _surfaceImage,                          // VkImage                    image;
+        subresourceRange,                       // VkImageSubresourceRange    subresourceRange;
+    };
+
     _vk.vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
 
+    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 0, (const VkBufferMemoryBarrier*)nullptr, 1, &transferBarrier);
     _vk.vkCmdClearColorImage(commandBuffer, _surfaceImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clearColor, 1, &range);
 
     _vk.vkEndCommandBuffer(commandBuffer);
@@ -1147,7 +1185,7 @@ void GepardVulkan::createSurfaceImage()
     _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
     if (vkResult == VK_TIMEOUT) {
-        GD_LOG1("TIMEOUT!");
+        GD_LOG(WARNING) << "TIMEOUT!";
     }
 
     _vk.vkDestroyFence(_device, fence, _allocator);
@@ -1277,7 +1315,8 @@ void GepardVulkan::createSwapChain()
         swapchainColorSpace,                            // VkColorSpaceKHR                  imageColorSpace;
         imageSize,                                      // VkExtent2D                       imageExtent;
         1u,                                             // uint32_t                         imageArrayLayers;
-        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,            // VkImageUsageFlags                imageUsage;
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+        | VK_IMAGE_USAGE_TRANSFER_DST_BIT,              // VkImageUsageFlags                imageUsage;
         VK_SHARING_MODE_EXCLUSIVE,                      // VkSharingMode                    imageSharingMode;
         0u,                                             // uint32_t                         queueFamilyIndexCount;
         nullptr,                                        // const uint32_t*                  pQueueFamilyIndices;
@@ -1309,7 +1348,6 @@ void GepardVulkan::presentImage()
     uint32_t imageIndex;
     //! /todo: handle if the timeout is triggered
     _vk.vkAcquireNextImageKHR(_device, _wsiSwapChain, timeout, VK_NULL_HANDLE, fence, &imageIndex);
-    _vk.vkResetFences(_device, 1, &fence);
 
     VkQueue queue;
     _vk.vkGetDeviceQueue(_device, _queueFamilyIndex, 0, &queue);
@@ -1369,8 +1407,8 @@ void GepardVulkan::presentImage()
         VK_ACCESS_TRANSFER_READ_BIT,                // VkAccessFlags              dstAccessMask;
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout              oldLayout;
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,       // VkImageLayout              newLayout;
-        _queueFamilyIndex,                          // uint32_t                   srcQueueFamilyIndex;
-        _queueFamilyIndex,                          // uint32_t                   dstQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   dstQueueFamilyIndex;
         _surfaceImage,                              // VkImage                    image;
         subresourceRange,                           // VkImageSubresourceRange    subresourceRange;
     };
@@ -1382,22 +1420,25 @@ void GepardVulkan::presentImage()
         VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,       // VkAccessFlags              dstAccessMask;
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,       // VkImageLayout              oldLayout;
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout              newLayout;
-        _queueFamilyIndex,                          // uint32_t                   srcQueueFamilyIndex;
-        _queueFamilyIndex,                          // uint32_t                   dstQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   dstQueueFamilyIndex;
         _surfaceImage,                              // VkImage                    image;
         subresourceRange,                           // VkImageSubresourceRange    subresourceRange;
     };
 
+    // The old layout is undefined as the whole surface are going to be
+    // copied to the WSI surface, this need to be revisited if the blit
+    // doesn't overwrite the whole WSI surface.
     const VkImageMemoryBarrier preCopyBarrierWSI = {
         VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER, // VkStructureType            sType;
         nullptr,                                // const void*                pNext;
         VK_ACCESS_MEMORY_READ_BIT,              // VkAccessFlags              srcAccessMask;
         VK_ACCESS_TRANSFER_WRITE_BIT,           // VkAccessFlags              dstAccessMask;
-        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,        // VkImageLayout              oldLayout;
+        VK_IMAGE_LAYOUT_UNDEFINED,              // VkImageLayout              oldLayout;
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,   // VkImageLayout              newLayout;
-        _queueFamilyIndex,                      // uint32_t                   srcQueueFamilyIndex;
-        _queueFamilyIndex,                      // uint32_t                   dstQueueFamilyIndex;
-        _surfaceImage,                          // VkImage                    image;
+        VK_QUEUE_FAMILY_IGNORED,                // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                // uint32_t                   dstQueueFamilyIndex;
+        _wsiSwapChainImages[imageIndex],        // VkImage                    image;
         subresourceRange,                       // VkImageSubresourceRange    subresourceRange;
     };
 
@@ -1408,8 +1449,8 @@ void GepardVulkan::presentImage()
         VK_ACCESS_MEMORY_READ_BIT,              // VkAccessFlags              dstAccessMask;
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,   // VkImageLayout              oldLayout;
         VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,        // VkImageLayout              newLayout;
-        _queueFamilyIndex,                      // uint32_t                   srcQueueFamilyIndex;
-        _queueFamilyIndex,                      // uint32_t                   dstQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                // uint32_t                   dstQueueFamilyIndex;
         _wsiSwapChainImages[imageIndex],        // VkImage                    image;
         subresourceRange,                       // VkImageSubresourceRange    subresourceRange;
     };
@@ -1423,13 +1464,11 @@ void GepardVulkan::presentImage()
         postCopyBarrierFBO,
         postCopyBarrierWSI,
     };
-
     _vk.vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
-    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 0, (const VkBufferMemoryBarrier*)nullptr, 2, preCopyBarriers);
+    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 0, (const VkBufferMemoryBarrier*)nullptr, 2, preCopyBarriers);
     _vk.vkCmdBlitImage(commandBuffer, _surfaceImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, _wsiSwapChainImages[imageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageCopy, VK_FILTER_NEAREST);
-    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 0, (const VkBufferMemoryBarrier*)nullptr, 2, postCopyBarriers);
+    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 0, (const VkBufferMemoryBarrier*)nullptr, 2, postCopyBarriers);
     _vk.vkEndCommandBuffer(commandBuffer);
-
     const VkSubmitInfo submitInfo = {
         VK_STRUCTURE_TYPE_SUBMIT_INFO,  // VkStructureType                sType;
         nullptr,                        // const void*                    pNext;
@@ -1443,10 +1482,18 @@ void GepardVulkan::presentImage()
     };
 
     VkResult vkResult;
+    // We need to have the next image before we submit the blit commands to it, let's wait for it.
+    vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
+    if (vkResult == VK_TIMEOUT) {
+        GD_LOG(WARNING) << "TIMEOUT before acquiring the next surface image, waiting for it.";
+        _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, -1);
+    }
+    _vk.vkResetFences(_device, 1, &fence);
+
     _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
     if (vkResult == VK_TIMEOUT) {
-        GD_LOG1("TIMEOUT!");
+        GD_LOG(WARNING) << "TIMEOUT!";
     }
 
     const VkPresentInfoKHR presentInfo = {
@@ -1510,8 +1557,8 @@ void GepardVulkan::readImage(uint32_t* memoryBuffer, int32_t x, int32_t y, uint3
         VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,       // VkAccessFlags              dstAccessMask;
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,       // VkImageLayout              oldLayout;
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,   // VkImageLayout              newLayout;
-        _queueFamilyIndex,                          // uint32_t                   srcQueueFamilyIndex;
-        _queueFamilyIndex,                          // uint32_t                   dstQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   srcQueueFamilyIndex;
+        VK_QUEUE_FAMILY_IGNORED,                    // uint32_t                   dstQueueFamilyIndex;
         _surfaceImage,                              // VkImage                    image;
         subresourceRange,                           // VkImageSubresourceRange    subresourceRange;
     };
@@ -1563,7 +1610,7 @@ void GepardVulkan::readImage(uint32_t* memoryBuffer, int32_t x, int32_t y, uint3
 
     _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 0, (const VkBufferMemoryBarrier*)nullptr, 1, &preImageBarrier);
     _vk.vkCmdCopyImageToBuffer(commandBuffer, _surfaceImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffer, 1, &copyRegion);
-    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 1, &bufferBarrier, 1, &postImageBarrier);
+    _vk.vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, (VkDependencyFlags)0, 0, (const VkMemoryBarrier*)nullptr, 1, &bufferBarrier, 1, &postImageBarrier);
     _vk.vkEndCommandBuffer(commandBuffer);
 
     const VkSubmitInfo submitInfo = {
@@ -1593,7 +1640,7 @@ void GepardVulkan::readImage(uint32_t* memoryBuffer, int32_t x, int32_t y, uint3
     _vk.vkQueueSubmit(queque, 1, &submitInfo, fence);
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
     if (vkResult == VK_TIMEOUT) {
-        GD_LOG1("TIMEOUT!");
+        GD_LOG(WARNING) << "TIMEOUT!";
     }
 
     void* data;
@@ -1922,7 +1969,7 @@ void GepardVulkan::submitAndWait(const VkCommandBuffer commandBuffer)
     _vk.vkQueueSubmit(queue, 1, &submitInfo, fence);
     vkResult = _vk.vkWaitForFences(_device, 1, &fence, VK_TRUE, timeout);
     if (vkResult == VK_TIMEOUT) {
-        GD_LOG1("TIMEOUT!");
+        GD_LOG(WARNING) << "TIMEOUT!";
     }
 
     _vk.vkDestroyFence(_device, fence, _allocator);

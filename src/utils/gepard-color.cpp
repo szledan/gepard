@@ -25,8 +25,8 @@
 
 #include "gepard-color.h"
 
-#include "gepard-defs.h"
 #include "gepard-float.h"
+#include "gepard-logging.h"
 
 namespace gepard {
 
@@ -54,7 +54,7 @@ Color::Color(const std::string& color)
     std::stringstream ss;
     ss << std::hex << color.substr(1);
     ss >> n;
-    GD_LOG3("Convert '" << color << "' string to hex number: " << std::hex << n);
+    GD_LOG(DEBUG) << "Convert '" << color << "' string to hex number: " << std::hex << n;
 
     a = 1.0;
     if (length == 7) {
@@ -66,7 +66,7 @@ Color::Color(const std::string& color)
         g = ((n & 0x0f0) >> 4) / 15.0;
         b =  (n & 0x00f) / 15.0;
     }
-    GD_LOG3("Color is: " << r << ", " << g << ", " << b << ", " << a << ".");
+    GD_LOG(DEBUG) << "Color is: " << r << ", " << g << ", " << b << ", " << a;
 }
 
 Color::Color(const Color &color)

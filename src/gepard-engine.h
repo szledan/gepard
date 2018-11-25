@@ -26,8 +26,6 @@
 #ifndef GEPARD_ENGINE_H
 #define GEPARD_ENGINE_H
 
-#include "gepard-defs.h"
-
 #include "gepard-color.h"
 #include "gepard-context.h"
 #include "gepard-float.h"
