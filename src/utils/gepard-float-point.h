@@ -66,7 +66,7 @@ inline std::ostream& operator<<(std::ostream& os, const FloatPoint& p)
 
 inline bool operator==(const FloatPoint& a, const FloatPoint& b)
 {
-    return std::abs(a.x - b.x) < std::numeric_limits<float>::epsilon() && std::abs(a.y - b.y) < std::numeric_limits<float>::epsilon();
+    return a.x == b.x && a.y == b.y;
 }
 
 inline bool operator!=(const FloatPoint& a, const FloatPoint& b)

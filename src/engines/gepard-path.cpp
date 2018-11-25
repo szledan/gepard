@@ -197,7 +197,10 @@ void PathData::addQuadaraticCurveToElement(FloatPoint control, FloatPoint to)
         return;
     }
 
-    //! \todo: control == to -> addLineToElement
+    if (control == to || control == _lastElement->to) {
+        addLineToElement(to);
+        return;
+    }
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(QuadraticCurveToElement))) QuadraticCurveToElement(control, to));
     _lastElement = _lastElement->next;
@@ -348,11 +351,6 @@ void PathData::addCloseSubpathElement()
 {
     if (!_lastElement || _lastElement->isCloseSubpath())
         return;
-
-    //! \todo: fixme: nonsense:
-    if (_lastElement->isMoveTo()) {
-        addLineToElement(_lastElement->to);
-    }
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(CloseSubpathElement))) CloseSubpathElement(_lastMoveToElement->to));
     _lastElement = _lastElement->next;
