@@ -45,7 +45,7 @@ namespace software {
 class GepardSoftware : public GepardEngineBackend {
 public:
     explicit GepardSoftware(GepardContext&);
-    ~GepardSoftware();
+    virtual ~GepardSoftware();
 
     virtual void fillRect(const Float x, const Float y, const Float w, const Float h) override;
     virtual void fillPath(PathData*, const GepardState&) override;
