@@ -27,11 +27,11 @@
 #define GEPARD_VULKAN_H
 
 #include "gepard-context.h"
+#include "gepard-engine-backend.h"
 #include "gepard-float.h"
 #include "gepard-image.h"
 #include "gepard-vulkan-interface.h"
 #include "gepard.h"
-
 #include <vector>
 
 namespace gepard {
@@ -41,17 +41,17 @@ class Surface;
 
 namespace vulkan {
 
-class GepardVulkan {
+class GepardVulkan  : public GepardEngineBackend {
 public:
     explicit GepardVulkan(GepardContext&);
-    ~GepardVulkan();
+    ~GepardVulkan() override;
 
-    void fillRect(const Float x, const Float y, const Float w, const Float h);
-    void drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh);
-    void putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight);
-    Image getImage(Float sx, Float sy, Float sw, Float sh);
-    void fill();
-    void stroke();
+    virtual void fillRect(const Float x, const Float y, const Float w, const Float h) override;
+    virtual void drawImage(const Image& imagedata, const Float sx, const Float sy, const Float sw, const Float sh, const Float dx, const Float dy, const Float dw, const Float dh) override;
+    virtual void putImage(const Image& imagedata, const Float dx, const Float dy, const Float dirtyX, const Float dirtyY, const Float dirtyWidth, const Float dirtyHeight) override;
+    virtual Image getImage(const Float sx, const Float sy, const Float sw, const Float sh) override;
+    virtual void fillPath(PathData*, const GepardState&) override;
+    virtual void strokePath() override;
 
 private:
     GepardContext& _context;
@@ -130,8 +130,6 @@ namespace blendMode {
 } // namespace blendMode
 
 } // namespace vulkan
-
-typedef vulkan::GepardVulkan GepardEngineBackend;
 
 } // namespace gepard
 

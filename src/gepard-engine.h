@@ -30,39 +30,29 @@
 #include "gepard-context.h"
 #include "gepard-float.h"
 #include "gepard-float-point.h"
-#include "gepard-image.h"
-#include "gepard-state.h"
-
-
-// Include engine backend.
-#if defined(GD_USE_GLES2)
 #include "gepard-gles2.h"
-#elif defined(GD_USE_SOFTWARE)
+#include "gepard-image.h"
+#include "gepard-logging.h"
 #include "gepard-software.h"
-#elif defined(GD_USE_VULKAN)
+#include "gepard-state.h"
 #include "gepard-vulkan.h"
-#else
-#error "No engine backend defined!"
-#endif // Include engine backend.
+#include <string>
 
 namespace gepard {
 
 class Image;
 class Surface;
 
+enum BackendType {
+    BackendGLES2,
+    BackendSoftware,
+    BackendVulkan,
+};
+
 class GepardEngine {
 public:
-    explicit GepardEngine(Surface* surface)
-        : _context(surface)
-        , _engineBackend(new GepardEngineBackend(_context))
-    {
-    }
-    ~GepardEngine()
-    {
-        if (_engineBackend) {
-            delete _engineBackend;
-        }
-    }
+    explicit GepardEngine(Surface* surface, BackendType backendType = BackendGLES2);
+    ~GepardEngine();
 
     /* 2. State */
     void save();

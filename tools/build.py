@@ -42,8 +42,14 @@ def create_options(arguments=None):
     if hasattr(arguments, 'build_type'):
         opts.append('-DCMAKE_BUILD_TYPE=' + arguments.build_type.capitalize())
 
-    if hasattr(arguments, 'backend'):
-        opts.append('-DBACKEND=' + arguments.backend.upper())
+    if hasattr(arguments, 'gles2') and not arguments.gles2:
+        opts.append('-DBACKEND_GLES2=OFF')
+
+    if hasattr(arguments, 'vulkan') and not arguments.vulkan:
+        opts.append('-DBACKEND_VULKAN=OFF')
+
+    if hasattr(arguments, 'software') and not arguments.software:
+        opts.append('-DBACKEND_SOFTWARE=OFF')
 
     if hasattr(arguments, 'logging') and arguments.logging:
         opts.append('-DLOGGING=ON')
@@ -59,8 +65,13 @@ def add_args(parser):
     parser.add_argument('--build-dir', '-b', action='store', dest='build_dir', help='Specify build directory.')
     parser.add_argument('--install-prefix', action='store', dest='install_prefix', help='Specify install prefix.')
     parser.add_argument('--debug', '-d', action='store_const', const='debug', default='release', dest='build_type', help='Build debug.')
-    parser.add_argument('--backend', action='store', choices=['gles2', 'software', 'vulkan'], default='gles2', help='Specify which graphics back-end to use.')
     parser.add_argument('--logging', '-l', action='store_true', default=False, dest='logging', help='Enable log messages.')
+    parser.add_argument('--gles2', action='store_true', default=True, dest='gles2', help='Enable GLESv2 backend.')
+    parser.add_argument('--no-gles2', action='store_false', default=True, dest='gles2', help='Disable GLESv2 backend.')
+    parser.add_argument('--vulkan', action='store_true', default=True, dest='vulken', help='Enable Vulkan backend.')
+    parser.add_argument('--no-vulkan', action='store_false', default=True, dest='vulkan', help='Disable Vulkan backend.')
+    parser.add_argument('--sofware', action='store_true', default=True, dest='software', help='Enable Software backend.')
+    parser.add_argument('--no-software', action='store_false', default=True, dest='software', help='Disable Software backend.')
     parser.add_argument('targets', action='store', nargs='*', default=['gepard'], help='List of targets to build')
 
 
