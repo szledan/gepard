@@ -286,7 +286,7 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
         for (Trapezoid trapezoid : trapezoidList) {
             GD_ASSERT(trapezoid.topY < trapezoid.bottomY);
             GD_ASSERT(trapezoid.topLeftX <= trapezoid.topRightX);
-            GD_ASSERT(trapezoid.bottomLeftX <= trapezoid.bottomRightX);
+            GD_ASSERT(trapezoid.bottomLeftX - trapezoid.bottomRightX < 1);
 
             if (!trapezoid.leftId || !trapezoid.rightId)
                 continue;
@@ -310,8 +310,6 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
         glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
 
         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
-//        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//        glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
 
         ShaderProgram& copyProgram = _shaderProgramManager.getProgram("copyPathProgram", s_copyPathVertexShader, s_copyPathFragmentShader);
         glUseProgram(copyProgram.id);

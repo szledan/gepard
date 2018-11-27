@@ -253,8 +253,7 @@ void GepardGLES2::render()
         glBindTexture(GL_TEXTURE_2D, _textureId);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
-        glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
