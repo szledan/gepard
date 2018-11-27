@@ -286,7 +286,7 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
         for (Trapezoid trapezoid : trapezoidList) {
             GD_ASSERT(trapezoid.topY < trapezoid.bottomY);
             GD_ASSERT(trapezoid.topLeftX <= trapezoid.topRightX);
-            GD_ASSERT(trapezoid.bottomLeftX <= trapezoid.bottomRightX);
+            GD_ASSERT(trapezoid.bottomLeftX - trapezoid.bottomRightX < 1);
 
             if (!trapezoid.leftId || !trapezoid.rightId)
                 continue;
