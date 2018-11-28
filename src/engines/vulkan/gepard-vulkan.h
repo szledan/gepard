@@ -44,7 +44,7 @@ namespace vulkan {
 class GepardVulkan  : public GepardEngineBackend {
 public:
     explicit GepardVulkan(GepardContext&);
-    ~GepardVulkan() override;
+    virtual ~GepardVulkan() override;
 
     virtual void fillRect(const Float x, const Float y, const Float w, const Float h) override;
     virtual void drawImage(const Image& imagedata, const Float sx, const Float sy, const Float sw, const Float sh, const Float dx, const Float dy, const Float dw, const Float dh) override;

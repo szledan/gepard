@@ -51,7 +51,7 @@ public:
     static const int kMaximumNumberOfUshortQuads;
 
     explicit GepardGLES2(GepardContext&);
-    ~GepardGLES2();
+    virtual ~GepardGLES2();
 
     virtual void fillRect(const Float x, const Float y, const Float w, const Float h) override;
     virtual void fillPath(PathData*, const GepardState&) override;
