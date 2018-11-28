@@ -34,6 +34,16 @@
 #include <cstring>
 #include <string>
 
+#if defined(GD_BACKEND_GLES2)
+#include "gepard-gles2.h"
+#endif
+#if defined(GD_BACKEND_VULKAN)
+#include "gepard-vulkan.h"
+#endif
+#if defined(GD_BACKEND_SOFTWARE)
+#include "gepard-software.h"
+#endif
+
 namespace gepard {
 
 static const std::string nameOfBackend(const BackendType backendType)
