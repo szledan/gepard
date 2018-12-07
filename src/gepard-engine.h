@@ -84,7 +84,7 @@ public:
     void fillRect(const Float x, const Float y, const Float w, const Float h);
 
     void drawImage(Image& imagedata, Float sx, Float sy, Float sw, Float sh, Float dx, Float dy, Float dw, Float dh);
-    Image getImage(Float sx, Float sy, Float sw, Float sh);
+    const Image getImage(const Float sx, const Float sy, const Float sw, const Float sh);
     void putImage(Image& imagedata, Float dx, Float dy, Float dirtyX, Float dirtyY, Float dirtyWidth, Float dirtyHeight);
 
     void setFillColor(const Color& color);

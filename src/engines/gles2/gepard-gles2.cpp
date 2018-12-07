@@ -318,10 +318,15 @@ void GepardGLES2::putImage(const Image& imagedata, const Float dx, const Float d
  * \internal
  * \todo documentation is missing
  */
-Image GepardGLES2::getImage(const Float sx, const Float sy, const Float sw, const Float sh)
+const Image GepardGLES2::getImage(const Float sx, const Float sy, const Float sw, const Float sh)
 {
-    GD_NOT_IMPLEMENTED();
-    return Image();
+    std::vector<uint32_t> data(sw * sh);
+
+    makeCurrent();
+    glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
+    glReadPixels(sx, sy, sw, sh, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) data.data());
+
+    return Image(sw, sh, data);
 }
 
 } // namespace gles2

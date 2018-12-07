@@ -151,7 +151,7 @@ void GepardSoftware::putImage(const Image& imagedata, const Float dx, const Floa
  * \internal
  * \todo unimplemented function
  */
-Image GepardSoftware::getImage(const Float sx, const Float sy, const Float sw, const Float sh)
+const Image GepardSoftware::getImage(const Float sx, const Float sy, const Float sw, const Float sh)
 {
     GD_NOT_IMPLEMENTED();
     return Image();
