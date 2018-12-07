@@ -77,7 +77,7 @@ void GepardSoftware::fillRect(const Float x, const Float y, const Float w, const
         }
 
     GD_LOG(TRACE) << "Call drawBuffer method of surface";
-    _context.surface->drawBuffer(_buffer.data());
+    //! \fixme: unused result
 }
 
 /*!

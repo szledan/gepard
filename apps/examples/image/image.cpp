@@ -24,8 +24,6 @@
  */
 
 #include "gepard.h"
-#include "gepard-image.h"
-#include "surfaces/gepard-png-surface.h"
 #include <iostream>
 
 #define SURFACE_SIZE 600
@@ -47,39 +45,39 @@ void generateCheckerBoard(gepard::Gepard& gepard)
 
 int main()
 {
-    gepard::PNGSurface surface(SURFACE_SIZE, SURFACE_SIZE);
-    gepard::Gepard gepard(&surface);
+    gepard::Surface surface(SURFACE_SIZE, SURFACE_SIZE);
+    gepard::Gepard ctx(&surface);
 
-    generateCheckerBoard(gepard);
+    generateCheckerBoard(ctx);
 
-    gepard::Image image = gepard.createImageData(200.0, 200.0);
+    gepard::Image image = ctx.createImageData(200.0, 200.0);
 
-    gepard::Image image2 = gepard.createImageData(image);
+    gepard::Image image2 = ctx.createImageData(image);
 
-    gepard.putImageData(image, 100, 400, 10, 10, 50, 50);
+    ctx.putImageData(image, 100, 400, 10, 10, 50, 50);
 
-    gepard.putImageData(image2, 0, 0);
+    ctx.putImageData(image2, 0, 0);
 
-    gepard.setFillColor(0, 255, 0, 1.0f);
-    gepard.fillRect(400, 400, 10, 10);
-    gepard::Image greenImage = gepard.getImageData(400, 400, 10, 10);
-    gepard.setFillColor(255, 0, 0, 1.0f);
-    gepard.fillRect(400, 400, 10, 10);
-    gepard.putImageData(greenImage, 405, 405);
+    ctx.setFillColor(0, 255, 0, 1.0f);
+    ctx.fillRect(400, 400, 10, 10);
+    gepard::Image greenImage = ctx.getImageData(400, 400, 10, 10);
+    ctx.setFillColor(255, 0, 0, 1.0f);
+    ctx.fillRect(400, 400, 10, 10);
+    ctx.putImageData(greenImage, 405, 405);
 
-    gepard::Image testImage = gepard.getImageData(380, 380, 50, 50);
-    gepard.setFillColor(255, 0, 0, 1.0f);
-    gepard.drawImage(testImage, 200.0, 200.0, 100, 100);
+    gepard::Image testImage = ctx.getImageData(380, 380, 50, 50);
+    ctx.setFillColor(255, 0, 0, 1.0f);
+    ctx.drawImage(testImage, 200.0, 200.0, 100, 100);
 
-    surface.save("image.png");
-    gepard::Image outImage = gepard.getImageData(0, 0, SURFACE_SIZE, SURFACE_SIZE);
+    gepard::Image outImage = ctx.getImageData(0, 0, SURFACE_SIZE, SURFACE_SIZE);
     gepard::utils::savePng(outImage, "imageOut.png");
 
     gepard::Image inImage;
     gepard::utils::savePng(inImage, "imageNull.png");
-    inImage = gepard::utils::loadPng("image.png");
-    gepard.drawImage(inImage, 50, 50, 300, 300);
-    gepard::Image outImage2 = gepard.getImageData(0, 0, SURFACE_SIZE, SURFACE_SIZE);
+    //! \todo[kkristof]: Check empty images!
+    inImage = gepard::utils::loadPng("imageOut.png");
+    ctx.drawImage(inImage, 50, 50, 300, 300);
+    gepard::Image outImage2 = ctx.getImageData(0, 0, SURFACE_SIZE, SURFACE_SIZE);
     gepard::utils::savePng(outImage2, "imageFinal.png");
 
     return 0;

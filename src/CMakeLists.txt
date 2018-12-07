@@ -85,7 +85,6 @@ set(GEPARD_HEADERS
 )
 
 set(SURFACE_HEADERS
-    surfaces/gepard-png-surface.h
     surfaces/gepard-xsurface.h
     surfaces/gepard-memory-buffer-surface.h
 )

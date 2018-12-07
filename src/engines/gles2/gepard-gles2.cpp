@@ -261,11 +261,6 @@ void GepardGLES2::render()
     } else if (_context.surface->getBuffer()) {
         glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
         glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) _context.surface->getBuffer());
-    } else {
-        glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
-        std::vector<uint32_t> buffer(width * height);
-        glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) buffer.data());
-        _context.surface->drawBuffer(buffer.data());
     }
 }
 

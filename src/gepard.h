@@ -468,11 +468,10 @@ public:
     {
     }
 
-    virtual ~Surface() = 0;
-    virtual void* getDisplay() = 0;
-    virtual unsigned long getWindow() = 0;
-    virtual void* getBuffer() = 0;
-    virtual void drawBuffer(void*) = 0;
+    virtual ~Surface();
+    virtual void* getDisplay() { return nullptr; }
+    virtual unsigned long getWindow() { return -1; }
+    virtual void* getBuffer() { return nullptr; }
 
     const uint32_t width() const { return _width; }
     const uint32_t height() const { return _height; }

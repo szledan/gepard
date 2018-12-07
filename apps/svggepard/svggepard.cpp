@@ -27,7 +27,6 @@
 #include "nanoargparse.h"
 #define NANOSVG_IMPLEMENTATION
 #include "nanosvg.h"
-#include "surfaces/gepard-png-surface.h"
 #include "surfaces/gepard-xsurface.h"
 #include <chrono>
 #include <cmath>
@@ -211,28 +210,25 @@ int main(int argc, char* argv[])
     // Set surface and initial the Gepard context.
     const uint width = pImage->width;
     const uint height = pImage->height;
-    gepard::Surface* surface = a_png.isOn ? (gepard::Surface*)new gepard::PNGSurface(width, height)
+    gepard::Surface* surface = a_png.isOn ? (gepard::Surface*)new gepard::Surface(width, height)
                                           : (gepard::Surface*)new gepard::XSurface(width, height);
-    gepard::Gepard gepard(surface);
+    gepard::Gepard ctx(surface);
 
     // Clear the canvas.
     if (!a_disableClear) {
-        gepard.fillStyle = "#fff";
-        gepard.fillRect(0, 0, width, height);
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, width, height);
     }
 
     // Parse NSVGImage.
-    parseNSVGimage(gepard, pImage);
+    parseNSVGimage(ctx, pImage);
 
     nsvgDelete(pImage);
 
     // Put the results.
     if (a_png.isOn) {
-        gepard::PNGSurface* pngSurface = (gepard::PNGSurface*)surface;
-        pngSurface->save(a_png.file);
-        if (pngSurface) {
-            delete pngSurface;
-        }
+        gepard::Image img = ctx.getImageData(0, 0, width, height);
+        gepard::utils::savePng(img, a_png.file);
     } else {
         gepard::XSurface* xSurface = (gepard::XSurface*)(surface);
 
