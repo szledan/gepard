@@ -1,5 +1,6 @@
 /* Copyright (C) 2018, Gepard Graphics
  * Copyright (C) 2018, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
+ * Copyright (C) 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,32 +25,27 @@
  */
 
 #include "gepard.h"
-#include <iostream>
+#include <ctype.h>
 #include <sstream>
 
-#include <unistd.h>
-
-class ChessGame {
+class ChessBoard {
 public:
-    ChessGame(const uint size = 50)
+    ChessBoard(const uint size)
         : _size(size)
+        , _tableOffsetX(2)
         , _surface(new gepard::Surface(12 * size, 8 * size))
         , _ctx(new gepard::Gepard(_surface))
     {
-        PiecesType ps[14] = { Dark_Queen, Dark_King, Dark_Rook, Dark_KnightLeft, Dark_Bishop, Dark_Pawn, Dark_KnightRight,
-                              Light_Queen, Light_King, Light_Rook, Light_KnightLeft, Light_Bishop, Light_Pawn, Light_KnightRight };
-
+        std::string pieces = "qkrnbplQKRNBPL";
         for (int i = 0; i < 14; ++i) {
-            putPiece(ps[i], i % 7, i / 7);
+            drawPiece(pieces[i], i % 7, i / 7);
         }
-
         _chessResizedPieces = _ctx->getImageData(2 * _size, 0, 7 * _size, 2 * _size);
-        gepard::utils::savePng(_chessResizedPieces, "c.png");
 
         generateCheckerBoard();
     }
 
-    ~ChessGame()
+    ~ChessBoard()
     {
         if (_ctx) {
             delete _ctx;
@@ -59,21 +55,18 @@ public:
         }
     }
 
-    void move(const std::string& mv)
+    void doSteps(const std::string& moves)
     {
-        std::stringstream ss; ss << mv;
-        std::string l;
-        int i = 0;
-        while (std::getline(ss, l, ' ')) {
-            i++;
-            std::string file("build/step");
-            if (std::getline(ss, l, ' ')) {
-                move(l, true);
+        std::stringstream ss;
+        ss << moves;
+        std::string line;
+        while (ss >> line) {
+            if (ss >> line) {
+                step(line, Piece::White);
             }
-            if (std::getline(ss, l, ' ')) {
-                move(l, false);
+            if (ss >> line) {
+                step(line, Piece::Black);
             }
-            savePosition(file + std::to_string(i) + std::string(".png"));
         }
     }
 
@@ -83,72 +76,88 @@ public:
     }
 
 private:
-    enum PiecesType
-    {
-        O = 0,
-        Light_King = 20,
-        Light_Queen = 10,
-        Light_Rook = 30,
-        Light_KnightLeft = 40,
-        Light_KnightRight = 41,
-        Light_Bishop = 50,
-        Light_Pawn = 60,
-        Dark_King = 26,
-        Dark_Queen = 16,
-        Dark_Rook = 36,
-        Dark_KnightLeft = 46,
-        Dark_KnightRight = 47,
-        Dark_Bishop = 56,
-        Dark_Pawn = 66,
+    struct Piece {
+        enum Color {
+            White = 1,
+            Black = 0,
+        } color : 1;
+        enum Name {
+            Undefined = 0,
+            Queen = 1,
+            King = 2,
+            Rook = 3,
+            KnightLeft = 4,
+            Bishop = 5,
+            Pawn = 6,
+            KnightRight = 7,
+        } name : 3;
+
+        Piece(const Name pn = Undefined, const Color pc = White)
+            : color(pc)
+            , name(pn)
+        {
+        }
     };
 
- //"1. a2xa8 h7xh1 2. a8xb8 h1xg1 3. b8xc8 g1xf1 4. c8xd8 f1xe1 5. d8xe8 e1xd1 6. e8xf8 d1xc1 7. f8xg8 c1xb1 8. g8xh8 b1xa1 2. h8xa7 a1xh2 3. a7xb7 h2xg2 3. b7xc7 g2xf2 4. c7xd7 f2xe2 5. d7xe7 e2xd2 6. e7xf7 d2xc2 7. f7xg7 c2xb2"
+    const Piece charToPiece(char piece)
+    {
+        Piece::Color pc = (piece < 'a') ? Piece::White : Piece::Black;
+        piece = toupper(piece);
+
+        if (piece == 'P') { return Piece(Piece::Pawn, pc); }
+        else if (piece == 'K') { return Piece(Piece::King, pc); }
+        else if (piece == 'Q') { return Piece(Piece::Queen, pc); }
+        else if (piece == 'R') { return Piece(Piece::Rook, pc); }
+        else if (piece == 'B') { return Piece(Piece::Bishop, pc); }
+        else if (piece == 'N') { return Piece(Piece::KnightLeft, pc); }
+        else if (piece == 'L') { return Piece(Piece::KnightRight, pc); }
+        return Piece(Piece::Undefined, pc);
+    }
+    const char pieceToChar(const Piece& piece) const
+    {
+        if (piece.name == Piece::Pawn) { return (piece.color) ? 'P' : 'p'; }
+        else if (piece.name == Piece::King) { return (piece.color) ? 'K' : 'k'; }
+        else if (piece.name == Piece::Queen) { return (piece.color) ? 'Q' : 'q'; }
+        else if (piece.name == Piece::Rook) { return (piece.color) ? 'R' : 'r'; }
+        else if (piece.name == Piece::Bishop) { return (piece.color) ? 'B' : 'b'; }
+        else if (piece.name == Piece::KnightLeft) { return (piece.color) ? 'N' : 'n'; }
+        else if (piece.name == Piece::KnightRight) { return (piece.color) ? 'L' : 'l'; }
+        return ' ';
+    }
 
     void updateTable()
     {
         for (int i = 0; i < 64; ++i) {
-            putPiece(_table[i], i % 8, i / 8);
+            drawPiece(_table[i], i % 8, i / 8);
         }
-        for (size_t i = 0; i < _lightPieces.size(); ++i) {
-            putPiece(_lightPieces[i], -(int(i) + 8) / 8, int(i) % 8, false);
+        for (size_t i = 0; i < _whitePieces.size(); ++i) {
+            drawPiece(_whitePieces[i], -(int(i) + 8) / 8, int(i) % 8, false);
         }
-        for (size_t i = 0; i < _darkPieces.size(); ++i) {
-            putPiece(_darkPieces[i], int(i) / 8 + 8, 7 - (int(i) % 8), false);
+        for (size_t i = 0; i < _blackPieces.size(); ++i) {
+            drawPiece(_blackPieces[i], int(i) / 8 + 8, 7 - (int(i) % 8), false);
         }
     }
 
-    void move(const std::string& mv, const bool isLight)
+    void step(const std::string& move, const Piece::Color stepColor)
     {
-        int f = 1;
-        PiecesType piecesType = O;
-        if (mv[0] == 'K') {
-            piecesType = isLight ? Light_King : Dark_King;
-        } else if (mv[0] == 'Q') {
-            piecesType = isLight ? Light_Queen : Dark_Queen;
-        } else if (mv[0] == 'R') {
-            piecesType = isLight ? Light_Rook : Dark_Rook;
-        } else if (mv[0] == 'B') {
-            piecesType = isLight ? Light_Bishop : Dark_Bishop;
-        } else if (mv[0] == 'K') {
-            piecesType = isLight ? Light_KnightLeft : Dark_KnightLeft ;
-        } else if (mv[0] == 'L') {
-            piecesType = isLight ? Light_KnightRight : Dark_KnightRight;
-        } else {
-            piecesType = isLight ? Light_Pawn : Dark_Pawn;
-            f = 0;
-        }
+        if (move.length() < 4)
+            return;
 
-        if (mv[f + 2] == 'x') {
-            PiecesType oldPiece = _table[7 - (mv[f + 3] - 'a') + 8 * (mv[f + 4] - '1')];
-            if (isLight) {
-                _darkPieces.insert(_darkPieces.begin(), oldPiece);
+        int pawnOffset = (move[3] == '-' || move[3] == 'x');
+
+        Piece piece = Piece(pawnOffset ? charToPiece(move[0]).name : Piece::Pawn, stepColor);
+
+        if (move[pawnOffset + 2] == 'x') {
+            char oldPiece = _table[7 - (move[pawnOffset + 3] - 'a') + 8 * (move[pawnOffset + 4] - '1')];
+            if (stepColor) {
+                _blackPieces = oldPiece + _blackPieces;
             } else {
-                _lightPieces.insert(_lightPieces.begin(), oldPiece);
+                _whitePieces = oldPiece + _whitePieces;
             }
-            putBoardTile(7 - (mv[f + 3] - 'a'), (mv[f + 4] - '1'));
+            drawBoardTile(7 - (move[pawnOffset + 3] - 'a'), (move[pawnOffset + 4] - '1'));
         }
-        _table[7 - (mv[f] - 'a') + 8 * (mv[f + 1] - '1')] = O;
-        _table[7 - (mv[f + 3] - 'a') + 8 * (mv[f + 4] - '1')] = piecesType;
+        _table[7 - (move[pawnOffset] - 'a') + 8 * (move[pawnOffset + 1] - '1')] = ' ';
+        _table[7 - (move[pawnOffset + 3] - 'a') + 8 * (move[pawnOffset + 4] - '1')] = pieceToChar(piece);
         updateTable();
     }
 
@@ -156,84 +165,79 @@ private:
     {
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                putBoardTile(i, j);
+                drawBoardTile(i, j);
             }
         }
     }
 
-    void putBoardTile(const uint row, const uint column)
+    void drawBoardTile(const uint row, const uint column)
     {
         gepard::Image* tileImage = &_chessLightTile;
         if ((row + column) % 2) {
             tileImage = &_chessDarkTile;
         }
-        _ctx->drawImage(*tileImage, 0, 0, tileImage->width(), tileImage->height(), (row + 2) * _size, column * _size, _size, _size);
+        _ctx->drawImage(*tileImage, 0, 0, tileImage->width(), tileImage->height(), (row + _tableOffsetX) * _size, column * _size, _size, _size);
     }
 
-    void putPiece(const PiecesType pieceType, const uint row, const uint column, const bool cmdDraw = true)
+    void drawPiece(const char pieceCh, const int tileX, const int tileY, const bool cmdDraw = true)
     {
-        if (pieceType == O) {
-            putBoardTile(row, column);
+        if (pieceCh == ' ') {
+            drawBoardTile(tileX, tileY);
             return;
         }
-        int r = pieceType / 10 - 1;
-        int c = (pieceType % 10) > 5 ? 0 : 1;
+
+        Piece piece = charToPiece(pieceCh);
+        int srcRow = piece.name - 1;
+        int srcCol = piece.color;
+
         _ctx->save();
-        if (pieceType % 2) {
-            _ctx->translate(2 * (row + 2) * _size + _size, 0);
+        if (srcCol) {
+            // Transform WHITE pieces.
+            _ctx->translate(2 * (tileX + _tableOffsetX) * _size + _size, 0);
             _ctx->scale(-1, 1);
-        }
-        if (c) {
-            _ctx->translate(2 * (row + 2) * _size + _size, 0);
-            _ctx->scale(-1, 1);
-            _ctx->translate(2 * (row + 2) * _size + _size, 2 * (column) * _size + _size);
-            _ctx->rotate(3.1415926);
+            _ctx->translate(2 * (tileX + _tableOffsetX) * _size + _size, 2 * (tileY) * _size + _size);
+            _ctx->rotate(3.14159265359);
         }
         if (cmdDraw) {
-            _ctx->drawImage(_chessPieces, r * _pieceWidth, c * _pieceHeight, _pieceWidth, _pieceHeight, (row + 2) * _size, column * _size, _size, _size);
-        } else {
-            if (pieceType % 2) {
-                r = 6;
+            // Flip left KNIGHT.
+            if (piece.name == Piece::KnightRight) {
+                _ctx->translate(2 * (tileX + _tableOffsetX) * _size + _size, 0);
+                _ctx->scale(-1, 1);
+                srcRow = Piece::KnightLeft - 1;
             }
-            _ctx->putImageData(_chessResizedPieces, (row + 2) * _size, column * _size, r * _size, c * _size, _size, _size);
+            _ctx->drawImage(_chessPieces, srcRow * _pieceWidth, srcCol * _pieceHeight, _pieceWidth, _pieceHeight, (tileX + _tableOffsetX) * _size, tileY * _size, _size, _size);
+        } else {
+            _ctx->putImageData(_chessResizedPieces, (tileX + _tableOffsetX) * _size, tileY * _size, srcRow * _size, srcCol * _size, _size, _size);
         }
         _ctx->restore();
     }
 
     uint _size;
+    int _tableOffsetX;
 
     gepard::Surface* _surface;
     gepard::Gepard* _ctx;
 
     gepard::Image _chessResizedPieces;
     gepard::Image _chessPieces = gepard::utils::loadPng("apps/examples/image/ChessPiecesArray.png");
-    gepard::Image _chessDarkTile = gepard::utils::loadPng("apps/examples/image/Chess_d44.png");
-    gepard::Image _chessLightTile = gepard::utils::loadPng("apps/examples/image/Chess_l44.png");
     uint32_t _pieceWidth = _chessPieces.width() / 6;
     uint32_t _pieceHeight = _chessPieces.height() / 2;
-    PiecesType _table[64] = {
-        Light_Rook, Light_KnightRight, Light_Bishop, Light_King, Light_Queen, Light_Bishop, Light_KnightLeft, Light_Rook,
-        Light_Pawn, Light_Pawn, Light_Pawn, Light_Pawn, Light_Pawn, Light_Pawn, Light_Pawn, Light_Pawn,
-        O, O, O, O, O, O, O, O,
-        O, O, O, O, O, O, O, O,
-        O, O, O, O, O, O, O, O,
-        O, O, O, O, O, O, O, O,
-        Dark_Pawn, Dark_Pawn, Dark_Pawn, Dark_Pawn, Dark_Pawn, Dark_Pawn, Dark_Pawn, Dark_Pawn,
-        Dark_Rook, Dark_KnightRight, Dark_Bishop, Dark_King, Dark_Queen, Dark_Bishop, Dark_KnightLeft, Dark_Rook
-    };
-    std::vector<PiecesType> _lightPieces, _darkPieces;
+    gepard::Image _chessDarkTile = gepard::utils::loadPng("apps/examples/image/Chess_d44.png");
+    gepard::Image _chessLightTile = gepard::utils::loadPng("apps/examples/image/Chess_l44.png");
+    std::string _table = "RLBKQBNRPPPPPPPP                                pppppppprlbkqbnr";
+    std::string _whitePieces, _blackPieces;
 };
 
 int main(int argc, char* argv[])
 {
     const std::string theLaskerTrap("1. d2-d4 d7-d5 2. c2-c4 e7-e5 3. d4xe5 d5-d4 4. e2-e3 Bf8-b4+ 5. Bc1-d2 d4xe3 6. Bd2xb4");
+    const std::string crazyPeasants("1. a2xa8 h7xh1 2. a8xb8 h1xg1 3. b8xc8 g1xf1 4. c8xd8 f1xe1 5. d8xe8 e1xd1 6. e8xf8 d1xc1 7. f8xg8 c1xb1 8. g8xh8 b1xa1 9. h8xa7 a1xh2 10. a7xb7 h2xg2 11. b7xc7 g2xf2 12. c7xd7 f2xe2 13. d7xe7 e2xd2 14. e7xf7 d2xc2 15. f7xg7 c2xb2");
 
-    const uint scale = (argc > 1) ? std::atoi(argv[1]) : 50;
-    const std::string moves = (argc > 2) ? std::string(argv[2]) : theLaskerTrap;
+    const std::string moves = (argc > 1) ? std::string(argv[1]) : theLaskerTrap;
 
-    ChessGame chg(scale);
+    ChessBoard chg(50);
 
-    chg.move(moves);
+    chg.doSteps(moves);
 
     chg.savePosition("build/chess.png");
 
