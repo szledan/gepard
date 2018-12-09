@@ -183,7 +183,6 @@ private:
             _ctx->translate(2 * (row + 2) * _size + _size, 0);
             _ctx->scale(-1, 1);
         }
-        _ctx->save();
         if (c) {
             _ctx->translate(2 * (row + 2) * _size + _size, 0);
             _ctx->scale(-1, 1);
@@ -198,7 +197,6 @@ private:
             }
             _ctx->putImageData(_chessResizedPieces, (row + 2) * _size, column * _size, r * _size, c * _size, _size, _size);
         }
-        _ctx->restore();
         _ctx->restore();
     }
 
