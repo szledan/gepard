@@ -76,8 +76,10 @@ static const std::string s_textureFragmentShader = GD_GLES2_SHADER_PROGRAM(
  */
 void GepardGLES2::drawImage(const Image& imageData, const Float sx, const Float sy, const Float sw, const Float sh, const Float dx, const Float dy, const Float dw, const Float dh)
 {
-    FloatPoint d1 = _context.currentState().transform.apply(FloatPoint(dx, dy));
-    FloatPoint d2 = _context.currentState().transform.apply(FloatPoint(dx + dw, dy + dh));
+    FloatPoint dtl = _context.currentState().transform.apply(FloatPoint(dx, dy));
+    FloatPoint dtr = _context.currentState().transform.apply(FloatPoint(dx + dw, dy));
+    FloatPoint dbl = _context.currentState().transform.apply(FloatPoint(dx, dy + dh));
+    FloatPoint dbr = _context.currentState().transform.apply(FloatPoint(dx + dw, dy + dh));
     const uint32_t imgWidth = imageData.width();
     const uint32_t imgHeight = imageData.height();
 
@@ -104,10 +106,10 @@ void GepardGLES2::drawImage(const Image& imageData, const Float sx, const Float 
 
     {
         const GLfloat textureCoords[] = {
-            (GLfloat)d1.x, (GLfloat)d1.y, (GLfloat)(sx / Float(imgWidth)), (GLfloat)(sy / Float(imgHeight)),
-            (GLfloat)d2.x, (GLfloat)d1.y, (GLfloat)((sx + sw) / Float(imgWidth)), (GLfloat)(sy / Float(imgHeight)),
-            (GLfloat)d1.x, (GLfloat)d2.y, (GLfloat)(sx / Float(imgWidth)), (GLfloat)((sy + sh) / Float(imgHeight)),
-            (GLfloat)d2.x, (GLfloat)d2.y, (GLfloat)((sx + sw) / Float(imgWidth)), (GLfloat)((sy + sh) / Float(imgHeight)),
+            (GLfloat)dtl.x, (GLfloat)dtl.y, (GLfloat)(sx / Float(imgWidth)), (GLfloat)(sy / Float(imgHeight)),
+            (GLfloat)dtr.x, (GLfloat)dtr.y, (GLfloat)((sx + sw) / Float(imgWidth)), (GLfloat)(sy / Float(imgHeight)),
+            (GLfloat)dbl.x, (GLfloat)dbl.y, (GLfloat)(sx / Float(imgWidth)), (GLfloat)((sy + sh) / Float(imgHeight)),
+            (GLfloat)dbr.x, (GLfloat)dbr.y, (GLfloat)((sx + sw) / Float(imgWidth)), (GLfloat)((sy + sh) / Float(imgHeight)),
         };
 
         const GLint index = glGetAttribLocation(textureProgram.id, "a_position");
