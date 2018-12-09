@@ -163,11 +163,11 @@ private:
 
     void putBoardTile(const uint row, const uint column)
     {
+        gepard::Image* tileImage = &_chessLightTile;
         if ((row + column) % 2) {
-            _ctx->putImageData(_chessDarkTile, (row + 2) * _size, column * _size, 0, 0, _size, _size);
-        } else {
-            _ctx->putImageData(_chessLightTile, (row + 2) * _size, column * _size, 0, 0, _size, _size);
+            tileImage = &_chessDarkTile;
         }
+        _ctx->drawImage(*tileImage, 0, 0, tileImage->width(), tileImage->height(), (row + 2) * _size, column * _size, _size, _size);
     }
 
     void putPiece(const PiecesType pieceType, const uint row, const uint column, const bool cmdDraw = true)
