@@ -70,7 +70,7 @@ const std::vector<uint32_t> &Image::data() const
     return _data;
 }
 
-bool utils::savePng(const Image &image, const std::string &fileName)
+bool utils::savePng(const Image &image, const std::string& fileName)
 {
     if (image.data().size() == 0u) {
         GD_LOG(WARNING) << "The image is empty!";

@@ -50,8 +50,8 @@ private:
 };
 
 namespace utils {
-    bool savePng(const Image &image, const std::string &fileName);
-    Image loadPng(const std::string &fileName);
+    bool savePng(const Image &image, const std::string& fileName);
+    Image loadPng(const std::string& fileName);
 }
 
 } // namespace gepard
