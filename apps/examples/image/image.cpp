@@ -44,7 +44,7 @@ void generateCheckerBoard(gepard::Gepard& ctx, const int size)
     }
 }
 
-int main(int argc, char* argv[])
+int main()
 {
     const uint32_t size = 50;
     const uint32_t width = 8 * size;
@@ -52,12 +52,13 @@ int main(int argc, char* argv[])
     gepard::Surface surface(width, height);
     gepard::Gepard ctx(&surface);
 
-    // Load images and draw chess pieces from file.
+    // Load images and draw chess pieces from file. (loadPNG and putImageData)
     gepard::Image chessPieces = gepard::utils::loadPng("apps/examples/image/ChessPiecesArray.png");
-    ctx.drawImage(chessPieces, 0, 0);
+    ctx.putImageData(chessPieces, 0, 0);
 
+    // Crop the 'white knight' figure. (getImageData)
     gepard::Image knightImage = ctx.getImageData(3 * chessPieces.width() / 6, 1 * chessPieces.height() / 2,
-                                             chessPieces.width() / 6, chessPieces.height() / 2);
+                                                 chessPieces.width() / 6, chessPieces.height() / 2);
 
     // Generate a 8x8 chess board (32-32 drawImage calls).
     // This call is overdrawing the canvas.
@@ -65,10 +66,72 @@ int main(int argc, char* argv[])
 
     // Blit size x size 'knight' into the first chess tile.
     ctx.drawImage(knightImage, 0, 0, size, size);
+    // Put size x size 'knight' into the sixth chess tile. (Redraw background!)
+    ctx.putImageData(knightImage, 5 * size, 0, 0, 0, size, size);
 
     // Blit 2size x size 'knight' into the second and third chess tiles.
     ctx.drawImage(knightImage, 1 * size, 0, 2 * size, size);
+    // Put 2size x size 'knight' into the seventh and eighth chess tiles. (Redraw background!)
+    ctx.putImageData(knightImage, 6 * size, 0, 0, 0, 2 * size, size);
 
+    // Flip 'knight'.
+    ctx.save();
+    ctx.translate(2 * 0 * size + size, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(knightImage, 0 * size, 1 * size, size, size);
+    ctx.putImageData(knightImage, 5 * size, 1 * size, 0, 0, size, size);
+    ctx.restore();
+
+    // Flip and scale 'knight'.
+    ctx.save();
+    ctx.translate(-1.0 * size, 2 * 1 * size + size);
+    ctx.scale(2, -1);
+    ctx.drawImage(knightImage, 1 * size, 1 * size, size, size);
+    ctx.putImageData(knightImage, 6 * size, 1 * size, 0, 0, size, size);
+    ctx.restore();
+
+    // Some complex transformations.
+    const double pi = 3.1415926535897932;
+    ctx.save();
+    ctx.translate(1 * size, 2 * size);
+    ctx.rotate(pi / 2.0);
+    ctx.drawImage(knightImage, 0, 0, size, size);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(0 * size, 4 * size);
+    ctx.rotate(-pi / 2.0);
+    ctx.drawImage(knightImage, 0, 0, size, size);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(1 * size, 2 * size);
+    ctx.rotate(pi / 2.0);
+    ctx.scale(2, -1);
+    ctx.drawImage(knightImage, 0, 0, size, size);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(3 * size, 4 * size);
+    ctx.rotate(-pi / 2.0);
+    ctx.scale(2, -1);
+    ctx.drawImage(knightImage, 0, 0, size, size);
+    ctx.restore();
+
+    // More rotations.
+    for (uint32_t i = 0; i < size * 7; ++i) {
+        ctx.save();
+        ctx.translate(i, 7 * size);
+        ctx.rotate(float(i) / float(size) * pi);
+        ctx.drawImage(knightImage, 0, 0, size, size);
+        ctx.restore();
+    }
+
+    // Blitting.
+    gepard::Image fullCanvas = ctx.getImageData(0, 0, surface.width(), surface.height());
+    ctx.drawImage(fullCanvas, 4 * size, 3 * size, 2 * size, 2 * size);
+
+    // Blitting a part from source.
+    ctx.drawImage(fullCanvas, 4 * size, 4 * size, 2 * size, 3 * size, 6.5 * size, 3.5 * size, 1 * size, 1.5 * size);
+
+    // Save result image.
     gepard::utils::savePng(ctx.getImageData(0, 0, surface.width(), surface.height()), "build/image.png");
 
     return 0;
