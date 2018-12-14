@@ -147,7 +147,6 @@ void GepardEngine::restore()
 void GepardEngine::closePath()
 {
     GD_LOG(DEBUG) << "Call " << __func__;
-Gepard::s_nOfGepradPathCall++;
     _context.path.pathData()->addCloseSubpathElement();
 }
 
@@ -162,7 +161,6 @@ Gepard::s_nOfGepradPathCall++;
 void GepardEngine::moveTo(const Float x, const Float y)
 {
     GD_LOG(DEBUG) << "Call " << __func__;
-Gepard::s_nOfGepradPathCall++;
     _context.path.pathData()->addMoveToElement(FloatPoint(x, y));
 }
 
@@ -177,7 +175,6 @@ Gepard::s_nOfGepradPathCall++;
 void GepardEngine::lineTo(const Float x, const Float y)
 {
     GD_LOG(DEBUG) << "Call " << __func__;
-Gepard::s_nOfGepradPathCall++;
     _context.path.pathData()->addLineToElement(FloatPoint(x, y));
 }
 
@@ -194,7 +191,6 @@ Gepard::s_nOfGepradPathCall++;
 void GepardEngine::quadraticCurveTo(const Float cpx, const Float cpy, const Float x, const Float y)
 {
     GD_LOG(DEBUG) << "Call " << __func__;
-Gepard::s_nOfGepradPathCall++;
     _context.path.pathData()->addQuadaraticCurveToElement(FloatPoint(cpx, cpy), FloatPoint(x, y));
 }
 
@@ -213,7 +209,6 @@ Gepard::s_nOfGepradPathCall++;
 void GepardEngine::bezierCurveTo(const Float cp1x, const Float cp1y, const Float cp2x, const Float cp2y, const Float x, const Float y)
 {
     GD_LOG(DEBUG) << "Call " << __func__;
-Gepard::s_nOfGepradPathCall++;
     _context.path.pathData()->addBezierCurveToElement(FloatPoint(cp1x, cp1y), FloatPoint(cp2x, cp2y), FloatPoint(x, y));
 }
 
@@ -231,7 +226,6 @@ Gepard::s_nOfGepradPathCall++;
 void GepardEngine::arcTo(const Float x1, const Float y1, const Float x2, const Float y2, const Float radius)
 {
     GD_LOG(DEBUG) << "Call " << __func__;
-Gepard::s_nOfGepradPathCall++;
     _context.path.pathData()->addArcToElement(FloatPoint(x1, y1), FloatPoint(x2, y2), radius);
 }
 
@@ -269,7 +263,6 @@ void GepardEngine::rect(const Float x, const Float y, const Float w, const Float
 void GepardEngine::arc(const Float x, const Float y, const Float radius, const Float startAngle, const Float endAngle, const bool counterclockwise)
 {
     GD_LOG(DEBUG) << "Call " << __func__;
-Gepard::s_nOfGepradPathCall++;
     _context.path.pathData()->addArcElement(FloatPoint(x, y), FloatPoint(radius, radius), startAngle, endAngle, counterclockwise);
 }
 
@@ -328,7 +321,6 @@ void GepardEngine::beginPath()
 void GepardEngine::fill()
 {
     GD_LOG(DEBUG) << "Call " << __func__;
-Gepard::s_nOfFillCall++;
     GD_ASSERT(_engineBackend);
     _engineBackend->fillPath(context().path.pathData(), state());
 }
@@ -342,7 +334,6 @@ Gepard::s_nOfFillCall++;
 void GepardEngine::stroke()
 {
     GD_LOG(DEBUG) << "Call " << __func__;
-Gepard::s_nOfStrokeCall++;
     GD_ASSERT(_engineBackend);
     _engineBackend->strokePath();
 }
