@@ -192,10 +192,10 @@ int main(int argc, char* argv[])
     }
 
     struct {
-        const int isOn;
+        const bool isOn;
         const std::string file;
     } a_png = {
-        CHECK_FLAG("-p, --png"),
+        (bool)CHECK_FLAG("-p, --png"),
         GET_VALUE("-p, --png", "build/tiger.png")
     };
     const bool a_disableClear = CHECK_FLAG("-C, --no-clear");
