@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<canvas id="myCanvas" width="600" height="600" style="border:1px solid #d3d3d3;">
+Your browser does not support the HTML5 canvas tag.</canvas>
+
+<script>
+var c = document.getElementById("myCanvas");
+var ctx = c.getContext("2d");
+
+// Clear 'black' the canvas.
+ctx.fillStyle = "#000";
+ctx.fillRect(0, 0, 600, 600);
+
+// Set stroke line width.
+ctx.lineWidth = 5;
+
+// Transformed 'mandala'.
+ctx.save();
+ctx.translate(300, 300);
+ctx.beginPath();
+for (var i = 0; i < 21; ++i) {
+    ctx.save();
+    ctx.scale(2.1, 1.0);
+    ctx.rotate((i * 2.0 * 3.1415926) / 21.0);
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(0, 100, 20, 100, 20, 80);
+    ctx.quadraticCurveTo(20, 60, 10, 40);
+    ctx.arc(40, 60, 40, 3.8, 4.0);
+    ctx.restore();
+}
+ctx.fillStyle = "#00f";
+ctx.fill();
+ctx.strokeStyle = "#0aa";
+ctx.stroke();
+ctx.restore();
+
+// Buttons.
+ctx.fillStyle = "#ddd";
+ctx.lineJoin = "round";
+// 'Accept' button.
+ctx.beginPath();
+ctx.moveTo(320, 500);
+ctx.arcTo(390, 500, 390, 510, 10);
+ctx.arcTo(390, 530, 380, 530, 10);
+ctx.arcTo(310, 530, 310, 520, 10);
+ctx.arcTo(310, 500, 320, 500, 10);
+ctx.closePath();
+ctx.fill();
+ctx.moveTo(340, 515);
+ctx.lineTo(345, 525);
+ctx.lineTo(360, 505);
+ctx.strokeStyle = "#0a0";
+ctx.stroke();
+// 'Cancel' button.
+ctx.beginPath();
+ctx.rect(410, 500, 80, 30);
+ctx.moveTo(440, 505);
+ctx.lineTo(460, 525);
+ctx.moveTo(460, 505);
+ctx.lineTo(440, 525);
+ctx.fill();
+ctx.strokeStyle = "#f00";
+ctx.stroke();
+</script>
+
+</body>
+</html>

@@ -24,14 +24,17 @@
  */
 
 #include "gepard.h"
+#include "surfaces/gepard-xsurface.h"
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 void pathShape(gepard::Gepard& ctx)
 {
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, 600, 600);
+    ctx.lineWidth = 20;
 
     ctx.fillStyle = "#0f0";
+    ctx.strokeStyle = "#0ff";
     ctx.beginPath();
     ctx.moveTo(300, 100);
     ctx.lineTo(50, 230);
@@ -39,33 +42,105 @@ void pathShape(gepard::Gepard& ctx)
     ctx.closePath();
     ctx.fill();
 
+    ctx.save();
+    ctx.rotate(3.1415926 * 0.1);
+    ctx.stroke();
+    ctx.restore();
+
     ctx.fillStyle = "#f00";
+    ctx.strokeStyle = "#ff0";
     ctx.beginPath();
     ctx.moveTo(100, 100);
     ctx.lineTo(180, 200);
     ctx.bezierCurveTo(400, 200, 40, 50, 300, 250);
-    ctx.closePath();
+//    ctx.arcTo(400, 200, 40, 50, 300, 250);
     ctx.fill();
+    ctx.stroke();
 }
 
 int main(int argc, char* argv[])
 {
+    // Parse arguments.
+    std::string pngFile = (argc > 1) ? argv[1] : "build/fill-path.png";
     if ((argc > 1) && (std::string(argv[1]) == "-h" || std::string(argv[1]) == "--help")) {
-        std::cout << "Usage: " << argv[0] << " [options] [file-name]" << std::endl << std::endl;
+        std::cout << "Usage: " << argv[0] << " [options] [file-name=" << pngFile << "]" << std::endl << std::endl;
         std::cout << "Options:" << std::endl;
         std::cout << "  -h, --help    show this help." << std::endl;
         return 0;
+    } else if (argc > 1) {
+        pngFile = argv[1];
     }
 
-    std::string pngFile = (argc > 1) ? argv[1] : "fill-path.png";
-
-    gepard::Surface surface(600, 600);
+    // Create an X surface and Gepard context.
+    gepard::XSurface surface(600, 600);
     gepard::Gepard ctx(&surface);
 
-    pathShape(ctx);
+    // Clear 'black' the canvas.
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, 600, 600);
 
-    gepard::Image img = ctx.getImageData(0, 0, 600, 600);
+    // Set stroke line width.
+    ctx.lineWidth = 5;
+
+    // Transformed 'mandala'.
+    ctx.save();
+    ctx.translate(300, 300);
+    ctx.beginPath();
+    for (int i = 0; i < 21; ++i) {
+        ctx.save();
+        ctx.scale(2.1, 1.0);
+        ctx.rotate(double(i * 2.0 * 3.1415926) / 21.0);
+        ctx.moveTo(0, 0);
+        ctx.bezierCurveTo(0, 100, 20, 100, 20, 80);
+        ctx.quadraticCurveTo(20, 60, 10, 40);
+        ctx.arc(40, 60, 40, 3.8, 4.0);
+        ctx.restore();
+    }
+    ctx.fillStyle = "#00f";
+    ctx.fill();
+    ctx.strokeStyle = "#0aa";
+    ctx.stroke();
+    ctx.restore();
+
+    // Buttons.
+    ctx.fillStyle = "#ddd";
+    ctx.lineJoin = "round";
+    // 'Accept' button.
+    ctx.beginPath();
+    ctx.moveTo(320, 500);
+    ctx.arcTo(390, 500, 390, 510, 10);
+    ctx.arcTo(390, 530, 380, 530, 10);
+    ctx.arcTo(310, 530, 310, 520, 10);
+    ctx.arcTo(310, 500, 320, 500, 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.moveTo(340, 515);
+    ctx.lineTo(345, 525);
+    ctx.lineTo(360, 505);
+    ctx.strokeStyle = "#0a0";
+    ctx.stroke();
+    // 'Cancel' button.
+    ctx.beginPath();
+    ctx.rect(410, 500, 80, 30);
+    ctx.moveTo(440, 505);
+    ctx.lineTo(460, 525);
+    ctx.moveTo(460, 505);
+    ctx.lineTo(440, 525);
+    ctx.fill();
+    ctx.strokeStyle = "#f00";
+    ctx.stroke();
+
+    // Save result in to PNG.
+    gepard::Image img = ctx.getImageData(0, 0, surface.width(), surface.height());
     gepard::utils::savePng(img, pngFile);
+
+    // Waiting for quit.
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.
+        if (surface.hasToQuit()) {
+            break;
+        }
+    }
 
     return 0;
 }
