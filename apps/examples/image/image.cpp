@@ -25,6 +25,9 @@
  */
 
 #include "gepard.h"
+#include "surfaces/gepard-xsurface.h"
+#include <thread>
+#include <chrono>
 
 void generateCheckerBoard(gepard::Gepard& ctx, const int size)
 {
@@ -49,7 +52,7 @@ int main()
     const uint32_t size = 50;
     const uint32_t width = 8 * size;
     const uint32_t height = 8 * size;
-    gepard::Surface surface(width, height);
+    gepard::XSurface surface(width, height);
     gepard::Gepard ctx(&surface);
 
     // Load images and draw chess pieces from file. (loadPNG and putImageData)
@@ -133,6 +136,13 @@ int main()
 
     // Save result image.
     gepard::utils::savePng(ctx.getImageData(0, 0, surface.width(), surface.height()), "build/image.png");
+
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.
+        if (surface.hasToQuit()) {
+            break;
+        }
+    }
 
     return 0;
 }
