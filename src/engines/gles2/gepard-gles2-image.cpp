@@ -25,7 +25,9 @@
 
 #include "gepard-gles2.h"
 
+#include "gepard-float.h"
 #include "gepard-logging.h"
+#include <cmath>
 
 namespace gepard {
 namespace gles2 {
@@ -76,65 +78,18 @@ static const std::string s_textureFragmentShader = GD_GLES2_SHADER_PROGRAM(
  */
 void GepardGLES2::drawImage(const Image& imageData, const Float sx, const Float sy, const Float sw, const Float sh, const Float dx, const Float dy, const Float dw, const Float dh)
 {
-    FloatPoint dtl = _context.currentState().transform.apply(FloatPoint(dx, dy));
-    FloatPoint dtr = _context.currentState().transform.apply(FloatPoint(dx + dw, dy));
-    FloatPoint dbl = _context.currentState().transform.apply(FloatPoint(dx, dy + dh));
-    FloatPoint dbr = _context.currentState().transform.apply(FloatPoint(dx + dw, dy + dh));
-    const uint32_t imgWidth = imageData.width();
-    const uint32_t imgHeight = imageData.height();
-
-    if (!imgWidth || !imgHeight)
+    if (!imageData.width() || !imageData.height())
         return;
 
-    GLuint imgTextureId;
+    const FloatPoint dtl = _context.currentState().transform.apply(FloatPoint(dx, dy));
+    const FloatPoint dtr = _context.currentState().transform.apply(FloatPoint(dx + dw, dy));
+    const FloatPoint dbl = _context.currentState().transform.apply(FloatPoint(dx, dy + dh));
+    const FloatPoint dbr = _context.currentState().transform.apply(FloatPoint(dx + dw, dy + dh));
 
     makeCurrent();
-
-    glGenTextures(1, &imgTextureId);
-    glBindTexture(GL_TEXTURE_2D, imgTextureId);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData.data().data());
-
-    const uint32_t width = _context.surface->width();
-    const uint32_t height = _context.surface->height();
-
-    ShaderProgram& textureProgram = _shaderProgramManager.getProgram("s_imgTextureProgram", s_textureVertexShader, s_textureFragmentShader);
-    glUseProgram(textureProgram.id);
-
-    {
-        const GLfloat textureCoords[] = {
-            (GLfloat)dtl.x, (GLfloat)dtl.y, (GLfloat)(sx / Float(imgWidth)), (GLfloat)(sy / Float(imgHeight)),
-            (GLfloat)dtr.x, (GLfloat)dtr.y, (GLfloat)((sx + sw) / Float(imgWidth)), (GLfloat)(sy / Float(imgHeight)),
-            (GLfloat)dbl.x, (GLfloat)dbl.y, (GLfloat)(sx / Float(imgWidth)), (GLfloat)((sy + sh) / Float(imgHeight)),
-            (GLfloat)dbr.x, (GLfloat)dbr.y, (GLfloat)((sx + sw) / Float(imgWidth)), (GLfloat)((sy + sh) / Float(imgHeight)),
-        };
-
-        const GLint index = glGetAttribLocation(textureProgram.id, "a_position");
-        glEnableVertexAttribArray(index);
-        glVertexAttribPointer(index, 4, GL_FLOAT, GL_FALSE, 0, textureCoords);
-    }
-
-    {
-        const GLint index = glGetUniformLocation(textureProgram.id, "u_viewportSize");
-        glUniform2f(index, width, height);
-    }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
-
     glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    {
-        glActiveTexture(GL_TEXTURE0);
-        const GLint index = glGetUniformLocation(textureProgram.id, "u_texture");
-        glUniform1i(index, GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, imgTextureId);
-    }
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    glDeleteTextures(1, &imgTextureId);
+    drawImage(imageData, FloatPoint(sx, sy), FloatPoint(sw, sh), dtl, dtr, dbl, dbr);
 
     render();
 }
@@ -154,61 +109,20 @@ void GepardGLES2::drawImage(const Image& imageData, const Float sx, const Float 
  */
 void GepardGLES2::putImage(const Image& imageData, const Float dx, const Float dy, const Float dirtyX, const Float dirtyY, const Float dirtyWidth, const Float dirtyHeight)
 {
-    const uint32_t imgWidth = imageData.width();
-    const uint32_t imgHeight = imageData.height();
-
-    if (!imgWidth || !imgHeight)
+    if (!imageData.width() || !imageData.height())
         return;
 
-    GLuint imgTextureId;
+    const Float width(std::min((Float)imageData.width(), dirtyWidth));
+    const Float height(std::min((Float)imageData.height(), dirtyHeight));
+    const FloatPoint dtl(dx, dy);
+    const FloatPoint dtr(dx + width, dy);
+    const FloatPoint dbl(dx, dy + height);
+    const FloatPoint dbr(dx + width, dy + height);
 
     makeCurrent();
-
-    glGenTextures(1, &imgTextureId);
-    glBindTexture(GL_TEXTURE_2D, imgTextureId);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData.data().data());
-
-    const uint32_t width = _context.surface->width();
-    const uint32_t height = _context.surface->height();
-
-    ShaderProgram& textureProgram = _shaderProgramManager.getProgram("s_imgTextureProgram", s_textureVertexShader, s_textureFragmentShader);
-    glUseProgram(textureProgram.id);
-
-    {
-        const GLfloat textureCoords[] = {
-            (GLfloat)dx, (GLfloat)dy, (GLfloat)(dirtyX / Float(imgWidth)), (GLfloat)(dirtyY / Float(imgHeight)),
-            (GLfloat)(dx + dirtyWidth), (GLfloat)dy, (GLfloat)((dirtyX + dirtyWidth) / Float(imgWidth)), (GLfloat)(dirtyY / Float(imgHeight)),
-            (GLfloat)dx, (GLfloat)(dy + dirtyHeight), (GLfloat)(dirtyX / Float(imgWidth)), (GLfloat)((dirtyY + dirtyHeight) / Float(imgHeight)),
-            (GLfloat)(dx + dirtyWidth), (GLfloat)(dy + dirtyHeight), (GLfloat)((dirtyX + dirtyWidth) / Float(imgWidth)), (GLfloat)((dirtyY + dirtyHeight) / Float(imgHeight)),
-        };
-
-        const GLint index = glGetAttribLocation(textureProgram.id, "a_position");
-        glEnableVertexAttribArray(index);
-        glVertexAttribPointer(index, 4, GL_FLOAT, GL_FALSE, 0, textureCoords);
-    }
-
-    {
-        const GLint index = glGetUniformLocation(textureProgram.id, "u_viewportSize");
-        glUniform2f(index, width, height);
-    }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
-
     glBlendFunc(GL_ONE, GL_ZERO);
-    {
-        glActiveTexture(GL_TEXTURE0);
-        const GLint index = glGetUniformLocation(textureProgram.id, "u_texture");
-        glUniform1i(index, GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, imgTextureId);
-    }
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    glDeleteTextures(1, &imgTextureId);
+    drawImage(imageData, FloatPoint(dirtyX, dirtyY), FloatPoint(width, height), dtl, dtr, dbl, dbr);
 
     render();
 }
@@ -233,6 +147,61 @@ const Image GepardGLES2::getImage(const Float sx, const Float sy, const Float sw
     glReadPixels(sx, sy, sw, sh, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) data.data());
 
     return Image(sw, sh, data);
+}
+
+void GepardGLES2::drawImage(const Image& imageData, const FloatPoint srcXY, const FloatPoint srcWH, const FloatPoint destTL, const FloatPoint destTR, const FloatPoint destBL, const FloatPoint destBR)
+{
+    const uint32_t imgWidth = imageData.width();
+    const uint32_t imgHeight = imageData.height();
+    GD_ASSERT(imgWidth && imgHeight);
+
+    GLuint imgTextureId;
+
+    makeCurrent();
+
+    glGenTextures(1, &imgTextureId);
+    glBindTexture(GL_TEXTURE_2D, imgTextureId);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData.data().data());
+
+    const uint32_t srfWidth = _context.surface->width();
+    const uint32_t srfHeight = _context.surface->height();
+
+    ShaderProgram& textureProgram = _shaderProgramManager.getProgram("s_imgTextureProgram", s_textureVertexShader, s_textureFragmentShader);
+    glUseProgram(textureProgram.id);
+
+    {
+        const GLfloat textureCoords[] = {
+            (GLfloat)destTL.x, (GLfloat)destTL.y, (GLfloat)(srcXY.x / Float(imgWidth)), (GLfloat)(srcXY.x / Float(imgHeight)),
+            (GLfloat)destTR.x, (GLfloat)destTR.y, (GLfloat)((srcXY.x + srcWH.x) / Float(imgWidth)), (GLfloat)(srcXY.x / Float(imgHeight)),
+            (GLfloat)destBL.x, (GLfloat)destBL.y, (GLfloat)(srcXY.x / Float(imgWidth)), (GLfloat)((srcXY.x + srcWH.y) / Float(imgHeight)),
+            (GLfloat)destBR.x, (GLfloat)destBR.y, (GLfloat)((srcXY.x + srcWH.x) / Float(imgWidth)), (GLfloat)((srcXY.x + srcWH.y) / Float(imgHeight)),
+        };
+
+        const GLint index = glGetAttribLocation(textureProgram.id, "a_position");
+        glEnableVertexAttribArray(index);
+        glVertexAttribPointer(index, 4, GL_FLOAT, GL_FALSE, 0, textureCoords);
+    }
+
+    {
+        const GLint index = glGetUniformLocation(textureProgram.id, "u_viewportSize");
+        glUniform2f(index, srfWidth, srfHeight);
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
+    {
+        glActiveTexture(GL_TEXTURE0);
+        const GLint index = glGetUniformLocation(textureProgram.id, "u_texture");
+        glUniform1i(index, GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, imgTextureId);
+    }
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glDeleteTextures(1, &imgTextureId);
 }
 
 } // namespace gles2
