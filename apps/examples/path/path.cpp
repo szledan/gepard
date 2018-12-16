@@ -29,35 +29,6 @@
 #include <thread>
 #include <chrono>
 
-void pathShape(gepard::Gepard& ctx)
-{
-    ctx.lineWidth = 20;
-
-    ctx.fillStyle = "#0f0";
-    ctx.strokeStyle = "#0ff";
-    ctx.beginPath();
-    ctx.moveTo(300, 100);
-    ctx.lineTo(50, 230);
-    ctx.lineTo(380, 200);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.save();
-    ctx.rotate(3.1415926 * 0.1);
-    ctx.stroke();
-    ctx.restore();
-
-    ctx.fillStyle = "#f00";
-    ctx.strokeStyle = "#ff0";
-    ctx.beginPath();
-    ctx.moveTo(100, 100);
-    ctx.lineTo(180, 200);
-    ctx.bezierCurveTo(400, 200, 40, 50, 300, 250);
-//    ctx.arcTo(400, 200, 40, 50, 300, 250);
-    ctx.fill();
-    ctx.stroke();
-}
-
 int main(int argc, char* argv[])
 {
     // Parse arguments.

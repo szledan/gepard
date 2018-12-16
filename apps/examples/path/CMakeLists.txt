@@ -24,12 +24,12 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 set(SOURCES
-    fill-path.cpp
+    path.cpp
 )
 
-add_executable(fill-path ${SOURCES})
-add_dependencies(examples fill-path)
+add_executable(path ${SOURCES})
+add_dependencies(examples path)
 
 find_package(PNG)
 
-target_link_libraries(fill-path gepard ${PNG_LIBRARIES} ${GEPARD_DEP_LIBS})
+target_link_libraries(path gepard ${PNG_LIBRARIES} ${GEPARD_DEP_LIBS})
