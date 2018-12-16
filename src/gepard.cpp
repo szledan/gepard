@@ -621,7 +621,7 @@ Image Gepard::createImageData(Image& imagedata)
     return Image(width, height);
 }
 
-Image Gepard::getImageData(double sx, double sy, double sw, double sh)
+const Image Gepard::getImageData(const double sx, const double sy, const double sw, const double sh)
 {
     return _engine->getImage(sx, sy, sw, sh);
 }

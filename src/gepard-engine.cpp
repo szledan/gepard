@@ -34,6 +34,16 @@
 #include <cstring>
 #include <string>
 
+#if defined(GD_BACKEND_GLES2)
+#include "gepard-gles2.h"
+#endif
+#if defined(GD_BACKEND_VULKAN)
+#include "gepard-vulkan.h"
+#endif
+#if defined(GD_BACKEND_SOFTWARE)
+#include "gepard-software.h"
+#endif
+
 namespace gepard {
 
 static const std::string nameOfBackend(const BackendType backendType)
@@ -414,7 +424,7 @@ void GepardEngine::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Flo
  *
  * Read back the canvas' data on the given rectangle.
  */
-Image GepardEngine::getImage(Float sx, Float sy, Float sw, Float sh)
+const Image GepardEngine::getImage(const Float sx, const Float sy, const Float sw, const Float sh)
 {
     GD_ASSERT(_engineBackend);
     return _engineBackend->getImage(sx, sy, sw, sh);
