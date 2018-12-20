@@ -24,7 +24,7 @@
  */
 
 #include "gepard.h"
-#include "nanoargparse.h"
+#include "nanoargparser.h"
 #define NANOSVG_IMPLEMENTATION
 #include "nanosvg.h"
 #include "surfaces/gepard-xsurface.h"
@@ -178,30 +178,29 @@ void parseNSVGimage(gepard::Gepard& ctx, const NSVGimage* img)
 int main(int argc, char* argv[])
 {
     // Parse arguments.
-    INIT_ARGS(argc, argv);
-    if (CHECK_FLAG("-h, --help, --usage")) {
+    nanoargparser::NanoArgParser parser(argc, argv);
+    if (parser.hasFlag("-h, --help, --usage")) {
         std::cout << "SVG rastering with Gepard *** (C) 2018. Szilard Ledan" << std::endl;
-        std::cout << "Usage: " << std::string(argv[0]) << " [options] SVGFILE" << std::endl
+        std::cout << "Usage: " << parser.basename(argv[0]) << " [options] [SVGFILE]" << std::endl
                   << std::endl;
         std::cout << "Options:" << std::endl;
-        std::cout << "  -h, --help      show this help." << std::endl;
-        std::cout << "  -p, --png FILE  use png output and set file name." << std::endl;
-        std::cout << "  -C, --no-clear  disable canvas clear." << std::endl;
+        std::cout << "  -h, --help        show this help." << std::endl;
+        std::cout << "  -p, --png [FILE]  use png output and set file name." << std::endl;
+        std::cout << "  -C, --no-clear    disable canvas clear." << std::endl;
         return 0;
     }
 
-    struct {
+    const struct {
         const bool isOn;
         const std::string file;
     } a_png = {
-        (bool)CHECK_FLAG("-p, --png"),
-        GET_VALUE("-p, --png", "build/tiger.png")
+        parser.hasFlag("-p, --png"),
+        parser.getValue("-p, --png", "build/tiger.png")
     };
-    const bool a_disableClear = CHECK_FLAG("-C, --no-clear");
-    const std::string a_svgFile = GET_VALUE("", "./apps/svggepard/tiger.svg");
+    const bool a_disableClear = parser.hasFlag("-C, --no-clear");
 
     // Open and parse SVG file.
-    NSVGimage* pImage = nsvgParseFromFile(a_svgFile.c_str(), "px", 96);
+    NSVGimage* pImage = nsvgParseFromFile(parser.getValue("", "./apps/svggepard/tiger.svg").c_str(), "", 96);
     if (!pImage) {
         std::cerr << "Wrong SVG file or not exist." << std::endl;
         return 1;
@@ -210,9 +209,9 @@ int main(int argc, char* argv[])
     // Set surface and initial the Gepard context.
     const uint width = pImage->width;
     const uint height = pImage->height;
-    gepard::Surface* surface = a_png.isOn ? (gepard::Surface*)new gepard::Surface(width, height)
-                                          : (gepard::Surface*)new gepard::XSurface(width, height);
-    gepard::Gepard ctx(surface);
+
+    gepard::XSurface surface(width, height);
+    gepard::Gepard ctx(&surface);
 
     // Clear the canvas.
     if (!a_disableClear) {
@@ -230,17 +229,8 @@ int main(int argc, char* argv[])
         gepard::Image img = ctx.getImageData(0, 0, width, height);
         gepard::utils::savePng(img, a_png.file);
     } else {
-        gepard::XSurface* xSurface = (gepard::XSurface*)(surface);
-
-        XEvent xEvent;
-        while (true) {
+        while (!surface.hasToQuit()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            if (XCheckWindowEvent((Display*)xSurface->getDisplay(), (Window)xSurface->getWindow(), KeyPress | ClientMessage, &xEvent)) {
-                break;
-            }
-        }
-        if (xSurface) {
-            delete xSurface;
         }
     }
 

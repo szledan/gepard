@@ -74,11 +74,8 @@ int main()
 
         pathShape(gepard);
 
-        while (true) {
+        while (!surface.hasToQuit()) {
             std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.
-            if (surface.hasToQuit()) {
-                break;
-            }
         }
     }
 
