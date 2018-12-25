@@ -44,7 +44,7 @@ Image::Image(uint32_t width, uint32_t height)
     _data.resize(width * height);
 }
 
-Image::Image(uint32_t width, uint32_t height, const std::vector<uint32_t> &data)
+Image::Image(const uint32_t width, const uint32_t height, const std::vector<uint32_t>& data)
     : _width(width)
     , _height(height)
     , _data(data)
@@ -70,7 +70,7 @@ const std::vector<uint32_t> &Image::data() const
     return _data;
 }
 
-bool utils::savePng(const Image &image, const std::string &fileName)
+bool utils::savePng(const Image &image, const std::string& fileName)
 {
     if (image.data().size() == 0u) {
         GD_LOG(WARNING) << "The image is empty!";

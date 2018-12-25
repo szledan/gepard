@@ -1,5 +1,5 @@
 /* Copyright (C) 2015-2016, Gepard Graphics
- * Copyright (C) 2015-2016, Szilard Ledan <szledan@gmail.com>
+ * Copyright (C) 2015-2016, 2018, Szilard Ledan <szledan@gmail.com>
  * Copyright (C) 2015, Kristof Kosztyo <kkristof@inf.u-szeged.hu>
  * All rights reserved.
  *
@@ -26,7 +26,6 @@
 
 #include "gepard.h"
 #include "surfaces/gepard-xsurface.h"
-#include "surfaces/gepard-png-surface.h"
 #include <chrono>
 #include <iostream>
 #include <thread>
@@ -59,12 +58,13 @@ int main()
 {
     // Draw to PNG file.
     {
-        gepard::PNGSurface pngSurface(600, 600);
-        gepard::Gepard pngGepard(&pngSurface);
+        gepard::Surface surface(600, 600);
+        gepard::Gepard ctx(&surface);
 
-        pathShape(pngGepard);
+        pathShape(ctx);
 
-        pngSurface.save("fill-rect.png");
+        gepard::Image img = ctx.getImageData(0, 0, 600, 600);
+        gepard::utils::savePng(img, "fill-rect.png");
     }
 
     // Draw on XWindow.
@@ -74,11 +74,8 @@ int main()
 
         pathShape(gepard);
 
-        while (true) {
+        while (!surface.hasToQuit()) {
             std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.
-            if (surface.hasToQuit()) {
-                break;
-            }
         }
     }
 

@@ -27,12 +27,12 @@
 #ifndef GEPARD_H
 #define GEPARD_H
 
+#include "gepard-image.h"
 #include <string>
 
 namespace gepard {
 
 class GepardEngine;
-class Image;
 class Surface;
 
 class Gepard {
@@ -418,7 +418,7 @@ public:
 
     Image createImageData(float sw, float sh);
     Image createImageData(Image& imagedata);
-    Image getImageData(double sx, double sy, double sw, double sh);
+    const Image getImageData(const double sx, const double sy, const double sw, const double sh);
     void putImageData(Image& imagedata, double dx, double dy);
     void putImageData(Image& imagedata, double dx, double dy, double dirtyX, double dirtyY,
         double dirtyWidth, double dirtyHeight);
@@ -468,11 +468,10 @@ public:
     {
     }
 
-    virtual ~Surface() = 0;
-    virtual void* getDisplay() = 0;
-    virtual unsigned long getWindow() = 0;
-    virtual void* getBuffer() = 0;
-    virtual void drawBuffer(void*) = 0;
+    virtual ~Surface();
+    virtual void* getDisplay() { return nullptr; }
+    virtual unsigned long getWindow() { return -1; }
+    virtual void* getBuffer() { return nullptr; }
 
     const uint32_t width() const { return _width; }
     const uint32_t height() const { return _height; }

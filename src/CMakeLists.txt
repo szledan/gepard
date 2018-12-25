@@ -46,6 +46,7 @@ set(GLES2_SOURCES
     engines/gles2/gepard-gles2.cpp
     engines/gles2/gepard-gles2-fill-path.cpp
     engines/gles2/gepard-gles2-fill-rect.cpp
+    engines/gles2/gepard-gles2-image.cpp
     engines/gles2/gepard-gles2-shader-factory.cpp
     engines/gles2/gepard-gles2-stroke-path.cpp
 )
@@ -85,7 +86,6 @@ set(GEPARD_HEADERS
 )
 
 set(SURFACE_HEADERS
-    surfaces/gepard-png-surface.h
     surfaces/gepard-xsurface.h
     surfaces/gepard-memory-buffer-surface.h
 )

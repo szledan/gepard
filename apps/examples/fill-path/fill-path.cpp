@@ -24,7 +24,6 @@
  */
 
 #include "gepard.h"
-#include "surfaces/gepard-png-surface.h"
 #include <iostream>
 
 void pathShape(gepard::Gepard& ctx)
@@ -60,12 +59,13 @@ int main(int argc, char* argv[])
 
     std::string pngFile = (argc > 1) ? argv[1] : "fill-path.png";
 
-    gepard::PNGSurface pngSurface(600, 600);
-    gepard::Gepard pngGepard(&pngSurface);
+    gepard::Surface surface(600, 600);
+    gepard::Gepard ctx(&surface);
 
-    pathShape(pngGepard);
+    pathShape(ctx);
 
-    pngSurface.save(pngFile);
+    gepard::Image img = ctx.getImageData(0, 0, 600, 600);
+    gepard::utils::savePng(img, pngFile);
 
     return 0;
 }

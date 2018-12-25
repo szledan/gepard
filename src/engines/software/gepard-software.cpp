@@ -77,7 +77,7 @@ void GepardSoftware::fillRect(const Float x, const Float y, const Float w, const
         }
 
     GD_LOG(TRACE) << "Call drawBuffer method of surface";
-    _context.surface->drawBuffer(_buffer.data());
+    //! \fixme: unused result
 }
 
 /*!
@@ -151,7 +151,7 @@ void GepardSoftware::putImage(const Image& imagedata, const Float dx, const Floa
  * \internal
  * \todo unimplemented function
  */
-Image GepardSoftware::getImage(const Float sx, const Float sy, const Float sw, const Float sh)
+const Image GepardSoftware::getImage(const Float sx, const Float sy, const Float sw, const Float sh)
 {
     GD_NOT_IMPLEMENTED();
     return Image();

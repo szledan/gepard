@@ -36,7 +36,7 @@ class Image {
 public:
     Image();
     Image(uint32_t width, uint32_t height);
-    Image(uint32_t width, uint32_t height, const std::vector<uint32_t> &data);
+    Image(const uint32_t width, const uint32_t height, const std::vector<uint32_t>& data);
     virtual ~Image();
 
     const uint32_t width() const;
@@ -50,8 +50,8 @@ private:
 };
 
 namespace utils {
-    bool savePng(const Image &image, const std::string &fileName);
-    Image loadPng(const std::string &fileName);
+    bool savePng(const Image &image, const std::string& fileName);
+    Image loadPng(const std::string& fileName);
 }
 
 } // namespace gepard

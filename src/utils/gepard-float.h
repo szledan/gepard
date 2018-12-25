@@ -40,9 +40,9 @@ inline Float fixPrecision(Float f) { return std::floor(f * precisionOfFloat) / p
 static const Float piFloat = 2.0 * std::asin(1.0);
 
 template<class T>
-static inline const T& clamp(const T& value, const T& min, const T& max)
+inline const T& clamp(const T& v, const T& lo, const T& hi)
 {
-    return (value < min) ? min : ((value > max) ? max : value);
+    return std::min(std::max(v, lo), hi);
 }
 
 } // namespace gepard

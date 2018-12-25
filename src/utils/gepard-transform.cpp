@@ -41,23 +41,23 @@ Transform::Transform(const Float a, const Float b, const Float c, const Float d,
     data[5] = f;
 }
 
-Transform&Transform::rotate(const Float angle)
+Transform& Transform::rotate(const Float angle)
 {
-    const Float cosAngle = cos(angle);
-    const Float sinAngle = sin(angle);
+    const Float cosAngle = std::cos(angle);
+    const Float sinAngle = std::sin(angle);
     Transform matrix(cosAngle, sinAngle, -sinAngle, cosAngle, 0.0, 0.0);
     multiply(matrix);
     return *this;
 }
 
-Transform&Transform::scale(const Float sx, const Float sy)
+Transform& Transform::scale(const Float sx, const Float sy)
 {
     Transform matrix(sx, 0.0, 0.0, sy, 0.0, 0.0);
     multiply(matrix);
     return *this;
 }
 
-Transform&Transform::translate(const Float x, const Float y)
+Transform& Transform::translate(const Float x, const Float y)
 {
     Transform matrix(1.0, 0.0, 0.0, 1.0, x, y);
     multiply(matrix);
@@ -71,7 +71,7 @@ const FloatPoint Transform::apply(const FloatPoint& p) const
     return FloatPoint(x, y);
 }
 
-Transform&Transform::multiply(const Transform& transform)
+Transform& Transform::multiply(const Transform& transform)
 {
     const Float a = data[0];
     const Float b = data[1];

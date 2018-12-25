@@ -253,7 +253,7 @@ void GepardGLES2::render()
         glBindTexture(GL_TEXTURE_2D, _textureId);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -261,67 +261,7 @@ void GepardGLES2::render()
     } else if (_context.surface->getBuffer()) {
         glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
         glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) _context.surface->getBuffer());
-    } else {
-        glBindFramebuffer(GL_FRAMEBUFFER, _fboId);
-        std::vector<uint32_t> buffer(width * height);
-        glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) buffer.data());
-        _context.surface->drawBuffer(buffer.data());
     }
-}
-
-/*!
- * \brief GepardGLES2::drawImage
- * \param imagedata
- * \param sx
- * \param sy
- * \param sw
- * \param sh
- * \param dx
- * \param dy
- * \param dw
- * \param dh
- *
- * \internal
- * \todo documentation is missing
- */
-void GepardGLES2::drawImage(const Image& imagedata, const Float sx, const Float sy, const Float sw, const Float sh, const Float dx, const Float dy, const Float dw, const Float dh)
-{
-    GD_NOT_IMPLEMENTED();
-}
-
-/*!
- * \brief GepardGLES2::putImage
- * \param imagedata
- * \param dx
- * \param dy
- * \param dirtyX
- * \param dirtyY
- * \param dirtyWidth
- * \param dirtyHeight
- *
- * \internal
- * \todo documentation is missing
- */
-void GepardGLES2::putImage(const Image& imagedata, const Float dx, const Float dy, const Float dirtyX, const Float dirtyY, const Float dirtyWidth, const Float dirtyHeight)
-{
-    GD_NOT_IMPLEMENTED();
-}
-
-/*!
- * \brief GepardGLES2::getImage
- * \param sx
- * \param sy
- * \param sw
- * \param sh
- * \return
- *
- * \internal
- * \todo documentation is missing
- */
-Image GepardGLES2::getImage(const Float sx, const Float sy, const Float sw, const Float sh)
-{
-    GD_NOT_IMPLEMENTED();
-    return Image();
 }
 
 } // namespace gles2

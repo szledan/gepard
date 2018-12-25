@@ -415,7 +415,7 @@ void GepardEngine::drawImage(Image& imagedata, Float sx, Float sy, Float sw, Flo
  *
  * Read back the canvas' data on the given rectangle.
  */
-Image GepardEngine::getImage(Float sx, Float sy, Float sw, Float sh)
+const Image GepardEngine::getImage(const Float sx, const Float sy, const Float sw, const Float sh)
 {
     GD_ASSERT(_engineBackend);
     return _engineBackend->getImage(sx, sy, sw, sh);
