@@ -1,5 +1,5 @@
-/* Copyright (C) 2017-2018, Gepard Graphics
- * Copyright (C) 2017-2018, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2018, Gepard Graphics
+ * Copyright (C) 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -21,20 +21,40 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are those
+ * of the authors and should not be interpreted as representing official policies,
+ * either expressed or implied, of the FreeBSD Project.
  */
 
-#include "gtest/gtest.h"
+#include "gepard-segment.h"
 
-#include "gepard-bounding-box-tests.h"
-#include "gepard-float-point-tests.h"
-#include "gepard-float-tests.h"
-#include "gepard-path-tests.h"
-#include "gepard-region-tests.h"
-#include "gepard-segment-tests.h"
-#include "gepard-vec4-tests.h"
+#include "gepard-float-point.h"
+#include "gepard-float.h"
 
-int main(int argc, char* argv[])
+namespace gepard {
+
+Segment::Segment(const FloatPoint from, const FloatPoint to, const UIntID uid, const Float slope)
+    : _from(from)
+    , _to(to)
+    , _uid(uid ? uid : s_uid++)
 {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    Float denom = to.y - from.y;
+    if (denom) {
+        if (denom < (Float)0.0) {
+            _from = to;
+            _to = from;
+            _direction = Negative;
+            denom *= (Float)(-1.0);
+        } else {
+            _direction = Positive;
+        }
+    } else {
+        this->_direction = EqualOrNonExist;
+    }
+
+    _slope = (std::isnan(slope)) ? ((_to.x - _from.x) / (denom)) : slope;
+    GD_ASSERT(!std::isnan(_slope));
 }
+
+} // namespace gepard

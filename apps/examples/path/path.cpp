@@ -42,13 +42,15 @@ int main(int argc, char* argv[])
         pngFile = argv[1];
     }
 
+    const uint32_t width = 600;
+    const uint32_t height = 600;
     // Create an X surface and Gepard context.
-    gepard::XSurface surface(600, 600);
+    gepard::XSurface surface(width, height);
     gepard::Gepard ctx(&surface);
 
     // Clear 'black' the canvas.
     ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, 600, 600);
+    ctx.fillRect(0, 0, surface.width(), surface.height());
 
     // Set stroke line width.
     ctx.lineWidth = 5;

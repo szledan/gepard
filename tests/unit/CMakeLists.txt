@@ -26,6 +26,7 @@
 set(SOURCES
     gepard-unit-main.cpp
     ${PROJECT_SOURCE_DIR}/src/engines/gepard-path.cpp
+    ${PROJECT_SOURCE_DIR}/src/engines/gepard-segment.cpp
     ${PROJECT_SOURCE_DIR}/src/utils/gepard-bounding-box.cpp
     ${PROJECT_SOURCE_DIR}/src/utils/gepard-float-point.cpp
     ${PROJECT_SOURCE_DIR}/src/utils/gepard-logging.cpp
