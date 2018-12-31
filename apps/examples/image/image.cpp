@@ -137,11 +137,8 @@ int main()
     // Save result image.
     gepard::utils::savePng(ctx.getImageData(0, 0, surface.width(), surface.height()), "build/image.png");
 
-    while (true) {
+    while (!surface.hasToQuit()) {
         std::this_thread::sleep_for(std::chrono::nanoseconds(1));   // Only for CPU sparing.
-        if (surface.hasToQuit()) {
-            break;
-        }
     }
 
     return 0;
