@@ -1,5 +1,5 @@
-/* Copyright (C) 2017-2018, Gepard Graphics
- * Copyright (C) 2017-2018, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2018, Gepard Graphics
+ * Copyright (C) 2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,19 +23,45 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef GEPARD_SEGMENT_TESTS_H
+#define GEPARD_SEGMENT_TESTS_H
+
+#include "gepard-segment-approximator.h"
 #include "gtest/gtest.h"
 
-#include "gepard-bounding-box-tests.h"
-#include "gepard-float-point-tests.h"
-#include "gepard-float-tests.h"
-#include "gepard-path-tests.h"
-#include "gepard-region-tests.h"
-#include "gepard-segment-approximator-tests.h"
-#include "gepard-segment-tests.h"
-#include "gepard-vec4-tests.h"
+namespace {
 
-int main(int argc, char* argv[])
+TEST(SegmentApproximatorTest, Constructor)
 {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    gepard::SegmentApproximator sa;
+
+    EXPECT_EQ(sa.kAntiAliasLevel, GD_ANTIALIAS_LEVEL) << "";
+    EXPECT_EQ(gepard::SegmentApproximator(4).kAntiAliasLevel, 4) << "";
+    EXPECT_EQ(gepard::SegmentApproximator(0).kAntiAliasLevel, GD_ANTIALIAS_LEVEL) << "";
+    EXPECT_EQ(gepard::SegmentApproximator(-10).kAntiAliasLevel, GD_ANTIALIAS_LEVEL) << "";
 }
+
+static const double pi = 2.0 * std::asin(1.0);
+
+TEST(SegmentApproximatorTest, InsertOneLine)
+{
+    gepard::SegmentApproximator sa;
+    const gepard::FloatPoint from(-pi, -pi);
+    const gepard::FloatPoint to(pi, pi);
+
+    sa.insertLine(from, to);
+
+    const gepard::SegmentTree& st = sa.segments();
+
+    EXPECT_EQ(st.size(), 2u) << "";
+
+    EXPECT_NE(st.find(std::floor(sa.kAntiAliasLevel * (-pi))), st.end()) << "";
+    EXPECT_EQ(st.at(std::floor(sa.kAntiAliasLevel * (-pi))).size(), 1u) << "";
+
+    EXPECT_NE(st.find(std::floor(sa.kAntiAliasLevel * (pi))), st.end()) << "";
+    EXPECT_EQ(st.at(std::floor(sa.kAntiAliasLevel * (pi))).size(), 0u) << "";
+}
+
+} // anonymous namespace
+
+#endif // GEPARD_SEGMENT_TESTS_H
