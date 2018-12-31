@@ -222,9 +222,7 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
     if (!pathData->firstElement())
         return;
 
-    TrapezoidTessellator::FillRule fillRule = TrapezoidTessellator::FillRule::NonZero;
-
-    TrapezoidTessellator tt(*pathData, fillRule, GD_ANTIALIAS_LEVEL);
+    TrapezoidTessellator tt(*pathData, TrapezoidTessellator::FillRule::NonZero);
     const TrapezoidList trapezoidList = tt.trapezoidList(state);
 
     const Color& fillColor = state.fillColor;

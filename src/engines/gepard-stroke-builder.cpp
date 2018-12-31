@@ -352,7 +352,7 @@ inline void StrokePathBuilder::addArcShape(const FloatPoint& start, const ArcEle
     setCurrentLineAttribute();
 }
 
-void StrokePathBuilder::addCapShapeIfNeeded()
+inline void StrokePathBuilder::addCapShapeIfNeeded()
 {
     if (_hasShapeFirstLine) {
         addCapShape(_lineCap);

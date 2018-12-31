@@ -75,7 +75,7 @@ private:
     inline void addBezierCurveShape(const FloatPoint&, const BezierCurveToElement*);
     inline void addArcShape(const FloatPoint&, const ArcElement*);
 
-    void addCapShapeIfNeeded();
+    inline void addCapShapeIfNeeded();
 
     inline FloatPoint miterLength(const FloatPoint&, const FloatPoint&);
 
