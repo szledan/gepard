@@ -42,8 +42,6 @@
 
 namespace gepard {
 
-#define GD_ANTIALIAS_LEVEL 16
-
 /* Segment */
 
 struct Segment {
@@ -95,7 +93,7 @@ public:
     void insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement, const Transform& transform);
 
     SegmentList* segments();
-    const BoundingBox boundingBox() const { return _boundingBox; }
+    const BoundingBox& boundingBox() const { return _boundingBox; }
 
     inline void splitSegments();
     void printSegments();
@@ -167,7 +165,7 @@ public:
 
     const FillRule fillRule() const { return _fillRule; }
     const TrapezoidList trapezoidList(const GepardState& state);
-    const BoundingBox boundingBox() const { return _boundingBox; }
+    const BoundingBox& boundingBox() const { return _boundingBox; }
     const int antiAliasingLevel() const { return _antiAliasingLevel; }
 
 private:

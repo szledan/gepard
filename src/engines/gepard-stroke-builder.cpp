@@ -105,7 +105,7 @@ void StrokePathBuilder::convertStrokeToFill(const PathData* path)
 
         switch (element->type) {
         case MoveTo:
-            addMoveToShape();
+            addMoveToShape(to);
             break;
         case CloseSubpath:
             addCloseSubpathShape(from, reinterpret_cast<CloseSubpathElement*>(element));
@@ -135,12 +135,12 @@ void StrokePathBuilder::convertStrokeToFill(const PathData* path)
     addCapShapeIfNeeded();
 }
 
-inline void StrokePathBuilder::addMoveToShape()
+inline void StrokePathBuilder::addMoveToShape(const FloatPoint& to)
 {
     addCapShapeIfNeeded();
-    _shapeFirstLine->set(FloatPoint(0.0, 0.0), FloatPoint(-1.0, 0.0), _halfWidth);
-    _currentLine->set(FloatPoint(0.0, 0.0), FloatPoint(1.0, 0.0), _halfWidth);
-    _lastLine->set(FloatPoint(0.0, 0.0), FloatPoint(1.0, 0.0), _halfWidth);
+    _shapeFirstLine->set(to, to, _halfWidth);
+    _currentLine->set(to, to, _halfWidth);
+    _lastLine->set(to, to, _halfWidth);
     _hasShapeFirstLine = false;
 }
 
@@ -153,8 +153,9 @@ inline void StrokePathBuilder::addLineShape(const FloatPoint& start, const LineT
     if (!_hasShapeFirstLine) {
         _shapeFirstLine->set(start, element->to, _halfWidth);
         _hasShapeFirstLine = true;
-    } else
+    } else {
         addJoinShape(_lastLine, _currentLine);
+    }
 
     addQuadShape(_currentLine->startTop, _currentLine->startBottom, _currentLine->endBottom, _currentLine->endTop);
 
@@ -313,18 +314,25 @@ inline void StrokePathBuilder::addBezierCurveShape(const FloatPoint& start, cons
 
 inline void StrokePathBuilder::addArcShape(const FloatPoint& start, const ArcElement* element)
 {
-    const Float direction = element->counterClockwise ? 1.0 : -1.0;
+    const Transform& at = element->transform;
+    const FloatPoint centerPoint(at.apply(element->center));
     const FloatPoint end(element->to);
+    const Float direction = element->counterClockwise ? 1.0 : -1.0;
+    const FloatPoint normalPoint = direction * FloatPoint(std::sin(element->startAngle), -std::cos(element->startAngle));
 
     // Set the continuous vector to join or cap shape method.
-    _currentLine->set(start, start + direction * FloatPoint(std::sin(element->startAngle), -std::cos(element->startAngle)), _halfWidth);
+    _currentLine->set(start, start + normalPoint, _halfWidth);
 
     if (!_hasShapeFirstLine) {
-        _shapeFirstLine->set(start, start + direction * FloatPoint(std::sin(element->startAngle), -std::cos(element->startAngle)), _halfWidth);
+        _shapeFirstLine->set(start, start + normalPoint, _halfWidth);
         _hasShapeFirstLine = true;
     } else {
         addJoinShape(_lastLine, _currentLine);
     }
+
+    LineToElement lt(FloatPoint(centerPoint.x + element->radius.x * std::cos(element->startAngle), centerPoint.y + element->radius.y * sin(element->startAngle)));
+    addLineShape(start, &lt);
+    addJoinShape(_lastLine, _currentLine);
 
     // Set the continuous vector to join or cap shape method.
     _currentLine->set(end - direction * FloatPoint(std::sin(element->endAngle), -std::cos(element->endAngle)), end, _halfWidth);
@@ -332,15 +340,23 @@ inline void StrokePathBuilder::addArcShape(const FloatPoint& start, const ArcEle
     const FloatPoint firstRadius = element->radius + direction *  FloatPoint(_halfWidth, _halfWidth);
     const FloatPoint secondRadius = element->radius - direction * FloatPoint(_halfWidth, _halfWidth);
 
-    const FloatPoint startPoint(element->center.x + firstRadius.x * std::cos(element->startAngle), element->center.y + firstRadius.y * sin(element->startAngle));
-    const FloatPoint endPoint(element->center.x + secondRadius.x * std::cos(element->endAngle), element->center.y + secondRadius.y * sin(element->endAngle));
+    const FloatPoint startPoint = FloatPoint(centerPoint.x + firstRadius.x * std::cos(element->startAngle), centerPoint.y + firstRadius.y * sin(element->startAngle));
+    const FloatPoint endPoint = FloatPoint(centerPoint.x + secondRadius.x * std::cos(element->endAngle), centerPoint.y + secondRadius.y * sin(element->endAngle));
+
     _path.addMoveToElement(startPoint);
-    _path.addArcElement(element->center, firstRadius, element->startAngle, element->endAngle, element->counterClockwise);
+    _path.addArcElement(centerPoint, firstRadius, element->startAngle, element->endAngle, element->counterClockwise);
     _path.addLineToElement(endPoint);
-    _path.addArcElement(element->center, secondRadius, element->endAngle, element->startAngle, !element->counterClockwise);
+    _path.addArcElement(centerPoint, secondRadius, element->endAngle, element->startAngle, !element->counterClockwise);
     _path.addCloseSubpathElement();
 
     setCurrentLineAttribute();
+}
+
+inline void StrokePathBuilder::addCapShapeIfNeeded()
+{
+    if (_hasShapeFirstLine) {
+        addCapShape(_lineCap);
+    }
 }
 
 inline void StrokePathBuilder::addTriangle(const FloatPoint& p0, const FloatPoint& p1, const FloatPoint& p2, const Float crossProduct)
@@ -539,15 +555,16 @@ void StrokePathBuilder::addCapShape(const LineCapType lineCap, const bool interm
     const FloatPoint endBottomMargin(_lastLine->endBottom.x + _lastLine->thicknessOffsets.x, _lastLine->endBottom.y + _lastLine->thicknessOffsets.y);
 
     if (lineCap == SquareCap) {
-        if (_shapeFirstLine->length)
+        if (_shapeFirstLine->length) {
             addQuadShape(_shapeFirstLine->startBottom, startBottomMargin, startTopMargin, _shapeFirstLine->startTop);
-        if (_lastLine->length)
+        }
+        if (_lastLine->length) {
             addQuadShape(_lastLine->endTop, endTopMargin, endBottomMargin, _lastLine->endBottom);
+        }
         return;
     }
 
     GD_ASSERT(lineCap == RoundCap);
-
     FloatPoint miter;
 
     if (!intermediateCap || _shapeFirstLine->length) {

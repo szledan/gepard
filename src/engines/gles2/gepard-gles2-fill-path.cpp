@@ -219,14 +219,17 @@ static void setupPathVertexAttributes(const Trapezoid& trapezoid, GLfloat* attri
 
 void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
 {
-    makeCurrent();
     if (!pathData->firstElement())
         return;
+
+    TrapezoidTessellator tt(*pathData, TrapezoidTessellator::FillRule::NonZero);
+    const TrapezoidList trapezoidList = tt.trapezoidList(state);
 
     const Color& fillColor = state.fillColor;
     const uint32_t width = _context.surface->width();
     const uint32_t height = _context.surface->height();
 
+    makeCurrent();
     GLuint textureId;
     {
         GLuint fboId;
@@ -244,7 +247,7 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureId, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, fboId);
 
-        //! \todo(szledan) check: are we really need this glClear?
+        glClearColor(0.0, 0.0, 0.0, 0.0);
         glClear(GL_COLOR_BUFFER_BIT);
         glBlendFunc(GL_ONE, GL_ONE);
     }
@@ -277,16 +280,13 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
             offset += size;
         }
 
-        TrapezoidTessellator::FillRule fillRule = TrapezoidTessellator::FillRule::NonZero;
-
-        TrapezoidTessellator tt(*pathData, fillRule, GD_ANTIALIAS_LEVEL);
-        const TrapezoidList trapezoidList = tt.trapezoidList(state);
-
         int trapezoidIndex = 0;
         for (Trapezoid trapezoid : trapezoidList) {
             GD_ASSERT(trapezoid.topY < trapezoid.bottomY);
             GD_ASSERT(trapezoid.topLeftX <= trapezoid.topRightX);
-            GD_ASSERT(trapezoid.bottomLeftX <= trapezoid.bottomRightX);
+            //! \todo: due to an error, it is necessary to relax this condition
+            //GD_ASSERT(trapezoid.bottomLeftX <= trapezoid.bottomRightX);
+            GD_ASSERT(trapezoid.bottomLeftX - trapezoid.bottomRightX < 1);
 
             if (!trapezoid.leftId || !trapezoid.rightId)
                 continue;

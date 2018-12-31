@@ -68,18 +68,14 @@ public:
     PathData* pathData() { return &_path; }
 
 private:
-    inline void addMoveToShape();
+    inline void addMoveToShape(const FloatPoint&);
     inline void addCloseSubpathShape(const FloatPoint&, const CloseSubpathElement*);
     inline void addLineShape(const FloatPoint&, const LineToElement*);
     inline void addBezierCurveShape(const FloatPoint&, const QuadraticCurveToElement*);
     inline void addBezierCurveShape(const FloatPoint&, const BezierCurveToElement*);
     inline void addArcShape(const FloatPoint&, const ArcElement*);
 
-    void addCapShapeIfNeeded()
-    {
-        if (_hasShapeFirstLine)
-            addCapShape(_lineCap);
-    }
+    inline void addCapShapeIfNeeded();
 
     inline FloatPoint miterLength(const FloatPoint&, const FloatPoint&);
 
@@ -105,7 +101,7 @@ private:
     LineCapType _lineCap;
 
     PathData _path;
-    SegmentApproximator _segmentApproximator;
+    SegmentApproximator _segmentApproximator = SegmentApproximator(16, 1);
 };
 
 } // namespace gepard

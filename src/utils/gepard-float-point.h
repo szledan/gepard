@@ -28,6 +28,7 @@
 
 #include "gepard-defs.h"
 #include "gepard-float.h"
+#include <limits>
 #include <ostream>
 
 namespace gepard {

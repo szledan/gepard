@@ -61,12 +61,13 @@ Segment::Segment(FloatPoint from, FloatPoint to, unsigned sameId, Float slope)
             this->direction = Positive;
         }
 
-        slopeInv = (this->to.x - this->from.x) / (denom);
     } else {
         this->direction = EqualOrNonExist;
-        slopeInv = INFINITY;
     }
-    realSlope = (slope == NAN) ? slopeInv : slope;
+    slopeInv = (this->to.x - this->from.x) / (denom);
+
+    realSlope = (std::isnan(slope)) ? slopeInv : slope;
+    GD_ASSERT(!std::isnan(realSlope));
 }
 
 const int Segment::topY() const
@@ -120,16 +121,28 @@ const bool Segment::computeIntersectionY(Segment* segment, Float& y) const
     if (this == segment)
         return false;
 
-    if (this->from.x != segment->from.x && this->to.x != segment->to.x) {
-        Float denom = (this->slopeInv() - segment->slopeInv());
-        if (denom) {
-            y = (this->factor() - segment->factor()) / denom;
-        }
-        if (!isOnSegment(y)) {
-            y = INFINITY;
-            return false;
-        }
-    } //! \todo: else: y is NaN.
+    GD_ASSERT(this->from.y == segment->from.y);
+    GD_ASSERT(this->to.y == segment->to.y);
+
+    if (this->from.x == segment->from.x) {
+        return true;
+    }
+
+    if (this->to.x == segment->to.x) {
+        return true;
+    }
+
+    Float denom = (this->slopeInv() - segment->slopeInv());
+    y = (this->factor() - segment->factor()) / denom;
+
+    if (std::isnan(y))
+        return false;
+
+    if (!isOnSegment(y)) {
+        y = INFINITY;
+        return false;
+    }
+
     return true;
 }
 
@@ -140,6 +153,7 @@ std::ostream& operator<<(std::ostream& os, const Segment& s)
 
 bool operator<(const Segment& lhs, const Segment& rhs)
 {
+    GD_ASSERT(lhs.from.y <= lhs.to.y);
     GD_ASSERT(lhs.from <= lhs.to && rhs.from <= rhs.to);
     return (lhs.from < rhs.from) || (lhs.from == rhs.from && lhs.to < rhs.to);
 }
@@ -158,7 +172,7 @@ bool operator<=(const Segment& lhs, const Segment& rhs)
 
 SegmentApproximator::SegmentApproximator(const int antiAliasLevel, const Float factor)
     : kAntiAliasLevel(antiAliasLevel > 0 ? antiAliasLevel : GD_ANTIALIAS_LEVEL)
-    , kTolerance((factor > 0.0 ? factor : 1.0 ) / ((Float)kAntiAliasLevel))
+    , kTolerance((factor > 0.0 ? factor : 1.0 ))
 {
 }
 
@@ -171,6 +185,9 @@ SegmentApproximator::~SegmentApproximator()
 
 void SegmentApproximator::insertLine(const FloatPoint& from, const FloatPoint& to)
 {
+    if (from.y == to.y)
+        return;
+
     GD_LOG(TRACE) << "Insert line: " << from << "->" << to;
     insertSegment(FloatPoint(from.x * kAntiAliasLevel, std::floor(from.y * kAntiAliasLevel)), FloatPoint(to.x * kAntiAliasLevel, std::floor(to.y * kAntiAliasLevel)));
 }
@@ -494,7 +511,7 @@ SegmentList* SegmentApproximator::segments()
         SegmentList::iterator currentSegment = currentList->begin();
         for (SegmentList::iterator segment = currentSegment; currentSegment != currentList->end(); ++segment) {
             if (segment != currentList->end()) {
-                Float y;
+                Float y = 0;
                 if (currentSegment->computeIntersectionY(&(*segment), y)) {
                     const int intersectionY = std::floor(y);
                     ys.insert(intersectionY);
@@ -715,10 +732,10 @@ const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state
 
             if (fill) {
                 if (!isInFill) {
-                    trapezoid.topY = (fixPrecision(segment.topY() / denom));
-                    trapezoid.bottomY = (fixPrecision(segment.bottomY() / denom));
-                    trapezoid.topLeftX = (fixPrecision(segment.from.x) / denom);
-                    trapezoid.bottomLeftX = (fixPrecision(segment.to.x) / denom);
+                    trapezoid.topY = ((segment.topY() / denom));
+                    trapezoid.bottomY = ((segment.bottomY() / denom));
+                    trapezoid.topLeftX = ((segment.from.x) / denom);
+                    trapezoid.bottomLeftX = ((segment.to.x) / denom);
                     trapezoid.leftId = segment.id;
                     trapezoid.leftSlope = segment.realSlope;
                     if (trapezoid.topY != trapezoid.bottomY)
@@ -726,8 +743,8 @@ const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state
                 }
             } else {
                 // TODO: Horizontal merge trapezoids.
-                trapezoid.topRightX = (fixPrecision(segment.from.x) / denom);
-                trapezoid.bottomRightX = (fixPrecision(segment.to.x) / denom);
+                trapezoid.topRightX = ((segment.from.x) / denom);
+                trapezoid.bottomRightX = ((segment.to.x) / denom);
                 trapezoid.rightId = segment.id;
                 trapezoid.rightSlope = segment.realSlope;
                 if (trapezoid.topY != trapezoid.bottomY) {
@@ -744,13 +761,14 @@ const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state
 
         //! \todo(szledan): check the boundingBox calculation:
         // NOTE:  maxX = (maxX + (_antiAliasingLevel - 1)) / _antiAliasingLevel;
-        _boundingBox.minX = (fixPrecision(segmentApproximator.boundingBox().minX) / _antiAliasingLevel);
-        _boundingBox.minY = (fixPrecision(segmentApproximator.boundingBox().minY) / _antiAliasingLevel);
-        _boundingBox.maxX = (fixPrecision(segmentApproximator.boundingBox().maxX) / _antiAliasingLevel);
-        _boundingBox.maxY = (fixPrecision(segmentApproximator.boundingBox().maxY) / _antiAliasingLevel);
+        _boundingBox.minX = ((segmentApproximator.boundingBox().minX) / float(_antiAliasingLevel));
+        _boundingBox.minY = ((segmentApproximator.boundingBox().minY) / float(_antiAliasingLevel));
+        _boundingBox.maxX = ((segmentApproximator.boundingBox().maxX) / float(_antiAliasingLevel));
+        _boundingBox.maxY = ((segmentApproximator.boundingBox().maxY) / float(_antiAliasingLevel));
     }
 
     trapezoids.sort();
+    GD_LOG(TRACE) << "Number of horizontal merged trapezoids: " << trapezoids.size();
 
     // 4. Vertical merge trapezoids.
     //! \todo(szledan): use MovePtr:
@@ -778,6 +796,7 @@ const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state
             trapezoidList.push_back(*current);
         }
     }
+    GD_LOG(TRACE) << "Number of vertical merged trapezoids: " << trapezoidList.size();
 
     return trapezoidList;
 }

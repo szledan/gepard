@@ -192,7 +192,7 @@ public:
      * \param y  Y-axis value of _end_ point
      *
      */
-    void moveTo(float x, float y);
+    void moveTo(double x, double y);
     /*!
      * \brief Adds the given point to the current subpath, connected to the
      * previous one by a straight line.
@@ -200,7 +200,7 @@ public:
      * \param x X-axis value of _end_ point
      * \param y Y-axis value of _end_ point
      */
-    void lineTo(float x, float y);
+    void lineTo(double x, double y);
     /*!
      * \brief Adds the given point to the current subpath, connected to the
      * previous one by a quadratic Bézier curve with the given control point.
@@ -210,7 +210,7 @@ public:
      * \param x  X-axis value of _end_ point
      * \param y  Y-axis value of _end_ point
      */
-    void quadraticCurveTo(float cpx, float cpy, float x, float y);
+    void quadraticCurveTo(double cpx, double cpy, double x, double y);
     /*!
      * \brief Adds the given point to the current subpath, connected to the
      * previous one by a cubic Bézier curve with the given control points.
@@ -222,7 +222,7 @@ public:
      * \param x  X-axis value of _end_ point
      * \param y  Y-axis value of _end_ point
      */
-    void bezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y);
+    void bezierCurveTo(double cp1x, double cp1y, double cp2x, double cp2y, double x, double y);
     /*!
      * \brief Adds an arc with the given control points and radius to the
      * current subpath, connected to the previous point by a straight line.
@@ -233,7 +233,7 @@ public:
      * \param y2  Y-axis value of _end_ point
      * \param radius  size of arc
      */
-    void arcTo(float x1, float y1, float x2, float y2, float radius);
+    void arcTo(double x1, double y1, double x2, double y2, double radius);
     /*!
      * \brief Adds a new closed subpath to the path, representing the given
      * rectangle.
@@ -243,7 +243,7 @@ public:
      * \param w  size on X-axis
      * \param h  size on Y-axis
      */
-    void rect(float x, float y, float w, float h);
+    void rect(double x, double y, double w, double h);
     /*!
      * \brief Adds points to the subpath such that the arc described by the
      * circumference of the circle described by the arguments, starting at the
@@ -258,7 +258,7 @@ public:
      * \param endAngle  specify the _end_ point on arc
      * \param counterclockwise  specify the draw direction on arc
      */
-    void arc(float x, float y, float radius, float startAngle, float endAngle, bool counterclockwise = false);
+    void arc(double x, double y, double radius, double startAngle, double endAngle, bool counterclockwise = false);
     /// \}  5. CanvasAPI Building paths
 
     /*! \name 6. CanvasAPI Transformations
@@ -269,11 +269,11 @@ public:
      */
     /// \{
 
-    void scale(float x, float y);
-    void rotate(float angle);
-    void translate(float x, float y);
-    void transform(float a, float b, float c, float d, float e, float f);
-    void setTransform(float a, float b, float c, float d, float e, float f);
+    void scale(double x, double y);
+    void rotate(double angle);
+    void translate(double x, double y);
+    void transform(double a, double b, double c, double d, double e, double f);
+    void setTransform(double a, double b, double c, double d, double e, double f);
     /// \} 6. CanvasAPI Transformations
 
     /*! \name 8. Fill and stroke styles
@@ -334,7 +334,7 @@ public:
      */
     /// \{
 
-    void clearRect(float x, float y, float w, float h);
+    void clearRect(double x, double y, double w, double h);
     /*!
      * \brief Paints the given rectangle onto the canvas, using the current fill style.
      *  -- <a href="https://www.w3.org/TR/2dcontext/#dom-context-2d-fillrect">[W3C-2DContext]</a>
@@ -343,8 +343,8 @@ public:
      * \param w  width of the rectangle
      * \param h  height of the rectangle
      */
-    void fillRect(float x, float y, float w, float h);
-    void strokeRect(float x, float y, float w, float h);
+    void fillRect(double x, double y, double w, double h);
+    void strokeRect(double x, double y, double w, double h);
     /// \} 9. CanvasAPI Rectangles
 
     /*! \name 11. CanvasAPI Drawing paths to the canvas
@@ -392,7 +392,7 @@ public:
      * \param y  Y-axis value of the given point
      * \return  true if the given _point_ is in the current path
      */
-    bool isPointInPath(float x, float y);
+    bool isPointInPath(double x, double y);
     /// \} 11. CanvasAPI Drawing paths to the canvas
 
     /*! \name 12. CanvasAPI Drawing images
@@ -402,10 +402,10 @@ public:
      * \endcond
      */
     /// \{
-    void drawImage(Image& image, float dx, float dy);
-    void drawImage(Image& image, float dx, float dy, float dw, float dh);
-    void drawImage(Image& image, float sx, float sy, float sw, float sh,
-        float dx, float dy, float dw, float dh);
+    void drawImage(Image& image, double dx, double dy);
+    void drawImage(Image& image, double dx, double dy, double dw, double dh);
+    void drawImage(Image& image, double sx, double sy, double sw, double sh,
+        double dx, double dy, double dw, double dh);
     /// \} 12. CanvasAPI Drawing images
 
     /*! \name 14. CanvasAPI Pixel manipulation
@@ -416,7 +416,7 @@ public:
      */
     /// \{
 
-    Image createImageData(float sw, float sh);
+    Image createImageData(double sw, double sh);
     Image createImageData(Image& imagedata);
     const Image getImageData(const double sx, const double sy, const double sw, const double sh);
     void putImageData(Image& imagedata, double dx, double dy);

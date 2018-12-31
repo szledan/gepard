@@ -197,6 +197,11 @@ void PathData::addQuadaraticCurveToElement(FloatPoint control, FloatPoint to)
         return;
     }
 
+    if (control == to || control == _lastElement->to) {
+        addLineToElement(to);
+        return;
+    }
+
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(QuadraticCurveToElement))) QuadraticCurveToElement(control, to));
     _lastElement = _lastElement->next;
     GD_LOG(TRACE) << "Add path element: " << (*_lastElement);
@@ -219,8 +224,7 @@ void PathData::addArcElement(FloatPoint center, FloatPoint radius, Float startAn
     FloatPoint start = FloatPoint(center.x + std::cos(startAngle) * radius.x, center.y + std::sin(startAngle) * radius.y);
 
     if (!_lastElement) {
-        addMoveToElement(center);
-        return;
+        addMoveToElement(start);
     }
 
     if (!radius.x || !radius.y || startAngle == endAngle) {
@@ -347,10 +351,6 @@ void PathData::addCloseSubpathElement()
 {
     if (!_lastElement || _lastElement->isCloseSubpath())
         return;
-
-    if (_lastElement->isMoveTo()) {
-        addLineToElement(_lastElement->to);
-    }
 
     _lastElement->next = static_cast<PathElement*>(new (_region.alloc(sizeof(CloseSubpathElement))) CloseSubpathElement(_lastMoveToElement->to));
     _lastElement = _lastElement->next;

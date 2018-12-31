@@ -28,15 +28,19 @@
 
 #include "gepard-float.h"
 #include "gtest/gtest.h"
+#include <cmath>
+#include <limits>
 
 namespace {
 
 TEST(FloatTest, PiFloat)
 {
-    gepard::Float pi100 = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679;
-    gepard::Float pi = gepard::fixPrecision(pi100);
-    gepard::Float gepardPi = gepard::fixPrecision(gepard::piFloat);
-    EXPECT_EQ(pi, gepardPi) << "Architecture used 'pi' is different than expected one.";
+    const gepard::Float epsilon = std::numeric_limits<gepard::Float>::epsilon();
+
+    EXPECT_LT(std::fabs(std::sin(gepard::piFloat) - 0.0), epsilon) << "Architecture used 'pi' is different than expected one.";
+    EXPECT_LT(std::fabs(std::sin(-gepard::piFloat) - 0.0), epsilon) << "Architecture used 'pi' is different than expected one.";
+    EXPECT_LT(std::fabs(std::cos(gepard::piFloat) - (-1.0)), epsilon) << "Architecture used 'pi' is different than expected one.";
+    EXPECT_LT(std::fabs(std::cos(-gepard::piFloat) - (-1.0)), epsilon) << "Architecture used 'pi' is different than expected one.";
 }
 
 TEST(BasicMathFuncTest, Clamp)
