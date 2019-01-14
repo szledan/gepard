@@ -1,5 +1,5 @@
-/* Copyright (C) 2018, Gepard Graphics
- * Copyright (C) 2018, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2019, Gepard Graphics
+ * Copyright (C) 2019, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,45 +27,30 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#ifndef GEPARD_SEGMENT_APPROXIMATOR_H
-#define GEPARD_SEGMENT_APPROXIMATOR_H
+#ifndef GEPARD_TRAPEZOID_CONTAINER_H
+#define GEPARD_TRAPEZOID_CONTAINER_H
 
 #include "gepard-defs.h"
-#include "gepard-float-point.h"
-#include "gepard-float.h"
-#include "gepard-path.h"
+#include "gepard-job-runner.h"
+#include "gepard-job-scheduler.h"
 #include "gepard-segment.h"
-#include "gepard-transform.h"
-#include <list>
-#include <map>
-#include <vector>
 
 namespace gepard {
 
-class SegmentTree {
+class TrapezoidContainer {
 public:
-    void addSegment(const Segment&);
+    TrapezoidContainer(JobRunner& jobRunner)
+        : _scheduler(jobRunner)
+    {
+    }
+
+    void addSegment(Segment&){}
+    void horizontalMergeTrapezoids(){}
+    void verticalMergeTrapezoids(){}
 
 private:
-    std::map<const int, std::map<Segment, int>> _segments;
+    JobScheduler _scheduler;
 };
-
-class SegmentApproximator {
-public:
-    SegmentApproximator(const int antiAliasLevel = GD_ANTIALIAS_LEVEL);
-
-    void insertLine(const FloatPoint& from, const FloatPoint& to);
-
-    const SegmentTree& segments() const { return _segments; }
-
-    const int kAntiAliasLevel;
-    const Float kTolerance;
-private:
-    void insertSegment(const FloatPoint& from, const FloatPoint& to);
-
-    SegmentTree _segments;
-};
-
 } // namespace gepard
 
-#endif // GEPARD_SEGMENT_APPROXIMATOR_H
+#endif // GEPARD_TRAPEZOID_CONTAINER_H

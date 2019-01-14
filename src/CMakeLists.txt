@@ -29,6 +29,7 @@ set(COMMON_SOURCES
     engines/gepard-context.cpp
     engines/gepard-path.cpp
     engines/gepard-stroke-builder.cpp
+    engines/gepard-trapezoid-container.cpp
     engines/gepard-trapezoid-tessellator.cpp
     gepard.cpp
     gepard-engine.cpp

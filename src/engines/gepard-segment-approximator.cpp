@@ -41,6 +41,12 @@
 
 namespace gepard {
 
+void SegmentTree::addSegment(const Segment& segment)
+{
+    _segments[segment.topY()][segment] = 1;
+    _segments[segment.bottomY()];
+}
+
 SegmentApproximator::SegmentApproximator(const int antiAliasLevel)
     : kAntiAliasLevel(antiAliasLevel > 0 ? antiAliasLevel : GD_ANTIALIAS_LEVEL)
     , kTolerance(1.0)
@@ -61,11 +67,8 @@ void SegmentApproximator::insertSegment(const FloatPoint& from, const FloatPoint
     if (from.y == to.y)
         return;
 
-    Segment segment(from, to);
-
     // Insert segment.
-    _segments[segment.topY()].push_front(segment);
-    _segments[segment.bottomY()];
+    _segments.addSegment(Segment(from, to));
 }
 
 } // namespace gepard
