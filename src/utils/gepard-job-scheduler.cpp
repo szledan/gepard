@@ -32,7 +32,16 @@
 
 namespace gepard {
 
-JobScheduler::JobScheduler(const unsigned int workerCount)
+void Job::run()
+{
+    GD_ASSERT(boundFunc != nullptr);
+    boundFunc();
+    if (callbackFunc != nullptr) {
+        callbackFunc();
+    }
+}
+
+JobRunner::JobRunner(const unsigned int workerCount)
 {
     unsigned int wc = (workerCount && workerCount < 8) ? workerCount : 1;
     do {
@@ -40,7 +49,7 @@ JobScheduler::JobScheduler(const unsigned int workerCount)
     } while (--wc);
 }
 
-JobScheduler::~JobScheduler()
+JobRunner::~JobRunner()
 {
     while (!finish) {
         { // lock
@@ -58,16 +67,16 @@ JobScheduler::~JobScheduler()
     }
 }
 
-void JobScheduler::addJob(Job* job)
+void JobRunner::addJob(std::function<void()> func, std::function<void()> callback)
 {
     { // lock
         std::lock_guard<std::mutex> guard(queueMutex);
-        queue.push(job);
+        queue.push(new Job(func, callback));
     } // unlock
     condVar.notify_one();
 }
 
-void JobScheduler::worker(JobScheduler* jobScheduler)
+void JobRunner::worker(JobRunner* jobScheduler)
 {
     while (true) {
         Job* job;
@@ -95,15 +104,6 @@ void JobScheduler::worker(JobScheduler* jobScheduler)
             jobScheduler->activeJobCount--;
         } // unlock
     };
-}
-
-Job::~Job()
-{
-}
-
-void Job::run()
-{
-    GD_ASSERT(false);
 }
 
 } // namespace gepard

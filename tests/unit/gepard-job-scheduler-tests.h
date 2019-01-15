@@ -36,25 +36,70 @@ namespace {
 
 TEST(JobScheduler, Constructor)
 {
-    struct AJob : public gepard::Job {
-        ~AJob() {}
-        void run() {
-            std::cerr << std::this_thread::get_id() << std::endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-    } job;
+    gepard::JobRunner jobRunner(2u);
 
+    EXPECT_EQ(jobRunner.workerCount(), 2u) << "";
+}
+
+struct TestClass {
+    void printThreadIDAndWait()
     {
-        gepard::JobScheduler js(2);
-        js.addJob(job);
-        js.addJob(new AJob());
-        js.addJob(new AJob());
-        js.addJob(new AJob());
-        js.addJob(new AJob());
-        js.addJob(new AJob());
+        std::cerr << std::this_thread::get_id() << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
-    EXPECT_EQ(1, 1) << "";
+    void incNumberAndWait(const int64_t milliseconds)
+    {
+        number++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+    }
+
+    void addValue(const int value)
+    {
+        number += value;
+    }
+
+    const int getNumber() const { return number; }
+
+    int number = 0;
+};
+
+TEST(JobScheduler, BoundFunc)
+{
+    TestClass test;
+    {
+        gepard::JobRunner js(2);
+
+        js.addJob(std::bind(&TestClass::incNumberAndWait, &test, 1));
+        js.addJob(std::bind(&TestClass::incNumberAndWait, &test, 10));
+        js.addJob(std::bind(&TestClass::incNumberAndWait, &test, 1));
+        js.addJob(std::bind(&TestClass::incNumberAndWait, &test, 1));
+    }
+
+    EXPECT_EQ(test.number, 4) << "";
+
+    {
+        gepard::JobRunner js(2);
+
+        js.addJob(std::bind(&TestClass::addValue, &test, 1));
+        js.addJob(std::bind(&TestClass::addValue, &test, 2));
+        js.addJob(std::bind(&TestClass::addValue, &test, 3));
+        js.addJob(std::bind(&TestClass::addValue, &test, 4));
+    }
+
+    EXPECT_EQ(test.number, 14) << "";
+}
+
+TEST(JobScheduler, CallbackFunc)
+{
+    int value = 0;
+    {
+        gepard::JobRunner js(2);
+
+        js.addJob([&]{ value++; }, [&]{ value = 10; });
+    }
+
+    EXPECT_EQ(value, 10) << "";
 }
 
 } // anonymous namespace

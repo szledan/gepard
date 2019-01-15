@@ -27,6 +27,7 @@
 #define GEPARD_JOB_SCHEDULER_H
 
 #include <condition_variable>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -39,31 +40,30 @@ namespace gepard {
  * \brief The Job struct
  */
 struct Job {
-    virtual ~Job();
-    virtual void run();
+    Job(std::function<void()> func, std::function<void()> callback)
+        : boundFunc(func)
+        , callbackFunc(callback)
+    {
+    }
+
+    void run();
+
+    std::function<void()> boundFunc;
+    std::function<void()> callbackFunc;
 };
 
 /*!
- * \brief The JobScheduler class
+ * \brief The JobRunner class
  */
-class JobScheduler {
+class JobRunner {
 public:
-    JobScheduler(const unsigned int workerCount = 1);
-    ~JobScheduler();
+    JobRunner(const unsigned int workerCount = 1);
+    ~JobRunner();
 
-    void addJob(Job*);
-    template<typename JobType>
-    void addJob(JobType* job)
-    {
-        addJob((Job*)job);
-    }
-    template<typename JobType>
-    void addJob(JobType& job)
-    {
-        addJob((Job*)(new JobType(job)));
-    }
+    void addJob(std::function<void()> func, std::function<void()> callback = nullptr);
+    const size_t workerCount() const { return _workers.size(); }
 
-    static void worker(JobScheduler*);
+    static void worker(JobRunner*);
 
     std::condition_variable condVar;
     std::mutex queueMutex;
