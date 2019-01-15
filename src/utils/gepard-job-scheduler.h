@@ -1,5 +1,5 @@
-/* Copyright (C) 2017-2019, Gepard Graphics
- * Copyright (C) 2017-2019, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2019, Gepard Graphics
+ * Copyright (C) 2019, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,18 +23,58 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gtest/gtest.h"
+#ifndef GEPARD_JOB_SCHEDULER_H
+#define GEPARD_JOB_SCHEDULER_H
 
-#include "gepard-bounding-box-tests.h"
-#include "gepard-float-point-tests.h"
-#include "gepard-float-tests.h"
-#include "gepard-job-scheduler-tests.h"
-#include "gepard-path-tests.h"
-#include "gepard-region-tests.h"
-#include "gepard-vec4-tests.h"
+#include <condition_variable>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <thread>
+#include <vector>
 
-int main(int argc, char* argv[])
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
+namespace gepard {
+
+/*!
+ * \brief The Job struct
+ */
+struct Job {
+    virtual ~Job();
+    virtual void run();
+};
+
+/*!
+ * \brief The JobScheduler class
+ */
+class JobScheduler {
+public:
+    JobScheduler(const unsigned int workerCount = 1);
+    ~JobScheduler();
+
+    void addJob(Job*);
+    template<typename JobType>
+    void addJob(JobType* job)
+    {
+        addJob((Job*)job);
+    }
+    template<typename JobType>
+    void addJob(JobType& job)
+    {
+        addJob((Job*)(new JobType(job)));
+    }
+
+    static void worker(JobScheduler*);
+
+    std::condition_variable condVar;
+    std::mutex queueMutex;
+    unsigned int activeJobCount = 0;
+    bool finish = false;
+
+    std::queue<Job*> queue;
+private:
+    std::vector<std::thread> _workers;
+};
+
+} // namespace gepard
+
+#endif // GEPARD_JOB_SCHEDULER_H
