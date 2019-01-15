@@ -28,7 +28,7 @@
 #include "gepard-bounding-box-tests.h"
 #include "gepard-float-point-tests.h"
 #include "gepard-float-tests.h"
-#include "gepard-job-scheduler-tests.h"
+#include "gepard-job-runner-tests.h"
 #include "gepard-path-tests.h"
 #include "gepard-region-tests.h"
 #include "gepard-vec4-tests.h"

@@ -23,8 +23,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GEPARD_JOB_SCHEDULER_H
-#define GEPARD_JOB_SCHEDULER_H
+#ifndef GEPARD_JOB_RUNNER_H
+#define GEPARD_JOB_RUNNER_H
 
 #include <condition_variable>
 #include <functional>
@@ -37,25 +37,16 @@
 namespace gepard {
 
 /*!
- * \brief The Job struct
- */
-struct Job {
-    Job(std::function<void()> func, std::function<void()> callback)
-        : boundFunc(func)
-        , callbackFunc(callback)
-    {
-    }
-
-    void run();
-
-    std::function<void()> boundFunc;
-    std::function<void()> callbackFunc;
-};
-
-/*!
  * \brief The JobRunner class
  */
 class JobRunner {
+    struct Job {
+        Job(std::function<void()> func, std::function<void()> callback);
+        void run();
+
+        std::function<void()> boundFunc;
+        std::function<void()> callbackFunc;
+    };
 public:
     JobRunner(const unsigned int workerCount = 1);
     ~JobRunner();
@@ -77,4 +68,4 @@ private:
 
 } // namespace gepard
 
-#endif // GEPARD_JOB_SCHEDULER_H
+#endif // GEPARD_JOB_RUNNER_H

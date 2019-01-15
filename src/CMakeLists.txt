@@ -36,7 +36,7 @@ set(COMMON_SOURCES
     utils/gepard-bounding-box.cpp
     utils/gepard-color.cpp
     utils/gepard-float-point.cpp
-    utils/gepard-job-scheduler.cpp
+    utils/gepard-job-runner.cpp
     utils/gepard-line-types.cpp
     utils/gepard-logging.cpp
     utils/gepard-transform.cpp

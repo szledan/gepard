@@ -23,7 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gepard-job-scheduler.h"
+#include "gepard-job-runner.h"
 
 #include "gepard-defs.h"
 #include <chrono>
@@ -32,7 +32,13 @@
 
 namespace gepard {
 
-void Job::run()
+JobRunner::Job::Job(std::function<void ()> func, std::function<void ()> callback)
+    : boundFunc(func)
+    , callbackFunc(callback)
+{
+}
+
+void JobRunner::Job::run()
 {
     GD_ASSERT(boundFunc != nullptr);
     boundFunc();

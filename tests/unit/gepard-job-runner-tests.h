@@ -26,20 +26,13 @@
 #ifndef GEPARD_JOB_SCHEDULER_TESTS_H
 #define GEPARD_JOB_SCHEDULER_TESTS_H
 
-#include "gepard-job-scheduler.h"
+#include "gepard-job-runner.h"
 #include "gtest/gtest.h"
 #include <chrono>
 #include <iostream>
 #include <thread>
 
 namespace {
-
-TEST(JobScheduler, Constructor)
-{
-    gepard::JobRunner jobRunner(2u);
-
-    EXPECT_EQ(jobRunner.workerCount(), 2u) << "";
-}
 
 struct TestClass {
     void printThreadIDAndWait()
@@ -64,7 +57,19 @@ struct TestClass {
     int number = 0;
 };
 
-TEST(JobScheduler, BoundFunc)
+TEST(JobRunner, Constructor)
+{
+    gepard::JobRunner jobRunner0;
+    EXPECT_EQ(jobRunner0.workerCount(), 1u) << "";
+
+    gepard::JobRunner jobRunner1(2u);
+    EXPECT_EQ(jobRunner1.workerCount(), 2u) << "";
+
+    gepard::JobRunner jobRunner2(-2u);
+    EXPECT_EQ(jobRunner2.workerCount(), 1u) << "";
+}
+
+TEST(JobRunner, BoundFunc)
 {
     TestClass test;
     {
@@ -90,7 +95,7 @@ TEST(JobScheduler, BoundFunc)
     EXPECT_EQ(test.number, 14) << "";
 }
 
-TEST(JobScheduler, CallbackFunc)
+TEST(JobRunner, CallbackFunc)
 {
     int value = 0;
     {
