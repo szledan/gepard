@@ -98,6 +98,7 @@ void JobRunner::worker(JobRunner* jobRunner)
                 continue;
             }
             job = jobRunner->queue.front();
+            GD_ASSERT(job);
             jobRunner->queue.pop();
             jobRunner->activeJobCount++;
         } // unlock

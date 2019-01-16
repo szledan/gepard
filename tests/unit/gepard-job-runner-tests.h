@@ -30,11 +30,12 @@
 #include "gtest/gtest.h"
 #include <chrono>
 #include <iostream>
+#include <mutex>
 #include <thread>
 
 namespace {
 
-struct TestClass {
+struct JobRunnerTestClass {
     void printThreadIDAndWait()
     {
         std::cerr << std::this_thread::get_id() << std::endl;
@@ -43,18 +44,26 @@ struct TestClass {
 
     void incNumberAndWait(const int64_t milliseconds)
     {
-        number++;
+        { // lock
+            std::lock_guard<std::mutex> guard(_mutex);
+            _number++;
+        } // unlock
         std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
     }
 
     void addValue(const int value)
     {
-        number += value;
+        { // lock
+            std::lock_guard<std::mutex> guard(_mutex);
+            _number += value;
+        } // unlock
     }
 
-    const int getNumber() const { return number; }
+    const int number() const { return _number; }
 
-    int number = 0;
+private:
+    int _number = 0;
+    std::mutex _mutex;
 };
 
 TEST(JobRunner, Constructor)
@@ -71,28 +80,28 @@ TEST(JobRunner, Constructor)
 
 TEST(JobRunner, BoundFunc)
 {
-    TestClass test;
+    JobRunnerTestClass test;
     {
         gepard::JobRunner js(2);
 
-        js.addJob(std::bind(&TestClass::incNumberAndWait, &test, 1));
-        js.addJob(std::bind(&TestClass::incNumberAndWait, &test, 10));
-        js.addJob(std::bind(&TestClass::incNumberAndWait, &test, 1));
-        js.addJob(std::bind(&TestClass::incNumberAndWait, &test, 1));
+        js.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
+        js.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 10));
+        js.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
+        js.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
     }
 
-    EXPECT_EQ(test.number, 4) << "";
+    EXPECT_EQ(test.number(), 4) << "";
 
     {
         gepard::JobRunner js(2);
 
-        js.addJob(std::bind(&TestClass::addValue, &test, 1));
-        js.addJob(std::bind(&TestClass::addValue, &test, 2));
-        js.addJob(std::bind(&TestClass::addValue, &test, 3));
-        js.addJob(std::bind(&TestClass::addValue, &test, 4));
+        js.addJob(std::bind(&JobRunnerTestClass::addValue, &test, 1));
+        js.addJob(std::bind(&JobRunnerTestClass::addValue, &test, 2));
+        js.addJob(std::bind(&JobRunnerTestClass::addValue, &test, 3));
+        js.addJob(std::bind(&JobRunnerTestClass::addValue, &test, 4));
     }
 
-    EXPECT_EQ(test.number, 14) << "";
+    EXPECT_EQ(test.number(), 14) << "";
 }
 
 TEST(JobRunner, CallbackFunc)

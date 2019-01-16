@@ -32,7 +32,7 @@
 
 namespace gepard {
 
-JobScheduler::JobScheduler(JobRunner& jobRunner, const uint64_t timeout)
+JobScheduler::JobScheduler(JobRunner& jobRunner, const int64_t timeout)
     : _jobRunner(jobRunner)
     , _timeout(timeout)
 {
@@ -44,7 +44,74 @@ JobScheduler::~JobScheduler()
 
 void JobScheduler::addJob(std::function<void()> func, std::function<void()> callback)
 {
-    _jobRunner.addJob(func, callback);
+    { // lock
+        std::lock_guard<std::mutex> guard(_mutex);
+        _activeJobCount++;
+    } // unlock
+    _jobRunner.addJob(std::bind(&JobScheduler::bindFunc, this, func), std::bind(&JobScheduler::callbackFunc, this, callback));
+}
+
+void JobScheduler::waitForJobs(const int64_t timeout)
+{
+    { // lock
+        std::lock_guard<std::mutex> guard(_mutex);
+        _timeouted = false;
+    } // unlock
+
+    using hrc = std::chrono::high_resolution_clock;
+    hrc timer;
+    hrc::time_point startTime = timer.now();
+    hrc::duration spentTime;
+    do {
+        { // lock
+            std::lock_guard<std::mutex> guard(_mutex);
+            GD_ASSERT(_activeJobCount >= 0);
+            if (!_activeJobCount) {
+                return;
+            }
+        } // unlock
+        std::this_thread::sleep_for(std::chrono::nanoseconds(_waitTime));
+        spentTime = timer.now() - startTime;
+    } while (spentTime.count() < timeout);
+
+    { // lock
+        std::lock_guard<std::mutex> guard(_mutex);
+        _activeJobCount = 0;
+        _timeouted = true;
+    } // unlock
+}
+
+void JobScheduler::bindFunc(std::function<void ()> func)
+{
+    GD_ASSERT(func != nullptr);
+
+    { // lock
+        std::lock_guard<std::mutex> guard(_mutex);
+        if (_timeouted) {
+            return;
+        }
+    } // unlock
+
+    func();
+}
+
+void JobScheduler::callbackFunc(std::function<void ()> callback)
+{
+    { // lock
+        std::lock_guard<std::mutex> guard(_mutex);
+        if (_timeouted) {
+            return;
+        }
+    } // unlock
+
+    if (callback != nullptr) {
+        callback();
+    }
+
+    { // lock
+        std::lock_guard<std::mutex> guard(_mutex);
+        _activeJobCount--;
+    } // unlock
 }
 
 } // namespace gepard

@@ -30,6 +30,7 @@
 #include "gtest/gtest.h"
 #include <chrono>
 #include <iostream>
+#include <mutex>
 #include <thread>
 
 namespace {
@@ -42,14 +43,58 @@ TEST(JobScheduler, Constructor)
     gepard::JobScheduler jobScheduler2(jobRunner, 1000);
 }
 
+struct JobSchedulerTestClass {
+    void printThreadIDAndWait()
+    {
+        std::cerr << std::this_thread::get_id() << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    void incNumberAndWait(const int64_t milliseconds)
+    {
+        { // lock
+            std::lock_guard<std::mutex> guard(_mutex);
+            _number++;
+        } // unlock
+        std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+    }
+
+    const int number() const { return _number; }
+
+private:
+    int _number = 0;
+    std::mutex _mutex;
+};
+
 TEST(JobScheduler, SimpleWaitForFence)
 {
     gepard::JobRunner jobRunner(2u);
+    JobSchedulerTestClass test;
 
     gepard::JobScheduler jobScheduler(jobRunner);
+    jobScheduler.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, 1));
+    jobScheduler.waitForJobs();
+    EXPECT_EQ(jobScheduler.timeouted(), false);
+    EXPECT_EQ(test.number(), 1);
+    jobScheduler.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, 1));
+    jobScheduler.waitForJobs();
+    EXPECT_EQ(jobScheduler.timeouted(), false);
+    EXPECT_EQ(test.number(), 2);
+}
 
-    gepard::JobScheduler jobScheduler1(jobRunner, 0);
-    gepard::JobScheduler jobScheduler2(jobRunner, 1000);
+TEST(JobScheduler, WaitForFence)
+{
+    gepard::JobRunner jobRunner(2u);
+    JobSchedulerTestClass test;
+    const int64_t oneMilliSec = 1000000;
+
+    gepard::JobScheduler jobScheduler(jobRunner);
+    jobScheduler.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, 1));
+    jobScheduler.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, 1));
+    jobScheduler.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, 1));
+    jobScheduler.waitForJobs(oneMilliSec);
+    EXPECT_EQ(jobScheduler.timeouted(), true);
+    EXPECT_LT(test.number(), 3);
 }
 
 } // anonymous namespace

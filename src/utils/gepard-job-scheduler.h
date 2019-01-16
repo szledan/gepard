@@ -40,36 +40,27 @@ namespace gepard {
  */
 class JobScheduler {
 public:
-    JobScheduler(JobRunner&, const uint64_t timeout = -1);
+    JobScheduler(JobRunner&, const int64_t timeout = INT64_MAX);
     ~JobScheduler();
 
     void addJob(std::function<void()> func, std::function<void()> callback = nullptr);
-    void waitForFence() { waitForFence(_timeout); }
-    void waitForFence(const uint64_t timeout)
-    {
-        using hrc = std::chrono::high_resolution_clock;
-        hrc timer;
-        hrc::time_point startTime = timer.now();
-        hrc::duration spentTime;
-        do {
-            { // lock
-                std::lock_guard<std::mutex> guard(_mutex);
-                GD_ASSERT(_activeJobCount >= 0);
-                if (!_activeJobCount)
-                    return;
-            } // unlock
-            std::this_thread::sleep_for(std::chrono::nanoseconds(_waitTime));
-            spentTime = timer.now() - startTime;
-        } while (spentTime.count() < (int64_t)timeout);
-    }
+
+    void waitForJobs() { waitForJobs(_timeout); }
+    void waitForJobs(const int64_t timeout);
+
+    const bool timeouted() { return _timeouted; }
 
 private:
+    void bindFunc(std::function<void()>);
+    void callbackFunc(std::function<void()>);
+
     JobRunner& _jobRunner;
-    const uint64_t _timeout;
+    const int64_t _timeout;
     const int64_t _waitTime = 100; //! \todo: CMake variable?
 
     std::mutex _mutex;
     int32_t _activeJobCount = 0;
+    bool _timeouted = false;
 
 };
 
