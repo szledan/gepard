@@ -82,32 +82,32 @@ void JobRunner::addJob(std::function<void()> func, std::function<void()> callbac
     condVar.notify_one();
 }
 
-void JobRunner::worker(JobRunner* jobScheduler)
+void JobRunner::worker(JobRunner* jobRunner)
 {
     while (true) {
         Job* job;
         { // lock
-            std::unique_lock<std::mutex> lock(jobScheduler->queueMutex);
-            if (jobScheduler->queue.empty()) {
-                jobScheduler->condVar.wait(lock, [&]{ return jobScheduler->finish || !jobScheduler->queue.empty(); });
+            std::unique_lock<std::mutex> lock(jobRunner->queueMutex);
+            if (jobRunner->queue.empty()) {
+                jobRunner->condVar.wait(lock, [&]{ return jobRunner->finish || !jobRunner->queue.empty(); });
             }
-            if (jobScheduler->finish) {
+            if (jobRunner->finish) {
                 break;
             }
-            if (jobScheduler->queue.empty()) {
+            if (jobRunner->queue.empty()) {
                 continue;
             }
-            job = jobScheduler->queue.front();
-            jobScheduler->queue.pop();
-            jobScheduler->activeJobCount++;
+            job = jobRunner->queue.front();
+            jobRunner->queue.pop();
+            jobRunner->activeJobCount++;
         } // unlock
 
         job->run();
         delete job;
 
         { // lock
-            std::lock_guard<std::mutex> guard(jobScheduler->queueMutex);
-            jobScheduler->activeJobCount--;
+            std::lock_guard<std::mutex> guard(jobRunner->queueMutex);
+            jobRunner->activeJobCount--;
         } // unlock
     };
 }

@@ -23,8 +23,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GEPARD_JOB_SCHEDULER_TESTS_H
-#define GEPARD_JOB_SCHEDULER_TESTS_H
+#ifndef GEPARD_JOB_RUNNER_TESTS_H
+#define GEPARD_JOB_RUNNER_TESTS_H
 
 #include "gepard-job-runner.h"
 #include "gtest/gtest.h"
@@ -109,4 +109,4 @@ TEST(JobRunner, CallbackFunc)
 
 } // anonymous namespace
 
-#endif // GEPARD_JOB_SCHEDULER_TESTS_H
+#endif // GEPARD_JOB_RUNNER_TESTS_H

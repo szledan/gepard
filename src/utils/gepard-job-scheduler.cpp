@@ -1,5 +1,5 @@
-/* Copyright (C) 2017-2019, Gepard Graphics
- * Copyright (C) 2017-2019, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2019, Gepard Graphics
+ * Copyright (C) 2019, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,19 +23,28 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gtest/gtest.h"
+#include "gepard-job-scheduler.h"
 
-#include "gepard-bounding-box-tests.h"
-#include "gepard-float-point-tests.h"
-#include "gepard-float-tests.h"
-#include "gepard-job-runner-tests.h"
-#include "gepard-job-scheduler-tests.h"
-#include "gepard-path-tests.h"
-#include "gepard-region-tests.h"
-#include "gepard-vec4-tests.h"
+#include "gepard-defs.h"
+#include <chrono>
+#include <iostream>
+#include <string>
 
-int main(int argc, char* argv[])
+namespace gepard {
+
+JobScheduler::JobScheduler(JobRunner& jobRunner, const uint64_t timeout)
+    : _jobRunner(jobRunner)
+    , _timeout(timeout)
 {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }
+
+JobScheduler::~JobScheduler()
+{
+}
+
+void JobScheduler::addJob(std::function<void()> func, std::function<void()> callback)
+{
+    _jobRunner.addJob(func, callback);
+}
+
+} // namespace gepard
