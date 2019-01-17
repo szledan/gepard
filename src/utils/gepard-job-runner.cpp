@@ -32,9 +32,8 @@
 
 namespace gepard {
 
-JobRunner::Job::Job(std::function<void ()> func, std::function<void ()> callback)
+JobRunner::Job::Job(std::function<void ()> func)
     : boundFunc(func)
-    , callbackFunc(callback)
 {
 }
 
@@ -42,9 +41,6 @@ void JobRunner::Job::run()
 {
     GD_ASSERT(boundFunc != nullptr);
     boundFunc();
-    if (callbackFunc != nullptr) {
-        callbackFunc();
-    }
 }
 
 JobRunner::JobRunner(const unsigned int workerCount)
@@ -67,19 +63,33 @@ JobRunner::~JobRunner()
         condVar.notify_all();
         std::this_thread::sleep_for(std::chrono::nanoseconds(1));
     };
-
     for (size_t i = 0; i < _workers.size(); ++i) {
         _workers[i].join();
     }
 }
 
-void JobRunner::addJob(std::function<void()> func, std::function<void()> callback)
+void JobRunner::addJob(std::function<void()> func)
 {
     { // lock
         std::lock_guard<std::mutex> guard(queueMutex);
-        queue.push(new Job(func, callback));
+        queue.push_back(new Job(func));
     } // unlock
     condVar.notify_one();
+}
+
+void JobRunner::waitForJobs()
+{
+    bool hasJob = true;
+    while (hasJob) {
+        { // lock
+            std::lock_guard<std::mutex> guard(queueMutex);
+            if (queue.empty() && !activeJobCount) {
+                hasJob = false;
+            }
+        } // unlock
+        condVar.notify_all();
+        std::this_thread::sleep_for(std::chrono::nanoseconds(1));
+    };
 }
 
 void JobRunner::worker(JobRunner* jobRunner)
@@ -99,7 +109,7 @@ void JobRunner::worker(JobRunner* jobRunner)
             }
             job = jobRunner->queue.front();
             GD_ASSERT(job);
-            jobRunner->queue.pop();
+            jobRunner->queue.pop_front();
             jobRunner->activeJobCount++;
         } // unlock
 

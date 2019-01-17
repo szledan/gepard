@@ -28,9 +28,9 @@
 
 #include <condition_variable>
 #include <functional>
+#include <list>
 #include <memory>
 #include <mutex>
-#include <queue>
 #include <thread>
 #include <vector>
 
@@ -41,17 +41,17 @@ namespace gepard {
  */
 class JobRunner {
     struct Job {
-        Job(std::function<void()> func, std::function<void()> callback);
+        Job(std::function<void()> func);
         void run();
 
         std::function<void()> boundFunc;
-        std::function<void()> callbackFunc;
     };
 public:
     JobRunner(const unsigned int workerCount = 1);
     ~JobRunner();
 
-    void addJob(std::function<void()> func, std::function<void()> callback = nullptr);
+    void addJob(std::function<void()> func);
+    void waitForJobs();
     const size_t workerCount() const { return _workers.size(); }
 
     static void worker(JobRunner*);
@@ -61,7 +61,7 @@ public:
     unsigned int activeJobCount = 0;
     bool finish = false;
 
-    std::queue<Job*> queue;
+    std::list<Job*> queue;
 private:
     std::vector<std::thread> _workers;
 };

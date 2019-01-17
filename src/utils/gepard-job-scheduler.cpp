@@ -26,47 +26,46 @@
 #include "gepard-job-scheduler.h"
 
 #include "gepard-defs.h"
+#include "gepard-job-runner.h"
 #include <chrono>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 namespace gepard {
 
-JobScheduler::JobScheduler(JobRunner& jobRunner, const int64_t timeout)
+JobScheduler::JobScheduler(JobRunner& jobRunner, const NanoSec timeout)
     : _jobRunner(jobRunner)
-    , _timeout(timeout)
+    , _timeout(timeout < 0 ? 0 : timeout)
 {
+    reset();
 }
 
 JobScheduler::~JobScheduler()
 {
+    waitForJobs();
 }
 
-void JobScheduler::addJob(std::function<void()> func, std::function<void()> callback)
+void JobScheduler::addJob(std::function<void()> func)
 {
+    _jobRunner.addJob(std::bind(&JobScheduler::bindFunc, this, func, _state));
     { // lock
-        std::lock_guard<std::mutex> guard(_mutex);
-        _activeJobCount++;
+        std::lock_guard<std::mutex> guard(_state->mutex);
+        _state->activeJobCount++;
     } // unlock
-    _jobRunner.addJob(std::bind(&JobScheduler::bindFunc, this, func), std::bind(&JobScheduler::callbackFunc, this, callback));
 }
 
-void JobScheduler::waitForJobs(const int64_t timeout)
+void JobScheduler::waitForJobs(const NanoSec timeout)
 {
-    { // lock
-        std::lock_guard<std::mutex> guard(_mutex);
-        _timeouted = false;
-    } // unlock
-
     using hrc = std::chrono::high_resolution_clock;
     hrc timer;
     hrc::time_point startTime = timer.now();
     hrc::duration spentTime;
     do {
         { // lock
-            std::lock_guard<std::mutex> guard(_mutex);
-            GD_ASSERT(_activeJobCount >= 0);
-            if (!_activeJobCount) {
+            std::lock_guard<std::mutex> guard(_state->mutex);
+            GD_ASSERT(_state->activeJobCount >= 0);
+            if (_state->timeouted || !_state->activeJobCount) {
                 return;
             }
         } // unlock
@@ -75,42 +74,44 @@ void JobScheduler::waitForJobs(const int64_t timeout)
     } while (spentTime.count() < timeout);
 
     { // lock
-        std::lock_guard<std::mutex> guard(_mutex);
-        _activeJobCount = 0;
-        _timeouted = true;
+        std::lock_guard<std::mutex> guard(_state->mutex);
+        _state->timeouted = true;
     } // unlock
 }
 
-void JobScheduler::bindFunc(std::function<void ()> func)
+void JobScheduler::reset()
+{
+    if (_state.get()) {
+        { // lock
+            std::lock_guard<std::mutex> guard(_state->mutex);
+            _state->isValid = false;
+        } // unlock
+        _state.reset();
+    }
+    _state = std::make_shared<State>();
+}
+
+void JobScheduler::bindFunc(std::function<void ()> func, StatePtr& state_)
 {
     GD_ASSERT(func != nullptr);
+    GD_ASSERT(state_.get());
+    StatePtr state = state_;
 
     { // lock
-        std::lock_guard<std::mutex> guard(_mutex);
-        if (_timeouted) {
+        std::lock_guard<std::mutex> guard(state->mutex);
+
+        if ((!state->isValid) || state->timeouted) {
+            state->activeJobCount--;
+            state->unfinishedJobCount++;
             return;
         }
     } // unlock
 
     func();
-}
-
-void JobScheduler::callbackFunc(std::function<void ()> callback)
-{
-    { // lock
-        std::lock_guard<std::mutex> guard(_mutex);
-        if (_timeouted) {
-            return;
-        }
-    } // unlock
-
-    if (callback != nullptr) {
-        callback();
-    }
 
     { // lock
-        std::lock_guard<std::mutex> guard(_mutex);
-        _activeJobCount--;
+        std::lock_guard<std::mutex> guard(state->mutex);
+        state->activeJobCount--;
     } // unlock
 }
 

@@ -40,28 +40,36 @@ namespace gepard {
  */
 class JobScheduler {
 public:
-    JobScheduler(JobRunner&, const int64_t timeout = INT64_MAX);
+    struct State {
+        std::mutex mutex;
+        bool timeouted = false;
+        bool isValid = true;
+        int32_t activeJobCount = 0;
+        int32_t unfinishedJobCount = 0;
+    };
+
+    using NanoSec = int64_t;
+    using StatePtr = std::shared_ptr<State>;
+
+    JobScheduler(JobRunner&, const NanoSec timeout = INT64_MAX);
     ~JobScheduler();
 
-    void addJob(std::function<void()> func, std::function<void()> callback = nullptr);
+    void addJob(std::function<void()> func);
 
     void waitForJobs() { waitForJobs(_timeout); }
-    void waitForJobs(const int64_t timeout);
+    void waitForJobs(const NanoSec timeout);
 
-    const bool timeouted() { return _timeouted; }
+    void reset();
+
+    const StatePtr& state() const { return _state; }
 
 private:
-    void bindFunc(std::function<void()>);
-    void callbackFunc(std::function<void()>);
+    void bindFunc(std::function<void()>, StatePtr& state);
 
     JobRunner& _jobRunner;
-    const int64_t _timeout;
-    const int64_t _waitTime = 100; //! \todo: CMake variable?
-
-    std::mutex _mutex;
-    int32_t _activeJobCount = 0;
-    bool _timeouted = false;
-
+    const NanoSec _timeout;
+    const NanoSec _waitTime = 1; //! \todo: CMake variable?
+    StatePtr _state;
 };
 
 } // namespace gepard

@@ -82,7 +82,7 @@ TEST(JobRunner, BoundFunc)
 {
     JobRunnerTestClass test;
     {
-        gepard::JobRunner js(2);
+        gepard::JobRunner js(2u);
 
         js.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
         js.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 10));
@@ -93,7 +93,7 @@ TEST(JobRunner, BoundFunc)
     EXPECT_EQ(test.number(), 4) << "";
 
     {
-        gepard::JobRunner js(2);
+        gepard::JobRunner js(2u);
 
         js.addJob(std::bind(&JobRunnerTestClass::addValue, &test, 1));
         js.addJob(std::bind(&JobRunnerTestClass::addValue, &test, 2));
@@ -104,16 +104,21 @@ TEST(JobRunner, BoundFunc)
     EXPECT_EQ(test.number(), 14) << "";
 }
 
-TEST(JobRunner, CallbackFunc)
+TEST(JobRunner, WaitForJobs)
 {
-    int value = 0;
+    JobRunnerTestClass test;
     {
-        gepard::JobRunner js(2);
+        gepard::JobRunner jobRunner(2u);
 
-        js.addJob([&]{ value++; }, [&]{ value = 10; });
+        for (int i = 0; i < 10; ++i) {
+            jobRunner.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
+        }
+        EXPECT_EQ(jobRunner.queue.empty(), false);
+        jobRunner.waitForJobs();
+        EXPECT_EQ(jobRunner.queue.empty(), true);
     }
 
-    EXPECT_EQ(value, 10) << "";
+    EXPECT_EQ(test.number(), 10) << "";
 }
 
 } // anonymous namespace
