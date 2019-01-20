@@ -42,7 +42,7 @@ class JobScheduler {
 public:
     struct State {
         std::mutex mutex;
-        bool timeouted = false;
+        bool hadTimeout = false;
         bool isValid = true;
         int32_t activeJobCount = 0;
         int32_t unfinishedJobCount = 0;
@@ -56,8 +56,8 @@ public:
 
     void addJob(std::function<void()> func);
 
-    void waitForJobs() { waitForJobs(_timeout); }
-    void waitForJobs(const NanoSec timeout);
+    const bool waitForJobs() { return waitForJobs(_timeout); }
+    const bool waitForJobs(const NanoSec timeout);
 
     void reset();
 
@@ -68,7 +68,7 @@ private:
 
     JobRunner& _jobRunner;
     const NanoSec _timeout;
-    const NanoSec _waitTime = 1; //! \todo: CMake variable?
+    const NanoSec _sparingTime = 1; //! \todo: CMake variable?
     StatePtr _state;
 };
 

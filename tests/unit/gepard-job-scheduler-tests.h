@@ -99,16 +99,18 @@ TEST(JobScheduler, SimpleWaitForJobs)
     gepard::JobScheduler jobScheduler(jobRunner);
     jobScheduler.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, 1 * microsec));
     jobScheduler.waitForJobs();
-    EXPECT_EQ(jobScheduler.state()->timeouted, false);
+    EXPECT_EQ(jobScheduler.state()->hadTimeout, false);
     EXPECT_EQ(test.number(), 1);
     jobScheduler.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, 1 * microsec));
     jobScheduler.waitForJobs();
-    EXPECT_EQ(jobScheduler.state()->timeouted, false);
+    EXPECT_EQ(jobScheduler.state()->hadTimeout, false);
     EXPECT_EQ(test.number(), 2);
 }
 
 TEST(JobScheduler, WaitForJobs)
 {
+    const NanoSec waitingTime = 10 * microsec;
+
     for (int threads = 1; threads < 8; ++threads) {
         gepard::JobRunner jobRunner((unsigned int)threads);
 
@@ -121,64 +123,51 @@ TEST(JobScheduler, WaitForJobs)
 
             const int jobCount = n * threads;
             for (int i = 0; i < jobCount; ++i) {
-                jobScheduler.addJob([&]{ test.incNumberAndWait(10 * microsec); });
+                jobScheduler.addJob([&]{ test.incNumberAndWait(waitingTime); });
             }
             const gepard::JobScheduler::StatePtr state = jobScheduler.state();
 
             EXPECT_EQ(state->isValid, true) << info.str();
-            EXPECT_EQ(state->timeouted, false) << info.str();
+            EXPECT_EQ(state->hadTimeout, false) << info.str();
             EXPECT_EQ(state->unfinishedJobCount, 0) << info.str();
 
-            jobScheduler.waitForJobs(t * 10 * microsec);
+            jobScheduler.waitForJobs(t * waitingTime);
 
             EXPECT_EQ(state->isValid, true) << info.str();
-            EXPECT_EQ(state->timeouted, true) << info.str();
 
             jobRunner.waitForJobs();
-
-            EXPECT_EQ(test.number(), (jobCount - state->unfinishedJobCount)) << info.str();
-        }
-
-        {
-            JobSchedulerTestClass test;
-            gepard::JobScheduler jobScheduler(jobRunner);
-            for (int i = 0; i < 2 * threads + 3; ++i) {
-                jobScheduler.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, 10 * microsec));
-            }
-            jobScheduler.waitForJobs(10 * microsec);
-            EXPECT_EQ(jobScheduler.state()->timeouted, true) << "Thread count: " << threads;
-            EXPECT_LT(test.number(), 2 * threads) << "Thread count: " << threads;
-            EXPECT_GE(jobScheduler.state()->activeJobCount, 3) << "Thread count: " << threads;
         }
     }
 }
 
 TEST(JobScheduler, Reset)
 {
+    const NanoSec waitingTime = 10 * microsec;
     const int threads = 2;
     gepard::JobRunner jobRunner((unsigned int)threads);
 
     for (int waitAllJobs = 0; waitAllJobs < 2; ++waitAllJobs)
     for (int n = 3; n < 10; ++n)
     for (int t = 1; t < n - 1; ++t) {
-        JobSchedulerTestClass test;
+        std::shared_ptr<JobSchedulerTestClass> test = std::make_shared<JobSchedulerTestClass>();
         gepard::JobScheduler jobScheduler(jobRunner);
         std::stringstream info;
         info << "waitAllJobs: " << waitAllJobs << ", n: " << n << ", t: " << t << ", threads: " << threads;
 
         const int jobCount = n * threads;
         for (int i = 0; i < jobCount; ++i) {
-            jobScheduler.addJob([&]{ test.incNumberAndWait(10 * microsec); });
+            jobScheduler.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, test, waitingTime));
         }
-        const gepard::JobScheduler::StatePtr state = jobScheduler.state();
+        gepard::JobScheduler::StatePtr state = jobScheduler.state();
 
         EXPECT_EQ(state->unfinishedJobCount, 0) << info.str();
-        EXPECT_EQ(state->timeouted, false) << info.str();
+        EXPECT_EQ(state->hadTimeout, false) << info.str();
 
-        jobScheduler.waitForJobs(t * 10 * microsec);
+        jobScheduler.waitForJobs(t * waitingTime / 2);
+        jobScheduler.waitForJobs(t * waitingTime / 2);
         EXPECT_GE(state->activeJobCount, 0) << info.str();
 
-        EXPECT_EQ(state->timeouted, true) << info.str();
+        EXPECT_EQ(state->hadTimeout, true) << info.str();
         EXPECT_EQ(state->isValid, true) << info.str();
 
         if (waitAllJobs) {
@@ -194,20 +183,18 @@ TEST(JobScheduler, Reset)
         }
 
         EXPECT_EQ(state->isValid, false) << info.str();
-        EXPECT_EQ(state->timeouted, true) << info.str();
+        EXPECT_EQ(state->hadTimeout, true) << info.str();
         if (waitAllJobs) {
             EXPECT_EQ(state->activeJobCount, 0) << info.str();
-            EXPECT_EQ(test.number(), (jobCount - state->unfinishedJobCount)) << info.str();
+            EXPECT_EQ(test->number(), (jobCount - state->unfinishedJobCount)) << info.str();
         } else {
             EXPECT_GE(state->activeJobCount, 0) << info.str();
         }
 
         EXPECT_EQ(jobScheduler.state()->isValid, true) << info.str();
-        EXPECT_EQ(jobScheduler.state()->timeouted, false) << info.str();
+        EXPECT_EQ(jobScheduler.state()->hadTimeout, false) << info.str();
         EXPECT_EQ(jobScheduler.state()->activeJobCount, 0) << info.str();
         EXPECT_EQ(jobScheduler.state()->unfinishedJobCount, 0) << info.str();
-
-        jobRunner.waitForJobs();
     }
 }
 

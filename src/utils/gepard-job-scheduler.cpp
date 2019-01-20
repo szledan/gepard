@@ -28,9 +28,6 @@
 #include "gepard-defs.h"
 #include "gepard-job-runner.h"
 #include <chrono>
-#include <iostream>
-#include <sstream>
-#include <string>
 
 namespace gepard {
 
@@ -44,6 +41,9 @@ JobScheduler::JobScheduler(JobRunner& jobRunner, const NanoSec timeout)
 JobScheduler::~JobScheduler()
 {
     waitForJobs();
+    // or doesn't wait jobs, but:
+    //   reset();
+    //   _state.reset();
 }
 
 void JobScheduler::addJob(std::function<void()> func)
@@ -55,7 +55,7 @@ void JobScheduler::addJob(std::function<void()> func)
     } // unlock
 }
 
-void JobScheduler::waitForJobs(const NanoSec timeout)
+const bool JobScheduler::waitForJobs(const NanoSec timeout)
 {
     using hrc = std::chrono::high_resolution_clock;
     hrc timer;
@@ -65,17 +65,17 @@ void JobScheduler::waitForJobs(const NanoSec timeout)
         { // lock
             std::lock_guard<std::mutex> guard(_state->mutex);
             GD_ASSERT(_state->activeJobCount >= 0);
-            if (_state->timeouted || !_state->activeJobCount) {
-                return;
+            if (!_state->activeJobCount) {
+                return _state->hadTimeout;
             }
         } // unlock
-        std::this_thread::sleep_for(std::chrono::nanoseconds(_waitTime));
+        std::this_thread::sleep_for(std::chrono::nanoseconds(_sparingTime));
         spentTime = timer.now() - startTime;
     } while (spentTime.count() < timeout);
 
     { // lock
         std::lock_guard<std::mutex> guard(_state->mutex);
-        _state->timeouted = true;
+        return _state->hadTimeout = true;
     } // unlock
 }
 
@@ -100,7 +100,7 @@ void JobScheduler::bindFunc(std::function<void ()> func, StatePtr& state_)
     { // lock
         std::lock_guard<std::mutex> guard(state->mutex);
 
-        if ((!state->isValid) || state->timeouted) {
+        if ((!state->isValid) || state->hadTimeout) {
             state->activeJobCount--;
             state->unfinishedJobCount++;
             return;
