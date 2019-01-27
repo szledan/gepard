@@ -31,7 +31,7 @@
 
 namespace gepard {
 
-JobScheduler::JobScheduler(JobRunner& jobRunner, const NanoSec timeout)
+JobScheduler::JobScheduler(JobRunner& jobRunner, const Second timeout)
     : _jobRunner(jobRunner)
     , _timeout(timeout < 0 ? 0 : timeout)
 {
@@ -41,9 +41,6 @@ JobScheduler::JobScheduler(JobRunner& jobRunner, const NanoSec timeout)
 JobScheduler::~JobScheduler()
 {
     waitForJobs();
-    // or doesn't wait jobs, but:
-    //   reset();
-    //   _state.reset();
 }
 
 void JobScheduler::addJob(std::function<void()> func)
@@ -55,40 +52,23 @@ void JobScheduler::addJob(std::function<void()> func)
     } // unlock
 }
 
-const bool JobScheduler::waitForJobs(const NanoSec timeout)
+const bool JobScheduler::waitForJobs(const Second timeout)
 {
-    using hrc = std::chrono::high_resolution_clock;
-    hrc timer;
-    hrc::time_point startTime = timer.now();
-    hrc::duration spentTime;
-    do {
-        { // lock
-            std::lock_guard<std::mutex> guard(_state->mutex);
-            GD_ASSERT(_state->activeJobCount >= 0);
-            if (!_state->activeJobCount) {
-                return _state->hadTimeout;
-            }
-        } // unlock
-        std::this_thread::sleep_for(std::chrono::nanoseconds(_sparingTime));
-        spentTime = timer.now() - startTime;
-    } while (spentTime.count() < timeout);
-
-    { // lock
+    std::unique_lock<std::mutex> lock(_mutex);
+    return _state->hadTimeout = !_condVar->wait_for(lock, std::chrono::duration<Second, std::nano>(timeout), [&]{
         std::lock_guard<std::mutex> guard(_state->mutex);
-        return _state->hadTimeout = true;
-    } // unlock
+        GD_ASSERT(_state->activeJobCount >= 0);
+        return !_state->activeJobCount;
+    });
 }
 
 void JobScheduler::reset()
 {
     if (_state.get()) {
-        { // lock
-            std::lock_guard<std::mutex> guard(_state->mutex);
-            _state->isValid = false;
-        } // unlock
         _state.reset();
     }
     _state = std::make_shared<State>();
+    _state->schedulerCondVar = _condVar;
 }
 
 void JobScheduler::bindFunc(std::function<void ()> func, StatePtr& state_)
@@ -100,9 +80,12 @@ void JobScheduler::bindFunc(std::function<void ()> func, StatePtr& state_)
     { // lock
         std::lock_guard<std::mutex> guard(state->mutex);
 
-        if ((!state->isValid) || state->hadTimeout) {
+        if ((!state->isValid)) {
             state->activeJobCount--;
             state->unfinishedJobCount++;
+
+            GD_ASSERT(state->schedulerCondVar.get());
+            state->schedulerCondVar->notify_all();
             return;
         }
     } // unlock
@@ -113,6 +96,14 @@ void JobScheduler::bindFunc(std::function<void ()> func, StatePtr& state_)
         std::lock_guard<std::mutex> guard(state->mutex);
         state->activeJobCount--;
     } // unlock
+
+    GD_ASSERT(state->schedulerCondVar.get());
+    state->schedulerCondVar->notify_all();
+}
+
+void JobScheduler::State::setInvalid() {
+    std::lock_guard<std::mutex> guard(mutex);
+    isValid = false;
 }
 
 } // namespace gepard

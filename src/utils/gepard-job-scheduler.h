@@ -28,6 +28,7 @@
 
 #include "gepard-defs.h"
 #include "gepard-job-runner.h"
+#include <condition_variable>
 #include <chrono>
 #include <functional>
 #include <mutex>
@@ -40,24 +41,30 @@ namespace gepard {
  */
 class JobScheduler {
 public:
+    using Second = double;
+    static constexpr double kYearInSec = 31556926.0;
+
     struct State {
+        void setInvalid();
+
         std::mutex mutex;
         bool hadTimeout = false;
         bool isValid = true;
         int32_t activeJobCount = 0;
         int32_t unfinishedJobCount = 0;
+
+        std::shared_ptr<std::condition_variable> schedulerCondVar;
     };
 
-    using NanoSec = int64_t;
     using StatePtr = std::shared_ptr<State>;
 
-    JobScheduler(JobRunner&, const NanoSec timeout = INT64_MAX);
+    JobScheduler(JobRunner&, const Second timeout = kYearInSec);
     ~JobScheduler();
 
     void addJob(std::function<void()> func);
 
     const bool waitForJobs() { return waitForJobs(_timeout); }
-    const bool waitForJobs(const NanoSec timeout);
+    const bool waitForJobs(const Second timeout);
 
     void reset();
 
@@ -67,8 +74,11 @@ private:
     void bindFunc(std::function<void()>, StatePtr& state);
 
     JobRunner& _jobRunner;
-    const NanoSec _timeout;
-    const NanoSec _sparingTime = 1; //! \todo: CMake variable?
+    const Second _timeout;
+
+    std::mutex _mutex;
+    std::shared_ptr<std::condition_variable> _condVar = std::make_shared<std::condition_variable>();
+
     StatePtr _state;
 };
 
