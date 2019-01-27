@@ -28,6 +28,7 @@
 
 #include "gepard-defs.h"
 #include "gepard-job-runner.h"
+#include <atomic>
 #include <condition_variable>
 #include <chrono>
 #include <functional>
@@ -43,17 +44,19 @@ class JobScheduler {
 public:
     using Second = double;
     static constexpr double kYearInSec = 31556926.0;
+    using CondVarPtr = std::shared_ptr<std::condition_variable>;
 
     struct State {
+        State(CondVarPtr& condVarPtr);
         void setInvalid();
 
         std::mutex mutex;
-        bool hadTimeout = false;
-        bool isValid = true;
-        int32_t activeJobCount = 0;
-        int32_t unfinishedJobCount = 0;
+        std::atomic_bool hadTimeout = { false };
+        std::atomic_bool isValid = { true };
+        std::atomic_int32_t activeJobCount = { 0 };
+        std::atomic_int32_t unfinishedJobCount = { 0 };
 
-        std::shared_ptr<std::condition_variable> schedulerCondVar;
+        CondVarPtr schedulerCondVarPtr;
     };
 
     using StatePtr = std::shared_ptr<State>;
@@ -77,9 +80,9 @@ private:
     const Second _timeout;
 
     std::mutex _mutex;
-    std::shared_ptr<std::condition_variable> _condVar = std::make_shared<std::condition_variable>();
+    CondVarPtr _condVarPtr = std::make_shared<std::condition_variable>();
 
-    StatePtr _state;
+    StatePtr _state = std::make_shared<State>(_condVarPtr);
 };
 
 } // namespace gepard

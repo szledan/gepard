@@ -107,7 +107,7 @@ TEST(JobScheduler, SimpleWaitForJobs)
 
 TEST(JobScheduler, WaitForJobs)
 {
-    const Second waitingTime = 10 * microsec;
+    const Second waitingTime = 1 * microsec;
 
     for (int threads = 1; threads < 8; ++threads) {
         gepard::JobRunner jobRunner((unsigned int)threads);

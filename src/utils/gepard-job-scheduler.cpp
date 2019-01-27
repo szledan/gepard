@@ -35,7 +35,6 @@ JobScheduler::JobScheduler(JobRunner& jobRunner, const Second timeout)
     : _jobRunner(jobRunner)
     , _timeout(timeout < 0 ? 0 : timeout)
 {
-    reset();
 }
 
 JobScheduler::~JobScheduler()
@@ -46,17 +45,13 @@ JobScheduler::~JobScheduler()
 void JobScheduler::addJob(std::function<void()> func)
 {
     _jobRunner.addJob(std::bind(&JobScheduler::bindFunc, this, func, _state));
-    { // lock
-        std::lock_guard<std::mutex> guard(_state->mutex);
-        _state->activeJobCount++;
-    } // unlock
+    _state->activeJobCount++;
 }
 
 const bool JobScheduler::waitForJobs(const Second timeout)
 {
     std::unique_lock<std::mutex> lock(_mutex);
-    return _state->hadTimeout = !_condVar->wait_for(lock, std::chrono::duration<Second, std::nano>(timeout), [&]{
-        std::lock_guard<std::mutex> guard(_state->mutex);
+    return _state->hadTimeout = !_condVarPtr->wait_for(lock, std::chrono::duration<Second, std::nano>(timeout), [&]{
         GD_ASSERT(_state->activeJobCount >= 0);
         return !_state->activeJobCount;
     });
@@ -67,8 +62,7 @@ void JobScheduler::reset()
     if (_state.get()) {
         _state.reset();
     }
-    _state = std::make_shared<State>();
-    _state->schedulerCondVar = _condVar;
+    _state = std::make_shared<State>(_condVarPtr);
 }
 
 void JobScheduler::bindFunc(std::function<void ()> func, StatePtr& state_)
@@ -77,28 +71,21 @@ void JobScheduler::bindFunc(std::function<void ()> func, StatePtr& state_)
     GD_ASSERT(state_.get());
     StatePtr state = state_;
 
-    { // lock
-        std::lock_guard<std::mutex> guard(state->mutex);
-
-        if ((!state->isValid)) {
-            state->activeJobCount--;
-            state->unfinishedJobCount++;
-
-            GD_ASSERT(state->schedulerCondVar.get());
-            state->schedulerCondVar->notify_all();
-            return;
-        }
-    } // unlock
-
-    func();
-
-    { // lock
-        std::lock_guard<std::mutex> guard(state->mutex);
+    if ((!state->isValid)) {
         state->activeJobCount--;
-    } // unlock
+        state->unfinishedJobCount++;
+    } else {
+        func();
+        state->activeJobCount--;
+    }
 
-    GD_ASSERT(state->schedulerCondVar.get());
-    state->schedulerCondVar->notify_all();
+    GD_ASSERT(state->schedulerCondVarPtr.get());
+    state->schedulerCondVarPtr->notify_all();
+}
+
+JobScheduler::State::State(JobScheduler::CondVarPtr& condVarPtr)
+    : schedulerCondVarPtr(condVarPtr)
+{
 }
 
 void JobScheduler::State::setInvalid() {
