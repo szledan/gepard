@@ -26,6 +26,7 @@
 #ifndef GEPARD_JOB_RUNNER_H
 #define GEPARD_JOB_RUNNER_H
 
+#include <atomic>
 #include <condition_variable>
 #include <functional>
 #include <list>
@@ -58,7 +59,7 @@ public:
 
     std::condition_variable condVar;
     std::mutex queueMutex;
-    unsigned int activeJobCount = 0;
+    std::atomic_uint activeJobCount;
     bool finish = false;
 
     std::list<Job*> queue;

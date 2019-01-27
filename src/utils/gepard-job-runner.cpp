@@ -44,6 +44,7 @@ void JobRunner::Job::run()
 }
 
 JobRunner::JobRunner(const unsigned int workerCount)
+    : activeJobCount(0u)
 {
     unsigned int wc = workerCount > 0 ? workerCount : 1;
     do {
@@ -56,7 +57,8 @@ JobRunner::~JobRunner()
     waitForJobs();
     { // lock
         std::lock_guard<std::mutex> guard(queueMutex);
-        GD_ASSERT(queue.empty() && !activeJobCount);
+        GD_ASSERT(queue.empty());
+        GD_ASSERT(!activeJobCount);
         finish = true;
     } // unlock
     condVar.notify_all();
@@ -108,10 +110,7 @@ void JobRunner::worker(JobRunner* jobRunner)
         job->run();
         delete job;
 
-        { // lock
-            std::lock_guard<std::mutex> guard(jobRunner->queueMutex);
-            jobRunner->activeJobCount--;
-        } // unlock
+        jobRunner->activeJobCount--;
     };
 }
 
