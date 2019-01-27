@@ -53,17 +53,20 @@ public:
 
     void addJob(std::function<void()> func);
     void waitForJobs();
+
     const size_t workerCount() const { return _workers.size(); }
+    const bool isQueueEmpty() const { return _queue.empty(); }
 
-    static void worker(JobRunner*);
+    void worker();
 
-    std::condition_variable condVar;
-    std::mutex queueMutex;
-    std::atomic_uint activeJobCount;
-    bool finish = false;
-
-    std::list<Job*> queue;
 private:
+    std::condition_variable _condVar;
+    std::mutex _queueMutex;
+    std::atomic_uint _activeJobCount;
+    bool _finish = false;
+
+    std::list<Job*> _queue;
+
     std::vector<std::thread> _workers;
 };
 

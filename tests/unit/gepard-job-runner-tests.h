@@ -110,12 +110,41 @@ TEST(JobRunner, WaitForJobs)
         for (int i = 0; i < 10; ++i) {
             jobRunner.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
         }
-        EXPECT_EQ(jobRunner.queue.empty(), false);
+        EXPECT_EQ(jobRunner.isQueueEmpty(), false);
         jobRunner.waitForJobs();
-        EXPECT_EQ(jobRunner.queue.empty(), true);
+        EXPECT_EQ(jobRunner.isQueueEmpty(), true);
     }
 
     EXPECT_EQ(test.number(), 10) << "";
+}
+
+TEST(JobRunner, ConcurrentJobRunners)
+{
+    JobRunnerTestClass test;
+    {
+        gepard::JobRunner jobRunnerA(2u);
+        gepard::JobRunner jobRunnerB(2u);
+
+        {
+            gepard::JobRunner jobRunnerC(2u);
+
+            for (int i = 0; i < 10; ++i) {
+                jobRunnerA.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
+                jobRunnerB.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
+                jobRunnerC.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
+            }
+            EXPECT_EQ(jobRunnerA.isQueueEmpty(), false);
+            EXPECT_EQ(jobRunnerB.isQueueEmpty(), false);
+            EXPECT_EQ(jobRunnerC.isQueueEmpty(), false);
+        }
+
+        jobRunnerA.waitForJobs();
+        jobRunnerB.waitForJobs();
+        EXPECT_EQ(jobRunnerA.isQueueEmpty(), true);
+        EXPECT_EQ(jobRunnerB.isQueueEmpty(), true);
+    }
+
+    EXPECT_EQ(test.number(), 30) << "";
 }
 
 } // anonymous namespace

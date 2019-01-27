@@ -44,11 +44,11 @@ void JobRunner::Job::run()
 }
 
 JobRunner::JobRunner(const unsigned int workerCount)
-    : activeJobCount(0u)
+    : _activeJobCount(0u)
 {
     unsigned int wc = workerCount > 0 ? workerCount : 1;
     do {
-        _workers.push_back(std::thread(worker, this));
+        _workers.push_back(std::thread(std::bind(&JobRunner::worker, this), this));
     } while (--wc);
 }
 
@@ -56,12 +56,12 @@ JobRunner::~JobRunner()
 {
     waitForJobs();
     { // lock
-        std::lock_guard<std::mutex> guard(queueMutex);
-        GD_ASSERT(queue.empty());
-        GD_ASSERT(!activeJobCount);
-        finish = true;
+        std::lock_guard<std::mutex> guard(_queueMutex);
+        GD_ASSERT(_queue.empty());
+        GD_ASSERT(!_activeJobCount);
+        _finish = true;
     } // unlock
-    condVar.notify_all();
+    _condVar.notify_all();
 
     for (size_t i = 0; i < _workers.size(); ++i) {
         _workers[i].join();
@@ -71,46 +71,46 @@ JobRunner::~JobRunner()
 void JobRunner::addJob(std::function<void()> func)
 {
     { // lock
-        std::lock_guard<std::mutex> guard(queueMutex);
-        queue.push_back(new Job(func));
+        std::lock_guard<std::mutex> guard(_queueMutex);
+        _queue.push_back(new Job(func));
     } // unlock
-    condVar.notify_one();
+    _condVar.notify_one();
 }
 
 void JobRunner::waitForJobs()
 {
     { // lock
-        std::unique_lock<std::mutex> lock(queueMutex);
-        condVar.wait(lock, [&]{ return !activeJobCount && queue.empty(); });
+        std::unique_lock<std::mutex> lock(_queueMutex);
+        _condVar.wait(lock, [&]{ return !_activeJobCount && _queue.empty(); });
     } // unlock
 }
 
-void JobRunner::worker(JobRunner* jobRunner)
+void JobRunner::worker()
 {
     while (true) {
         Job* job;
         { // lock
-            std::unique_lock<std::mutex> lock(jobRunner->queueMutex);
-            if (jobRunner->queue.empty()) {
-                jobRunner->condVar.notify_all();
-                jobRunner->condVar.wait(lock, [&]{ return jobRunner->finish || !jobRunner->queue.empty(); });
+            std::unique_lock<std::mutex> lock(_queueMutex);
+            if (_queue.empty()) {
+                _condVar.notify_all();
+                _condVar.wait(lock, [&]{ return _finish || !_queue.empty(); });
             }
-            if (jobRunner->finish) {
+            if (_finish) {
                 break;
             }
-            if (jobRunner->queue.empty()) {
+            if (_queue.empty()) {
                 continue;
             }
-            job = jobRunner->queue.front();
+            job = _queue.front();
             GD_ASSERT(job);
-            jobRunner->queue.pop_front();
-            jobRunner->activeJobCount++;
+            _queue.pop_front();
+            _activeJobCount++;
         } // unlock
 
         job->run();
         delete job;
 
-        jobRunner->activeJobCount--;
+        _activeJobCount--;
     };
 }
 
