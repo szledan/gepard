@@ -45,7 +45,7 @@ void JobRunner::Job::run()
 
 JobRunner::JobRunner(const unsigned int workerCount)
 {
-    unsigned int wc = (workerCount && workerCount < 8) ? workerCount : 1;
+    unsigned int wc = workerCount > 0 ? workerCount : 1;
     do {
         _workers.push_back(std::thread(worker, this));
     } while (--wc);
@@ -53,16 +53,14 @@ JobRunner::JobRunner(const unsigned int workerCount)
 
 JobRunner::~JobRunner()
 {
-    while (!finish) {
-        { // lock
-            std::lock_guard<std::mutex> guard(queueMutex);
-            if (queue.empty() && !activeJobCount) {
-                finish = true;
-            }
-        } // unlock
-        condVar.notify_all();
-        std::this_thread::sleep_for(std::chrono::nanoseconds(1));
-    };
+    waitForJobs();
+    { // lock
+        std::lock_guard<std::mutex> guard(queueMutex);
+        GD_ASSERT(queue.empty() && !activeJobCount);
+        finish = true;
+    } // unlock
+    condVar.notify_all();
+
     for (size_t i = 0; i < _workers.size(); ++i) {
         _workers[i].join();
     }

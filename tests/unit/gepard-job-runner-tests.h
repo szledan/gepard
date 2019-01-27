@@ -73,9 +73,6 @@ TEST(JobRunner, Constructor)
 
     gepard::JobRunner jobRunner1(2u);
     EXPECT_EQ(jobRunner1.workerCount(), 2u) << "";
-
-    gepard::JobRunner jobRunner2(-2u);
-    EXPECT_EQ(jobRunner2.workerCount(), 1u) << "";
 }
 
 TEST(JobRunner, BoundFunc)
