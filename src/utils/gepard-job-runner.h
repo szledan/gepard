@@ -47,6 +47,7 @@ class JobRunner {
 
         std::function<void()> boundFunc;
     };
+
 public:
     JobRunner(const unsigned int workerCount = 1);
     ~JobRunner();
@@ -61,7 +62,7 @@ public:
 
 private:
     std::condition_variable _condVar;
-    std::mutex _queueMutex;
+    std::mutex _mutex;
     std::atomic_uint _activeJobCount;
     bool _finish = false;
 

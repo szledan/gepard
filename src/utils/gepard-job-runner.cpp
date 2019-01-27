@@ -56,7 +56,7 @@ JobRunner::~JobRunner()
 {
     waitForJobs();
     { // lock
-        std::lock_guard<std::mutex> guard(_queueMutex);
+        std::lock_guard<std::mutex> guard(_mutex);
         GD_ASSERT(_queue.empty());
         GD_ASSERT(!_activeJobCount);
         _finish = true;
@@ -71,7 +71,7 @@ JobRunner::~JobRunner()
 void JobRunner::addJob(std::function<void()> func)
 {
     { // lock
-        std::lock_guard<std::mutex> guard(_queueMutex);
+        std::lock_guard<std::mutex> guard(_mutex);
         _queue.push_back(new Job(func));
     } // unlock
     _condVar.notify_one();
@@ -79,10 +79,8 @@ void JobRunner::addJob(std::function<void()> func)
 
 void JobRunner::waitForJobs()
 {
-    { // lock
-        std::unique_lock<std::mutex> lock(_queueMutex);
-        _condVar.wait(lock, [&]{ return !_activeJobCount && _queue.empty(); });
-    } // unlock
+    std::unique_lock<std::mutex> lock(_mutex);
+    _condVar.wait(lock, [&]{ return !_activeJobCount && _queue.empty(); });
 }
 
 void JobRunner::worker()
@@ -90,7 +88,7 @@ void JobRunner::worker()
     while (true) {
         Job* job;
         { // lock
-            std::unique_lock<std::mutex> lock(_queueMutex);
+            std::unique_lock<std::mutex> lock(_mutex);
             if (_queue.empty()) {
                 _condVar.notify_all();
                 _condVar.wait(lock, [&]{ return _finish || !_queue.empty(); });
