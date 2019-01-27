@@ -197,6 +197,157 @@ TEST(JobScheduler, Reset)
     }
 }
 
+TEST(JobScheduler, SimpleAddJob)
+{
+    const Second waitingTime = 1 * microsec;
+    const int threads = 2;
+    gepard::JobRunner jobRunner((unsigned int)threads);
+
+    JobSchedulerTestClass test;
+
+    gepard::JobScheduler jobScheduler(jobRunner);
+
+    const int jobCount = 10 * threads;
+    for (int i = 0; i < jobCount; ++i) {
+        jobScheduler.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, waitingTime));
+    }
+
+    jobScheduler.waitForJobs();
+    EXPECT_EQ(test.number(), jobCount);
+
+    for (int i = 0; i < jobCount; ++i) {
+        jobScheduler.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, waitingTime));
+    }
+
+    jobScheduler.waitForJobs();
+    EXPECT_EQ(test.number(), 2 * jobCount);
+}
+
+TEST(JobScheduler, AddJobTwoSchedulers)
+{
+    const Second waitingTime = 1 * microsec;
+    const int threads = 2;
+    gepard::JobRunner jobRunner((unsigned int)threads);
+
+    JobSchedulerTestClass test;
+
+    gepard::JobScheduler jobSchedulerA(jobRunner);
+    gepard::JobScheduler jobSchedulerB(jobRunner);
+
+    const int jobCount = 10 * threads;
+    for (int i = 0; i < jobCount; ++i) {
+        jobSchedulerA.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, waitingTime));
+        jobSchedulerB.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, waitingTime));
+    }
+
+    jobSchedulerA.waitForJobs();
+    EXPECT_GE(test.number(), jobCount);
+
+    jobSchedulerB.waitForJobs();
+    EXPECT_EQ(test.number(), 2 * jobCount);
+
+    for (int i = 0; i < jobCount; ++i) {
+        jobSchedulerA.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, waitingTime));
+        jobSchedulerB.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, waitingTime));
+    }
+
+    jobSchedulerA.waitForJobs();
+    EXPECT_GE(test.number(), 3 * jobCount);
+
+    jobSchedulerB.waitForJobs();
+    EXPECT_EQ(test.number(), 4 * jobCount);
+}
+
+TEST(JobScheduler, AddJobTwoDiffSchedulers)
+{
+    const Second waitingTime = 1 * microsec;
+    const int threads = 2;
+    gepard::JobRunner jobRunnerA((unsigned int)threads);
+    gepard::JobRunner jobRunnerB((unsigned int)threads);
+
+    JobSchedulerTestClass test;
+
+    gepard::JobScheduler jobSchedulerA(jobRunnerA);
+    gepard::JobScheduler jobSchedulerB(jobRunnerB);
+
+    const int jobCount = 10 * threads;
+    for (int i = 0; i < jobCount; ++i) {
+        jobSchedulerA.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, waitingTime));
+        jobSchedulerB.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, waitingTime));
+    }
+
+    jobSchedulerA.waitForJobs();
+    EXPECT_GE(test.number(), jobCount);
+
+    jobSchedulerB.waitForJobs();
+    EXPECT_EQ(test.number(), 2 * jobCount);
+
+    for (int i = 0; i < jobCount; ++i) {
+        jobSchedulerA.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, waitingTime));
+        jobSchedulerB.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, waitingTime));
+    }
+
+    jobSchedulerA.waitForJobs();
+    EXPECT_GE(test.number(), 3 * jobCount);
+
+    jobSchedulerB.waitForJobs();
+    EXPECT_EQ(test.number(), 4 * jobCount);
+}
+
+TEST(JobScheduler, SimpleStateSetInvalid)
+{
+    const Second waitingTime = 1 * microsec;
+    const int threads = 2;
+    gepard::JobRunner jobRunner((unsigned int)threads);
+
+    JobSchedulerTestClass test;
+
+    gepard::JobScheduler jobScheduler(jobRunner);
+    gepard::JobScheduler::StatePtr state = jobScheduler.state();
+
+    const int jobCount = 10 * threads;
+    for (int i = 0; i < jobCount; ++i) {
+        jobScheduler.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, waitingTime));
+    }
+    state->setInvalid();
+    for (int i = 0; i < jobCount; ++i) {
+        jobScheduler.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, waitingTime));
+    }
+
+    jobScheduler.waitForJobs();
+    EXPECT_EQ(test.number(), (2 * jobCount - state->unfinishedJobCount));
+    EXPECT_GE(state->unfinishedJobCount, jobCount);
+}
+
+TEST(JobScheduler, ReleasedStateSetInvalid)
+{
+    const Second waitingTime = 1 * microsec;
+    const int threads = 2;
+    gepard::JobRunner jobRunner((unsigned int)threads);
+
+    JobSchedulerTestClass test;
+
+    gepard::JobScheduler jobScheduler(jobRunner);
+    gepard::JobScheduler::StatePtr state = jobScheduler.state();
+
+    const int jobCount = 10 * threads;
+    for (int i = 0; i < jobCount; ++i) {
+        jobScheduler.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, waitingTime));
+    }
+
+    jobScheduler.reset();
+    state->setInvalid();
+
+    for (int i = 0; i < jobCount; ++i) {
+        jobScheduler.addJob(std::bind(&JobSchedulerTestClass::incNumberAndWait, &test, waitingTime));
+    }
+
+    jobScheduler.waitForJobs();
+    EXPECT_EQ(test.number(), (2 * jobCount - state->unfinishedJobCount));
+    EXPECT_LE(state->unfinishedJobCount, jobCount);
+    EXPECT_EQ(jobScheduler.state()->unfinishedJobCount, 0);
+}
+
 } // anonymous namespace
 
 #endif // GEPARD_JOB_SCHEDULER_TESTS_H
