@@ -59,7 +59,7 @@ struct JobSchedulerTestClass {
 
     void incNumberAndWait(const Second sleepTime)
     {
-        std::this_thread::sleep_for(std::chrono::duration<Second, std::nano>(sleepTime));
+        std::this_thread::sleep_for(std::chrono::duration<Second>(sleepTime));
         { // lock
             std::lock_guard<std::mutex> guard(_mutex);
             _number++;
@@ -241,9 +241,17 @@ TEST(JobScheduler, AddJobTwoSchedulers)
     }
 
     jobSchedulerA.waitForJobs();
+    EXPECT_EQ(jobSchedulerA.state()->isValid, true);
+    EXPECT_EQ(jobSchedulerA.state()->hadTimeout, false);
+    EXPECT_EQ(jobSchedulerA.state()->activeJobCount, 0);
+    EXPECT_EQ(jobSchedulerA.state()->unfinishedJobCount, 0);
     EXPECT_GE(test.number(), jobCount);
 
     jobSchedulerB.waitForJobs();
+    EXPECT_EQ(jobSchedulerB.state()->isValid, true);
+    EXPECT_EQ(jobSchedulerB.state()->hadTimeout, false);
+    EXPECT_EQ(jobSchedulerB.state()->activeJobCount, 0);
+    EXPECT_EQ(jobSchedulerB.state()->unfinishedJobCount, 0);
     EXPECT_EQ(test.number(), 2 * jobCount);
 
     for (int i = 0; i < jobCount; ++i) {
@@ -252,9 +260,17 @@ TEST(JobScheduler, AddJobTwoSchedulers)
     }
 
     jobSchedulerA.waitForJobs();
+    EXPECT_EQ(jobSchedulerA.state()->isValid, true);
+    EXPECT_EQ(jobSchedulerA.state()->hadTimeout, false);
+    EXPECT_EQ(jobSchedulerA.state()->activeJobCount, 0);
+    EXPECT_EQ(jobSchedulerA.state()->unfinishedJobCount, 0);
     EXPECT_GE(test.number(), 3 * jobCount);
 
     jobSchedulerB.waitForJobs();
+    EXPECT_EQ(jobSchedulerB.state()->isValid, true);
+    EXPECT_EQ(jobSchedulerB.state()->hadTimeout, false);
+    EXPECT_EQ(jobSchedulerB.state()->activeJobCount, 0);
+    EXPECT_EQ(jobSchedulerB.state()->unfinishedJobCount, 0);
     EXPECT_EQ(test.number(), 4 * jobCount);
 }
 
@@ -277,9 +293,17 @@ TEST(JobScheduler, AddJobTwoDiffSchedulers)
     }
 
     jobSchedulerA.waitForJobs();
+    EXPECT_EQ(jobSchedulerA.state()->isValid, true);
+    EXPECT_EQ(jobSchedulerA.state()->hadTimeout, false);
+    EXPECT_EQ(jobSchedulerA.state()->activeJobCount, 0);
+    EXPECT_EQ(jobSchedulerA.state()->unfinishedJobCount, 0);
     EXPECT_GE(test.number(), jobCount);
 
     jobSchedulerB.waitForJobs();
+    EXPECT_EQ(jobSchedulerB.state()->isValid, true);
+    EXPECT_EQ(jobSchedulerB.state()->hadTimeout, false);
+    EXPECT_EQ(jobSchedulerB.state()->activeJobCount, 0);
+    EXPECT_EQ(jobSchedulerB.state()->unfinishedJobCount, 0);
     EXPECT_EQ(test.number(), 2 * jobCount);
 
     for (int i = 0; i < jobCount; ++i) {
@@ -288,9 +312,17 @@ TEST(JobScheduler, AddJobTwoDiffSchedulers)
     }
 
     jobSchedulerA.waitForJobs();
+    EXPECT_EQ(jobSchedulerA.state()->isValid, true);
+    EXPECT_EQ(jobSchedulerA.state()->hadTimeout, false);
+    EXPECT_EQ(jobSchedulerA.state()->activeJobCount, 0);
+    EXPECT_EQ(jobSchedulerA.state()->unfinishedJobCount, 0);
     EXPECT_GE(test.number(), 3 * jobCount);
 
     jobSchedulerB.waitForJobs();
+    EXPECT_EQ(jobSchedulerB.state()->isValid, true);
+    EXPECT_EQ(jobSchedulerB.state()->hadTimeout, false);
+    EXPECT_EQ(jobSchedulerB.state()->activeJobCount, 0);
+    EXPECT_EQ(jobSchedulerB.state()->unfinishedJobCount, 0);
     EXPECT_EQ(test.number(), 4 * jobCount);
 }
 

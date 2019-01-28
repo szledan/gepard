@@ -50,8 +50,8 @@ void JobScheduler::addJob(std::function<void()> func)
 
 const bool JobScheduler::waitForJobs(const Second timeout)
 {
-    std::unique_lock<std::mutex> lock(_mutex);
-    return _state->hadTimeout = !_condVarPtr->wait_for(lock, std::chrono::duration<Second, std::nano>(timeout), [&]{
+    std::unique_lock<std::mutex> lock(*_mutexPtr);
+    return _state->hadTimeout = !_condVarPtr->wait_for(lock, std::chrono::duration<Second>(timeout), [&]{
         GD_ASSERT(_state->activeJobCount >= 0);
         return !_state->activeJobCount;
     });
@@ -62,7 +62,7 @@ void JobScheduler::reset()
     if (_state.get()) {
         _state.reset();
     }
-    _state = std::make_shared<State>(_condVarPtr);
+    _state = std::make_shared<State>(_condVarPtr, _mutexPtr);
 }
 
 void JobScheduler::bindFunc(std::function<void ()> func, StatePtr& state_)
@@ -79,16 +79,21 @@ void JobScheduler::bindFunc(std::function<void ()> func, StatePtr& state_)
         state->activeJobCount--;
     }
 
-    GD_ASSERT(state->schedulerCondVarPtr.get());
-    state->schedulerCondVarPtr->notify_all();
+    { // lock
+        std::lock_guard<std::mutex> guard(*(state->schedulerMutexPtr));
+        GD_ASSERT(state->schedulerCondVarPtr.get());
+        state->schedulerCondVarPtr->notify_all();
+    } // unlock
 }
 
-JobScheduler::State::State(JobScheduler::CondVarPtr& condVarPtr)
+JobScheduler::State::State(CondVarPtr& condVarPtr, MutexPtr& mutexPtr)
     : schedulerCondVarPtr(condVarPtr)
+    , schedulerMutexPtr(mutexPtr)
 {
 }
 
-void JobScheduler::State::setInvalid() {
+void JobScheduler::State::setInvalid()
+{
     std::lock_guard<std::mutex> guard(mutex);
     isValid = false;
 }

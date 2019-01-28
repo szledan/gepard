@@ -75,6 +75,7 @@ void JobRunner::addJob(std::function<void()> func)
 
 void JobRunner::waitForJobs()
 {
+    _condVar.notify_all();
     std::unique_lock<std::mutex> lock(_mutex);
     _condVar.wait(lock, [&]{ return !_activeJobCount && _queue.empty(); });
 }
@@ -106,6 +107,11 @@ void JobRunner::worker()
 
         _activeJobCount--;
     };
+
+    { // lock
+        std::unique_lock<std::mutex> lock(_mutex);
+        std::notify_all_at_thread_exit(_condVar, std::move(lock));
+    } // unlock
 }
 
 } // namespace gepard

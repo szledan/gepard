@@ -44,10 +44,11 @@ class JobScheduler {
 public:
     using Second = double;
     static constexpr double kYearInSec = 31556926.0;
+    using MutexPtr = std::shared_ptr<std::mutex>;
     using CondVarPtr = std::shared_ptr<std::condition_variable>;
 
     struct State {
-        State(CondVarPtr& condVarPtr);
+        State(CondVarPtr&, MutexPtr&);
         void setInvalid();
 
         std::mutex mutex;
@@ -57,6 +58,7 @@ public:
         std::atomic<int32_t> unfinishedJobCount = { 0 };
 
         CondVarPtr schedulerCondVarPtr;
+        MutexPtr schedulerMutexPtr;
     };
 
     using StatePtr = std::shared_ptr<State>;
@@ -79,10 +81,10 @@ private:
     JobRunner& _jobRunner;
     const Second _timeout;
 
-    std::mutex _mutex;
+    MutexPtr _mutexPtr = std::make_shared<std::mutex>();
     CondVarPtr _condVarPtr = std::make_shared<std::condition_variable>();
 
-    StatePtr _state = std::make_shared<State>(_condVarPtr);
+    StatePtr _state = std::make_shared<State>(_condVarPtr, _mutexPtr);
 };
 
 } // namespace gepard
