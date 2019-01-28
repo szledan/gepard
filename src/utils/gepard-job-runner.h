@@ -63,8 +63,8 @@ public:
 private:
     std::condition_variable _condVar;
     std::mutex _mutex;
-    std::atomic_uint _activeJobCount = { 0u };
-    std::atomic_bool _finish = { false };
+    std::atomic<unsigned int> _activeJobCount = { 0u };
+    std::atomic<bool> _finish = { false };
 
     std::list<Job*> _queue;
 

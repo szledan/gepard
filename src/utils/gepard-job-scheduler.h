@@ -51,10 +51,10 @@ public:
         void setInvalid();
 
         std::mutex mutex;
-        std::atomic_bool hadTimeout = { false };
-        std::atomic_bool isValid = { true };
-        std::atomic_int32_t activeJobCount = { 0 };
-        std::atomic_int32_t unfinishedJobCount = { 0 };
+        std::atomic<bool> hadTimeout = { false };
+        std::atomic<bool> isValid = { true };
+        std::atomic<int32_t> activeJobCount = { 0 };
+        std::atomic<int32_t> unfinishedJobCount = { 0 };
 
         CondVarPtr schedulerCondVarPtr;
     };
