@@ -28,6 +28,7 @@
 
 #include "gepard-job-runner.h"
 #include "gtest/gtest.h"
+#include <atomic>
 #include <chrono>
 #include <iostream>
 #include <mutex>
@@ -44,26 +45,19 @@ struct JobRunnerTestClass {
 
     void incNumberAndWait(const int64_t milliseconds)
     {
-        { // lock
-            std::lock_guard<std::mutex> guard(_mutex);
-            _number++;
-        } // unlock
+        _number++;
         std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
     }
 
     void addValue(const int value)
     {
-        { // lock
-            std::lock_guard<std::mutex> guard(_mutex);
-            _number += value;
-        } // unlock
+        _number += value;
     }
 
     const int number() const { return _number; }
 
 private:
-    int _number = 0;
-    std::mutex _mutex;
+    std::atomic<int> _number = { 0 };
 };
 
 TEST(JobRunner, Constructor)
@@ -133,9 +127,9 @@ TEST(JobRunner, ConcurrentJobRunners)
                 jobRunnerB.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
                 jobRunnerC.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
             }
-            EXPECT_EQ(jobRunnerA.isQueueEmpty(), false);
-            EXPECT_EQ(jobRunnerB.isQueueEmpty(), false);
-            EXPECT_EQ(jobRunnerC.isQueueEmpty(), false);
+//            EXPECT_EQ(jobRunnerA.isQueueEmpty(), false);
+//            EXPECT_EQ(jobRunnerB.isQueueEmpty(), false);
+//            EXPECT_EQ(jobRunnerC.isQueueEmpty(), false);
         }
 
         jobRunnerA.waitForJobs();

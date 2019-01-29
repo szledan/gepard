@@ -60,17 +60,13 @@ struct JobSchedulerTestClass {
     void incNumberAndWait(const Second sleepTime)
     {
         std::this_thread::sleep_for(std::chrono::duration<Second>(sleepTime));
-        { // lock
-            std::lock_guard<std::mutex> guard(_mutex);
-            _number++;
-        } // unlock
+        _number++;
     }
 
     const int number() const { return _number; }
 
 private:
-    int _number = 0;
-    std::mutex _mutex;
+    std::atomic<int> _number = { 0 };
 };
 
 TEST(JobScheduler, Destructor)
@@ -347,6 +343,7 @@ TEST(JobScheduler, SimpleStateSetInvalid)
     }
 
     jobScheduler.waitForJobs();
+    jobRunner.waitForJobs();
     EXPECT_EQ(test.number(), (2 * jobCount - state->unfinishedJobCount));
     EXPECT_GE(state->unfinishedJobCount, jobCount);
 }

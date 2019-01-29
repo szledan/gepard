@@ -57,7 +57,7 @@ JobRunner::~JobRunner()
     GD_ASSERT(_queue.empty());
     GD_ASSERT(!_activeJobCount);
     _finish = true;
-    _condVar.notify_all();
+    waitForJobs();
 
     for (size_t i = 0; i < _workers.size(); ++i) {
         _workers[i].join();
@@ -69,15 +69,15 @@ void JobRunner::addJob(std::function<void()> func)
     { // lock
         std::lock_guard<std::mutex> guard(_mutex);
         _queue.push_back(new Job(func));
+        _condVar.notify_one();
     } // unlock
-    _condVar.notify_one();
 }
 
 void JobRunner::waitForJobs()
 {
-    _condVar.notify_all();
     std::unique_lock<std::mutex> lock(_mutex);
-    _condVar.wait(lock, [&]{ return !_activeJobCount && _queue.empty(); });
+    _condVar.notify_all();
+    _runnerCondVar.wait(lock, [&]{ return !_activeJobCount && _queue.empty(); });
 }
 
 void JobRunner::worker()
@@ -87,7 +87,7 @@ void JobRunner::worker()
         { // lock
             std::unique_lock<std::mutex> lock(_mutex);
             if (_queue.empty()) {
-                _condVar.notify_all();
+                _runnerCondVar.notify_all();
                 _condVar.wait(lock, [&]{ return _finish || !_queue.empty(); });
             }
             if (_finish) {
@@ -107,11 +107,6 @@ void JobRunner::worker()
 
         _activeJobCount--;
     };
-
-    { // lock
-        std::unique_lock<std::mutex> lock(_mutex);
-        std::notify_all_at_thread_exit(_condVar, std::move(lock));
-    } // unlock
 }
 
 } // namespace gepard

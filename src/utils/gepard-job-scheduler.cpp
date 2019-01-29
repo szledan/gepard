@@ -94,7 +94,6 @@ JobScheduler::State::State(CondVarPtr& condVarPtr, MutexPtr& mutexPtr)
 
 void JobScheduler::State::setInvalid()
 {
-    std::lock_guard<std::mutex> guard(mutex);
     isValid = false;
 }
 
