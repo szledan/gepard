@@ -30,23 +30,20 @@
 #include "gtest/gtest.h"
 #include <atomic>
 #include <chrono>
-#include <iostream>
-#include <mutex>
 #include <thread>
 
 namespace {
 
-struct JobRunnerTestClass {
-    void printThreadIDAndWait()
-    {
-        std::cerr << std::this_thread::get_id() << std::endl;
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
+#define millisec (1.0 / 1000.0)
+#define microsec (millisec / 1000.0)
+#define nanosec (microsec / 1000.0)
 
-    void incNumberAndWait(const int64_t milliseconds)
+using Second = double;
+struct JobTestClass {
+    void incNumberAndWait(const Second sleepTime)
     {
+        std::this_thread::sleep_for(std::chrono::duration<Second>(sleepTime));
         _number++;
-        std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
     }
 
     void addValue(const int value)
@@ -71,14 +68,14 @@ TEST(JobRunner, Constructor)
 
 TEST(JobRunner, BoundFunc)
 {
-    JobRunnerTestClass test;
+    JobTestClass test;
     {
         gepard::JobRunner js(2u);
 
-        js.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
-        js.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 10));
-        js.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
-        js.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
+        js.addJob(std::bind(&JobTestClass::incNumberAndWait, &test, 1.0 * millisec));
+        js.addJob(std::bind(&JobTestClass::incNumberAndWait, &test, 10.0 * millisec));
+        js.addJob(std::bind(&JobTestClass::incNumberAndWait, &test, 1.0 * millisec));
+        js.addJob(std::bind(&JobTestClass::incNumberAndWait, &test, 1.0 * millisec));
     }
 
     EXPECT_EQ(test.number(), 4) << "";
@@ -86,10 +83,10 @@ TEST(JobRunner, BoundFunc)
     {
         gepard::JobRunner js(2u);
 
-        js.addJob(std::bind(&JobRunnerTestClass::addValue, &test, 1));
-        js.addJob(std::bind(&JobRunnerTestClass::addValue, &test, 2));
-        js.addJob(std::bind(&JobRunnerTestClass::addValue, &test, 3));
-        js.addJob(std::bind(&JobRunnerTestClass::addValue, &test, 4));
+        js.addJob(std::bind(&JobTestClass::addValue, &test, 1));
+        js.addJob(std::bind(&JobTestClass::addValue, &test, 2));
+        js.addJob(std::bind(&JobTestClass::addValue, &test, 3));
+        js.addJob(std::bind(&JobTestClass::addValue, &test, 4));
     }
 
     EXPECT_EQ(test.number(), 14) << "";
@@ -97,12 +94,12 @@ TEST(JobRunner, BoundFunc)
 
 TEST(JobRunner, WaitForJobs)
 {
-    JobRunnerTestClass test;
+    JobTestClass test;
     {
         gepard::JobRunner jobRunner(2u);
 
         for (int i = 0; i < 10; ++i) {
-            jobRunner.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
+            jobRunner.addJob(std::bind(&JobTestClass::incNumberAndWait, &test, 1.0 * millisec));
         }
         EXPECT_EQ(jobRunner.isQueueEmpty(), false);
         jobRunner.waitForJobs();
@@ -114,7 +111,7 @@ TEST(JobRunner, WaitForJobs)
 
 TEST(JobRunner, ConcurrentJobRunners)
 {
-    JobRunnerTestClass test;
+    JobTestClass test;
     {
         gepard::JobRunner jobRunnerA(2u);
         gepard::JobRunner jobRunnerB(2u);
@@ -123,13 +120,10 @@ TEST(JobRunner, ConcurrentJobRunners)
             gepard::JobRunner jobRunnerC(2u);
 
             for (int i = 0; i < 10; ++i) {
-                jobRunnerA.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
-                jobRunnerB.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
-                jobRunnerC.addJob(std::bind(&JobRunnerTestClass::incNumberAndWait, &test, 1));
+                jobRunnerA.addJob(std::bind(&JobTestClass::incNumberAndWait, &test, 1.0 * millisec));
+                jobRunnerB.addJob([&]{ test.incNumberAndWait(1.0 * millisec); });
+                jobRunnerC.addJob([&]{ test.incNumberAndWait(1.0 * millisec); });
             }
-//            EXPECT_EQ(jobRunnerA.isQueueEmpty(), false);
-//            EXPECT_EQ(jobRunnerB.isQueueEmpty(), false);
-//            EXPECT_EQ(jobRunnerC.isQueueEmpty(), false);
         }
 
         jobRunnerA.waitForJobs();

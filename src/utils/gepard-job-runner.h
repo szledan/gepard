@@ -61,12 +61,11 @@ public:
     void worker();
 
 private:
-    std::condition_variable _condVar;
-    std::condition_variable _runnerCondVar;
     std::mutex _mutex;
+    std::condition_variable _workersCondVar;
+    std::condition_variable _runnerCondVar;
     std::atomic<unsigned int> _activeJobCount = { 0u };
     std::atomic<bool> _finish = { false };
-
     std::list<Job*> _queue;
 
     std::vector<std::thread> _workers;

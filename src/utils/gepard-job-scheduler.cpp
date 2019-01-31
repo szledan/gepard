@@ -33,7 +33,7 @@ namespace gepard {
 
 JobScheduler::JobScheduler(JobRunner& jobRunner, const Second timeout)
     : _jobRunner(jobRunner)
-    , _timeout(timeout < 0 ? 0 : timeout)
+    , _timeout(timeout < 0.0 ? 0.0 : timeout)
 {
 }
 
@@ -44,25 +44,23 @@ JobScheduler::~JobScheduler()
 
 void JobScheduler::addJob(std::function<void()> func)
 {
-    _jobRunner.addJob(std::bind(&JobScheduler::bindFunc, this, func, _state));
-    _state->activeJobCount++;
-}
-
-const bool JobScheduler::waitForJobs(const Second timeout)
-{
-    std::unique_lock<std::mutex> lock(*_mutexPtr);
-    return _state->hadTimeout = !_condVarPtr->wait_for(lock, std::chrono::duration<Second>(timeout), [&]{
-        GD_ASSERT(_state->activeJobCount >= 0);
-        return !_state->activeJobCount;
-    });
+    _jobRunner.addJob(std::bind(&JobScheduler::bindFunc, this, func, _currentState));
+    _currentState->activeJobCount++;
 }
 
 void JobScheduler::reset()
 {
-    if (_state.get()) {
-        _state.reset();
+    if (_currentState.get()) {
+        _currentState.reset();
     }
-    _state = std::make_shared<State>(_condVarPtr, _mutexPtr);
+    _currentState = std::make_shared<State>();
+}
+
+const JobScheduler::StatePtr JobScheduler::releaseState()
+{
+    StatePtr state = _currentState;
+    reset();
+    return state;
 }
 
 void JobScheduler::bindFunc(std::function<void ()> func, StatePtr& state_)
@@ -72,29 +70,30 @@ void JobScheduler::bindFunc(std::function<void ()> func, StatePtr& state_)
     StatePtr state = state_;
 
     if ((!state->isValid)) {
-        state->activeJobCount--;
         state->unfinishedJobCount++;
     } else {
         func();
-        state->activeJobCount--;
     }
+    state->activeJobCount--;
 
     { // lock
-        std::lock_guard<std::mutex> guard(*(state->schedulerMutexPtr));
-        GD_ASSERT(state->schedulerCondVarPtr.get());
-        state->schedulerCondVarPtr->notify_all();
+        std::lock_guard<std::mutex> guard(state->stateMutex);
+        state->stateCondVar.notify_all();
     } // unlock
-}
-
-JobScheduler::State::State(CondVarPtr& condVarPtr, MutexPtr& mutexPtr)
-    : schedulerCondVarPtr(condVarPtr)
-    , schedulerMutexPtr(mutexPtr)
-{
 }
 
 void JobScheduler::State::setInvalid()
 {
     isValid = false;
+}
+
+const bool JobScheduler::State::waitForJobs(const JobScheduler::Second timeout)
+{
+    std::unique_lock<std::mutex> ulock(stateMutex);
+    return hadTimeout = !stateCondVar.wait_for(ulock, std::chrono::duration<Second>(timeout), [&]{
+        GD_ASSERT(activeJobCount >= 0);
+        return !activeJobCount;
+    });
 }
 
 } // namespace gepard

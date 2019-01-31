@@ -69,15 +69,15 @@ void JobRunner::addJob(std::function<void()> func)
     { // lock
         std::lock_guard<std::mutex> guard(_mutex);
         _queue.push_back(new Job(func));
-        _condVar.notify_one();
+        _workersCondVar.notify_one();
     } // unlock
 }
 
 void JobRunner::waitForJobs()
 {
-    std::unique_lock<std::mutex> lock(_mutex);
-    _condVar.notify_all();
-    _runnerCondVar.wait(lock, [&]{ return !_activeJobCount && _queue.empty(); });
+    std::unique_lock<std::mutex> ulock(_mutex);
+    _workersCondVar.notify_all();
+    _runnerCondVar.wait(ulock, [&]{ return !_activeJobCount && _queue.empty(); });
 }
 
 void JobRunner::worker()
@@ -85,10 +85,10 @@ void JobRunner::worker()
     while (true) {
         Job* job;
         { // lock
-            std::unique_lock<std::mutex> lock(_mutex);
+            std::unique_lock<std::mutex> ulock(_mutex);
             if (_queue.empty()) {
                 _runnerCondVar.notify_all();
-                _condVar.wait(lock, [&]{ return _finish || !_queue.empty(); });
+                _workersCondVar.wait(ulock, [&]{ return _finish || !_queue.empty(); });
             }
             if (_finish) {
                 break;

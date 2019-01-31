@@ -44,21 +44,18 @@ class JobScheduler {
 public:
     using Second = double;
     static constexpr double kYearInSec = 31556926.0;
-    using MutexPtr = std::shared_ptr<std::mutex>;
-    using CondVarPtr = std::shared_ptr<std::condition_variable>;
 
     struct State {
-        State(CondVarPtr&, MutexPtr&);
         void setInvalid();
+        const bool waitForJobs(const Second timeout = kYearInSec);
 
-        std::mutex mutex;
         std::atomic<bool> hadTimeout = { false };
         std::atomic<bool> isValid = { true };
         std::atomic<int32_t> activeJobCount = { 0 };
         std::atomic<int32_t> unfinishedJobCount = { 0 };
 
-        CondVarPtr schedulerCondVarPtr;
-        MutexPtr schedulerMutexPtr;
+        std::mutex stateMutex;
+        std::condition_variable stateCondVar;
     };
 
     using StatePtr = std::shared_ptr<State>;
@@ -69,11 +66,11 @@ public:
     void addJob(std::function<void()> func);
 
     const bool waitForJobs() { return waitForJobs(_timeout); }
-    const bool waitForJobs(const Second timeout);
+    const bool waitForJobs(const Second timeout) { return state()->waitForJobs(timeout); }
 
     void reset();
-
-    const StatePtr& state() const { return _state; }
+    const StatePtr releaseState();
+    const StatePtr& state() const { return _currentState; }
 
 private:
     void bindFunc(std::function<void()>, StatePtr& state);
@@ -81,10 +78,7 @@ private:
     JobRunner& _jobRunner;
     const Second _timeout;
 
-    MutexPtr _mutexPtr = std::make_shared<std::mutex>();
-    CondVarPtr _condVarPtr = std::make_shared<std::condition_variable>();
-
-    StatePtr _state = std::make_shared<State>(_condVarPtr, _mutexPtr);
+    StatePtr _currentState = std::make_shared<State>();
 };
 
 } // namespace gepard
