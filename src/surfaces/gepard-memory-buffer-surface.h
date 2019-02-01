@@ -41,7 +41,7 @@ namespace gepard {
 class MemoryBufferSurface : public Surface {
 public:
     MemoryBufferSurface(uint32_t width = 0, uint32_t height = 0)
-        : Surface(width, height, true)
+        : Surface(width, height)
     {
         _buffer = std::malloc(width * height * 4);
     }
