@@ -1727,7 +1727,7 @@ void GepardVulkan::createImage(VkImage &image, VkDeviceMemory &imageAlloc, VkMem
     vkResult = _vk.vkCreateImage(_device, &imageCreateInfo, _allocator, &image);
     GD_ASSERT(vkResult == VK_SUCCESS && "Creating the image is failed!");
 
-    _vk.vkGetImageMemoryRequirements(_device, _surfaceImage, &memReq);
+    _vk.vkGetImageMemoryRequirements(_device, image, &memReq);
 
     const VkMemoryAllocateInfo imageAllocateInfo = {
         VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,                             // VkStructureType    sType;
