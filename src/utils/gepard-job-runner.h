@@ -1,5 +1,5 @@
-/* Copyright (C) 2017-2019, Gepard Graphics
- * Copyright (C) 2017-2019, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2019, Gepard Graphics
+ * Copyright (C) 2019, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,21 +23,54 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "gtest/gtest.h"
+#ifndef GEPARD_JOB_RUNNER_H
+#define GEPARD_JOB_RUNNER_H
 
-#include "gepard-bounding-box-tests.h"
-#include "gepard-float-point-tests.h"
-#include "gepard-float-tests.h"
-#include "gepard-job-runner-tests.h"
-#include "gepard-job-scheduler-tests.h"
-#include "gepard-path-tests.h"
-#include "gepard-region-tests.h"
-#include "gepard-segment-approximator-tests.h"
-#include "gepard-segment-tests.h"
-#include "gepard-vec4-tests.h"
+#include <atomic>
+#include <condition_variable>
+#include <functional>
+#include <list>
+#include <memory>
+#include <mutex>
+#include <thread>
+#include <vector>
 
-int main(int argc, char* argv[])
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
+namespace gepard {
+
+/*!
+ * \brief The JobRunner class
+ */
+class JobRunner {
+    struct Job {
+        Job(std::function<void()> func);
+        void run();
+
+        std::function<void()> boundFunc;
+    };
+
+public:
+    JobRunner(const unsigned int workerCount = 1);
+    ~JobRunner();
+
+    void addJob(std::function<void()> func);
+    void waitForJobs();
+
+    const size_t workerCount() const { return _workers.size(); }
+    const bool isQueueEmpty() const { return _queue.empty(); }
+
+    void worker();
+
+private:
+    std::mutex _mutex;
+    std::condition_variable _workersCondVar;
+    std::condition_variable _runnerCondVar;
+    std::atomic<unsigned int> _activeJobCount = { 0u };
+    std::atomic<bool> _finish = { false };
+    std::list<Job*> _queue;
+
+    std::vector<std::thread> _workers;
+};
+
+} // namespace gepard
+
+#endif // GEPARD_JOB_RUNNER_H
