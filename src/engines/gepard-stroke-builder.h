@@ -101,7 +101,7 @@ private:
     LineCapType _lineCap;
 
     PathData _path;
-    SegmentApproximator _segmentApproximator = SegmentApproximator(16, 1);
+    OldSegmentApproximator _segmentApproximator = OldSegmentApproximator(16, 1);
 };
 
 } // namespace gepard

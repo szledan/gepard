@@ -42,16 +42,16 @@
 
 namespace gepard {
 
-/* Segment */
+/* OldSegment */
 
-struct Segment {
+struct OldSegment {
     enum {
         Negative = -1,
         EqualOrNonExist = 0,
         Positive = 1,
     };
 
-    Segment(FloatPoint from, FloatPoint to, unsigned sameId = 0, Float slope = NAN);
+    OldSegment(FloatPoint from, FloatPoint to, unsigned sameId = 0, Float slope = NAN);
 
     const int topY() const;
     const int bottomY() const;
@@ -59,8 +59,8 @@ struct Segment {
     const Float factor() const;
     const bool isOnSegment(const Float y) const;
 
-    const Segment splitSegment(const Float y);
-    const bool computeIntersectionY(Segment* segment, Float& y) const;
+    const OldSegment splitSegment(const Float y);
+    const bool computeIntersectionY(OldSegment* segment, Float& y) const;
 
     FloatPoint from;
     FloatPoint to;
@@ -69,30 +69,30 @@ struct Segment {
     int direction;
 };
 
-inline std::ostream& operator<<(std::ostream& os, const Segment& s);
+inline std::ostream& operator<<(std::ostream& os, const OldSegment& s);
 
-inline bool operator<(const Segment& lhs, const Segment& rhs);
-inline bool operator==(const Segment& lhs, const Segment& rhs);
-inline bool operator<=(const Segment& lhs, const Segment& rhs);
+inline bool operator<(const OldSegment& lhs, const OldSegment& rhs);
+inline bool operator==(const OldSegment& lhs, const OldSegment& rhs);
+inline bool operator<=(const OldSegment& lhs, const OldSegment& rhs);
 
-/* SegmentList, SegmentTree */
+/* OldSegmentList, OldSegmentTree */
 
-typedef std::list<Segment> SegmentList;
-typedef std::map<const int, SegmentList*> SegmentTree;
+typedef std::list<OldSegment> OldSegmentList;
+typedef std::map<const int, OldSegmentList*> OldSegmentTree;
 
-/* SegmentApproximator */
+/* OldSegmentApproximator */
 
-class SegmentApproximator {
+class OldSegmentApproximator {
 public:
-    SegmentApproximator(const int antiAliasLevel = GD_ANTIALIAS_LEVEL, const Float factor = 1.0);
-    ~SegmentApproximator();
+    OldSegmentApproximator(const int antiAliasLevel = GD_ANTIALIAS_LEVEL, const Float factor = 1.0);
+    ~OldSegmentApproximator();
 
     void insertLine(const FloatPoint& from, const FloatPoint& to);
     void insertQuadCurve(const FloatPoint& from, const FloatPoint& control, const FloatPoint& to);
     void insertBezierCurve(const FloatPoint& from, const FloatPoint& control1, const FloatPoint& control2, const FloatPoint& to);
     void insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement, const Transform& transform);
 
-    SegmentList* segments();
+    OldSegmentList* segments();
     const BoundingBox& boundingBox() const { return _boundingBox; }
 
     inline void splitSegments();
@@ -114,9 +114,9 @@ public:
     const Float kTolerance;
 private:
     void insertSegment(const FloatPoint& from, const FloatPoint& to);
-    SegmentList* insertSegmentList(const int y);
+    OldSegmentList* insertSegmentList(const int y);
 
-    SegmentTree _segments;
+    OldSegmentTree _segments;
 
     BoundingBox _boundingBox;
 };
@@ -148,9 +148,9 @@ inline bool operator<(const Trapezoid& lhs, const Trapezoid& rhs);
 inline bool operator==(const Trapezoid& lhs, const Trapezoid& rhs);
 inline bool operator<=(const Trapezoid& lhs, const Trapezoid& rhs);
 
-/* TrapezoidList */
+/* OldTrapezoidList */
 
-typedef std::list<Trapezoid> TrapezoidList;
+typedef std::list<Trapezoid> OldTrapezoidList;
 
 /* TrapezoidTessellator */
 
@@ -164,7 +164,7 @@ public:
     TrapezoidTessellator(PathData&, FillRule = NonZero, int antiAliasingLevel = GD_ANTIALIAS_LEVEL);
 
     const FillRule fillRule() const { return _fillRule; }
-    const TrapezoidList trapezoidList(const GepardState& state);
+    const OldTrapezoidList trapezoidList(const GepardState& state);
     const BoundingBox& boundingBox() const { return _boundingBox; }
     const int antiAliasingLevel() const { return _antiAliasingLevel; }
 

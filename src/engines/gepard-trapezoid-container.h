@@ -31,25 +31,21 @@
 #define GEPARD_TRAPEZOID_CONTAINER_H
 
 #include "gepard-defs.h"
-#include "gepard-job-runner.h"
-#include "gepard-job-scheduler.h"
 #include "gepard-segment.h"
 
 namespace gepard {
 
 class TrapezoidContainer {
 public:
-    TrapezoidContainer(JobRunner& jobRunner)
-        : _scheduler(jobRunner)
+    TrapezoidContainer()
     {
     }
 
-    void addSegment(Segment&){}
+    void addSegment(const Segment&){}
     void horizontalMergeTrapezoids(){}
     void verticalMergeTrapezoids(){}
 
 private:
-    JobScheduler _scheduler;
 };
 } // namespace gepard
 

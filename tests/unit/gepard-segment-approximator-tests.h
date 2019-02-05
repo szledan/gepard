@@ -1,5 +1,5 @@
-/* Copyright (C) 2018, Gepard Graphics
- * Copyright (C) 2018, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2018-2019, Gepard Graphics
+ * Copyright (C) 2018-2019, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,16 +50,6 @@ TEST(SegmentApproximatorTest, InsertOneLine)
     const gepard::FloatPoint to(pi, pi);
 
     sa.insertLine(from, to);
-
-    const gepard::SegmentTree& st = sa.segments();
-
-//    EXPECT_EQ(st.size(), 2u) << "";
-
-//    EXPECT_NE(st.find(std::floor(sa.kAntiAliasLevel * (-pi))), st.end()) << "";
-//    EXPECT_EQ(st.at(std::floor(sa.kAntiAliasLevel * (-pi))).size(), 1u) << "";
-
-//    EXPECT_NE(st.find(std::floor(sa.kAntiAliasLevel * (pi))), st.end()) << "";
-//    EXPECT_EQ(st.at(std::floor(sa.kAntiAliasLevel * (pi))).size(), 0u) << "";
 }
 
 } // anonymous namespace

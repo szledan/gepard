@@ -1,5 +1,5 @@
-/* Copyright (C) 2018, Gepard Graphics
- * Copyright (C) 2015-2018, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2019, Gepard Graphics
+ * Copyright (C) 2015-2019, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,12 +40,6 @@
 #include <set>
 
 namespace gepard {
-
-void SegmentTree::addSegment(const Segment& segment)
-{
-    _segments[segment.topY()][segment] = 1;
-    _segments[segment.bottomY()];
-}
 
 SegmentApproximator::SegmentApproximator(const int antiAliasLevel)
     : kAntiAliasLevel(antiAliasLevel > 0 ? antiAliasLevel : GD_ANTIALIAS_LEVEL)

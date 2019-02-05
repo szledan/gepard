@@ -1,5 +1,5 @@
-/* Copyright (C) 2018, Gepard Graphics
- * Copyright (C) 2018, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2019, Gepard Graphics
+ * Copyright (C) 2019, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,19 +36,12 @@
 #include "gepard-path.h"
 #include "gepard-segment.h"
 #include "gepard-transform.h"
+#include "gepard-trapezoid-container.h"
 #include <list>
 #include <map>
 #include <vector>
 
 namespace gepard {
-
-class SegmentTree {
-public:
-    void addSegment(const Segment&);
-
-private:
-    std::map<const int, std::map<Segment, int>> _segments;
-};
 
 class SegmentApproximator {
 public:
@@ -56,14 +49,12 @@ public:
 
     void insertLine(const FloatPoint& from, const FloatPoint& to);
 
-    const SegmentTree& segments() const { return _segments; }
-
     const int kAntiAliasLevel;
     const Float kTolerance;
 private:
     void insertSegment(const FloatPoint& from, const FloatPoint& to);
 
-    SegmentTree _segments;
+    TrapezoidContainer _segments;
 };
 
 } // namespace gepard
