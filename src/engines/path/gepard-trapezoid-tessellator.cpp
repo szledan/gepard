@@ -1,5 +1,5 @@
-/* Copyright (C) 2018, Gepard Graphics
- * Copyright (C) 2015-2018, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2018-2019, Gepard Graphics
+ * Copyright (C) 2015-2019, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,8 @@
 #include "gepard-float-point.h"
 #include "gepard-float.h"
 #include "gepard-logging.h"
+#include "gepard-old-segment-approximator.h"
+#include "gepard-segment-approximator.h"
 #include "gepard-transform.h"
 #include <cmath>
 #include <cstring>
@@ -40,562 +42,6 @@
 #include <set>
 
 namespace gepard {
-
-/* Segment */
-
-static unsigned s_segmentIds = 0;
-
-OldSegment::OldSegment(FloatPoint from, FloatPoint to, unsigned sameId, Float slope)
-    : from(from)
-    , to(to)
-    , id((sameId) ? sameId : ++s_segmentIds)
-{
-    Float slopeInv = NAN;
-    Float denom = this->to.y - this->from.y;
-    if (denom) {
-        if (denom < 0) {
-            this->from = to;
-            this->to = from;
-            this->direction = Negative;
-            denom *= -1;
-        } else {
-            this->direction = Positive;
-        }
-
-    } else {
-        this->direction = EqualOrNonExist;
-    }
-    slopeInv = (this->to.x - this->from.x) / (denom);
-
-    realSlope = (std::isnan(slope)) ? slopeInv : slope;
-    GD_ASSERT(!std::isnan(realSlope));
-}
-
-const int OldSegment::topY() const
-{
-    return std::floor(this->from.y);
-}
-
-const int OldSegment::bottomY() const
-{
-    return std::floor(this->to.y);
-}
-
-const Float OldSegment::slopeInv() const
-{
-    return (this->to.x - this->from.x) / (this->to.y - this->from.y);
-}
-
-const Float OldSegment::factor() const
-{
-    return this->slopeInv() * this->from.y - this->from.x;
-}
-
-const bool OldSegment::isOnSegment(const Float y) const
-{
-    return y < this->to.y && y > this->from.y;
-}
-
-const OldSegment OldSegment::splitSegment(const Float y)
-{
-    GD_ASSERT(this->from.y < this->to.y);
-    GD_ASSERT(y > this->from.y && y < this->to.y);
-
-    const Float x = this->slopeInv() * (y - this->from.y) + this->from.x;
-    FloatPoint to = this->to;
-    this->to = FloatPoint(x, y);
-    FloatPoint newPoint = this->to;
-
-    if (this->direction == Negative) {
-        newPoint = to;
-        to = this->to;
-    }
-
-    GD_ASSERT(this->from.y != newPoint.y);
-    GD_ASSERT(newPoint.y != to.y);
-
-    return OldSegment(newPoint, to, this->id, this->realSlope);
-}
-
-const bool OldSegment::computeIntersectionY(OldSegment* segment, Float& y) const
-{
-    if (this == segment)
-        return false;
-
-    GD_ASSERT(this->from.y == segment->from.y);
-    GD_ASSERT(this->to.y == segment->to.y);
-
-    if (this->from.x == segment->from.x) {
-        return true;
-    }
-
-    if (this->to.x == segment->to.x) {
-        return true;
-    }
-
-    Float denom = (this->slopeInv() - segment->slopeInv());
-    y = (this->factor() - segment->factor()) / denom;
-
-    if (std::isnan(y))
-        return false;
-
-    if (!isOnSegment(y)) {
-        y = INFINITY;
-        return false;
-    }
-
-    return true;
-}
-
-std::ostream& operator<<(std::ostream& os, const OldSegment& s)
-{
-    return os << s.from << ((s.direction < 0) ? "<" : ((s.direction > 0) ? ">" : "=")) << s.to;
-}
-
-bool operator<(const OldSegment& lhs, const OldSegment& rhs)
-{
-    GD_ASSERT(lhs.from.y <= lhs.to.y);
-    GD_ASSERT(lhs.from <= lhs.to && rhs.from <= rhs.to);
-    return (lhs.from < rhs.from) || (lhs.from == rhs.from && lhs.to < rhs.to);
-}
-
-bool operator==(const OldSegment& lhs, const OldSegment& rhs)
-{
-    return (lhs.from == rhs.from) && (lhs.to == rhs.to);
-}
-
-bool operator<=(const OldSegment& lhs, const OldSegment& rhs)
-{
-    return (lhs < rhs) || (lhs == rhs);
-}
-
-/* SegmentApproximator */
-
-OldSegmentApproximator::OldSegmentApproximator(const int antiAliasLevel, const Float factor)
-    : kAntiAliasLevel(antiAliasLevel > 0 ? antiAliasLevel : GD_ANTIALIAS_LEVEL)
-    , kTolerance((factor > 0.0 ? factor : 1.0 ))
-{
-}
-
-OldSegmentApproximator::~OldSegmentApproximator()
-{
-    for (OldSegmentTree::iterator it = _segments.begin(); it != _segments.end(); ++it) {
-        delete it->second;
-    }
-}
-
-void OldSegmentApproximator::insertLine(const FloatPoint& from, const FloatPoint& to)
-{
-    if (from.y == to.y)
-        return;
-
-    GD_LOG(TRACE) << "Insert line: " << from << "->" << to;
-    insertSegment(FloatPoint(from.x * kAntiAliasLevel, std::floor(from.y * kAntiAliasLevel)), FloatPoint(to.x * kAntiAliasLevel, std::floor(to.y * kAntiAliasLevel)));
-}
-
-const bool OldSegmentApproximator::quadCurveIsLineSegment(FloatPoint points[])
-{
-    const Float x0 = points[0].x;
-    const Float y0 = points[0].y;
-    const Float x1 = points[1].x;
-    const Float y1 = points[1].y;
-    const Float x2 = points[2].x;
-    const Float y2 = points[2].y;
-
-    const Float dt = std::fabs((x2 - x0) * (y0 - y1) - (x0 - x1) * (y2 - y0));
-
-    if (dt > kTolerance)
-        return false;
-
-    Float minX, minY, maxX, maxY;
-
-    if (x0 < x2) {
-        minX = x0 - kTolerance;
-        maxX = x2 + kTolerance;
-    } else {
-        minX = x2 - kTolerance;
-        maxX = x0 + kTolerance;
-    }
-
-    if (y0 < y2) {
-        minY = y0 - kTolerance;
-        maxY = y2 + kTolerance;
-    } else {
-        minY = y2 - kTolerance;
-        maxY = y0 + kTolerance;
-    }
-
-    return !(x1 < minX || x1 > maxX || y1 < minY || y1 > maxY);
-}
-
-void OldSegmentApproximator::splitQuadraticCurve(FloatPoint points[])
-{
-    const FloatPoint a = points[0];
-    const FloatPoint b = points[1];
-    const FloatPoint c = points[2];
-    const FloatPoint ab = (a + b) / 2.0;
-    const FloatPoint bc = (b + c) / 2.0;
-    const FloatPoint mid = (ab + bc) / 2.0;
-
-    points[0] = a;
-    points[1] = ab;
-    points[2] = mid;
-    points[3] = bc;
-    points[4] = c;
-}
-
-void OldSegmentApproximator::insertQuadCurve(const FloatPoint& from, const FloatPoint& control, const FloatPoint& to)
-{
-    // De Casteljau algorithm.
-    const int kNumberOfParts = 16;
-    const int max = kNumberOfParts * 2 + 1;
-    FloatPoint buffer[max];
-    FloatPoint* points = buffer;
-
-    points[0] = from;
-    points[1] = control;
-    points[2] = to;
-
-    do {
-        if (quadCurveIsLineSegment(points)) {
-            insertLine(points[0], points[2]);
-            points -= 2;
-            continue;
-        }
-
-        splitQuadraticCurve(points);
-        points += 2;
-
-        if (points >= buffer + max - 3) {
-            // This recursive code path is rarely executed.
-            insertQuadCurve(points[0], points[1], points[2]);
-            points -= 2;
-        }
-    } while (points >= buffer);
-}
-
-const bool OldSegmentApproximator::curveIsLineSegment(FloatPoint points[])
-{
-    const Float x0 = points[0].x;
-    const Float y0 = points[0].y;
-    const Float x1 = points[1].x;
-    const Float y1 = points[1].y;
-    const Float x2 = points[2].x;
-    const Float y2 = points[2].y;
-    const Float x3 = points[3].x;
-    const Float y3 = points[3].y;
-
-    const Float dt1 = std::fabs((x3 - x0) * (y0 - y1) - (x0 - x1) * (y3 - y0));
-    const Float dt2 = std::fabs((x3 - x0) * (y0 - y2) - (x0 - x2) * (y3 - y0));
-
-    if (dt1 > kTolerance || dt2 > kTolerance)
-        return false;
-
-    Float minX, minY, maxX, maxY;
-
-    if (x0 < x3) {
-        minX = x0 - kTolerance;
-        maxX = x3 + kTolerance;
-    } else {
-        minX = x3 - kTolerance;
-        maxX = x0 + kTolerance;
-    }
-
-    if (y0 < y3) {
-        minY = y0 - kTolerance;
-        maxY = y3 + kTolerance;
-    } else {
-        minY = y3 - kTolerance;
-        maxY = y0 + kTolerance;
-    }
-
-    return !(x1 < minX || x1 > maxX || y1 < minY || y1 > maxY
-             || x2 < minX || x2 > maxX || y2 < minY || y2 > maxY);
-}
-
-const bool OldSegmentApproximator::collinear(const FloatPoint& p0, const FloatPoint& p1, const FloatPoint& p2)
-{
-    return std::fabs((p2.x - p0.x) * (p0.y - p1.y) - (p0.x - p1.x) * (p2.y - p0.y)) <= kTolerance;
-}
-
-const bool OldSegmentApproximator::curveIsLineSegment(const FloatPoint& p0, const FloatPoint& p1, const FloatPoint& p2)
-{
-    if (!collinear(p0, p1, p2))
-        return false;
-
-    float minX, minY, maxX, maxY;
-
-    if (p0.x < p2.x) {
-        minX = p0.x - kTolerance;
-        maxX = p2.x + kTolerance;
-    } else {
-        minX = p2.x - kTolerance;
-        maxX = p0.x + kTolerance;
-    }
-
-    if (p0.y < p2.y) {
-        minY = p0.y - kTolerance;
-        maxY = p2.y + kTolerance;
-    } else {
-        minY = p2.y - kTolerance;
-        maxY = p0.y + kTolerance;
-    }
-
-    return !(p1.x < minX || p1.x > maxX || p1.y < minY || p1.y > maxY);
-}
-
-void OldSegmentApproximator::splitCubeCurve(FloatPoint points[])
-{
-    const FloatPoint a = points[0];
-    const FloatPoint b = points[1];
-    const FloatPoint c = points[2];
-    const FloatPoint d = points[3];
-    const FloatPoint ab = (a + b) / 2.0;
-    const FloatPoint bc = (b + c) / 2.0;
-    const FloatPoint cd = (c + d) / 2.0;
-    const FloatPoint abbc = (ab + bc) / 2.0;
-    const FloatPoint bccd = (bc + cd) / 2.0;
-    const FloatPoint mid = (abbc + bccd) / 2.0;
-
-    points[0] = a;
-    points[1] = ab;
-    points[2] = abbc;
-    points[3] = mid;
-    points[4] = bccd;
-    points[5] = cd;
-    points[6] = d;
-}
-
-void OldSegmentApproximator::insertBezierCurve(const FloatPoint& from, const FloatPoint& control1, const FloatPoint& control2, const FloatPoint& to)
-{
-    // De Casteljau algorithm.
-    const int kNumberOfParts = 16;
-    const int max = kNumberOfParts * 3 + 1;
-    FloatPoint buffer[max];
-    FloatPoint* points = buffer;
-
-    points[0] = from;
-    points[1] = control1;
-    points[2] = control2;
-    points[3] = to;
-
-    do {
-        if (curveIsLineSegment(points)) {
-            insertLine(points[0], points[3]);
-            points -= 3;
-            continue;
-        }
-
-        splitCubeCurve(points);
-        points += 3;
-
-        if (points >= buffer + max - 4) {
-            // This recursive code path is rarely executed.
-            insertBezierCurve(points[0], points[1], points[2], points[3]);
-            points -= 3;
-        }
-    } while (points >= buffer);
-}
-
-const int OldSegmentApproximator::calculateArcSegments(const Float& angle, const Float& radius)
-{
-    const Float epsilon = kTolerance / radius;
-    Float angleSegment;
-    Float error;
-
-    int i = 1;
-    do {
-        angleSegment = piFloat / i++;
-        error = 2.0 / 27.0 * std::pow(std::sin(angleSegment / 4.0), 6) / std::pow(std::cos(angleSegment / 4.0), 2);
-    } while (error > epsilon);
-
-    return std::ceil(fabs(angle) / angleSegment);
-}
-
-void OldSegmentApproximator::arcToCurve(FloatPoint result[], const Float& startAngle, const Float& endAngle)
-{
-    const Float sinStartAngle = std::sin(startAngle);
-    const Float cosStartAngle = std::cos(startAngle);
-    const Float sinEndAngle = std::sin(endAngle);
-    const Float cosEndAngle = std::cos(endAngle);
-
-    const Float height = 4.0 / 3.0 * std::tan((endAngle - startAngle) / 4.0);
-
-    result[0].x = cosStartAngle - height * sinStartAngle;
-    result[0].y = sinStartAngle + height * cosStartAngle;
-    result[1].x = cosEndAngle + height * sinEndAngle;
-    result[1].y = sinEndAngle - height * cosEndAngle;
-    result[2].x = cosEndAngle;
-    result[2].y = sinEndAngle;
-}
-
-void OldSegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement, const Transform& globalTransform)
-{
-    Float startAngle = arcElement->startAngle;
-    const Float endAngle = arcElement->endAngle;
-    const bool antiClockwise = arcElement->counterClockwise;
-
-    Transform arcTransform = globalTransform;
-    Transform axesTransform = { arcElement->radius.x, 0.0, 0.0, arcElement->radius.y, arcElement->center.x, arcElement->center.y };
-    arcTransform *= arcElement->transform * axesTransform;
-
-    FloatPoint startPoint = arcTransform.apply(FloatPoint(std::cos(startAngle), std::sin(startAngle)));
-    insertLine(lastEndPoint, startPoint);
-
-    GD_ASSERT(startAngle != endAngle);
-
-    const Float deltaAngle = antiClockwise ? startAngle - endAngle : endAngle - startAngle;
-
-    const int segments = calculateArcSegments(deltaAngle, std::max(arcElement->radius.x * 2, arcElement->radius.y * 2));
-    Float step = deltaAngle / segments;
-
-    if (antiClockwise) {
-        step = -step;
-    }
-
-    FloatPoint bezierPoints[3];
-    for (int i = 0; i < segments; i++, startAngle += step) {
-        arcToCurve(bezierPoints, startAngle, (i == segments - 1) ? endAngle : startAngle + step);
-        bezierPoints[0] = arcTransform.apply(bezierPoints[0]);
-        bezierPoints[1] = arcTransform.apply(bezierPoints[1]);
-        if (i == segments - 1) {
-            bezierPoints[2] = globalTransform.apply(arcElement->to);
-        } else {
-            bezierPoints[2] = arcTransform.apply(bezierPoints[2]);
-        }
-        insertBezierCurve(startPoint, bezierPoints[0], bezierPoints[1], bezierPoints[2]);
-        startPoint = bezierPoints[2];
-    }
-}
-
-void OldSegmentApproximator::printSegments()
-{
-    for (auto& currentSegments : _segments) {
-        OldSegmentList currentList = *(currentSegments.second);
-        for (OldSegment& segment : currentList) {
-            std::cout << segment << std::endl;
-        }
-    }
-}
-
-inline void OldSegmentApproximator::splitSegments()
-{
-    for (OldSegmentTree::iterator currentSegments = _segments.begin(); currentSegments != _segments.end(); ++currentSegments) {
-        OldSegmentTree::iterator newSegments = currentSegments;
-        ++newSegments;
-        if (newSegments != _segments.end()) {
-            OldSegmentList* currentList = currentSegments->second;
-            OldSegmentList* newList = newSegments->second;
-            int splitY = std::floor(newSegments->first);
-            GD_ASSERT(currentList && newList);
-            GD_ASSERT(currentSegments->first < newSegments->first);
-
-            for (OldSegment& segment : *currentList) {
-                if (segment.isOnSegment(splitY)) {
-                    newList->push_front(segment.splitSegment(splitY));
-                }
-            }
-        }
-    }
-}
-
-OldSegmentList* OldSegmentApproximator::segments()
-{
-    // Split segments with all y lines.
-    splitSegments();
-
-    // Find all intersection points.
-    std::set<int> ys;
-    for (auto& currentSegments : _segments) {
-        OldSegmentList* currentList = currentSegments.second;
-        currentList->sort();
-        OldSegmentList::iterator currentSegment = currentList->begin();
-        for (OldSegmentList::iterator segment = currentSegment; currentSegment != currentList->end(); ++segment) {
-            if (segment != currentList->end()) {
-                Float y = 0;
-                if (currentSegment->computeIntersectionY(&(*segment), y)) {
-                    const int intersectionY = std::floor(y);
-                    ys.insert(intersectionY);
-                    if ((Float)intersectionY != y) {
-                        GD_ASSERT((Float)intersectionY < y);
-                        ys.insert(intersectionY + 1);
-                    }
-                }
-            } else {
-                segment = ++currentSegment;
-            }
-        }
-    }
-
-    for (auto y : ys) {
-        insertSegmentList(y);
-    }
-
-    // Split segments with all y lines.
-    splitSegments();
-
-    // Merge and sort all segment list.
-    OldSegmentList* segments = new OldSegmentList();
-    for (OldSegmentTree::iterator currentSegments = _segments.begin(); currentSegments != _segments.end(); ++currentSegments) {
-        OldSegmentList* currentList = currentSegments->second;
-        currentList->sort();
-
-        bool needSorting = false;
-        // Fix intersection pairs.
-        for (OldSegmentList::iterator segment = currentList->begin(); segment != currentList->end(); ++segment) {
-            GD_ASSERT(segment->to.y - segment->from.y >= 1.0);
-            if (segment->to.y - segment->from.y == 1.0) {
-                for (OldSegmentList::iterator furtherSegment = segment; furtherSegment != currentList->end() ; ++furtherSegment) {
-                    GD_ASSERT(segment->from.y == furtherSegment->from.y);
-                    GD_ASSERT(segment->to.y == furtherSegment->to.y);
-                    //! \todo(szledan): need to test this assert:
-                    //! GD_ASSERT(furtherSegment->from.x >= segment->from.x)
-                    if (furtherSegment->to.x < segment->to.x) {
-                        if (furtherSegment->from.x - segment->from.x < segment->to.x - furtherSegment->to.x) {
-                            furtherSegment->from.x = segment->from.x;
-                            needSorting = true;
-                        } else {
-                            furtherSegment->to.x = segment->to.x;
-                        }
-                    }
-                }
-            }
-        }
-        if (needSorting) {
-            --currentSegments;
-        } else {
-            // Merge segment lists.
-            segments->merge(*currentList);
-        }
-    }
-
-    // Return independent segments.
-    return segments;
-}
-
-void OldSegmentApproximator::insertSegment(const FloatPoint& from, const FloatPoint& to)
-{
-    if (from.y == to.y)
-        return;
-
-    OldSegment segment(from, to);
-
-    // Update bounding-box.
-    _boundingBox.stretch(segment.from);
-    _boundingBox.stretch(segment.to);
-
-    // Insert segment.
-    const int topY = segment.topY();
-    const int bottomY = segment.bottomY();
-
-    insertSegmentList(topY)->push_front(segment);
-    insertSegmentList(bottomY);
-}
-
-OldSegmentList* OldSegmentApproximator::insertSegmentList(const int y)
-{
-    return _segments[y] ? _segments[y] : _segments[y] = new OldSegmentList();
-}
 
 /* Trapezoid */
 
@@ -652,17 +98,16 @@ TrapezoidTessellator::TrapezoidTessellator(PathData& pathData, FillRule fillRule
 {
 }
 
-const OldTrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state)
+const TrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& state)
 {
     PathElement* element = _pathData.firstElement();
 
     if (!element || !element->next)
-        return OldTrapezoidList();
+        return TrapezoidList();
 
     GD_ASSERT(element->type == PathElementTypes::MoveTo);
 
-    const Float subPixelPrecision = 1.0;
-    OldSegmentApproximator segmentApproximator(_antiAliasingLevel, subPixelPrecision);
+    SegmentApproximator segmentApproximator(_antiAliasingLevel);
     FloatPoint from;
     FloatPoint to = element->to;
     FloatPoint lastMoveTo = to;
@@ -714,7 +159,7 @@ const OldTrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& st
 
     // 2. Use approximator to generate the list of segments.
     OldSegmentList* segmentList = segmentApproximator.segments();
-    OldTrapezoidList trapezoids;
+    TrapezoidList trapezoids;
 
     // 3. Generate trapezoids.
     const Float denom = _antiAliasingLevel * 1 + 0;
@@ -773,15 +218,15 @@ const OldTrapezoidList TrapezoidTessellator::trapezoidList(const GepardState& st
 
     // 4. Vertical merge trapezoids.
     //! \todo(szledan): use MovePtr:
-    OldTrapezoidList trapezoidList;
-    for (OldTrapezoidList::iterator current = trapezoids.begin(); current != trapezoids.end(); ++current) {
+    TrapezoidList trapezoidList;
+    for (TrapezoidList::iterator current = trapezoids.begin(); current != trapezoids.end(); ++current) {
         const Float bottomY = current->bottomY;
-        OldTrapezoidList::iterator ft = current;
+        TrapezoidList::iterator ft = current;
         for (; (ft != trapezoids.end() && ft->bottomY == bottomY); ++ft);
 
         GD_ASSERT(current->leftId != 0 && current->rightId != 0);
         GD_ASSERT(current->leftSlope != NAN && current->rightSlope != NAN);
-        for (OldTrapezoidList::iterator further = current; (further != trapezoids.end() && further->topY <= bottomY); ++further) {
+        for (TrapezoidList::iterator further = current; (further != trapezoids.end() && further->topY <= bottomY); ++further) {
             GD_ASSERT(further->leftId != 0 && further->rightId != 0);
             GD_ASSERT(further->leftSlope != NAN && further->rightSlope != NAN);
             if (further->topY == current->bottomY && current->isMergableInTo(&*further)) {

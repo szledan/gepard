@@ -38,88 +38,8 @@
 #include "gepard-path.h"
 #include "gepard-state.h"
 #include <list>
-#include <map>
 
 namespace gepard {
-
-/* OldSegment */
-
-struct OldSegment {
-    enum {
-        Negative = -1,
-        EqualOrNonExist = 0,
-        Positive = 1,
-    };
-
-    OldSegment(FloatPoint from, FloatPoint to, unsigned sameId = 0, Float slope = NAN);
-
-    const int topY() const;
-    const int bottomY() const;
-    const Float slopeInv() const;
-    const Float factor() const;
-    const bool isOnSegment(const Float y) const;
-
-    const OldSegment splitSegment(const Float y);
-    const bool computeIntersectionY(OldSegment* segment, Float& y) const;
-
-    FloatPoint from;
-    FloatPoint to;
-    Float id;
-    Float realSlope;
-    int direction;
-};
-
-inline std::ostream& operator<<(std::ostream& os, const OldSegment& s);
-
-inline bool operator<(const OldSegment& lhs, const OldSegment& rhs);
-inline bool operator==(const OldSegment& lhs, const OldSegment& rhs);
-inline bool operator<=(const OldSegment& lhs, const OldSegment& rhs);
-
-/* OldSegmentList, OldSegmentTree */
-
-typedef std::list<OldSegment> OldSegmentList;
-typedef std::map<const int, OldSegmentList*> OldSegmentTree;
-
-/* OldSegmentApproximator */
-
-class OldSegmentApproximator {
-public:
-    OldSegmentApproximator(const int antiAliasLevel = GD_ANTIALIAS_LEVEL, const Float factor = 1.0);
-    ~OldSegmentApproximator();
-
-    void insertLine(const FloatPoint& from, const FloatPoint& to);
-    void insertQuadCurve(const FloatPoint& from, const FloatPoint& control, const FloatPoint& to);
-    void insertBezierCurve(const FloatPoint& from, const FloatPoint& control1, const FloatPoint& control2, const FloatPoint& to);
-    void insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement, const Transform& transform);
-
-    OldSegmentList* segments();
-    const BoundingBox& boundingBox() const { return _boundingBox; }
-
-    inline void splitSegments();
-    void printSegments();
-
-    const bool quadCurveIsLineSegment(FloatPoint[]);
-    void splitQuadraticCurve(FloatPoint[]);
-
-    const bool curveIsLineSegment(FloatPoint[]);
-    const bool curveIsLineSegment(const FloatPoint& p0, const FloatPoint& p1, const FloatPoint& p2);
-    void splitCubeCurve(FloatPoint[]);
-
-    const int calculateArcSegments(const Float& angle, const Float& radius);
-    void arcToCurve(FloatPoint[], const Float&, const Float&);
-
-    const bool collinear(const FloatPoint& p0, const FloatPoint& p1, const FloatPoint& p2);
-
-    const int kAntiAliasLevel;
-    const Float kTolerance;
-private:
-    void insertSegment(const FloatPoint& from, const FloatPoint& to);
-    OldSegmentList* insertSegmentList(const int y);
-
-    OldSegmentTree _segments;
-
-    BoundingBox _boundingBox;
-};
 
 /* Trapezoid */
 
@@ -148,9 +68,9 @@ inline bool operator<(const Trapezoid& lhs, const Trapezoid& rhs);
 inline bool operator==(const Trapezoid& lhs, const Trapezoid& rhs);
 inline bool operator<=(const Trapezoid& lhs, const Trapezoid& rhs);
 
-/* OldTrapezoidList */
+/* TrapezoidList */
 
-typedef std::list<Trapezoid> OldTrapezoidList;
+typedef std::list<Trapezoid> TrapezoidList;
 
 /* TrapezoidTessellator */
 
@@ -163,8 +83,9 @@ public:
 
     TrapezoidTessellator(PathData&, FillRule = NonZero, int antiAliasingLevel = GD_ANTIALIAS_LEVEL);
 
+    const TrapezoidList trapezoidList(const GepardState& state);
+
     const FillRule fillRule() const { return _fillRule; }
-    const OldTrapezoidList trapezoidList(const GepardState& state);
     const BoundingBox& boundingBox() const { return _boundingBox; }
     const int antiAliasingLevel() const { return _antiAliasingLevel; }
 

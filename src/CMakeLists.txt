@@ -27,6 +27,7 @@
 
 set(COMMON_SOURCES
     engines/gepard-context.cpp
+    engines/path/gepard-old-segment-approximator.cpp
     engines/path/gepard-path.cpp
     engines/path/gepard-segment-approximator.cpp
     engines/path/gepard-segment.cpp

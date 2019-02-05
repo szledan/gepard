@@ -1,5 +1,5 @@
-/* Copyright (C) 2019, Gepard Graphics
- * Copyright (C) 2015-2019, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2018, Gepard Graphics
+ * Copyright (C) 2015-2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,35 +27,164 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#include "gepard-segment-approximator.h"
+#include "gepard-old-segment-approximator.h"
 
 #include "gepard-defs.h"
 #include "gepard-float-point.h"
 #include "gepard-float.h"
 #include "gepard-logging.h"
-#include "gepard-old-segment-approximator.h"
-#include "gepard-segment.h"
 #include "gepard-transform.h"
 #include <cmath>
+#include <cstring>
 #include <list>
 #include <set>
 
 namespace gepard {
 
-SegmentApproximator::SegmentApproximator(const int antiAliasLevel)
+/* Segment */
+
+static unsigned s_segmentIds = 0;
+
+OldSegment::OldSegment(FloatPoint from, FloatPoint to, unsigned sameId, Float slope)
+    : from(from)
+    , to(to)
+    , id((sameId) ? sameId : ++s_segmentIds)
+{
+    Float slopeInv = NAN;
+    Float denom = this->to.y - this->from.y;
+    if (denom) {
+        if (denom < 0) {
+            this->from = to;
+            this->to = from;
+            this->direction = Negative;
+            denom *= -1;
+        } else {
+            this->direction = Positive;
+        }
+
+    } else {
+        this->direction = EqualOrNonExist;
+    }
+    slopeInv = (this->to.x - this->from.x) / (denom);
+
+    realSlope = (std::isnan(slope)) ? slopeInv : slope;
+    GD_ASSERT(!std::isnan(realSlope));
+}
+
+const int OldSegment::topY() const
+{
+    return std::floor(this->from.y);
+}
+
+const int OldSegment::bottomY() const
+{
+    return std::floor(this->to.y);
+}
+
+const Float OldSegment::slopeInv() const
+{
+    return (this->to.x - this->from.x) / (this->to.y - this->from.y);
+}
+
+const Float OldSegment::factor() const
+{
+    return this->slopeInv() * this->from.y - this->from.x;
+}
+
+const bool OldSegment::isOnSegment(const Float y) const
+{
+    return y < this->to.y && y > this->from.y;
+}
+
+const OldSegment OldSegment::splitSegment(const Float y)
+{
+    GD_ASSERT(this->from.y < this->to.y);
+    GD_ASSERT(y > this->from.y && y < this->to.y);
+
+    const Float x = this->slopeInv() * (y - this->from.y) + this->from.x;
+    FloatPoint to = this->to;
+    this->to = FloatPoint(x, y);
+    FloatPoint newPoint = this->to;
+
+    if (this->direction == Negative) {
+        newPoint = to;
+        to = this->to;
+    }
+
+    GD_ASSERT(this->from.y != newPoint.y);
+    GD_ASSERT(newPoint.y != to.y);
+
+    return OldSegment(newPoint, to, this->id, this->realSlope);
+}
+
+const bool OldSegment::computeIntersectionY(OldSegment* segment, Float& y) const
+{
+    if (this == segment)
+        return false;
+
+    GD_ASSERT(this->from.y == segment->from.y);
+    GD_ASSERT(this->to.y == segment->to.y);
+
+    if (this->from.x == segment->from.x) {
+        return true;
+    }
+
+    if (this->to.x == segment->to.x) {
+        return true;
+    }
+
+    Float denom = (this->slopeInv() - segment->slopeInv());
+    y = (this->factor() - segment->factor()) / denom;
+
+    if (std::isnan(y))
+        return false;
+
+    if (!isOnSegment(y)) {
+        y = INFINITY;
+        return false;
+    }
+
+    return true;
+}
+
+std::ostream& operator<<(std::ostream& os, const OldSegment& s)
+{
+    return os << s.from << ((s.direction < 0) ? "<" : ((s.direction > 0) ? ">" : "=")) << s.to;
+}
+
+bool operator<(const OldSegment& lhs, const OldSegment& rhs)
+{
+    GD_ASSERT(lhs.from.y <= lhs.to.y);
+    GD_ASSERT(lhs.from <= lhs.to && rhs.from <= rhs.to);
+    return (lhs.from < rhs.from) || (lhs.from == rhs.from && lhs.to < rhs.to);
+}
+
+bool operator==(const OldSegment& lhs, const OldSegment& rhs)
+{
+    return (lhs.from == rhs.from) && (lhs.to == rhs.to);
+}
+
+bool operator<=(const OldSegment& lhs, const OldSegment& rhs)
+{
+    return (lhs < rhs) || (lhs == rhs);
+}
+
+/* SegmentApproximator */
+
+OldSegmentApproximator::OldSegmentApproximator(const int antiAliasLevel, const Float factor)
     : kAntiAliasLevel(antiAliasLevel > 0 ? antiAliasLevel : GD_ANTIALIAS_LEVEL)
-    , kTolerance(1.0)
+    , kTolerance((factor > 0.0 ? factor : 1.0 ))
 {
 }
 
-SegmentApproximator::~SegmentApproximator()
+OldSegmentApproximator::~OldSegmentApproximator()
 {
     for (OldSegmentTree::iterator it = _segments.begin(); it != _segments.end(); ++it) {
         delete it->second;
     }
 }
 
-void SegmentApproximator::insertLine(const FloatPoint& from, const FloatPoint& to)
+void OldSegmentApproximator::insertLine(const FloatPoint& from, const FloatPoint& to)
 {
     if (from.y == to.y)
         return;
@@ -64,7 +193,7 @@ void SegmentApproximator::insertLine(const FloatPoint& from, const FloatPoint& t
     insertSegment(FloatPoint(from.x * kAntiAliasLevel, std::floor(from.y * kAntiAliasLevel)), FloatPoint(to.x * kAntiAliasLevel, std::floor(to.y * kAntiAliasLevel)));
 }
 
-const bool SegmentApproximator::quadCurveIsLineSegment(FloatPoint points[])
+const bool OldSegmentApproximator::quadCurveIsLineSegment(FloatPoint points[])
 {
     const Float x0 = points[0].x;
     const Float y0 = points[0].y;
@@ -99,7 +228,7 @@ const bool SegmentApproximator::quadCurveIsLineSegment(FloatPoint points[])
     return !(x1 < minX || x1 > maxX || y1 < minY || y1 > maxY);
 }
 
-void SegmentApproximator::splitQuadraticCurve(FloatPoint points[])
+void OldSegmentApproximator::splitQuadraticCurve(FloatPoint points[])
 {
     const FloatPoint a = points[0];
     const FloatPoint b = points[1];
@@ -115,7 +244,7 @@ void SegmentApproximator::splitQuadraticCurve(FloatPoint points[])
     points[4] = c;
 }
 
-void SegmentApproximator::insertQuadCurve(const FloatPoint& from, const FloatPoint& control, const FloatPoint& to)
+void OldSegmentApproximator::insertQuadCurve(const FloatPoint& from, const FloatPoint& control, const FloatPoint& to)
 {
     // De Casteljau algorithm.
     const int kNumberOfParts = 16;
@@ -145,7 +274,7 @@ void SegmentApproximator::insertQuadCurve(const FloatPoint& from, const FloatPoi
     } while (points >= buffer);
 }
 
-const bool SegmentApproximator::curveIsLineSegment(FloatPoint points[])
+const bool OldSegmentApproximator::curveIsLineSegment(FloatPoint points[])
 {
     const Float x0 = points[0].x;
     const Float y0 = points[0].y;
@@ -184,12 +313,12 @@ const bool SegmentApproximator::curveIsLineSegment(FloatPoint points[])
              || x2 < minX || x2 > maxX || y2 < minY || y2 > maxY);
 }
 
-const bool SegmentApproximator::collinear(const FloatPoint& p0, const FloatPoint& p1, const FloatPoint& p2)
+const bool OldSegmentApproximator::collinear(const FloatPoint& p0, const FloatPoint& p1, const FloatPoint& p2)
 {
     return std::fabs((p2.x - p0.x) * (p0.y - p1.y) - (p0.x - p1.x) * (p2.y - p0.y)) <= kTolerance;
 }
 
-const bool SegmentApproximator::curveIsLineSegment(const FloatPoint& p0, const FloatPoint& p1, const FloatPoint& p2)
+const bool OldSegmentApproximator::curveIsLineSegment(const FloatPoint& p0, const FloatPoint& p1, const FloatPoint& p2)
 {
     if (!collinear(p0, p1, p2))
         return false;
@@ -215,7 +344,7 @@ const bool SegmentApproximator::curveIsLineSegment(const FloatPoint& p0, const F
     return !(p1.x < minX || p1.x > maxX || p1.y < minY || p1.y > maxY);
 }
 
-void SegmentApproximator::splitCubeCurve(FloatPoint points[])
+void OldSegmentApproximator::splitCubeCurve(FloatPoint points[])
 {
     const FloatPoint a = points[0];
     const FloatPoint b = points[1];
@@ -237,7 +366,7 @@ void SegmentApproximator::splitCubeCurve(FloatPoint points[])
     points[6] = d;
 }
 
-void SegmentApproximator::insertBezierCurve(const FloatPoint& from, const FloatPoint& control1, const FloatPoint& control2, const FloatPoint& to)
+void OldSegmentApproximator::insertBezierCurve(const FloatPoint& from, const FloatPoint& control1, const FloatPoint& control2, const FloatPoint& to)
 {
     // De Casteljau algorithm.
     const int kNumberOfParts = 16;
@@ -268,7 +397,7 @@ void SegmentApproximator::insertBezierCurve(const FloatPoint& from, const FloatP
     } while (points >= buffer);
 }
 
-const int SegmentApproximator::calculateArcSegments(const Float& angle, const Float& radius)
+const int OldSegmentApproximator::calculateArcSegments(const Float& angle, const Float& radius)
 {
     const Float epsilon = kTolerance / radius;
     Float angleSegment;
@@ -283,7 +412,7 @@ const int SegmentApproximator::calculateArcSegments(const Float& angle, const Fl
     return std::ceil(fabs(angle) / angleSegment);
 }
 
-void SegmentApproximator::arcToCurve(FloatPoint result[], const Float& startAngle, const Float& endAngle)
+void OldSegmentApproximator::arcToCurve(FloatPoint result[], const Float& startAngle, const Float& endAngle)
 {
     const Float sinStartAngle = std::sin(startAngle);
     const Float cosStartAngle = std::cos(startAngle);
@@ -300,7 +429,7 @@ void SegmentApproximator::arcToCurve(FloatPoint result[], const Float& startAngl
     result[2].y = sinEndAngle;
 }
 
-void SegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement, const Transform& globalTransform)
+void OldSegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcElement* arcElement, const Transform& globalTransform)
 {
     Float startAngle = arcElement->startAngle;
     const Float endAngle = arcElement->endAngle;
@@ -339,7 +468,17 @@ void SegmentApproximator::insertArc(const FloatPoint& lastEndPoint, const ArcEle
     }
 }
 
-inline void SegmentApproximator::splitSegments()
+void OldSegmentApproximator::printSegments()
+{
+    for (auto& currentSegments : _segments) {
+        OldSegmentList currentList = *(currentSegments.second);
+        for (OldSegment& segment : currentList) {
+            std::cout << segment << std::endl;
+        }
+    }
+}
+
+inline void OldSegmentApproximator::splitSegments()
 {
     for (OldSegmentTree::iterator currentSegments = _segments.begin(); currentSegments != _segments.end(); ++currentSegments) {
         OldSegmentTree::iterator newSegments = currentSegments;
@@ -360,7 +499,7 @@ inline void SegmentApproximator::splitSegments()
     }
 }
 
-OldSegmentList* SegmentApproximator::segments()
+OldSegmentList* OldSegmentApproximator::segments()
 {
     // Split segments with all y lines.
     splitSegments();
@@ -434,7 +573,7 @@ OldSegmentList* SegmentApproximator::segments()
     return segments;
 }
 
-void SegmentApproximator::insertSegment(const FloatPoint& from, const FloatPoint& to)
+void OldSegmentApproximator::insertSegment(const FloatPoint& from, const FloatPoint& to)
 {
     if (from.y == to.y)
         return;
@@ -453,7 +592,7 @@ void SegmentApproximator::insertSegment(const FloatPoint& from, const FloatPoint
     insertSegmentList(bottomY);
 }
 
-OldSegmentList* SegmentApproximator::insertSegmentList(const int y)
+OldSegmentList* OldSegmentApproximator::insertSegmentList(const int y)
 {
     return _segments[y] ? _segments[y] : _segments[y] = new OldSegmentList();
 }

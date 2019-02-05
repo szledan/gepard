@@ -1,5 +1,5 @@
-# Copyright (C) 2016-2018, Gepard Graphics
-# Copyright (C) 2016-2018, Szilard Ledan <szledan@gmail.com>
+# Copyright (C) 2016-2019, Gepard Graphics
+# Copyright (C) 2016-2019, Szilard Ledan <szledan@gmail.com>
 # Copyright (C) 2016-2018, Dániel Bátyai <dbatyai@inf.u-szeged.hu>
 # All rights reserved.
 #
@@ -25,6 +25,7 @@
 
 set(SOURCES
     gepard-unit-main.cpp
+    ${PROJECT_SOURCE_DIR}/src/engines/path/gepard-old-segment-approximator.cpp
     ${PROJECT_SOURCE_DIR}/src/engines/path/gepard-path.cpp
     ${PROJECT_SOURCE_DIR}/src/engines/path/gepard-segment-approximator.cpp
     ${PROJECT_SOURCE_DIR}/src/engines/path/gepard-segment.cpp

@@ -31,6 +31,7 @@
 #include "gepard-float.h"
 #include "gepard-line-types.h"
 #include "gepard-path.h"
+#include "gepard-old-segment-approximator.h"
 #include "gepard-trapezoid-tessellator.h"
 
 namespace gepard {

@@ -223,7 +223,7 @@ void GepardGLES2::fillPath(PathData* pathData, const GepardState& state)
         return;
 
     TrapezoidTessellator tt(*pathData, TrapezoidTessellator::FillRule::NonZero);
-    const OldTrapezoidList trapezoidList = tt.trapezoidList(state);
+    const TrapezoidList trapezoidList = tt.trapezoidList(state);
 
     const Color& fillColor = state.fillColor;
     const uint32_t width = _context.surface->width();

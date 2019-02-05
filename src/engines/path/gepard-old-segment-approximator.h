@@ -1,5 +1,5 @@
-/* Copyright (C) 2019, Gepard Graphics
- * Copyright (C) 2019, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2018, Gepard Graphics
+ * Copyright (C) 2015-2018, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,65 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#ifndef GEPARD_SEGMENT_APPROXIMATOR_H
-#define GEPARD_SEGMENT_APPROXIMATOR_H
+#ifndef GEPARD_OLD_SEGMENT_APPROXIMATOR_H
+#define GEPARD_OLD_SEGMENT_APPROXIMATOR_H
 
+#include "gepard-bounding-box.h"
 #include "gepard-defs.h"
 #include "gepard-float-point.h"
 #include "gepard-float.h"
+#include "gepard-line-types.h"
 #include "gepard-path.h"
-#include "gepard-segment.h"
-#include "gepard-old-segment-approximator.h"
-#include "gepard-transform.h"
-#include "gepard-trapezoid-container.h"
+#include "gepard-state.h"
 #include <list>
 #include <map>
-#include <vector>
 
 namespace gepard {
 
-class SegmentApproximator {
+/* OldSegment */
+
+struct OldSegment {
+    enum {
+        Negative = -1,
+        EqualOrNonExist = 0,
+        Positive = 1,
+    };
+
+    OldSegment(FloatPoint from, FloatPoint to, unsigned sameId = 0, Float slope = NAN);
+
+    const int topY() const;
+    const int bottomY() const;
+    const Float slopeInv() const;
+    const Float factor() const;
+    const bool isOnSegment(const Float y) const;
+
+    const OldSegment splitSegment(const Float y);
+    const bool computeIntersectionY(OldSegment* segment, Float& y) const;
+
+    FloatPoint from;
+    FloatPoint to;
+    Float id;
+    Float realSlope;
+    int direction;
+};
+
+inline std::ostream& operator<<(std::ostream& os, const OldSegment& s);
+
+inline bool operator<(const OldSegment& lhs, const OldSegment& rhs);
+inline bool operator==(const OldSegment& lhs, const OldSegment& rhs);
+inline bool operator<=(const OldSegment& lhs, const OldSegment& rhs);
+
+/* OldSegmentList, OldSegmentTree */
+
+typedef std::list<OldSegment> OldSegmentList;
+typedef std::map<const int, OldSegmentList*> OldSegmentTree;
+
+/* OldSegmentApproximator */
+
+class OldSegmentApproximator {
 public:
-    SegmentApproximator(const int antiAliasLevel = GD_ANTIALIAS_LEVEL);
-    ~SegmentApproximator();
+    OldSegmentApproximator(const int antiAliasLevel = GD_ANTIALIAS_LEVEL, const Float factor = 1.0);
+    ~OldSegmentApproximator();
 
     void insertLine(const FloatPoint& from, const FloatPoint& to);
     void insertQuadCurve(const FloatPoint& from, const FloatPoint& control, const FloatPoint& to);
@@ -58,6 +96,7 @@ public:
     const BoundingBox& boundingBox() const { return _boundingBox; }
 
     inline void splitSegments();
+    void printSegments();
 
     const bool quadCurveIsLineSegment(FloatPoint[]);
     void splitQuadraticCurve(FloatPoint[]);
@@ -78,11 +117,10 @@ private:
     OldSegmentList* insertSegmentList(const int y);
 
     OldSegmentTree _segments;
-    BoundingBox _boundingBox;
 
-    TrapezoidContainer _trapezoids;
+    BoundingBox _boundingBox;
 };
 
 } // namespace gepard
 
-#endif // GEPARD_SEGMENT_APPROXIMATOR_H
+#endif // GEPARD_OLD_SEGMENT_APPROXIMATOR_H
