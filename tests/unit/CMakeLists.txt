@@ -25,9 +25,9 @@
 
 set(SOURCES
     gepard-unit-main.cpp
-    ${PROJECT_SOURCE_DIR}/src/engines/gepard-path.cpp
-    ${PROJECT_SOURCE_DIR}/src/engines/gepard-segment-approximator.cpp
-    ${PROJECT_SOURCE_DIR}/src/engines/gepard-segment.cpp
+    ${PROJECT_SOURCE_DIR}/src/engines/path/gepard-path.cpp
+    ${PROJECT_SOURCE_DIR}/src/engines/path/gepard-segment-approximator.cpp
+    ${PROJECT_SOURCE_DIR}/src/engines/path/gepard-segment.cpp
     ${PROJECT_SOURCE_DIR}/src/utils/gepard-bounding-box.cpp
     ${PROJECT_SOURCE_DIR}/src/utils/gepard-float-point.cpp
     ${PROJECT_SOURCE_DIR}/src/utils/gepard-job-runner.cpp
@@ -40,6 +40,7 @@ set(SOURCES
 set(COMMON_INCLUDE_DIRS
     ${PROJECT_SOURCE_DIR}/src/utils
     ${PROJECT_SOURCE_DIR}/src/engines
+    ${PROJECT_SOURCE_DIR}/src/engines/path
 )
 
 add_executable(unittest ${SOURCES})

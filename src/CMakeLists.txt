@@ -27,10 +27,12 @@
 
 set(COMMON_SOURCES
     engines/gepard-context.cpp
-    engines/gepard-path.cpp
-    engines/gepard-stroke-builder.cpp
-    engines/gepard-trapezoid-container.cpp
-    engines/gepard-trapezoid-tessellator.cpp
+    engines/path/gepard-path.cpp
+    engines/path/gepard-segment-approximator.cpp
+    engines/path/gepard-segment.cpp
+    engines/path/gepard-stroke-builder.cpp
+    engines/path/gepard-trapezoid-container.cpp
+    engines/path/gepard-trapezoid-tessellator.cpp
     gepard.cpp
     gepard-engine.cpp
     gepard-image.cpp
@@ -66,6 +68,7 @@ set(SOFTWARE_SOURCES
 set(COMMON_INCLUDE_DIRS
     .
     engines
+    engines/path
     surfaces
     utils
 )

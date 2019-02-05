@@ -32,9 +32,9 @@
 #include "gepard-job-scheduler-tests.h"
 #include "gepard-path-tests.h"
 #include "gepard-region-tests.h"
-#include "gepard-segment-approximator-tests.h"
-#include "gepard-segment-tests.h"
 #include "gepard-vec4-tests.h"
+#include "path/gepard-segment-approximator-tests.h"
+#include "path/gepard-segment-tests.h"
 
 int main(int argc, char* argv[])
 {
