@@ -37,6 +37,7 @@ set(COMMON_SOURCES
     gepard.cpp
     gepard-engine.cpp
     gepard-image.cpp
+    utils/gepard-binary-trees.cpp
     utils/gepard-bounding-box.cpp
     utils/gepard-color.cpp
     utils/gepard-float-point.cpp
