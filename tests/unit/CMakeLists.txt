@@ -29,7 +29,6 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/engines/path/gepard-path.cpp
     ${PROJECT_SOURCE_DIR}/src/engines/path/gepard-segment-approximator.cpp
     ${PROJECT_SOURCE_DIR}/src/engines/path/gepard-segment.cpp
-    ${PROJECT_SOURCE_DIR}/src/utils/gepard-binary-trees.cpp
     ${PROJECT_SOURCE_DIR}/src/utils/gepard-bounding-box.cpp
     ${PROJECT_SOURCE_DIR}/src/utils/gepard-float-point.cpp
     ${PROJECT_SOURCE_DIR}/src/utils/gepard-job-runner.cpp

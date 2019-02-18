@@ -83,7 +83,7 @@ TEST(BinaryTree, CompareToSTDMultimap)
         std::make_pair(10, [](){ static int64_t counter = 10; return TestData(counter--); }),
         std::make_pair(100, [](){ static int64_t counter = 0; return TestData(counter++); }),
         std::make_pair(100, [](){ static int64_t counter = 100; return TestData(counter--); }),
-        std::make_pair(1 << 16, [](){ static int64_t counter = 1 << 16; return TestData(((counter % 2) ? -1 : 1) * (--counter)); }),
+        std::make_pair(1 << 8, [](){ static int64_t counter = 1 << 8; return TestData(((counter % 2) ? -1 : 1) * (--counter)); }),
         std::make_pair(100, [](){ return TestData(1); }),
         std::make_pair(100, [](){ static int64_t counter = 0; return TestData(++counter % 5); }),
         std::make_pair(1 << 16, [](){ static int64_t counter = (1 << 16) / 2; static int pwr = 1, times = 1;
@@ -102,7 +102,7 @@ TEST(BinaryTree, CompareToSTDMultimap)
 
         auto refStart = std::chrono::high_resolution_clock::now();
         for (size_t i = 0; i < data.size(); ++i) {
-            refTree.emplace(data[i], i);
+            refTree.emplace(data[i], 0);
         }
         auto refDuration = std::chrono::high_resolution_clock::now() - refStart;
 
@@ -112,15 +112,16 @@ TEST(BinaryTree, CompareToSTDMultimap)
         }
         auto binaryDuration = std::chrono::high_resolution_clock::now() - binaryStart;
 
-        EXPECT_EQ(binaryTree.size(), refTree.size());
-        EXPECT_LT(binaryDuration, refDuration);
+        EXPECT_EQ(binaryTree.size(), refTree.size()) << f;
+        if (functions[f].first > (1 << 5))
+            EXPECT_LT(binaryDuration, refDuration) << f;
 //        std::cout << "binaryDuration / refDuration : " << double(binaryDuration.count()) / double(refDuration.count()) << std::endl;
 
         std::multimap<TestData, size_t>::iterator rit = refTree.begin();
         gepard::BinaryTree<TestData>::iterator it = binaryTree.begin(), pit = binaryTree.begin();
         while (it != binaryTree.end() && rit != refTree.end()) {
-            EXPECT_EQ(it->data, rit->first);
-            EXPECT_LE(pit->data, it->data);
+            EXPECT_EQ(it->data, rit->first) << f;
+            EXPECT_LE(pit->data, it->data) << f;
             pit = it++; ++rit;
         }
     }
