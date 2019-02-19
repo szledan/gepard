@@ -32,6 +32,7 @@
 #include <chrono>
 #include <functional>
 #include <map>
+#include <set>
 #include <utility>
 #include <vector>
 
@@ -63,7 +64,7 @@ struct TestData {
     }
     friend bool operator==(const TestData& lhs, const TestData& rhs)
     {
-        return lhs.value == rhs.value && lhs.uid == rhs.uid;
+        return lhs.value == rhs.value;
     }
 };
 int64_t TestData::s_uid = 0;
@@ -74,55 +75,135 @@ std::ostream& operator<<(std::ostream& os, const TestData& obj)
     return os;
 }
 
+struct {
+    size_t count;
+    std::function<TestData()> func;
+} s_fillStrategys[] = {
+    { 1, [](){ static int64_t counter = 0; return TestData(counter++); } },
+    { 1, [](){ static int64_t counter = 10; return TestData(counter--); } },
+    { 10, [](){ static int64_t counter = 0; return TestData(counter++); } },
+    { 10, [](){ static int64_t counter = 10; return TestData(counter--); } },
+    { 100, [](){ static int64_t counter = 0; return TestData(counter++); } },
+    { 100, [](){ static int64_t counter = 100; return TestData(counter--); } },
+    { 1 << 8, [](){ static int64_t counter = 1 << 8; return TestData(((counter % 2) ? -1 : 1) * (--counter)); } },
+    { 100, [](){ return TestData(1); } },
+    { 100, [](){ static int64_t counter = 0; return TestData(++counter % 5); } },
+    { 1 << 20, [](){ static int64_t counter = (1 << 20) / 2; static int pwr = 1, times = 1;
+        if (!times) {
+                counter = counter / 2;
+                times = pwr = pwr << 1;
+            }
+            return TestData(counter + 2 * counter * --times);
+        } },
+};
+
 TEST(BinaryTree, CompareToSTDMultimap)
 {
-    std::vector<std::pair<size_t, std::function<TestData()>>> functions = {
-        std::make_pair(1, [](){ static int64_t counter = 0; return TestData(counter++); }),
-        std::make_pair(1, [](){ static int64_t counter = 10; return TestData(counter--); }),
-        std::make_pair(10, [](){ static int64_t counter = 0; return TestData(counter++); }),
-        std::make_pair(10, [](){ static int64_t counter = 10; return TestData(counter--); }),
-        std::make_pair(100, [](){ static int64_t counter = 0; return TestData(counter++); }),
-        std::make_pair(100, [](){ static int64_t counter = 100; return TestData(counter--); }),
-        std::make_pair(1 << 8, [](){ static int64_t counter = 1 << 8; return TestData(((counter % 2) ? -1 : 1) * (--counter)); }),
-        std::make_pair(100, [](){ return TestData(1); }),
-        std::make_pair(100, [](){ static int64_t counter = 0; return TestData(++counter % 5); }),
-        std::make_pair(1 << 16, [](){ static int64_t counter = (1 << 16) / 2; static int pwr = 1, times = 1;
-            if (!times) {
-                    counter = counter / 2;
-                    times = pwr = pwr << 1;
-                }
-                return TestData(counter + 2 * counter * --times);
-            }),
-    };
+    for (size_t f = 0; f < sizeof(s_fillStrategys) / sizeof(s_fillStrategys[0]); ++f) {
+        std::vector<TestData> data = fillVector(s_fillStrategys[f].count, s_fillStrategys[f].func);
 
-    for (size_t f = 0; f < functions.size(); ++f) {
-        std::vector<TestData> data = fillVector(functions[f].first, functions[f].second);
-        std::multimap<TestData, size_t> refTree;
-        gepard::BinaryTree<TestData> binaryTree;
+        {
+            std::multiset<TestData> refMultiSet;
+            auto refStart = std::chrono::high_resolution_clock::now();
+            for (size_t i = 0; i < data.size(); ++i) {
+                refMultiSet.emplace(data[i]);
+            }
+            auto refDuration = std::chrono::high_resolution_clock::now() - refStart;
 
-        auto refStart = std::chrono::high_resolution_clock::now();
-        for (size_t i = 0; i < data.size(); ++i) {
-            refTree.emplace(data[i], 0);
+            gepard::AVLTree<TestData> avlTree;
+            auto avlStart = std::chrono::high_resolution_clock::now();
+            for (size_t i = 0; i < data.size(); ++i) {
+                avlTree.multiInsert(data[i]);
+            }
+            auto avlDuration = std::chrono::high_resolution_clock::now() - avlStart;
+
+            gepard::Set<TestData> multiSet;
+            auto binaryStart = std::chrono::high_resolution_clock::now();
+            for (size_t i = 0; i < data.size(); ++i) {
+                multiSet.multiInsert(data[i]);
+            }
+            auto binaryDuration = std::chrono::high_resolution_clock::now() - binaryStart;
+
+            EXPECT_EQ(multiSet.size(), refMultiSet.size()) << f;
+            EXPECT_EQ(avlTree.size(), refMultiSet.size()) << f;
+            std::cout << "fillStrategy: " << f
+                      << " count: " << s_fillStrategys[f].count
+                      << " MultiSet: binaryDuration / refDuration = " << double(binaryDuration.count()) / double(refDuration.count())
+                      << " AVL: avlDuration / refDuration = " << double(avlDuration.count()) / double(refDuration.count()) << std::endl;
+
+            std::multiset<TestData>::iterator refIt = refMultiSet.begin();
+            gepard::Set<TestData>::iterator avlIt = avlTree.begin(), avlPIt = avlTree.begin();
+            gepard::Set<TestData>::iterator multiSetIt = multiSet.begin(), multiSetPIt = multiSet.begin();
+            while (multiSetIt != multiSet.end() && avlIt != avlTree.end() && refIt != refMultiSet.end()) {
+                EXPECT_EQ(avlIt->data, *refIt) << f;
+                EXPECT_LE(avlPIt->data, avlIt->data) << f;
+
+                EXPECT_EQ(multiSetIt->data, *refIt) << f;
+                EXPECT_LE(multiSetPIt->data, multiSetIt->data) << f;
+
+                ++refIt;
+                avlPIt = avlIt++;
+                multiSetPIt = multiSetIt++;
+            }
         }
-        auto refDuration = std::chrono::high_resolution_clock::now() - refStart;
 
-        auto binaryStart = std::chrono::high_resolution_clock::now();
-        for (size_t i = 0; i < data.size(); ++i) {
-            binaryTree.insert(data[i]);
-        }
-        auto binaryDuration = std::chrono::high_resolution_clock::now() - binaryStart;
+        {
+            std::map<TestData, char> refMap;
+            auto refStart = std::chrono::high_resolution_clock::now();
+            for (size_t i = 0; i < data.size(); ++i) {
+                refMap.emplace(data[i], 0);
+            }
+            auto refDuration = std::chrono::high_resolution_clock::now() - refStart;
 
-        EXPECT_EQ(binaryTree.size(), refTree.size()) << f;
-        if (functions[f].first > (1 << 5))
-            EXPECT_LT(binaryDuration, refDuration) << f;
-//        std::cout << "binaryDuration / refDuration : " << double(binaryDuration.count()) / double(refDuration.count()) << std::endl;
+            gepard::AVLTree<TestData> avlTree;
+            auto avlStart = std::chrono::high_resolution_clock::now();
+            for (size_t i = 0; i < data.size(); ++i) {
+                avlTree.uniqueInsert(data[i]);
+            }
+            auto avlDuration = std::chrono::high_resolution_clock::now() - avlStart;
 
-        std::multimap<TestData, size_t>::iterator rit = refTree.begin();
-        gepard::BinaryTree<TestData>::iterator it = binaryTree.begin(), pit = binaryTree.begin();
-        while (it != binaryTree.end() && rit != refTree.end()) {
-            EXPECT_EQ(it->data, rit->first) << f;
-            EXPECT_LE(pit->data, it->data) << f;
-            pit = it++; ++rit;
+            gepard::Set<TestData> set;
+            auto binaryStart = std::chrono::high_resolution_clock::now();
+            for (size_t i = 0; i < data.size(); ++i) {
+                set.uniqueInsert(data[i]);
+            }
+            auto binaryDuration = std::chrono::high_resolution_clock::now() - binaryStart;
+
+            gepard::_LinkedBinaryTree<TestData> linkedMap;
+            auto linkedStart = std::chrono::high_resolution_clock::now();
+            for (size_t i = 0; i < data.size(); ++i) {
+                linkedMap.uniqueInsert(data[i]);
+            }
+            auto linkedDuration = std::chrono::high_resolution_clock::now() - linkedStart;
+
+            EXPECT_EQ(set.size(), refMap.size()) << f;
+            EXPECT_EQ(avlTree.size(), refMap.size()) << f;
+            EXPECT_EQ(linkedMap.size(), refMap.size()) << f;
+            std::cout << "fillStrategy: " << f
+                      << " count: " << s_fillStrategys[f].count
+                      << " Set: binaryDuration / refDuration = " << double(binaryDuration.count()) / double(refDuration.count())
+                      << " AVL: avlDuration / refDuration = " << double(avlDuration.count()) / double(refDuration.count())
+                      << " Linked: linkedDuration / refDuration = " << double(linkedDuration.count()) / double(refDuration.count()) << std::endl;
+
+            std::map<TestData, char>::iterator refIt = refMap.begin();
+            gepard::Set<TestData>::iterator avlIt = avlTree.begin(), avlPIt = avlTree.begin();
+            gepard::Set<TestData>::iterator setIt = set.begin(), setPIt = set.begin();
+            gepard::_LinkedBinaryTree<TestData>::iterator linkedIt = linkedMap.begin(), linkedPIt = linkedMap.begin();
+            while (refIt != refMap.end() && avlIt != avlTree.end() && setIt != set.end() && linkedIt != linkedMap.end()) {
+                EXPECT_EQ(avlIt->data, refIt->first) << f;
+                EXPECT_LE(avlPIt->data, avlIt->data) << f;
+
+                EXPECT_EQ(setIt->data, refIt->first) << f;
+                EXPECT_LE(setPIt->data, setIt->data) << f;
+
+//                EXPECT_EQ(linkedIt->data, refIt->first) << f;
+//                EXPECT_LE(linkedPIt->data, linkedIt->data) << f;
+
+                ++refIt;
+                avlPIt = avlIt++;
+                setPIt = setIt++;
+                linkedPIt = linkedIt++;
+            }
         }
     }
 }

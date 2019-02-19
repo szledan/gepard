@@ -104,9 +104,9 @@ private:
         uint8_t value[BLOCK_SIZE];
     };
 
-    RegionElement* _first;
-    RegionElement* _last;
-    uint32_t _fill;
+    RegionElement* _first = nullptr;
+    RegionElement* _last = nullptr;
+    uint32_t _fill = 0;
 };
 
 } // namespace gepard
