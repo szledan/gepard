@@ -50,31 +50,33 @@ const std::vector<T> fillVector(const int64_t count, const std::function<T()> co
 }
 
 struct TestData {
-    static int64_t s_callConstructor;
-    static int64_t s_callCopyAssignmentOp;
-    static int64_t s_callCopyConstructor;
-    static int64_t s_callDestructor;
-    static int64_t s_callMoveAssignmentOp;
-    static int64_t s_callMoveConstructor;
+    struct Stats {
+        int64_t callConstructor = 0;
+        int64_t callCopyAssignmentOp = 0;
+        int64_t callCopyConstructor = 0;
+        int64_t callDestructor = 0;
+        int64_t callMoveAssignmentOp = 0;
+        int64_t callMoveConstructor = 0;
+        void resetCounters()
+        {
+            callConstructor = 0;
+            callCopyAssignmentOp = 0;
+            callCopyConstructor = 0;
+            callDestructor = 0;
+            callMoveAssignmentOp = 0;
+            callMoveConstructor = 0;
+        }
+    } static s_stats;
+#define TEST_STATS(C, CA, CC, D, MA, MC) EXPECT_EQ(TestData::s_stats.callConstructor, (C)); EXPECT_EQ(TestData::s_stats.callCopyAssignmentOp, (CA)); EXPECT_EQ(TestData::s_stats.callCopyConstructor, (CC)); EXPECT_EQ(TestData::s_stats.callDestructor, (D)); EXPECT_EQ(TestData::s_stats.callMoveAssignmentOp, (MA)); EXPECT_EQ(TestData::s_stats.callMoveConstructor, (MC));
+
     static int64_t s_uid;
     int64_t uid;
     int64_t value;
 
-    static void resetCounters()
-    {
-        TestData::s_callConstructor = 0;
-        TestData::s_callCopyAssignmentOp = 0;
-        TestData::s_callCopyConstructor = 0;
-        TestData::s_callDestructor = 0;
-        TestData::s_callMoveAssignmentOp = 0;
-        TestData::s_callMoveConstructor = 0;
-        TestData::s_uid = 0;
-    }
-
-    TestData(const int64_t v = 0) : uid(getUId()), value(v) { s_callConstructor++; }
-    TestData(const TestData& other) : uid(getUId()), value(other.value) { s_callCopyConstructor++; }
-    TestData(TestData&& other) : uid(std::move(other.uid)), value(std::move(other.value)) { s_callMoveConstructor++; }
-    ~TestData() { s_callDestructor++; }
+    TestData(const int64_t v = 0) : uid(getUId()), value(v) { s_stats.callConstructor++; }
+    TestData(const TestData& other) : uid(getUId()), value(other.value) { s_stats.callCopyConstructor++; }
+    TestData(TestData&& other) : uid(std::move(other.uid)), value(std::move(other.value)) { s_stats.callMoveConstructor++; }
+    ~TestData() { s_stats.callDestructor++; }
 
     friend bool operator<(const TestData& lhs, const TestData& rhs)
     {
@@ -98,7 +100,7 @@ struct TestData {
 
     TestData& operator=(TestData&& other)
     {
-        s_callMoveAssignmentOp++;
+        s_stats.callMoveAssignmentOp++;
         this->uid = std::move(other.uid);
         this->value = std::move(other.value);
         return *this;
@@ -106,7 +108,7 @@ struct TestData {
 
     TestData& operator=(TestData& other)
     {
-        s_callCopyAssignmentOp++;
+        s_stats.callCopyAssignmentOp++;
         this->uid = getUId();
         this->value = other.value;
         return *this;
@@ -114,7 +116,7 @@ struct TestData {
 
     const TestData& operator=(const TestData& other)
     {
-        s_callCopyAssignmentOp++;
+        s_stats.callCopyAssignmentOp++;
         this->value = other.value;
         this->uid = getUId();
         return *this;
@@ -123,12 +125,7 @@ struct TestData {
 private:
     const int64_t getUId() { return ++s_uid; }
 };
-int64_t TestData::s_callConstructor = 0;
-int64_t TestData::s_callCopyAssignmentOp = 0;
-int64_t TestData::s_callCopyConstructor = 0;
-int64_t TestData::s_callDestructor = 0;
-int64_t TestData::s_callMoveAssignmentOp = 0;
-int64_t TestData::s_callMoveConstructor = 0;
+TestData::Stats TestData::s_stats;
 int64_t TestData::s_uid = 0;
 
 std::ostream& operator<<(std::ostream& os, const TestData& obj)
@@ -150,7 +147,7 @@ struct {
     { 1 << 8, [](){ static int64_t counter = 1 << 8; return TestData(((counter % 2) ? -1 : 1) * (--counter)); } },
     { 100, [](){ return TestData(1); } },
     { 100, [](){ static int64_t counter = 0; return TestData(++counter % 5); } },
-    { 1 << 20, [](){ static int64_t counter = (1 << 20) / 2; static int pwr = 1, times = 1;
+    { 1 << 16, [](){ static int64_t counter = (1 << 20) / 2; static int pwr = 1, times = 1;
         if (!times) {
                 counter = counter / 2;
                 times = pwr = pwr << 1;
@@ -236,190 +233,178 @@ TEST(_LinkedBinaryTree, Iterator)
         mItPrev = mIt++;
     }
 }
+
 TEST(_LinkedBinaryTree, UniqueInsert)
 {
-    TestData::resetCounters();
-    TestData a(1);
-    EXPECT_EQ(TestData::s_callConstructor, 1);
-    EXPECT_EQ(TestData::s_callCopyAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callCopyConstructor, 0);
-    EXPECT_EQ(TestData::s_callDestructor, 0);
-    EXPECT_EQ(TestData::s_callMoveAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callMoveConstructor, 0);
+    TestData::s_stats.resetCounters();
+    TestData td(1);
+    TEST_STATS(1, 0, 0, 0, 0, 0);
 
     gepard::_LinkedBinaryTree<TestData> linkedBinaryTree;
 
-    linkedBinaryTree.uniqueInsert(a);
+    linkedBinaryTree.uniqueInsert(td);
     EXPECT_EQ(linkedBinaryTree.size(), 1u);
-    EXPECT_EQ(TestData::s_callConstructor, 1);
-    EXPECT_EQ(TestData::s_callCopyAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callCopyConstructor, 1);
-    EXPECT_EQ(TestData::s_callDestructor, 0);
-    EXPECT_EQ(TestData::s_callMoveAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callMoveConstructor, 0);
+    TEST_STATS(1, 0, 1, 0, 0, 0);
 
-    linkedBinaryTree.uniqueInsert(a);
+    linkedBinaryTree.uniqueInsert(td);
     EXPECT_EQ(linkedBinaryTree.size(), 1u);
-    EXPECT_EQ(TestData::s_callConstructor, 1);
-    EXPECT_EQ(TestData::s_callCopyAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callCopyConstructor, 1);
-    EXPECT_EQ(TestData::s_callDestructor, 0);
-    EXPECT_EQ(TestData::s_callMoveAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callMoveConstructor, 0);
+    TEST_STATS(1, 0, 1, 0, 0, 0);
 
     linkedBinaryTree.uniqueInsert(TestData(2));
     EXPECT_EQ(linkedBinaryTree.size(), 2u);
-    EXPECT_EQ(TestData::s_callConstructor, 2);
-    EXPECT_EQ(TestData::s_callCopyAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callCopyConstructor, 2);
-    EXPECT_EQ(TestData::s_callDestructor, 1);
-    EXPECT_EQ(TestData::s_callMoveAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callMoveConstructor, 0);
+    TEST_STATS(2, 0, 2, 1, 0, 0);
 
     linkedBinaryTree.uniqueInsert(TestData(2));
     EXPECT_EQ(linkedBinaryTree.size(), 2u);
-    EXPECT_EQ(TestData::s_callConstructor, 3);
-    EXPECT_EQ(TestData::s_callCopyAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callCopyConstructor, 2);
-    EXPECT_EQ(TestData::s_callDestructor, 2);
-    EXPECT_EQ(TestData::s_callMoveAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callMoveConstructor, 0);
+    TEST_STATS(3, 0, 2, 2, 0, 0);
 
     linkedBinaryTree.uniqueInsert(TestData(3));
     EXPECT_EQ(linkedBinaryTree.size(), 3u);
-    EXPECT_EQ(TestData::s_callConstructor, 4);
-    EXPECT_EQ(TestData::s_callCopyAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callCopyConstructor, 3);
-    EXPECT_EQ(TestData::s_callDestructor, 3);
-    EXPECT_EQ(TestData::s_callMoveAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callMoveConstructor, 0);
+    TEST_STATS(4, 0, 3, 3, 0, 0);
 }
 
 TEST(_LinkedBinaryTree, MultiInsert)
 {
-    TestData::resetCounters();
-    TestData a(1);
-    EXPECT_EQ(TestData::s_callConstructor, 1);
-    EXPECT_EQ(TestData::s_callCopyAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callCopyConstructor, 0);
-    EXPECT_EQ(TestData::s_callDestructor, 0);
-    EXPECT_EQ(TestData::s_callMoveAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callMoveConstructor, 0);
+    TestData::s_stats.resetCounters();
+    TestData td(1);
+    TEST_STATS(1, 0, 0, 0, 0, 0);
 
     gepard::_LinkedBinaryTree<TestData> linkedBinaryTree;
 
-    linkedBinaryTree.multiInsert(a);
+    linkedBinaryTree.multiInsert(td);
     EXPECT_EQ(linkedBinaryTree.size(), 1u);
-    EXPECT_EQ(TestData::s_callConstructor, 1);
-    EXPECT_EQ(TestData::s_callCopyAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callCopyConstructor, 1);
-    EXPECT_EQ(TestData::s_callDestructor, 0);
-    EXPECT_EQ(TestData::s_callMoveAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callMoveConstructor, 0);
+    TEST_STATS(1, 0, 1, 0, 0, 0);
 
-    linkedBinaryTree.multiInsert(a);
+    linkedBinaryTree.multiInsert(td);
     EXPECT_EQ(linkedBinaryTree.size(), 2u);
-    EXPECT_EQ(TestData::s_callConstructor, 1);
-    EXPECT_EQ(TestData::s_callCopyAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callCopyConstructor, 2);
-    EXPECT_EQ(TestData::s_callDestructor, 0);
-    EXPECT_EQ(TestData::s_callMoveAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callMoveConstructor, 0);
+    TEST_STATS(1, 0, 2, 0, 0, 0);
 
     linkedBinaryTree.multiInsert(TestData(2));
     EXPECT_EQ(linkedBinaryTree.size(), 3u);
-    EXPECT_EQ(TestData::s_callConstructor, 2);
-    EXPECT_EQ(TestData::s_callCopyAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callCopyConstructor, 3);
-    EXPECT_EQ(TestData::s_callDestructor, 1);
-    EXPECT_EQ(TestData::s_callMoveAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callMoveConstructor, 0);
+    TEST_STATS(2, 0, 3, 1, 0, 0);
 
     linkedBinaryTree.multiInsert(TestData(2));
     EXPECT_EQ(linkedBinaryTree.size(), 4u);
-    EXPECT_EQ(TestData::s_callConstructor, 3);
-    EXPECT_EQ(TestData::s_callCopyAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callCopyConstructor, 4);
-    EXPECT_EQ(TestData::s_callDestructor, 2);
-    EXPECT_EQ(TestData::s_callMoveAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callMoveConstructor, 0);
+    TEST_STATS(3, 0, 4, 2, 0, 0);
 
     linkedBinaryTree.multiInsert(TestData(3));
     EXPECT_EQ(linkedBinaryTree.size(), 5u);
-    EXPECT_EQ(TestData::s_callConstructor, 4);
-    EXPECT_EQ(TestData::s_callCopyAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callCopyConstructor, 5);
-    EXPECT_EQ(TestData::s_callDestructor, 3);
-    EXPECT_EQ(TestData::s_callMoveAssignmentOp, 0);
-    EXPECT_EQ(TestData::s_callMoveConstructor, 0);
+    TEST_STATS(4, 0, 5, 3, 0, 0);
 }
 
-TEST(BinaryTree, DISABLED_CompareToSTDMultimap)
+TEST(_LinkedBinaryTree, Find)
+{
+    TestData::s_stats.resetCounters();
+    TestData td(1);
+    TEST_STATS(1, 0, 0, 0, 0, 0);
+
+    gepard::_LinkedBinaryTree<TestData> linkedBinaryTree;
+    EXPECT_EQ(linkedBinaryTree.find(td), linkedBinaryTree.end());
+    TEST_STATS(1, 0, 0, 0, 0, 0);
+
+    td.value = 2;
+    linkedBinaryTree.multiInsert(td);
+    td.value = -3;
+    linkedBinaryTree.multiInsert(td);
+    td.value = 4;
+    linkedBinaryTree.multiInsert(td);
+    EXPECT_EQ(linkedBinaryTree.find(td)->data, TestData(4));
+    TEST_STATS(2, 0, 3, 1, 0, 0);
+
+    EXPECT_EQ(linkedBinaryTree.find(TestData(-3))->data, linkedBinaryTree.begin()->data);
+    TEST_STATS(3, 0, 3, 2, 0, 0);
+}
+
+TEST(Map, Insert)
+{
+    TestData::s_stats.resetCounters();
+    gepard::Map<int, TestData> map;
+    TEST_STATS(1, 0, 0, 0, 0, 0);
+
+    TestData td(2);
+    map.insert(1)->value = td;
+    EXPECT_EQ(map.size(), 1u);
+    TEST_STATS(2, 1, 1, 0, 0, 0);
+    EXPECT_EQ(map[1], td);
+    EXPECT_EQ(map.size(), 1u);
+    TEST_STATS(2, 1, 1, 0, 0, 0);
+    td.value = 3;
+    EXPECT_EQ(map[1], TestData(2));
+    EXPECT_EQ(map.size(), 1u);
+    TEST_STATS(3, 1, 1, 1, 0, 0);
+    map[4] = td;
+    EXPECT_EQ(map[4], td);
+    EXPECT_EQ(map.size(), 2u);
+    TEST_STATS(3, 2, 2, 1, 0, 0);
+}
+
+TEST(Map, CompareSTDMap)
+{
+    for (size_t f = 0; f < sizeof(s_fillStrategys) / sizeof(s_fillStrategys[0]); ++f) {
+        std::vector<TestData> data = fillVector(s_fillStrategys[f].count, s_fillStrategys[f].func);
+        std::stringstream mapTestLog;
+        mapTestLog << "fillStrategy: " << f << " count: " << s_fillStrategys[f].count;
+
+        std::map<TestData, char> refMap;
+        for (size_t i = 0; i < data.size(); ++i) {
+            refMap[data[i]] = i % (sizeof(char));
+        }
+        gepard::Map<TestData, char> map;
+        for (size_t i = 0; i < data.size(); ++i) {
+            map[data[i]] = i % (sizeof(char));
+        }
+
+        EXPECT_EQ(map.size(), refMap.size()) << mapTestLog.str();
+
+        std::map<TestData, char>::iterator refIt = refMap.begin();
+        gepard::Map<TestData, char>::iterator mapIt = map.begin(), mapPIt;
+        while (refIt != refMap.end() && mapIt != map.end()) {
+            EXPECT_EQ(mapIt->key, refIt->first) << mapTestLog.str();
+            if (mapPIt != mapIt) {
+                EXPECT_LT(mapPIt->key, mapIt->key) << mapTestLog.str();
+            }
+            ++refIt;
+            mapPIt = mapIt++;
+        }
+    }
+}
+
+TEST(Map, DISABLED_SpeedTest)
 {
     for (size_t f = 0; f < sizeof(s_fillStrategys) / sizeof(s_fillStrategys[0]); ++f) {
         std::vector<TestData> data = fillVector(s_fillStrategys[f].count, s_fillStrategys[f].func);
 
-        {
-            std::multiset<TestData> refMultiSet;
-            auto refStart = std::chrono::high_resolution_clock::now();
-            for (size_t i = 0; i < data.size(); ++i) {
-                refMultiSet.emplace(data[i]);
-            }
-            auto refDuration = std::chrono::high_resolution_clock::now() - refStart;
+        if (s_fillStrategys[f].count < (1 << 8))
+            continue;
 
-            gepard::MultiSet<TestData> multiSet;
-            auto binaryStart = std::chrono::high_resolution_clock::now();
-            for (size_t i = 0; i < data.size(); ++i) {
-                multiSet.insert(data[i]);
-            }
-            auto binaryDuration = std::chrono::high_resolution_clock::now() - binaryStart;
+        std::stringstream mapTestLog;
+        mapTestLog << "fillStrategy: " << f << " count: " << s_fillStrategys[f].count;
 
-            EXPECT_EQ(multiSet.size(), refMultiSet.size()) << f;
-            std::cout << "fillStrategy: " << f
-                      << " count: " << s_fillStrategys[f].count
-                      << " MultiSet: binaryDuration / refDuration = " << double(binaryDuration.count()) / double(refDuration.count()) << std::endl;
-
-            std::multiset<TestData>::iterator refIt = refMultiSet.begin();
-            gepard::MultiSet<TestData>::iterator multiSetIt = multiSet.begin(), multiSetPIt = multiSet.begin();
-            while (multiSetIt != multiSet.end() && refIt != refMultiSet.end()) {
-                EXPECT_EQ(*multiSetIt, *refIt) << f;
-                EXPECT_LE(*multiSetPIt, *multiSetIt) << f;
-
-                ++refIt;
-                multiSetPIt = multiSetIt++;
-            }
-        }
-
-        {
-            auto refStart = std::chrono::high_resolution_clock::now();
+        std::vector<std::chrono::high_resolution_clock::duration> refDur;
+        std::vector<std::chrono::high_resolution_clock::duration> mapDur;
+        for (int i = 0; i < 5; ++i) {
+            auto refMapStart = std::chrono::high_resolution_clock::now();
             std::map<TestData, char> refMap;
             for (size_t i = 0; i < data.size(); ++i) {
-                refMap[data[i]] = 0;
+                refMap[data[i]] = i % (sizeof(char));
             }
-            auto refDuration = std::chrono::high_resolution_clock::now() - refStart;
+            auto refMapDuration = std::chrono::high_resolution_clock::now() - refMapStart;
+            refDur.push_back(refMapDuration);
 
             auto mapStart = std::chrono::high_resolution_clock::now();
             gepard::Map<TestData, char> map;
             for (size_t i = 0; i < data.size(); ++i) {
-                map[data[i]] = 0;
+                map[data[i]] = i % (sizeof(char));
             }
             auto mapDuration = std::chrono::high_resolution_clock::now() - mapStart;
+            mapDur.push_back(mapDuration);
 
-            EXPECT_EQ(map.size(), refMap.size()) << f;
-            std::cout << "fillStrategy: " << f
-                      << " count: " << s_fillStrategys[f].count
-                      << " Map: mapDuration / refDuration = " << double(mapDuration.count()) / double(refDuration.count()) << std::endl;
-
-            std::map<TestData, char>::iterator refIt = refMap.begin();
-            gepard::Map<TestData, char>::iterator mapIt = map.begin(), mapPIt = map.begin();
-            while (refIt != refMap.end() && mapIt != map.end()) {
-                EXPECT_EQ(mapIt->key, refIt->first) << f;
-                EXPECT_LE(mapPIt->key, mapIt->key) << f;
-
-                ++refIt;
-                mapPIt = mapIt++;
-            }
+            EXPECT_EQ(map.size(), refMap.size()) << mapTestLog.str();
         }
+        std::sort(refDur.begin(), refDur.end());
+        std::sort(mapDur.begin(), mapDur.end());
+        // Compare medians.
+        EXPECT_LT((double)mapDur[2].count() / (double)refDur[2].count(), 0.999);
     }
 }
 

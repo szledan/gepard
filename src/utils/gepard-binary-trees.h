@@ -54,7 +54,7 @@ public:
         typename LinkedBinaryTree::iterator _it;
 
     public:
-        iterator(const typename LinkedBinaryTree::iterator& it) { _it = it; }
+        iterator(const typename LinkedBinaryTree::iterator& it = typename LinkedBinaryTree::iterator()) { _it = it; }
 
         iterator operator++(int)
         {
@@ -78,6 +78,12 @@ public:
 
     const size_t size() const  { return _lbt.size(); }
 
+    iterator find(const _Key& key)
+    {
+        _sentinel.key = key;
+        return _lbt.find(_sentinel);
+    }
+
     iterator insert(const _Key& key)
     {
         _sentinel.key = key;
@@ -85,6 +91,7 @@ public:
     }
 
     _Tp& operator[](const _Key& key) { return insert(key)->value; }
+    const _Tp& operator[](const _Key& key) const { return find(_sentinel)->value; }
 
 private:
     LinkedBinaryTree _lbt;
@@ -122,7 +129,12 @@ public:
 
     const size_t size() const  { return _lbt.size(); }
 
-    iterator insert(_Tp& value)
+    iterator find(const _Tp& value)
+    {
+        return iterator(_lbt.find(value));
+    }
+
+    iterator insert(const _Tp& value)
     {
         return iterator(_lbt.multiInsert(value));
     }
@@ -136,11 +148,11 @@ class _LinkedBinaryTree {
     struct _Node {
         _Node(const _Tp& d = _Tp()) : data(d) {}
 
-        _Tp data;
         _Node* left = nullptr;
         _Node* right = nullptr;
         _Node* next = nullptr;
-        int height = 0;
+        int8_t height = 0;
+        _Tp data;
     };
     using NodePtr = _Node*;
 
@@ -172,7 +184,7 @@ public:
     iterator end() { return iterator(nullptr); }
 
     const size_t size() const { return _size; }
-    const int rootHeight() const { return height(_root); }
+    const int8_t rootHeight() const { return height(_root); }
 
     iterator uniqueInsert(const _Tp& data)
     {
@@ -182,6 +194,21 @@ public:
     iterator multiInsert(const _Tp& data)
     {
         return iterator(insert<_GreaterOrEqual<_Tp>>(data));
+    }
+
+    iterator find(const _Tp& data)
+    {
+        NodePtr node = _root;
+        while (node) {
+            if (data < node->data) {
+                node = node->left;
+            } else if (node->data < data) {
+                node = node->right;
+            } else {
+                break;
+            }
+        }
+        return iterator(node);
     }
 
     void displayTree()
@@ -201,12 +228,12 @@ public:
     }
 
 private:
-    const int height(const NodePtr node) const
+    const int8_t height(const NodePtr node) const
     {
         return node ? node->height : -1;
     }
 
-    const int balanceFactor(const NodePtr node) const
+    const int8_t balanceFactor(const NodePtr node) const
     {
         GD_ASSERT(node);
         return height(node->right) - height(node->left);
@@ -242,7 +269,7 @@ private:
 
     NodePtr balance(NodePtr node)
     {
-        const int bFactor = balanceFactor(node);
+        const int8_t bFactor = balanceFactor(node);
 
         if (bFactor < -1) {
             if (balanceFactor(node->left) > 0) {
@@ -361,7 +388,6 @@ private:
 
         GD_ASSERT(node);
         return node;
-
     }
 
     size_t _size = 0;
