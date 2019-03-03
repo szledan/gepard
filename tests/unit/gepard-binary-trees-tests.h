@@ -33,7 +33,6 @@
 #include <functional>
 #include <map>
 #include <set>
-#include <utility>
 #include <vector>
 
 namespace binaryTreesTests {
@@ -360,6 +359,7 @@ TEST(Map, CompareSTDMap)
         gepard::Map<TestData, char>::iterator mapIt = map.begin(), mapPIt;
         while (refIt != refMap.end() && mapIt != map.end()) {
             EXPECT_EQ(mapIt->key, refIt->first) << mapTestLog.str();
+            EXPECT_EQ(mapIt->value, refIt->second) << mapTestLog.str();
             if (mapPIt != mapIt) {
                 EXPECT_LT(mapPIt->key, mapIt->key) << mapTestLog.str();
             }
@@ -383,28 +383,37 @@ TEST(Map, DISABLED_SpeedTest)
         std::vector<std::chrono::high_resolution_clock::duration> refDur;
         std::vector<std::chrono::high_resolution_clock::duration> mapDur;
         for (int i = 0; i < 5; ++i) {
+            size_t refSize;
             auto refMapStart = std::chrono::high_resolution_clock::now();
-            std::map<TestData, char> refMap;
-            for (size_t i = 0; i < data.size(); ++i) {
-                refMap[data[i]] = i % (sizeof(char));
+            {
+                std::map<TestData, char> refMap;
+                for (size_t i = 0; i < data.size(); ++i) {
+                    refMap[data[i]] = i % (sizeof(char));
+                }
+                refSize = refMap.size();
             }
             auto refMapDuration = std::chrono::high_resolution_clock::now() - refMapStart;
             refDur.push_back(refMapDuration);
 
+            size_t mapSize;
             auto mapStart = std::chrono::high_resolution_clock::now();
-            gepard::Map<TestData, char> map;
-            for (size_t i = 0; i < data.size(); ++i) {
-                map[data[i]] = i % (sizeof(char));
+            {
+                gepard::Map<TestData, char> map;
+                for (size_t i = 0; i < data.size(); ++i) {
+                    map[data[i]] = i % (sizeof(char));
+                }
+                mapSize = map.size();
             }
             auto mapDuration = std::chrono::high_resolution_clock::now() - mapStart;
             mapDur.push_back(mapDuration);
 
-            EXPECT_EQ(map.size(), refMap.size()) << mapTestLog.str();
+            EXPECT_EQ(mapSize, refSize) << mapTestLog.str();
         }
         std::sort(refDur.begin(), refDur.end());
         std::sort(mapDur.begin(), mapDur.end());
         // Compare medians.
         EXPECT_LT((double)mapDur[2].count() / (double)refDur[2].count(), 0.999);
+        std::cout << ": " << (double)mapDur[2].count() / (double)refDur[2].count() << std::endl;
     }
 }
 

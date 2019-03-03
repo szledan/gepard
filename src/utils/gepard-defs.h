@@ -51,6 +51,9 @@ namespace gepard {
 #endif
 #define GD_NOT_IMPLEMENTED(...) GD_ASSERT(0 && "Unimplemented function!")
 
+#define GD_LIKELY(condition) __builtin_expect(static_cast<bool>(condition), 1)
+#define GD_UNLIKELY(condition) __builtin_expect(static_cast<bool>(condition), 0)
+
 } // namespace gepard
 
 #endif // GEPARD_DEFS_H

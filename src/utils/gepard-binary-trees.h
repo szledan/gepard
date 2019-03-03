@@ -31,7 +31,6 @@
 #include <cmath>
 #include <iostream>
 #include <iterator>
-#include <memory>
 
 namespace gepard {
 
@@ -295,16 +294,16 @@ private:
         return node = new (_region.alloc(sizeof(_Node))) _Node(data);
     }
 
-    NodePtr putLeft(NodePtr& parent, const _Tp& data)
+    NodePtr putLeft(NodePtr& parent, NodePtr& prev, const _Tp& data)
     {
         GD_ASSERT(parent);
         NodePtr node = put(parent->left, data);
         node->next = parent;
-        if (_first == parent) {
+        if (GD_UNLIKELY(_first == parent)) {
             _first = node;
         } else {
-            GD_ASSERT(_prev->next == parent);
-            _prev->next = node;
+            GD_ASSERT(prev->next == parent);
+            prev->next = node;
         }
         return node;
     }
@@ -340,23 +339,23 @@ private:
         _NotLessCompare notLess;
         NodePtr node = nullptr;
 
-        if (!_root) {
+        if (GD_UNLIKELY(!_root)) {
             node = _first = _root = put(_root, data);
         } else {
-            NodePtr workSide, parent = _prev = _root = balance(_root);
+            NodePtr workSide, prev, parent = prev = _root = balance(_root);
             do {
                 const bool isLesser = data < parent->data;
 
                 if (isLesser) {
                     workSide = parent->left;
                 } else if (notLess(data, parent->data)) {
-                    _prev = parent;
+                    prev = parent;
                     workSide = parent->right;
                 } else {
                     break;
                 }
 
-                if (!workSide) {
+                if (GD_UNLIKELY(!workSide)) {
                     break;
                 }
                 workSide = balance(workSide);
@@ -372,11 +371,11 @@ private:
                 }
 
                 parent = workSide;
-            } while (parent);
+            } while (true);
             GD_ASSERT(parent);
 
             if (data < parent->data) {
-                node = putLeft(parent, data);
+                node = putLeft(parent, prev, data);
             } else if (notLess(data, parent->data)) {
                 node = putRight(parent, data);
             } else {
@@ -392,7 +391,6 @@ private:
 
     size_t _size = 0;
     NodePtr _root = nullptr;
-    NodePtr _prev = nullptr;
     NodePtr _first = nullptr;
 
     Region<((8 * 1024) - (int)sizeof(void*))> _region;
