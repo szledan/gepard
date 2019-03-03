@@ -28,297 +28,160 @@
 
 #include "gepard-defs.h"
 #include "gepard-region.h"
-#include <atomic>
 #include <cmath>
-#include <functional>
 #include <iostream>
 #include <iterator>
 #include <memory>
-#include <mutex>
-#include <stack>
-#include <vector>
 
 namespace gepard {
 
 template<typename _Tp>
-struct Node;
-template<typename _Node>
-class _Iterator;
-template<typename _Tp, typename _Node>
-class _AVLTree;
-template<typename _Tp, typename Node>
-class _BinaryTree;
-template<typename _Tp>
 class _LinkedBinaryTree;
 
-template<typename _Tp> using AVLTree = _AVLTree<_Tp, Node<_Tp>>;
-template<typename _Tp> using Set = _BinaryTree<_Tp, Node<_Tp>>;
-template<typename _Tp> using CSet = _BinaryTree<_Tp, Node<_Tp>>;
+template<typename _Key, typename _Tp>
+class Map {
+    struct _Data {
+        _Key key;
+        _Tp value;
+        friend bool operator<(const _Data& lhs, const _Data& rhs)
+        {
+            return lhs.key < rhs.key;
+        }
+    } _sentinel;
+    using LinkedBinaryTree = _LinkedBinaryTree<_Data>;
+public:
+    class iterator : public LinkedBinaryTree::iterator {
+        typename LinkedBinaryTree::iterator _it;
+
+    public:
+        iterator(const typename LinkedBinaryTree::iterator& it) { _it = it; }
+
+        iterator operator++(int)
+        {
+            iterator it = *this;
+            operator++();
+            return it;
+        }
+        iterator& operator++()
+        {
+            ++_it;
+            return *this;
+        }
+        _Data& operator*() const { return _it->data; }
+        _Data* operator->() const { return &(_it->data); }
+        bool operator==(const iterator& rhs) const { return _it == rhs; }
+        bool operator!=(const iterator& rhs) const { return _it != rhs; }
+    };
+
+    iterator begin() { return iterator(_lbt.begin()); }
+    iterator end() { return iterator(_lbt.end()); }
+
+    const size_t size() const  { return _lbt.size(); }
+
+    iterator insert(const _Key& key)
+    {
+        _sentinel.key = key;
+        return _lbt.uniqueInsert(_sentinel);
+    }
+
+    _Tp& operator[](const _Key& key) { return insert(key)->value; }
+
+private:
+    LinkedBinaryTree _lbt;
+};
 
 template<typename _Tp>
-struct Node {
-    using NodePtr = Node*;
-
-    Node(_Tp d = _Tp()) : data(d) {}
-    _Tp data;
-
-    NodePtr left = nullptr;
-    NodePtr right = nullptr;
-    int height = 0;
-};
-
-template<typename _NodePtr>
-inline const int height(const _NodePtr node)
-{
-    return node ? node->height : -1;
-}
-
-template<typename _NodePtr>
-inline const int balanceFactor(const _NodePtr node)
-{
-    GD_ASSERT(node);
-    return height(node->right) - height(node->left);
-}
-
-template<typename _NodePtr>
-inline void fixHeight(_NodePtr node)
-{
-    GD_ASSERT(node);
-    node->height = std::max(height(node->left), height(node->right)) + 1;
-}
-
-template<typename _Node>
-class _Iterator : public std::iterator<std::forward_iterator_tag, _Node> {
-    using NodePtr = _Node*;
-    std::stack<NodePtr> _nodes;
-
+class MultiSet {
+    using LinkedBinaryTree = _LinkedBinaryTree<_Tp>;
 public:
-    _Iterator(const NodePtr n)
-    {
-        NodePtr node = n;
-        _nodes.push(nullptr);
-        while (node) {
-            _nodes.push(node);
-            node = node->left;
-        };
-    }
+    class iterator : public LinkedBinaryTree::iterator {
+        typename LinkedBinaryTree::iterator _it;
 
-    _Iterator operator++(int)
-    {
-        _Iterator it = *this;
-        operator++();
-        return it;
-    }
-    _Iterator& operator++()
-    {
-        if (_nodes.top()) {
-            NodePtr node = _nodes.top()->right;
-            _nodes.pop();
-            while (node) {
-                _nodes.push(node);
-                node = node->left;
-            };
+    public:
+        iterator(const typename LinkedBinaryTree::iterator& it) { _it = it; }
+
+        iterator operator++(int)
+        {
+            iterator it = *this;
+            operator++();
+            return it;
         }
-        return *this;
-    }
-    _Node& operator*() const { return *(_nodes.top()); }
-    NodePtr operator->() const { return _nodes.top(); }
-    bool operator==(const _Iterator& rhs) const { return _nodes.top() == rhs._nodes.top(); }
-    bool operator!=(const _Iterator& rhs) const { return _nodes.top() != rhs._nodes.top(); }
-};
+        iterator& operator++()
+        {
+            ++_it;
+            return *this;
+        }
+        _Tp& operator*() const { return _it->data; }
+        _Tp* operator->() const { return &(_it->data); }
+        bool operator==(const iterator& rhs) const { return _it == rhs; }
+        bool operator!=(const iterator& rhs) const { return _it != rhs; }
+    };
 
-//template<typename _iterator>
-//void displayTree(const _iterator it)
-//{
-//    while (it) {
-//        std::cout << std::string(2 * node.height, ' ') << node.data << "(" << node.height << ")" << std::endl;
-//    }
-//}
+    iterator begin() { return iterator(_lbt.begin()); }
+    iterator end() { return iterator(_lbt.end()); }
 
-template<typename _Tp, typename _Node>
-class _AVLTree {
-    using NodePtr = _Node*;
-    NodePtr _root = nullptr;
-    size_t _size = 0;
-    Region<((8 * 1024) - (int)sizeof(void*))> _region;
+    const size_t size() const  { return _lbt.size(); }
 
-public:
-    typedef _Iterator<_Node> iterator;
-    iterator begin() { return iterator(_root); }
-    iterator end() { return iterator(nullptr); }
-
-    const size_t size() const { return _size; }
-
-    void uniqueInsert(const _Tp& data)
+    iterator insert(_Tp& value)
     {
-        _root = uniqueInsert(_root, data);
-    }
-
-    void multiInsert(const _Tp& data)
-    {
-        _root = multiInsert(_root, data);
+        return iterator(_lbt.multiInsert(value));
     }
 
 private:
-    NodePtr rightRotate(NodePtr node)
-    {
-        NodePtr tmp = node->left;
-        node->left = tmp->right;
-        tmp->right = node;
-
-        fixHeight(node);
-        fixHeight(tmp);
-
-        return tmp;
-    }
-
-    NodePtr leftRotate(NodePtr node)
-    {
-        NodePtr tmp = node->right;
-        node->right = tmp->left;
-        tmp->left = node;
-
-        fixHeight(node);
-        fixHeight(tmp);
-
-        return tmp;
-    }
-
-    NodePtr balance(NodePtr node)
-    {
-        fixHeight(node);
-        const int bFactor = balanceFactor(node);
-
-        if (bFactor == 2) {
-            if (balanceFactor(node->right) < 0) {
-                node->right = rightRotate(node->right);
-            }
-            return leftRotate(node);
-        }
-
-        if (bFactor == -2) {
-            if (balanceFactor(node->left) > 0) {
-                node->left = leftRotate(node->left);
-            }
-            return rightRotate(node);
-        }
-
-        return node;
-    }
-
-    NodePtr put(const _Tp& data)
-    {
-        _size++;
-        return new (_region.alloc(sizeof(_Node))) _Node(data);
-    }
-
-    NodePtr uniqueInsert(NodePtr node, const _Tp& data)
-    {
-        if (!node) {
-            return put(data);
-        }
-
-        if (data < node->data) {
-            node->left = uniqueInsert(node->left, data);
-        } else if (node->data < data) {
-            node->right = uniqueInsert(node->right, data);
-        }
-
-        return balance(node);
-    }
-
-    NodePtr multiInsert(NodePtr node, const _Tp& data)
-    {
-        if (!node) {
-            return put(data);
-        }
-
-        if (data < node->data) {
-            node->left = multiInsert(node->left, data);
-        } else {
-            node->right = multiInsert(node->right, data);
-        }
-
-        return balance(node);
-    }
+    LinkedBinaryTree _lbt;
 };
 
-template<typename _Tp, typename _Node>
-class _BinaryTree {
-public:
-    typedef _Node* NodePtr;
+template<typename _Tp>
+class _LinkedBinaryTree {
+    struct _Node {
+        _Node(const _Tp& d = _Tp()) : data(d) {}
 
-    typedef _Iterator<_Node> iterator;
-    iterator begin() { return iterator(_root); }
+        _Tp data;
+        _Node* left = nullptr;
+        _Node* right = nullptr;
+        _Node* next = nullptr;
+        int height = 0;
+    };
+    using NodePtr = _Node*;
+
+public:
+    class iterator : public std::iterator<std::forward_iterator_tag, _Node> {
+        NodePtr _node;
+
+    public:
+        iterator(const NodePtr n = nullptr) { _node = n; }
+
+        iterator operator++(int)
+        {
+            iterator it = *this;
+            operator++();
+            return it;
+        }
+        iterator& operator++()
+        {
+            _node = _node->next;
+            return *this;
+        }
+        _Node& operator*() const { return *_node; }
+        NodePtr operator->() const { return _node; }
+        bool operator==(const iterator& rhs) const { return _node == rhs._node; }
+        bool operator!=(const iterator& rhs) const { return _node != rhs._node; }
+    };
+
+    iterator begin() { return iterator(_first); }
     iterator end() { return iterator(nullptr); }
 
     const size_t size() const { return _size; }
+    const int rootHeight() const { return height(_root); }
 
-    NodePtr* uniqueFindOrInsert(const _Tp& data)
+    iterator uniqueInsert(const _Tp& data)
     {
-//        if ((*np) == nullptr) {
-////            std::cerr << key << " NULL\n";
-//            return _bt.put(*np, { key, _Tp() })->data.value;
-//        } else {
-////            std::cerr << key << " FULL\n";
-//            return (*np)->data.value;
-//        }
-        return &_root;
+        return iterator(insert<_Greater<_Tp>>(data));
     }
 
-    _Tp& uniqueInsert(const _Tp& data)
+    iterator multiInsert(const _Tp& data)
     {
-        NodePtr node = nullptr;
-
-        if (!_root) {
-            node = put(_root, data);
-        } else {
-            NodePtr parent = findParentOrSame(data);
-            GD_ASSERT(parent);
-
-            if (data < parent->data) {
-                node = put(parent->left, data);
-            } else if (parent->data < data) {
-                node = put(parent->right, data);
-            } else {
-                return parent->data;
-            }
-
-            parent->height = std::max(height(parent->left), height(parent->right)) + 1;
-        }
-
-        GD_ASSERT(node);
-        return node->data;
-    }
-
-    const _Tp& multiInsert(const _Tp& data)
-    {
-        NodePtr node = nullptr;
-
-        if (!_root) {
-            node = put(_root, data);
-        } else {
-            NodePtr parent = findParent(data);
-            GD_ASSERT(parent);
-
-            if (data < parent->data) {
-                node = put(parent->left, data);
-            } else {
-                node = put(parent->right, data);
-            }
-
-            parent->height = std::max(height(parent->left), height(parent->right)) + 1;
-        };
-
-        GD_ASSERT(node);
-        return node->data;
-    }
-
-    NodePtr put(NodePtr& node, const _Tp& data)
-    {
-        GD_ASSERT(!node);
-        _size++;
-        return node = new (_region.alloc(sizeof(_Node))) _Node(data);
+        return iterator(insert<_GreaterOrEqual<_Tp>>(data));
     }
 
     void displayTree()
@@ -328,94 +191,31 @@ public:
         }
     }
 
+    void displayList()
+    {
+        NodePtr node = _first;
+        while (node) {
+            std::cout << node->data.value << "(" << node->height << ") " << std::endl;
+            node = node->next;
+        }
+    }
+
 private:
-    NodePtr findParent(const _Tp& data)
+    const int height(const NodePtr node) const
     {
-        GD_ASSERT(_root);
-
-        NodePtr parent = _root = balance(_root);
-        do {
-            const bool isLesser = data < parent->data;
-            NodePtr workSide = isLesser ? parent->left : parent->right;
-            if (!workSide) {
-                break;
-            }
-
-            workSide = balance(workSide);
-
-            if (isLesser) {
-                parent->left = workSide;
-            } else {
-                parent->right = workSide;
-            }
-
-            if (workSide->height >= parent->height) {
-                fixHeight(parent);
-            }
-
-            parent = workSide;
-        } while (parent);
-        GD_ASSERT(parent);
-
-        return parent;
+        return node ? node->height : -1;
     }
 
-    NodePtr findParentOrSame(const _Tp& data)
+    const int balanceFactor(const NodePtr node) const
     {
-        GD_ASSERT(_root);
-
-        NodePtr parent = _root = balance(_root);
-        do {
-            const bool isLesser = data < parent->data;
-            const bool isGreater = parent->data < data;
-            if (!isLesser && !isGreater) {
-                break;
-            }
-
-            NodePtr workSide = isLesser ? parent->left : parent->right;
-            if (!workSide) {
-                break;
-            }
-
-            workSide = balance(workSide);
-
-            if (isLesser) {
-                parent->left = workSide;
-            } else {
-                GD_ASSERT(isGreater);
-                parent->right = workSide;
-            }
-
-            if (workSide->height >= parent->height) {
-                fixHeight(parent);
-            }
-
-            parent = workSide;
-        } while (parent);
-        GD_ASSERT(parent);
-
-        return parent;
+        GD_ASSERT(node);
+        return height(node->right) - height(node->left);
     }
 
-    NodePtr balance(NodePtr node)
+    void fixHeight(NodePtr node)
     {
-        const int bFactor = balanceFactor(node);
-
-        if (bFactor < -1) {
-            if (balanceFactor(node->left) > 0) {
-                node->left = leftRotate(node->left);
-            }
-            return rightRotate(node);
-        }
-
-        if (bFactor > 1) {
-            if (balanceFactor(node->right) < 0) {
-                node->right = rightRotate(node->right);
-            }
-            return leftRotate(node);
-        }
-
-        return node;
+        GD_ASSERT(node);
+        node->height = std::max(height(node->left), height(node->right)) + 1;
     }
 
     NodePtr leftRotate(NodePtr node)
@@ -440,98 +240,27 @@ private:
         return child;
     }
 
-    std::atomic<size_t> _size = { 0 };
-    NodePtr _root = nullptr;
-    NodePtr _santinel = nullptr;
-
-    Region<((8 * 1024) - (int)sizeof(void*))> _region;
-};
-
-template<typename _Tp>
-class _LinkedBinaryTree {
-    struct _Node {
-        _Node(_Tp d = _Tp()) : data(d) {}
-
-        _Tp data;
-        _Node* left = nullptr;
-        _Node* right = nullptr;
-        _Node* next = nullptr;
-        int height = 0;
-    };
-    using NodePtr = _Node*;
-
-public:
-    class iterator : public std::iterator<std::forward_iterator_tag, _Node> {
-        using NodePtr = _Node*;
-        NodePtr _node;
-
-    public:
-        iterator(const NodePtr n) { _node = n; }
-
-        iterator operator++(int)
-        {
-            iterator it = *this;
-            operator++();
-            return it;
-        }
-        iterator& operator++()
-        {
-            _node = _node->next;
-            return *this;
-        }
-        _Node& operator*() const { return *_node; }
-        NodePtr operator->() const { return _node; }
-        bool operator==(const iterator& rhs) const { return _node == rhs._node; }
-        bool operator!=(const iterator& rhs) const { return _node != rhs._node; }
-    };
-
-    iterator begin() { return iterator(_first); }
-    iterator end() { return iterator(nullptr); }
-
-    const size_t size() const { return _size; }
-
-    _Tp& uniqueInsert(const _Tp& data)
+    NodePtr balance(NodePtr node)
     {
-        NodePtr node = nullptr;
+        const int bFactor = balanceFactor(node);
 
-        if (!_root) {
-            node = _first = _root = put(_root, data);
-        } else {
-            NodePtr parent = findParent(data);
-            GD_ASSERT(parent);
-
-            if (data < parent->data) {
-                node = putLeft(parent, data);
-            } else if (parent->data < data) {
-                node = putRight(parent, data);
-            } else {
-                return parent->data;
+        if (bFactor < -1) {
+            if (balanceFactor(node->left) > 0) {
+                node->left = leftRotate(node->left);
             }
-
-            fixHeight(parent);
+            return rightRotate(node);
         }
 
-        GD_ASSERT(node);
-        return node->data;
-    }
-
-    void displayTree()
-    {
-        for (auto& it : *this) {
-            std::cout << std::string(2 * it.height, ' ') << it.data.value << "(" << it.height << ")" << std::endl;
+        if (bFactor > 1) {
+            if (balanceFactor(node->right) < 0) {
+                node->right = rightRotate(node->right);
+            }
+            return leftRotate(node);
         }
+
+        return node;
     }
 
-    void displayList()
-    {
-        NodePtr node = _first;
-        while (node) {
-            std::cout << node->data.value << "(" << node->height << ") " << std::endl;
-            node = node->next;
-        }
-    }
-
-private:
     NodePtr put(NodePtr& node, const _Tp& data)
     {
         GD_ASSERT(!node);
@@ -562,89 +291,77 @@ private:
         return node;
     }
 
-    NodePtr findParent(const _Tp& data)
+    template<typename T>
+    struct _Greater {
+        constexpr bool operator()(const T& lhs, const T& rhs) const
+        {
+            return rhs < lhs;
+        }
+    };
+
+    template<typename T>
+    struct _GreaterOrEqual {
+        constexpr bool operator()(const T& lhs, const T& rhs) const
+        {
+            return !(lhs < rhs);
+        }
+    };
+
+    template<typename _NotLessCompare>
+    NodePtr insert(const _Tp& data)
     {
-        GD_ASSERT(_root);
+        _NotLessCompare notLess;
+        NodePtr node = nullptr;
 
-        NodePtr workSide, parent = _prev = _root = balance(_root);
-        do {
-            const bool isLesser = data < parent->data;
-            const bool isGreater = parent->data < data;
-            if (!isLesser && !isGreater) {
-                break;
-            }
+        if (!_root) {
+            node = _first = _root = put(_root, data);
+        } else {
+            NodePtr workSide, parent = _prev = _root = balance(_root);
+            do {
+                const bool isLesser = data < parent->data;
 
-            if (isLesser) {
-                workSide = parent->left;
+                if (isLesser) {
+                    workSide = parent->left;
+                } else if (notLess(data, parent->data)) {
+                    _prev = parent;
+                    workSide = parent->right;
+                } else {
+                    break;
+                }
+
+                if (!workSide) {
+                    break;
+                }
+                workSide = balance(workSide);
+
+                if (isLesser) {
+                    parent->left = workSide;
+                } else {
+                    parent->right = workSide;
+                }
+
+                if (workSide->height >= parent->height) {
+                    fixHeight(parent);
+                }
+
+                parent = workSide;
+            } while (parent);
+            GD_ASSERT(parent);
+
+            if (data < parent->data) {
+                node = putLeft(parent, data);
+            } else if (notLess(data, parent->data)) {
+                node = putRight(parent, data);
             } else {
-                _prev = parent;
-                workSide = parent->right;
+                return parent;
             }
 
-            if (!workSide) {
-                break;
-            }
-            workSide = balance(workSide);
-
-            if (isLesser) {
-                parent->left = workSide;
-            } else {
-                GD_ASSERT(isGreater);
-                parent->right = workSide;
-            }
-
-            if (workSide->height >= parent->height) {
-                fixHeight(parent);
-            }
-
-            parent = workSide;
-        } while (parent);
-        GD_ASSERT(parent);
-
-        return parent;
-    }
-
-    NodePtr balance(NodePtr node)
-    {
-        const int bFactor = balanceFactor(node);
-
-        if (bFactor < -1) {
-            if (balanceFactor(node->left) > 0) {
-                node->left = leftRotate(node->left);
-            }
-            return rightRotate(node);
+            fixHeight(parent);
         }
 
-        if (bFactor > 1) {
-            if (balanceFactor(node->right) < 0) {
-                node->right = rightRotate(node->right);
-            }
-            return leftRotate(node);
-        }
-
+        GD_ASSERT(node);
         return node;
-    }
 
-    NodePtr leftRotate(NodePtr node)
-    {
-        NodePtr child = node->right;
-        node->right = child->left;
-        child->left = node;
-
-        node->height = std::max(height(node->left), height(node->right)) + 1;
-        child->height = std::max(height(child->left), height(child->right)) + 1;
-        return child;
-    }
-
-    NodePtr rightRotate(NodePtr node)
-    {
-        NodePtr child = node->left;
-        node->left = child->right;
-        child->right = node;
-
-        node->height = std::max(height(node->left), height(node->right)) + 1;
-        child->height = std::max(height(child->left), height(child->right)) + 1;
-        return child;
     }
 
     size_t _size = 0;
