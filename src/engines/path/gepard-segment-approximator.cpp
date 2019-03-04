@@ -449,6 +449,7 @@ void SegmentApproximator::insertSegment(const FloatPoint& from, const FloatPoint
     const int topY = segment.topY();
     const int bottomY = segment.bottomY();
 
+    _trapezoids.addSegment(Segment(from, to));
     insertSegmentList(topY)->push_front(segment);
     insertSegmentList(bottomY);
 }

@@ -28,6 +28,7 @@
 
 #include "gepard-segment-approximator.h"
 #include "gtest/gtest.h"
+#include <thread>
 
 namespace {
 
@@ -50,6 +51,27 @@ TEST(SegmentApproximatorTest, InsertOneLine)
     const gepard::FloatPoint to(pi, pi);
 
     sa.insertLine(from, to);
+}
+
+void pathWorker(gepard::SegmentApproximator& sa)
+{
+    for (int i = 0; i < 10; ++i) {
+        const gepard::FloatPoint from(-pi, -pi + i);
+        const gepard::FloatPoint to(pi, pi + i);
+        sa.insertLine(from, to);
+    }
+}
+
+TEST(SegmentApproximatorTest, InsertLines)
+{
+    gepard::SegmentApproximator sa;
+
+    std::thread t1(pathWorker, std::ref(sa));
+    std::thread t2(pathWorker, std::ref(sa));
+    std::thread t3(pathWorker, std::ref(sa));
+    t1.join();
+    t2.join();
+    t3.join();
 }
 
 } // anonymous namespace

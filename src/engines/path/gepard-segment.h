@@ -61,6 +61,20 @@ struct Segment {
 
     const Float factor() const { return _slope * _from.y - _from.x; }
 
+    const Segment split(int y)
+    {
+        GD_ASSERT(y > topY());
+        GD_ASSERT(y <= bottomY());
+        if (y == bottomY())
+            return *this;
+
+        FloatPoint oldFrom = _from;
+        _from.x = _to.x - _slope * (_to.y - y);
+        _from.y = y;
+
+        return Segment(oldFrom, _from, uid(), slope());
+    }
+
 private:
     FloatPoint _from, _to;
     Float _slope;

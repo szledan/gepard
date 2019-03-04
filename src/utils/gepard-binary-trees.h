@@ -48,29 +48,9 @@ class Map {
         }
     } _sentinel;
     using LinkedBinaryTree = _LinkedBinaryTree<_Data>;
+
 public:
-    class iterator : public LinkedBinaryTree::iterator {
-        typename LinkedBinaryTree::iterator _it;
-
-    public:
-        iterator(const typename LinkedBinaryTree::iterator& it = typename LinkedBinaryTree::iterator()) { _it = it; }
-
-        iterator operator++(int)
-        {
-            iterator it = *this;
-            operator++();
-            return it;
-        }
-        iterator& operator++()
-        {
-            ++_it;
-            return *this;
-        }
-        _Data& operator*() const { return _it->data; }
-        _Data* operator->() const { return &(_it->data); }
-        bool operator==(const iterator& rhs) const { return _it == rhs; }
-        bool operator!=(const iterator& rhs) const { return _it != rhs; }
-    };
+    typedef typename LinkedBinaryTree::iterator iterator;
 
     iterator begin() { return iterator(_lbt.begin()); }
     iterator end() { return iterator(_lbt.end()); }
@@ -89,8 +69,16 @@ public:
         return _lbt.uniqueInsert(_sentinel);
     }
 
-    _Tp& operator[](const _Key& key) { return insert(key)->value; }
-    const _Tp& operator[](const _Key& key) const { return find(_sentinel)->value; }
+    _Tp& operator[](const _Key& key) { return insert(key)->node->data.value; }
+    const _Tp& operator[](const _Key& key) const { return find(_sentinel)->node->data.value; }
+
+    void displayList()
+    {
+        for (auto& it : _lbt) {
+            std::cout << it.data.key << " ";
+        }
+        std::cout << std::endl;
+    }
 
 private:
     LinkedBinaryTree _lbt;
@@ -99,43 +87,23 @@ private:
 template<typename _Tp>
 class MultiSet {
     using LinkedBinaryTree = _LinkedBinaryTree<_Tp>;
+
 public:
-    class iterator : public LinkedBinaryTree::iterator {
-        typename LinkedBinaryTree::iterator _it;
+    typedef typename LinkedBinaryTree::iterator iterator;
 
-    public:
-        iterator(const typename LinkedBinaryTree::iterator& it) { _it = it; }
-
-        iterator operator++(int)
-        {
-            iterator it = *this;
-            operator++();
-            return it;
-        }
-        iterator& operator++()
-        {
-            ++_it;
-            return *this;
-        }
-        _Tp& operator*() const { return _it->data; }
-        _Tp* operator->() const { return &(_it->data); }
-        bool operator==(const iterator& rhs) const { return _it == rhs; }
-        bool operator!=(const iterator& rhs) const { return _it != rhs; }
-    };
-
-    iterator begin() { return iterator(_lbt.begin()); }
-    iterator end() { return iterator(_lbt.end()); }
+    iterator begin() { return _lbt.begin(); }
+    iterator end() { return _lbt.end(); }
 
     const size_t size() const  { return _lbt.size(); }
 
     iterator find(const _Tp& value)
     {
-        return iterator(_lbt.find(value));
+        return _lbt.find(value);
     }
 
     iterator insert(const _Tp& value)
     {
-        return iterator(_lbt.multiInsert(value));
+        return _lbt.multiInsert(value);
     }
 
 private:
@@ -155,29 +123,45 @@ class _LinkedBinaryTree {
     };
     using NodePtr = _Node*;
 
-public:
-    class iterator : public std::iterator<std::forward_iterator_tag, _Node> {
-        NodePtr _node;
+    template<typename _T>
+    class _iterator : public std::iterator<std::forward_iterator_tag, _T> {
+        _T _data;
 
     public:
-        iterator(const NodePtr n = nullptr) { _node = n; }
+        _iterator(_T d = _T()) : _data(d) {}
 
-        iterator operator++(int)
+        _iterator operator++(int)
         {
             iterator it = *this;
             operator++();
             return it;
         }
-        iterator& operator++()
+        _iterator& operator++()
         {
-            _node = _node->next;
+            _data.prev = _data.node;
+            _data.node = _data.node->next;
             return *this;
         }
-        _Node& operator*() const { return *_node; }
-        NodePtr operator->() const { return _node; }
-        bool operator==(const iterator& rhs) const { return _node == rhs._node; }
-        bool operator!=(const iterator& rhs) const { return _node != rhs._node; }
+        _T& operator*() const { return _data; }
+        const _T* operator->() const { return &_data; }
+        bool operator==(const _iterator& rhs) const { return _data.node == rhs._data.node; }
+        bool operator!=(const _iterator& rhs) const { return _data.node != rhs._data.node; }
     };
+
+public:
+    struct RetType {
+        NodePtr node;
+        NodePtr prev;
+        enum Type {
+            Invlaid = -1,
+            Find = 0,
+            Insert = 1,
+            First = 2,
+        } type;
+        RetType (const NodePtr n = nullptr, const NodePtr p = nullptr, const Type t = Invlaid) : node(n), prev(p), type(t) {}
+    };
+
+    typedef _iterator<RetType> iterator;
 
     iterator begin() { return iterator(_first); }
     iterator end() { return iterator(nullptr); }
@@ -197,33 +181,18 @@ public:
 
     iterator find(const _Tp& data)
     {
-        NodePtr node = _root;
+        NodePtr prev, node = prev = _root;
         while (node) {
             if (data < node->data) {
                 node = node->left;
             } else if (node->data < data) {
+                prev = node;
                 node = node->right;
             } else {
                 break;
             }
         }
-        return iterator(node);
-    }
-
-    void displayTree()
-    {
-        for (auto& it : *this) {
-            std::cout << std::string(2 * it.height, ' ') << it.data.value << "(" << it.height << ")" << std::endl;
-        }
-    }
-
-    void displayList()
-    {
-        NodePtr node = _first;
-        while (node) {
-            std::cout << node->data.value << "(" << node->height << ") " << std::endl;
-            node = node->next;
-        }
+        return iterator(RetType(node, prev, RetType::Find));
     }
 
 private:
@@ -294,7 +263,7 @@ private:
         return node = new (_region.alloc(sizeof(_Node))) _Node(data);
     }
 
-    NodePtr putLeft(NodePtr& parent, NodePtr& prev, const _Tp& data)
+    NodePtr putLeft(NodePtr parent, NodePtr prev, const _Tp& data)
     {
         GD_ASSERT(parent);
         NodePtr node = put(parent->left, data);
@@ -308,7 +277,7 @@ private:
         return node;
     }
 
-    NodePtr putRight(NodePtr& parent, const _Tp& data)
+    NodePtr putRight(NodePtr parent, const _Tp& data)
     {
         GD_ASSERT(parent);
         NodePtr node = put(parent->right, data);
@@ -334,15 +303,17 @@ private:
     };
 
     template<typename _NotLessCompare>
-    NodePtr insert(const _Tp& data)
+    RetType insert(const _Tp& data)
     {
         _NotLessCompare notLess;
-        NodePtr node = nullptr;
+        NodePtr node = nullptr, prev = nullptr;
+        typename RetType::Type type = RetType::Insert;
 
         if (GD_UNLIKELY(!_root)) {
             node = _first = _root = put(_root, data);
+            type = RetType::First;
         } else {
-            NodePtr workSide, prev, parent = prev = _root = balance(_root);
+            NodePtr workSide, parent = prev = _root = balance(_root);
             do {
                 const bool isLesser = data < parent->data;
 
@@ -376,17 +347,20 @@ private:
 
             if (data < parent->data) {
                 node = putLeft(parent, prev, data);
+                if (GD_UNLIKELY(node == _first)) {
+                    type = RetType::First;
+                }
             } else if (notLess(data, parent->data)) {
                 node = putRight(parent, data);
             } else {
-                return parent;
+                return RetType(parent, prev, RetType::Find);
             }
 
             fixHeight(parent);
         }
 
         GD_ASSERT(node);
-        return node;
+        return RetType(node, prev, type);
     }
 
     size_t _size = 0;
