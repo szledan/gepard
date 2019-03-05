@@ -34,29 +34,6 @@
 
 namespace gepard {
 
-Segment::Segment(const FloatPoint from, const FloatPoint to, const UIntID uid, const Float slope)
-    : _from(from)
-    , _to(to)
-    , _uid(uid ? uid : s_uid++)
-{
-    Float denom = to.y - from.y;
-    if (denom) {
-        if (denom < (Float)0.0) {
-            _from = to;
-            _to = from;
-            _direction = Negative;
-            denom *= (Float)(-1.0);
-        } else {
-            _direction = Positive;
-        }
-    } else {
-        this->_direction = EqualOrNonExist;
-    }
-
-    _slope = (std::isnan(slope)) ? ((_to.x - _from.x) / (denom)) : slope;
-    GD_ASSERT(!std::isnan(_slope));
-}
-
 #if 0
 
 Segment::Segment(FloatPoint from, FloatPoint to, unsigned sameId, Float slope)

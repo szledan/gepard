@@ -143,7 +143,7 @@ struct {
     { 10, [](){ static int64_t counter = 10; return TestData(counter--); } },
     { 100, [](){ static int64_t counter = 0; return TestData(counter++); } },
     { 100, [](){ static int64_t counter = 100; return TestData(counter--); } },
-    { 1 << 8, [](){ static int64_t counter = 1 << 8; return TestData(((counter % 2) ? -1 : 1) * (--counter)); } },
+    { 1 << 8, [](){ static int64_t counter = 1 << 8; return TestData(((counter % 2) ? -1 * (--counter) : 1 * (--counter))); } },
     { 100, [](){ return TestData(1); } },
     { 100, [](){ static int64_t counter = 0; return TestData(++counter % 5); } },
     { 1 << 16, [](){ static int64_t counter = (1 << 20) / 2; static int pwr = 1, times = 1;

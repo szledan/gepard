@@ -34,7 +34,7 @@
 
 namespace gepard {
 
-template<typename _Tp>
+template<typename _Tp, const size_t EXPECTED_MIN_NODE = 64>
 class _LinkedBinaryTree;
 
 template<typename _Key, typename _Tp>
@@ -110,7 +110,7 @@ private:
     LinkedBinaryTree _lbt;
 };
 
-template<typename _Tp>
+template<typename _Tp, const size_t EXPECTED_MIN_NODE>
 class _LinkedBinaryTree {
     struct _Node {
         _Node(const _Tp& d = _Tp()) : data(d) {}
@@ -367,7 +367,10 @@ private:
     NodePtr _root = nullptr;
     NodePtr _first = nullptr;
 
-    Region<((8 * 1024) - (int)sizeof(void*))> _region;
+    template<size_t requestedSize, size_t memStorageSize> struct _SelectSize {
+        static const int val = memStorageSize * (1 + requestedSize / memStorageSize);
+    };
+    Region<_SelectSize<EXPECTED_MIN_NODE * sizeof(_Node), 2048>::val - (int)sizeof(void*)> _region;
 };
 
 } // namespace gepard

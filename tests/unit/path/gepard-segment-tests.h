@@ -1,5 +1,5 @@
-/* Copyright (C) 2018, Gepard Graphics
- * Copyright (C) 2018, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2018-2019, Gepard Graphics
+ * Copyright (C) 2018-2019, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,67 +35,103 @@ namespace {
 
 TEST(SegmentTest, Constructor)
 {
+    const double pi = 2.0 * std::asin(1.0);
     const gepard::UIntID currentUID = gepard::s_uid;
-    const gepard::Segment segments[3] = {
-        gepard::Segment(gepard::FloatPoint(1.0, 2.0), gepard::FloatPoint(3.0, 4.0)),
-        gepard::Segment(gepard::FloatPoint(1.0, 2.0), gepard::FloatPoint(3.0, 4.0), 10),
-        gepard::Segment(gepard::FloatPoint(1.0, 2.0), gepard::FloatPoint(3.0, 4.0), 10, 5.0),
-    };
 
-    for (int i = 0; i < sizeof(segments) / sizeof(gepard::Segment); ++i) {
-        EXPECT_EQ(segments[i].from().x, 1.0) << "Step: " << i << "";
-        EXPECT_EQ(segments[i].from().y, 2.0) << "Step: " << i << "";
-        EXPECT_EQ(segments[i].to().x, 3.0) << "Step: " << i << "";
-        EXPECT_EQ(segments[i].to().y, 4.0) << "Step: " << i << "";
-        EXPECT_EQ(segments[i].uid(), i > 0 ? 10 : currentUID) << "Step: " << i << "";
-        EXPECT_EQ(segments[i].slope(), i == 2 ? 5.0 : (segments[i].to().x - segments[i].from().x) / (segments[i].to().y - segments[i].from().y)) << "Step: " << i << "";
+    {
+        const gepard::Segment segment(gepard::FloatPoint(-pi, -pi), gepard::FloatPoint(pi, pi));
+        EXPECT_EQ(segment.uid, currentUID + 1) << "";
+        EXPECT_EQ(segment.topX, -pi) << "";
+        EXPECT_EQ(segment.topY, std::floor(-pi)) << "";
+        EXPECT_EQ(segment.bottomX, pi) << "";
+        EXPECT_EQ(segment.bottomY, std::floor(pi)) << "";
+        EXPECT_EQ(segment.dx, (segment.bottomX - segment.topX) / (segment.bottomY - segment.topY)) << "";
+        EXPECT_EQ(segment.direction, 1) << "";
+    }
+
+    {
+        const gepard::Segment segment(gepard::FloatPoint(pi, pi), gepard::FloatPoint(-pi, -pi));
+        EXPECT_EQ(segment.uid, currentUID + 2) << "";
+        EXPECT_EQ(segment.topX, -pi) << "";
+        EXPECT_EQ(segment.topY, std::floor(-pi)) << "";
+        EXPECT_EQ(segment.bottomX, pi) << "";
+        EXPECT_EQ(segment.bottomY, std::floor(pi)) << "";
+        EXPECT_EQ(segment.dx, (segment.bottomX - segment.topX) / (segment.bottomY - segment.topY)) << "";
+        EXPECT_EQ(segment.direction, -1) << "";
+    }
+
+    {
+        const gepard::Segment segment(gepard::FloatPoint(pi, pi), gepard::FloatPoint(pi, -pi));
+        EXPECT_EQ(segment.uid, currentUID + 3) << "";
+        EXPECT_EQ(segment.topX, pi) << "";
+        EXPECT_EQ(segment.topY, std::floor(-pi)) << "";
+        EXPECT_EQ(segment.bottomX, pi) << "";
+        EXPECT_EQ(segment.bottomY, std::floor(pi)) << "";
+        EXPECT_EQ(segment.dx, 0.0) << "";
+        EXPECT_EQ(segment.direction, -1) << "";
+    }
+
+    {
+        const gepard::Segment segment(gepard::FloatPoint(pi, pi), gepard::FloatPoint(-pi, pi));
+        EXPECT_EQ(segment.uid, currentUID + 4) << "";
+        EXPECT_EQ(segment.topY, std::floor(pi)) << "";
+        EXPECT_EQ(segment.bottomY, std::floor(pi)) << "";
+        EXPECT_EQ(segment.direction, 0) << "";
     }
 }
 
-static const double pi = 2.0 * std::asin(1.0);
-
-TEST(SegmentTest, GettersA)
+TEST(SegmentTest, XFunction)
 {
-    const gepard::Segment segment(gepard::FloatPoint(-pi, pi), gepard::FloatPoint(pi, -pi));
-
-    EXPECT_EQ(segment.from().x, pi) << "";
-    EXPECT_EQ(segment.from().y, -pi) << "";
-    EXPECT_EQ(segment.to().x, -pi) << "";
-    EXPECT_EQ(segment.to().y, pi) << "";
-
-    EXPECT_EQ(segment.top().x, pi) << "";
-    EXPECT_EQ(segment.top().y, -4.0) << "";
-    EXPECT_EQ(segment.bottom().x, -pi) << "";
-    EXPECT_EQ(segment.bottom().y, 3.0) << "";
-
-    EXPECT_EQ(segment.topY(), -4.0) << "";
-    EXPECT_EQ(segment.bottomY(), 3.0) << "";
-
-    EXPECT_EQ(segment.slope(), -1.0) << "";
-
-    EXPECT_EQ(segment.direction(), gepard::Segment::Negative) << "";
+    const gepard::Segment segment(gepard::FloatPoint(-1, -2.2), gepard::FloatPoint(1, 3));
+    EXPECT_EQ(segment.x(0), 0.0) << "";
+    EXPECT_FLOAT_EQ(segment.x(1), 1.0 / 3.0) << "";
+    EXPECT_FLOAT_EQ(segment.x(-1), -1.0 / 3.0) << "";
 }
 
-TEST(SegmentTest, GettersB)
+TEST(SegmentTest, CutAndRemoveTop)
 {
-    const gepard::Segment segment(gepard::FloatPoint(-pi, -pi), gepard::FloatPoint(pi, pi));
+    const gepard::UIntID currentUID = gepard::s_uid;
+    gepard::Segment sBase(gepard::FloatPoint(-1, -2.2), gepard::FloatPoint(1, 3.9));
+    gepard::Segment sTop = sBase.cutAndRemoveTop(1);
 
-    EXPECT_EQ(segment.from().x, -pi) << "";
-    EXPECT_EQ(segment.from().y, -pi) << "";
-    EXPECT_EQ(segment.to().x, pi) << "";
-    EXPECT_EQ(segment.to().y, pi) << "";
+    EXPECT_EQ(sBase.uid, currentUID + 1) << "";
+    EXPECT_FLOAT_EQ(sBase.topX, 1.0 / 3.0) << "";
+    EXPECT_EQ(sBase.topY, 1) << "";
+    EXPECT_EQ(sBase.bottomX, 1.0) << "";
+    EXPECT_EQ(sBase.bottomY, 3) << "";
+    EXPECT_FLOAT_EQ(sBase.dx, 1.0 / 3.0) << "";
+    EXPECT_EQ(sBase.direction, 1) << "";
 
-    EXPECT_EQ(segment.top().x, -pi) << "";
-    EXPECT_EQ(segment.top().y, -4.0) << "";
-    EXPECT_EQ(segment.bottom().x, pi) << "";
-    EXPECT_EQ(segment.bottom().y, 3.0) << "";
+    EXPECT_EQ(sTop.uid, currentUID + 1) << "";
+    EXPECT_EQ(sTop.topX, -1.0) << "";
+    EXPECT_EQ(sTop.topY, -3) << "";
+    EXPECT_FLOAT_EQ(sTop.bottomX, 1.0 / 3.0) << "";
+    EXPECT_EQ(sTop.bottomY, 1) << "";
+    EXPECT_FLOAT_EQ(sTop.dx, 1.0 / 3.0) << "";
+    EXPECT_EQ(sTop.direction, 1) << "";
+}
 
-    EXPECT_EQ(segment.topY(), -4.0) << "";
-    EXPECT_EQ(segment.bottomY(), 3.0) << "";
+TEST(SegmentTest, CutAndRemoveBottom)
+{
+    const gepard::UIntID currentUID = gepard::s_uid;
+    gepard::Segment sBase(gepard::FloatPoint(-1, -2.2), gepard::FloatPoint(1, 3.9));
+    gepard::Segment sTop = sBase.cutAndRemoveBottom(1);
 
-    EXPECT_EQ(segment.slope(), 1.0) << "";
+    EXPECT_EQ(sBase.uid, currentUID + 1) << "";
+    EXPECT_EQ(sBase.topX, -1.0) << "";
+    EXPECT_EQ(sBase.topY, -3) << "";
+    EXPECT_FLOAT_EQ(sBase.bottomX, 1.0 / 3.0) << "";
+    EXPECT_EQ(sBase.bottomY, 1) << "";
+    EXPECT_FLOAT_EQ(sBase.dx, 1.0 / 3.0) << "";
+    EXPECT_EQ(sBase.direction, 1) << "";
 
-    EXPECT_EQ(segment.direction(), gepard::Segment::Positive) << "";
+    EXPECT_EQ(sTop.uid, currentUID + 1) << "";
+    EXPECT_FLOAT_EQ(sTop.topX, 1.0 / 3.0) << "";
+    EXPECT_EQ(sTop.topY, 1) << "";
+    EXPECT_EQ(sTop.bottomX, 1.0) << "";
+    EXPECT_EQ(sTop.bottomY, 3) << "";
+    EXPECT_FLOAT_EQ(sTop.dx, 1.0 / 3.0) << "";
+    EXPECT_EQ(sTop.direction, 1) << "";
 }
 
 } // anonymous namespace

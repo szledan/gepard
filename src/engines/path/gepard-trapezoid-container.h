@@ -75,6 +75,9 @@ private:
 //            _xJobs[std::abs(topY % 2)].addJob(std::bind(&TrapezoidContainer::insertSegment, this, &(cit->value), cs));
 //        } while (bit != eit);
     }
+    void splitXSet(const int y, MultiSet<Segment>* xSet1, MultiSet<Segment>* xSet2)
+    {
+    }
     void insertSegment(MultiSet<Segment>* xSet, const Segment& segment)
     {
 //        xSet->insert(segment);

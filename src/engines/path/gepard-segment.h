@@ -1,5 +1,5 @@
-/* Copyright (C) 2018, Gepard Graphics
- * Copyright (C) 2018, Szilard Ledan <szledan@gmail.com>
+/* Copyright (C) 2018-2019, Gepard Graphics
+ * Copyright (C) 2018-2019, Szilard Ledan <szledan@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,61 +39,84 @@ namespace gepard {
 typedef unsigned long int UIntID;
 static UIntID s_uid = 0;
 
+/*!
+ * \brief The Segment struct
+ *
+ *    (0,0) +--------> +x [float]
+ *          | top
+ *          |
+ *          | bottom ( > top)  ^
+ * +y [int] v POS direction    | NEG direction
+ *
+ *  m = (bottomY - topY) / (bottomX - topX)
+ *  m' = 1 / m = (bottomX - topX) / (bottomY - topY)
+ *
+ *  direction == 0 -> invalid Segment
+ */
 struct Segment {
-    Segment(const FloatPoint from, const FloatPoint to, const UIntID uid = 0, const Float slope = NAN);
-
-    enum Direction {
-        Negative = -1,
-        EqualOrNonExist = 0,
-        Positive = 1,
-    };
-
-    const FloatPoint& from() const { return _from; }
-    const FloatPoint& to() const { return _to; }
-    const FloatPoint top() const { return FloatPoint(_from.x, topY()); }
-    const FloatPoint bottom() const { return FloatPoint(_to.x, bottomY()); }
-    const int topY() const { return std::floor(_from.y); }
-    const int bottomY() const { return std::floor(_to.y); }
-
-    const Float& slope() const { return _slope; }
-    const Direction direction() const { return _direction; }
-    const UIntID uid() const { return _uid; }
-
-    const Float factor() const { return _slope * _from.y - _from.x; }
-
-    const Segment split(int y)
+    Segment(const FloatPoint from, const FloatPoint to)
+        : uid(++s_uid)
+        , topY(std::floor(from.y))
+        , bottomY(std::floor(to.y))
     {
-        GD_ASSERT(y > topY());
-        GD_ASSERT(y <= bottomY());
-        if (y == bottomY())
-            return *this;
+        if (bottomY == topY) {
+            direction = 0;
+            return;
+        }
 
-        FloatPoint oldFrom = _from;
-        _from.x = _to.x - _slope * (_to.y - y);
-        _from.y = y;
-
-        return Segment(oldFrom, _from, uid(), slope());
+        if (bottomY < topY) {
+            direction = -1;
+            topX = to.x;
+            bottomX = from.x;
+            int tmp = topY;
+            topY = bottomY;
+            bottomY = tmp;
+        } else {
+            direction = 1;
+            topX = from.x;
+            bottomX = to.x;
+        }
+        dx = (bottomX - topX) / (bottomY - topY);
     }
 
-private:
-    FloatPoint _from, _to;
-    Float _slope;
-    Direction _direction = EqualOrNonExist;
-    UIntID _uid = 0;
+    const Float x(const int y) const { return dx * (y - topY) + topX; }
+
+    const Segment cutAndRemoveTop(int y)
+    {
+        GD_ASSERT(y > topY);
+        Segment s = *this;
+        topX = s.bottomX = x(y);
+        topY = s.bottomY = y;
+        return s;
+    }
+
+    const Segment cutAndRemoveBottom(int y)
+    {
+        Segment s = *this;
+        bottomX = s.topX = x(y);
+        bottomY = s.topY = y;
+        return s;
+    }
+
+    UIntID uid = 0;
+    int topY, bottomY;
+    Float topX, bottomX;
+    Float dx;
+    int direction = 0;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Segment& s)
 {
-    return os << s.from() << ((s.direction() < 0) ? "<" : ((s.direction() > 0) ? ">" : "=")) << s.to();
+    return os << s.topX << "," << s.topY << ((s.direction < 0) ? "<" : ((s.direction > 0) ? ">" : "=")) << s.bottomX << "," << s.bottomY;
 }
 
 inline bool operator<(const Segment& lhs, const Segment& rhs)
 {
-    GD_ASSERT(lhs.topY() == rhs.topY());
-    return (lhs.top().x < rhs.top().x
-            || (lhs.top().x == rhs.top().x
-                && (lhs.slope() < rhs.slope()
-                    || (lhs.slope() == rhs.slope() && lhs.uid() < rhs.uid()))));
+    GD_ASSERT(lhs.topY == rhs.topY);
+    return (lhs.topX < rhs.topX
+            || (lhs.topX == rhs.topX
+                && (lhs.dx < rhs.dx
+                    || (lhs.dx == rhs.dx && lhs.uid < rhs.uid))));
 }
 
 inline bool operator==(const Segment& lhs, const Segment& rhs)
