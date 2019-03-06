@@ -92,6 +92,11 @@ struct TestData {
         return lhs.value == rhs.value;
     }
 
+    friend bool operator!=(const TestData& lhs, const TestData& rhs)
+    {
+        return !(lhs.value == rhs.value);
+    }
+
     static const bool stricktPreOrder(const TestData& lhs, const TestData& rhs)
     {
         return lhs.value < rhs.value || (lhs.value == rhs.value && lhs.uid < rhs.uid);
@@ -204,32 +209,59 @@ TEST(_LinkedBinaryTree, HeightAndSize)
 
 TEST(_LinkedBinaryTree, Iterator)
 {
-    gepard::_LinkedBinaryTree<int> uniqueLinkedBinaryTree;
-    gepard::_LinkedBinaryTree<int> multiLinkedBinaryTree;
+    gepard::_LinkedBinaryTree<TestData> uniqueLinkedBinaryTree;
+    gepard::_LinkedBinaryTree<TestData> multiLinkedBinaryTree;
 
     EXPECT_EQ(uniqueLinkedBinaryTree.begin(), uniqueLinkedBinaryTree.end());
     EXPECT_EQ(multiLinkedBinaryTree.begin(), multiLinkedBinaryTree.end());
 
+    TestData::s_stats.resetCounters();
     for (int i = 0; i < 30; ++i) {
-        uniqueLinkedBinaryTree.uniqueInsert(i / 3);
-        multiLinkedBinaryTree.multiInsert(i / 3);
+        uniqueLinkedBinaryTree.uniqueInsert(TestData(i / 3));
+        TEST_STATS(i + 1, 0, 0, i + 1, 0, i / 3 + 1);
+    }
+    TestData::s_stats.resetCounters();
+    std::set<TestData> set;
+    for (int i = 0; i < 30; ++i) {
+        set.insert(TestData(i / 3));
+        TEST_STATS(i + 1, 0, 0, i + 1, 0, i / 3 + 1);
+    }
+
+    TestData::s_stats.resetCounters();
+    for (int i = 0; i < 30; ++i) {
+        multiLinkedBinaryTree.multiInsert(TestData(i / 3));
+        TEST_STATS(i + 1, 0, 0, i + 1, 0, i + 1);
+    }
+    TestData::s_stats.resetCounters();
+    std::multiset<TestData> mset;
+    for (int i = 0; i < 30; ++i) {
+        mset.insert(TestData(i / 3));
+        TEST_STATS(i + 1, 0, 0, i + 1, 0, i + 1);
     }
 
     EXPECT_EQ(uniqueLinkedBinaryTree.size(), 10u);
     EXPECT_EQ(multiLinkedBinaryTree.size(), 30u);
 
-    gepard::_LinkedBinaryTree<int>::iterator uItPrev, uIt = uniqueLinkedBinaryTree.begin();
-    uItPrev = uIt++;
+    gepard::_LinkedBinaryTree<TestData>::iterator uIt = uniqueLinkedBinaryTree.begin();
+    gepard::_LinkedBinaryTree<TestData>::iterator uItPrev = uIt++;
     while (uIt != uniqueLinkedBinaryTree.end()) {
-        EXPECT_LT(uItPrev->node->data, uIt->node->data);
+        EXPECT_LT(*(uItPrev->data), *(uIt->data));
+        if (uItPrev->prev) {
+            EXPECT_EQ(*(uItPrev->data), *(uIt->prev));
+        }
         uItPrev = uIt++;
+        TEST_STATS(30, 0, 0, 30, 0, 30);
     }
-    gepard::_LinkedBinaryTree<int>::iterator mItPrev, mIt = multiLinkedBinaryTree.begin();
-    mItPrev = mIt++;
+
+    gepard::_LinkedBinaryTree<TestData>::iterator mIt = multiLinkedBinaryTree.begin();
+    gepard::_LinkedBinaryTree<TestData>::iterator mItPrev = mIt++;
     while (mIt != uniqueLinkedBinaryTree.end()) {
-        EXPECT_LE(mItPrev->node->data, mIt->node->data);
-        EXPECT_LE(TestData::stricktPreOrder(mItPrev->node->data, mIt->node->data), true);
+        EXPECT_LE(*(mItPrev->data), *(mIt->data));
+        if (mItPrev->prev) {
+            EXPECT_EQ(*(mItPrev->data), *(mIt->prev));
+        }
         mItPrev = mIt++;
+        TEST_STATS(30, 0, 0, 30, 0, 30);
     }
 }
 
@@ -251,15 +283,44 @@ TEST(_LinkedBinaryTree, UniqueInsert)
 
     linkedBinaryTree.uniqueInsert(TestData(2));
     EXPECT_EQ(linkedBinaryTree.size(), 2u);
-    TEST_STATS(2, 0, 2, 1, 0, 0);
+    TEST_STATS(2, 0, 1, 1, 0, 1);
 
     linkedBinaryTree.uniqueInsert(TestData(2));
     EXPECT_EQ(linkedBinaryTree.size(), 2u);
-    TEST_STATS(3, 0, 2, 2, 0, 0);
+    TEST_STATS(3, 0, 1, 2, 0, 1);
 
     linkedBinaryTree.uniqueInsert(TestData(3));
     EXPECT_EQ(linkedBinaryTree.size(), 3u);
-    TEST_STATS(4, 0, 3, 3, 0, 0);
+    TEST_STATS(4, 0, 1, 3, 0, 2);
+}
+
+TEST(_LinkedBinaryTree, UniqueEmplace)
+{
+    TestData::s_stats.resetCounters();
+    TestData td(1);
+    TEST_STATS(1, 0, 0, 0, 0, 0);
+
+    gepard::_LinkedBinaryTree<TestData> linkedBinaryTree;
+
+    linkedBinaryTree.uniqueEmplace(td);
+    EXPECT_EQ(linkedBinaryTree.size(), 1u);
+    TEST_STATS(1, 0, 1, 0, 0, 0);
+
+    linkedBinaryTree.uniqueEmplace(td);
+    EXPECT_EQ(linkedBinaryTree.size(), 1u);
+    TEST_STATS(1, 0, 1, 0, 0, 0);
+
+    linkedBinaryTree.uniqueEmplace(TestData(2));
+    EXPECT_EQ(linkedBinaryTree.size(), 2u);
+    TEST_STATS(2, 0, 1, 1, 0, 1);
+
+    linkedBinaryTree.uniqueEmplace(TestData(2));
+    EXPECT_EQ(linkedBinaryTree.size(), 2u);
+    TEST_STATS(3, 0, 1, 2, 0, 1);
+
+    linkedBinaryTree.uniqueEmplace(TestData(3));
+    EXPECT_EQ(linkedBinaryTree.size(), 3u);
+    TEST_STATS(4, 0, 1, 3, 0, 2);
 }
 
 TEST(_LinkedBinaryTree, MultiInsert)
@@ -280,15 +341,44 @@ TEST(_LinkedBinaryTree, MultiInsert)
 
     linkedBinaryTree.multiInsert(TestData(2));
     EXPECT_EQ(linkedBinaryTree.size(), 3u);
-    TEST_STATS(2, 0, 3, 1, 0, 0);
+    TEST_STATS(2, 0, 2, 1, 0, 1);
 
     linkedBinaryTree.multiInsert(TestData(2));
     EXPECT_EQ(linkedBinaryTree.size(), 4u);
-    TEST_STATS(3, 0, 4, 2, 0, 0);
+    TEST_STATS(3, 0, 2, 2, 0, 2);
 
     linkedBinaryTree.multiInsert(TestData(3));
     EXPECT_EQ(linkedBinaryTree.size(), 5u);
-    TEST_STATS(4, 0, 5, 3, 0, 0);
+    TEST_STATS(4, 0, 2, 3, 0, 3);
+}
+
+TEST(_LinkedBinaryTree, MultiEmplace)
+{
+    TestData::s_stats.resetCounters();
+    TestData td(1);
+    TEST_STATS(1, 0, 0, 0, 0, 0);
+
+    gepard::_LinkedBinaryTree<TestData> linkedBinaryTree;
+
+    linkedBinaryTree.multiEmplace(td);
+    EXPECT_EQ(linkedBinaryTree.size(), 1u);
+    TEST_STATS(1, 0, 1, 0, 0, 0);
+
+    linkedBinaryTree.multiEmplace(td);
+    EXPECT_EQ(linkedBinaryTree.size(), 2u);
+    TEST_STATS(1, 0, 2, 0, 0, 0);
+
+    linkedBinaryTree.multiEmplace(TestData(2));
+    EXPECT_EQ(linkedBinaryTree.size(), 3u);
+    TEST_STATS(2, 0, 2, 1, 0, 1);
+
+    linkedBinaryTree.multiEmplace(TestData(2));
+    EXPECT_EQ(linkedBinaryTree.size(), 4u);
+    TEST_STATS(3, 0, 2, 2, 0, 2);
+
+    linkedBinaryTree.multiEmplace(TestData(3));
+    EXPECT_EQ(linkedBinaryTree.size(), 5u);
+    TEST_STATS(4, 0, 2, 3, 0, 3);
 }
 
 TEST(_LinkedBinaryTree, Find)
@@ -307,148 +397,82 @@ TEST(_LinkedBinaryTree, Find)
     linkedBinaryTree.multiInsert(td);
     td.value = 4;
     linkedBinaryTree.multiInsert(td);
-    EXPECT_EQ(linkedBinaryTree.find(td)->node->data, TestData(4));
+    EXPECT_EQ(*(linkedBinaryTree.find(td)->data), TestData(4));
     TEST_STATS(2, 0, 3, 1, 0, 0);
 
-    EXPECT_EQ(linkedBinaryTree.find(TestData(-3))->node->data, linkedBinaryTree.begin()->node->data);
+    EXPECT_EQ(*(linkedBinaryTree.find(TestData(-3))->data), *(linkedBinaryTree.begin()->data));
     TEST_STATS(3, 0, 3, 2, 0, 0);
 }
 
-TEST(Map, Insert)
+TEST(_LinkedBinaryTree, RetType)
 {
     TestData::s_stats.resetCounters();
-    gepard::Map<int, TestData> map;
+    TestData td(1);
     TEST_STATS(1, 0, 0, 0, 0, 0);
-
-    TestData td(2);
-    map.insert(1)->node->data.value = td;
-    EXPECT_EQ(map.size(), 1u);
-    TEST_STATS(2, 1, 1, 0, 0, 0);
-    EXPECT_EQ(map[1], td);
-    EXPECT_EQ(map.size(), 1u);
-    TEST_STATS(2, 1, 1, 0, 0, 0);
-    td.value = 3;
-    EXPECT_EQ(map[1], TestData(2));
-    EXPECT_EQ(map.size(), 1u);
-    TEST_STATS(3, 1, 1, 1, 0, 0);
-    map[4] = td;
-    EXPECT_EQ(map[4], td);
-    EXPECT_EQ(map.size(), 2u);
-    TEST_STATS(3, 2, 2, 1, 0, 0);
-}
-
-TEST(Map, CompareSTDMap)
-{
-    for (size_t f = 0; f < sizeof(s_fillStrategys) / sizeof(s_fillStrategys[0]); ++f) {
-        std::vector<TestData> data = fillVector(s_fillStrategys[f].count, s_fillStrategys[f].func);
-        std::stringstream mapTestLog;
-        mapTestLog << "fillStrategy: " << f << " count: " << s_fillStrategys[f].count;
-
-        std::map<TestData, char> refMap;
-        for (size_t i = 0; i < data.size(); ++i) {
-            refMap[data[i]] = i % (sizeof(char));
-        }
-        gepard::Map<TestData, char> map;
-        for (size_t i = 0; i < data.size(); ++i) {
-            map[data[i]] = i % (sizeof(char));
-        }
-
-        EXPECT_EQ(map.size(), refMap.size()) << mapTestLog.str();
-
-        std::map<TestData, char>::iterator refIt = refMap.begin();
-        gepard::Map<TestData, char>::iterator mapIt = map.begin(), mapPIt = map.begin();
-        while (refIt != refMap.end() && mapIt != map.end()) {
-            EXPECT_EQ(mapIt->node->data.key, refIt->first) << mapTestLog.str();
-            EXPECT_EQ(mapIt->node->data.value, refIt->second) << mapTestLog.str();
-            if (mapPIt != mapIt) {
-                EXPECT_LT(mapPIt->node->data.key, mapIt->node->data.key) << mapTestLog.str();
-            }
-            ++refIt;
-            mapPIt = mapIt++;
-        }
-    }
-}
-
-TEST(Map, DISABLED_SpeedTest)
-{
-    for (size_t f = 0; f < sizeof(s_fillStrategys) / sizeof(s_fillStrategys[0]); ++f) {
-        std::vector<TestData> data = fillVector(s_fillStrategys[f].count, s_fillStrategys[f].func);
-
-        if (s_fillStrategys[f].count < (1 << 8))
-            continue;
-
-        std::stringstream mapTestLog;
-        mapTestLog << "fillStrategy: " << f << " count: " << s_fillStrategys[f].count;
-
-        std::vector<std::chrono::high_resolution_clock::duration> refDur;
-        std::vector<std::chrono::high_resolution_clock::duration> mapDur;
-        for (int i = 0; i < 5; ++i) {
-            size_t refSize;
-            auto refMapStart = std::chrono::high_resolution_clock::now();
-            {
-                std::map<TestData, char> refMap;
-                for (size_t i = 0; i < data.size(); ++i) {
-                    refMap[data[i]] = i % (sizeof(char));
-                }
-                refSize = refMap.size();
-            }
-            auto refMapDuration = std::chrono::high_resolution_clock::now() - refMapStart;
-            refDur.push_back(refMapDuration);
-
-            size_t mapSize;
-            auto mapStart = std::chrono::high_resolution_clock::now();
-            {
-                gepard::Map<TestData, char> map;
-                for (size_t i = 0; i < data.size(); ++i) {
-                    map[data[i]] = i % (sizeof(char));
-                }
-                mapSize = map.size();
-            }
-            auto mapDuration = std::chrono::high_resolution_clock::now() - mapStart;
-            mapDur.push_back(mapDuration);
-
-            EXPECT_EQ(mapSize, refSize) << mapTestLog.str();
-        }
-        std::sort(refDur.begin(), refDur.end());
-        std::sort(mapDur.begin(), mapDur.end());
-        // Compare medians.
-        EXPECT_LT((double)mapDur[2].count() / (double)refDur[2].count(), 0.999);
-        std::cout << "map: " << (double)mapDur[2].count() / (double)refDur[2].count() << std::endl;
-    }
-}
-
-TEST(MultiSet, InsertAndFind)
-{
-    TestData::s_stats.resetCounters();
-    gepard::MultiSet<TestData> multiSet;
-    TEST_STATS(0, 0, 0, 0, 0, 0);
-
-    TestData td(2);
-    TEST_STATS(1, 0, 0, 0, 0, 0);
-    gepard::MultiSet<TestData>::iterator it1 = multiSet.insert(td);
-    EXPECT_EQ(multiSet.size(), 1u);
-    EXPECT_EQ(it1->prev, nullptr);
-    EXPECT_EQ(it1->node->data, td);
-    EXPECT_EQ(it1->type, 2);
+    gepard::_LinkedBinaryTree<TestData> linkedBinaryTree;
+    auto a = linkedBinaryTree.multiInsert(td);
+    auto b = linkedBinaryTree.begin();
+    EXPECT_EQ(linkedBinaryTree.size(), 1u);
+    EXPECT_EQ(a->isNew, true);
+    EXPECT_EQ(b->isNew, false);
+    EXPECT_EQ(*(b->data), td);
+    EXPECT_EQ(b->prev, nullptr);
     TEST_STATS(1, 0, 1, 0, 0, 0);
 
-    gepard::MultiSet<TestData>::iterator it2 = multiSet.insert(td);
-    EXPECT_EQ(multiSet.size(), 2u);
-    EXPECT_EQ(it2->prev, it1->node);
-    EXPECT_EQ(it2->node->data.value, 2);
-    EXPECT_EQ(it2->type, 1);
+    td.value = 2;
+    auto it = linkedBinaryTree.multiInsert(td);
+    EXPECT_EQ(linkedBinaryTree.size(), 2u);
+    EXPECT_EQ(it->isNew, true);
+    EXPECT_EQ(*(it->data), td);
+    EXPECT_EQ(*(it->prev), *(b->data));
     TEST_STATS(1, 0, 2, 0, 0, 0);
 
-    multiSet.insert(TestData(3));
-    TEST_STATS(2, 0, 3, 1, 0, 0);
-    EXPECT_EQ(multiSet.size(), 3u);
+    gepard::_LinkedBinaryTree<TestData> linkedBinaryTree2;
+    auto b2 = linkedBinaryTree2.begin();
+    EXPECT_EQ(linkedBinaryTree2.size(), 0u);
+    EXPECT_EQ(b2->data, nullptr);
+    EXPECT_EQ(b2->prev, nullptr);
+    EXPECT_EQ(b2->isNew, false);
+}
 
-    td.value = 3;
-    gepard::MultiSet<TestData>::iterator it3 = multiSet.find(td);
-    EXPECT_EQ(it3->prev, it2->node);
-    EXPECT_EQ(it3->node->data.value, 3);
-    EXPECT_EQ(it3->type, 0);
-    TEST_STATS(2, 0, 3, 1, 0, 0);
+TEST(Set, Find)
+{
+    //! \todo: unittest
+}
+
+TEST(Set, Insert)
+{
+    //! \todo: unittest
+}
+
+TEST(Set, Emplace)
+{
+    //! \todo: unittest
+}
+
+TEST(Set, CompareSTDSet)
+{
+    //! \todo: unittest
+}
+
+TEST(Set, DISABLED_SpeedTest)
+{
+    //! \todo: unittest
+}
+
+TEST(MultiSet, Find)
+{
+    //! \todo: unittest
+}
+
+TEST(MultiSet, Insert)
+{
+    //! \todo: unittest
+}
+
+TEST(MultiSet, Emplace)
+{
+    //! \todo: unittest
 }
 
 TEST(MultiSet, CompareSTDMultiset)
@@ -458,13 +482,17 @@ TEST(MultiSet, CompareSTDMultiset)
         std::stringstream multiSetTestLog;
         multiSetTestLog << "fillStrategy: " << f << " count: " << s_fillStrategys[f].count;
 
-        std::multiset<TestData> refMultiset;
-        for (size_t i = 0; i < data.size(); ++i) {
-            refMultiset.emplace(data[i]);
-        }
+        TestData::s_stats.resetCounters();
         gepard::MultiSet<TestData> multiSet;
         for (size_t i = 0; i < data.size(); ++i) {
             multiSet.insert(data[i]);
+            TEST_STATS(0, 0, (int)i + 1, 0, 0, 0);
+        }
+        TestData::s_stats.resetCounters();
+        std::multiset<TestData> refMultiset;
+        for (size_t i = 0; i < data.size(); ++i) {
+            refMultiset.insert(data[i]);
+            TEST_STATS(0, 0, (int)i + 1, 0, 0, 0);
         }
 
         EXPECT_EQ(multiSet.size(), refMultiset.size()) << multiSetTestLog.str();
@@ -472,8 +500,8 @@ TEST(MultiSet, CompareSTDMultiset)
         std::multiset<TestData>::iterator refIt = refMultiset.begin();
         gepard::MultiSet<TestData>::iterator msetIt = multiSet.begin(), msetPIt = multiSet.begin();
         while (refIt != refMultiset.end() && msetIt != multiSet.end()) {
-            EXPECT_EQ(msetIt->node->data, *refIt) << multiSetTestLog.str();
-            EXPECT_LE(msetPIt->node->data, msetIt->node->data) << multiSetTestLog.str();
+            EXPECT_EQ(*msetIt->data, *refIt) << multiSetTestLog.str();
+            EXPECT_LE(*msetPIt->data, *msetIt->data) << multiSetTestLog.str();
             ++refIt;
             msetPIt = msetIt++;
         }
@@ -499,7 +527,7 @@ TEST(MultiSet, DISABLED_SpeedTest)
             {
                 std::multiset<TestData> refMultiset;
                 for (size_t i = 0; i < data.size(); ++i) {
-                    refMultiset.emplace(data[i]);
+                    refMultiset.insert(data[i]);
                 }
                 refSize = refMultiset.size();
             }

@@ -31,62 +31,16 @@
 #include <cmath>
 #include <iostream>
 #include <iterator>
+#include <utility>
 
 namespace gepard {
 
-template<typename _Tp, const size_t EXPECTED_MIN_NODE = 64>
+template<typename _Tp, const size_t EXPECTED_MIN_NODES = 64>
 class _LinkedBinaryTree;
 
-template<typename _Key, typename _Tp>
-class Map {
-    struct _Data {
-        _Key key;
-        _Tp value;
-        friend bool operator<(const _Data& lhs, const _Data& rhs)
-        {
-            return lhs.key < rhs.key;
-        }
-    } _sentinel;
-    using LinkedBinaryTree = _LinkedBinaryTree<_Data>;
-
-public:
-    typedef typename LinkedBinaryTree::iterator iterator;
-
-    iterator begin() { return iterator(_lbt.begin()); }
-    iterator end() { return iterator(_lbt.end()); }
-
-    const size_t size() const  { return _lbt.size(); }
-
-    iterator find(const _Key& key)
-    {
-        _sentinel.key = key;
-        return _lbt.find(_sentinel);
-    }
-
-    iterator insert(const _Key& key)
-    {
-        _sentinel.key = key;
-        return _lbt.uniqueInsert(_sentinel);
-    }
-
-    _Tp& operator[](const _Key& key) { return insert(key)->node->data.value; }
-    const _Tp& operator[](const _Key& key) const { return find(_sentinel)->node->data.value; }
-
-    void displayList()
-    {
-        for (auto& it : _lbt) {
-            std::cout << it.data.key << " ";
-        }
-        std::cout << std::endl;
-    }
-
-private:
-    LinkedBinaryTree _lbt;
-};
-
-template<typename _Tp>
-class MultiSet {
-    using LinkedBinaryTree = _LinkedBinaryTree<_Tp>;
+template<typename T>
+class Set {
+    using LinkedBinaryTree = _LinkedBinaryTree<T>;
 
 public:
     typedef typename LinkedBinaryTree::iterator iterator;
@@ -96,92 +50,166 @@ public:
 
     const size_t size() const  { return _lbt.size(); }
 
-    iterator find(const _Tp& value)
-    {
-        return _lbt.find(value);
-    }
+    iterator find(const T& value) { return _lbt.find(value); }
 
-    iterator insert(const _Tp& value)
-    {
-        return _lbt.multiInsert(value);
-    }
+    iterator insert(const T& value) { return _lbt.uniqueInsert(value); }
+    iterator insert(T&& value) { return _lbt.uniqueInsert(value); }
+    void emplace(const T& value) { _lbt.uniqueEmplace(value); }
+    void emplace(T&& value) { _lbt.uniqueEmplace(value); }
 
 private:
     LinkedBinaryTree _lbt;
 };
 
-template<typename _Tp, const size_t EXPECTED_MIN_NODE>
+template<typename T>
+class MultiSet {
+    using LinkedBinaryTree = _LinkedBinaryTree<T>;
+
+public:
+    typedef typename LinkedBinaryTree::iterator iterator;
+
+    iterator begin() { return _lbt.begin(); }
+    iterator end() { return _lbt.end(); }
+
+    const size_t size() const  { return _lbt.size(); }
+
+    iterator find(const T& value) { return _lbt.find(value); }
+
+    iterator insert(const T& value) { return _lbt.multiInsert(value); }
+    iterator insert(T&& value) { return _lbt.multiInsert(value); }
+    void emplace(const T& value) { _lbt.multiEmplace(value); }
+    void emplace(T&& value) { _lbt.multiEmplace(value); }
+
+private:
+    LinkedBinaryTree _lbt;
+};
+
+template<typename _T, const size_t EXPECTED_MIN_NODES>
 class _LinkedBinaryTree {
     struct _Node {
-        _Node(const _Tp& d = _Tp()) : data(d) {}
+        _Node(const _T& d) : data(d) {}
+        _Node(_T&& d) : data(std::forward<_T>(d)) {}
 
         _Node* left = nullptr;
         _Node* right = nullptr;
         _Node* next = nullptr;
         int8_t height = 0;
-        _Tp data;
+        _T data;
     };
-    using NodePtr = _Node*;
+    typedef _Node* _NodePtr;
 
-    template<typename _T>
-    class _iterator : public std::iterator<std::forward_iterator_tag, _T> {
-        _T _data;
+    struct _EmptyRetType {
+        inline void setPrev(const _NodePtr) {}
+        inline void setType(const bool) {}
+        inline void findPrev(const _NodePtr) {}
+        inline const _NodePtr getPrev() const { return nullptr; }
+        inline const bool getType() const { return false; }
+    };
+
+    struct _RetType : public _EmptyRetType {
+        _NodePtr prevNode;
+        bool type;
+        _RetType(const _NodePtr p = nullptr, const bool t = false)
+            : prevNode(p), type(t)
+        {}
+
+        inline void setPrev(const _NodePtr p) { prevNode = p; }
+        inline void setType(const bool t) { type = t; }
+        inline void findPrev(const _NodePtr node) { prevNode = findPrevNode(node, prevNode); }
+        inline const _NodePtr getPrev() const { return prevNode; }
+        inline const bool getType() const { return type; }
+    };
+
+    template<typename _RetT>
+    class _Iterator : public std::iterator<std::forward_iterator_tag, _RetT> {
+         _RetT _retVal;
 
     public:
-        _iterator(_T d = _T()) : _data(d) {}
+        _Iterator(const _RetT& rv) : _retVal(rv) {}
 
-        _iterator operator++(int)
+        const _RetT& retVal() const { return _retVal; }
+
+        _Iterator operator++(int)
         {
             iterator it = *this;
             operator++();
             return it;
         }
-        _iterator& operator++()
+        _Iterator& operator++()
         {
-            _data.prev = _data.node;
-            _data.node = _data.node->next;
+            ++_retVal;
             return *this;
         }
-        _T& operator*() const { return _data; }
-        const _T* operator->() const { return &_data; }
-        bool operator==(const _iterator& rhs) const { return _data.node == rhs._data.node; }
-        bool operator!=(const _iterator& rhs) const { return _data.node != rhs._data.node; }
+        _RetT& operator*() { return _retVal; }
+        _RetT* operator->() { return &_retVal; }
+        bool operator==(const _Iterator& rhs) const { return _retVal == rhs._retVal; }
+        bool operator!=(const _Iterator& rhs) const { return !(_retVal == rhs._retVal); }
+    };
+
+    template<typename _U>
+    struct _Greater {
+        constexpr bool operator()(const _U& lhs, const _U& rhs) const
+        {
+            return rhs < lhs;
+        }
+    };
+
+    template<typename _U>
+    struct _GreaterOrEqual {
+        constexpr bool operator()(const _U& lhs, const _U& rhs) const
+        {
+            return !(lhs < rhs);
+        }
     };
 
 public:
-    struct RetType {
-        NodePtr node;
-        NodePtr prev;
-        enum Type {
-            Invlaid = -1,
-            Find = 0,
-            Insert = 1,
-            First = 2,
-        } type;
-        RetType (const NodePtr n = nullptr, const NodePtr p = nullptr, const Type t = Invlaid) : node(n), prev(p), type(t) {}
+    struct ReturnType {
+        _T* data;
+        _T* prev;
+        bool isNew;
+
+        ReturnType(const _NodePtr n = nullptr, const _NodePtr p = nullptr, const bool t = false)
+            : data(n ? &(n->data) : nullptr)
+            , prev(p ? &(p->data) : nullptr)
+            , isNew(t)
+            , _node(n)
+        {}
+
+        bool operator==(const ReturnType& rhs) const { return _node == rhs._node; }
+        ReturnType& operator++()
+        {
+            isNew = false;
+            _node = _node->next;
+            if (_node) {
+                prev = data;
+                data = &(_node->data);
+            }
+            return *this;
+        }
+    private:
+        _NodePtr _node;
     };
+    typedef _Iterator<ReturnType> iterator;
 
-    typedef _iterator<RetType> iterator;
-
-    iterator begin() { return iterator(_first); }
-    iterator end() { return iterator(nullptr); }
+    iterator begin() { return iterator(ReturnType(_first)); }
+    iterator end() { return iterator(ReturnType()); }
 
     const size_t size() const { return _size; }
     const int8_t rootHeight() const { return height(_root); }
 
-    iterator uniqueInsert(const _Tp& data)
-    {
-        return iterator(insert<_Greater<_Tp>>(data));
-    }
+    iterator uniqueInsert(const _T& data) { return iterator(insert<_Greater<_T>>(data)); }
+    iterator uniqueInsert(_T&& data) { return iterator(insert<_Greater<_T>>(std::move(data))); }
+    void uniqueEmplace(const _T& data) { emplace<_Greater<_T>>(data); }
+    void uniqueEmplace(_T&& data) { emplace<_Greater<_T>>(std::move(data)); }
 
-    iterator multiInsert(const _Tp& data)
-    {
-        return iterator(insert<_GreaterOrEqual<_Tp>>(data));
-    }
+    iterator multiInsert(const _T& data) { return iterator(insert<_GreaterOrEqual<_T>>(data)); }
+    iterator multiInsert(_T&& data) { return iterator(insert<_GreaterOrEqual<_T>>(std::move(data))); }
+    void multiEmplace(const _T& data) { emplace<_GreaterOrEqual<_T>>(data); }
+    void multiEmplace(_T&& data) { emplace<_GreaterOrEqual<_T>>(std::move(data)); }
 
-    iterator find(const _Tp& data)
+    iterator find(const _T& data)
     {
-        NodePtr prev, node = prev = _root;
+        _NodePtr prev, node = prev = _root;
         while (node) {
             if (data < node->data) {
                 node = node->left;
@@ -189,33 +217,47 @@ public:
                 prev = node;
                 node = node->right;
             } else {
+                prev = findPrevNode(node, prev);
                 break;
             }
         }
-        return iterator(RetType(node, prev, RetType::Find));
+        return iterator(ReturnType(node, prev));
+    }
+
+    //! \todo: remove:just testing
+    void displayTree()
+    {
+        displayTree(_root);
     }
 
 private:
-    const int8_t height(const NodePtr node) const
+    //! \todo: remove:just testing
+    void displayTree(_NodePtr node)
     {
-        return node ? node->height : -1;
+        if (!node)
+            return;
+        displayTree(node->left);
+        std::cout << std::string(2 * node->height, ' ') << node->data << " (" << (int)height(node->left) << "," << (int)height(node->right) << ")" << std::endl;
+        displayTree(node->right);
     }
 
-    const int8_t balanceFactor(const NodePtr node) const
+    const int8_t height(const _NodePtr node) const { return node ? node->height : -1; }
+
+    const int8_t balanceFactor(const _NodePtr node) const
     {
         GD_ASSERT(node);
         return height(node->right) - height(node->left);
     }
 
-    void fixHeight(NodePtr node)
+    void fixHeight(_NodePtr node)
     {
         GD_ASSERT(node);
         node->height = std::max(height(node->left), height(node->right)) + 1;
     }
 
-    NodePtr leftRotate(NodePtr node)
+    _NodePtr leftRotate(_NodePtr node)
     {
-        NodePtr child = node->right;
+        _NodePtr child = node->right;
         node->right = child->left;
         child->left = node;
 
@@ -224,9 +266,9 @@ private:
         return child;
     }
 
-    NodePtr rightRotate(NodePtr node)
+    _NodePtr rightRotate(_NodePtr node)
     {
-        NodePtr child = node->left;
+        _NodePtr child = node->left;
         node->left = child->right;
         child->right = node;
 
@@ -235,7 +277,7 @@ private:
         return child;
     }
 
-    NodePtr balance(NodePtr node)
+    _NodePtr balance(_NodePtr node)
     {
         const int8_t bFactor = balanceFactor(node);
 
@@ -256,73 +298,78 @@ private:
         return node;
     }
 
-    NodePtr put(NodePtr& node, const _Tp& data)
+    static const _NodePtr findPrevNode(const _NodePtr node, const _NodePtr predictPrev)
+    {
+        _NodePtr prev = predictPrev;
+        if (!prev || prev->next != node) {
+            prev = node->left;
+            if (prev) {
+                while (prev->right) {
+                    prev = prev->right;
+                }
+                GD_ASSERT(prev->next == node);
+            }
+        }
+        return prev;
+    }
+
+    template<typename _U>
+    _NodePtr put(_NodePtr& node, _U&& data)
     {
         GD_ASSERT(!node);
         _size++;
-        return node = new (_region.alloc(sizeof(_Node))) _Node(data);
+        return node = new (_region.alloc(sizeof(_Node))) _Node(std::forward<_U>(data));
     }
 
-    NodePtr putLeft(NodePtr parent, NodePtr prev, const _Tp& data)
+    template<typename _U>
+    _NodePtr putLeft(_NodePtr parent, _NodePtr prev, _U&& data)
     {
         GD_ASSERT(parent);
-        NodePtr node = put(parent->left, data);
+        _NodePtr node = put<_U>(parent->left, std::forward<_U>(data));
         node->next = parent;
         if (GD_UNLIKELY(_first == parent)) {
             _first = node;
-        } else {
+        } else if (prev) {
             GD_ASSERT(prev->next == parent);
             prev->next = node;
         }
         return node;
     }
 
-    NodePtr putRight(NodePtr parent, const _Tp& data)
+    template<typename _U>
+    _NodePtr putRight(_NodePtr parent, _U&& data)
     {
         GD_ASSERT(parent);
-        NodePtr node = put(parent->right, data);
+        _NodePtr node = put<_U>(parent->right, std::forward<_U>(data));
         node->next = parent->next;
         parent->next = node;
         return node;
     }
 
-    template<typename T>
-    struct _Greater {
-        constexpr bool operator()(const T& lhs, const T& rhs) const
-        {
-            return rhs < lhs;
-        }
-    };
-
-    template<typename T>
-    struct _GreaterOrEqual {
-        constexpr bool operator()(const T& lhs, const T& rhs) const
-        {
-            return !(lhs < rhs);
-        }
-    };
-
-    template<typename _NotLessCompare>
-    RetType insert(const _Tp& data)
+    template<typename _NotLessCompare, typename _U, typename _RetVal = _RetType>
+    ReturnType insert(_U&& data)
     {
         _NotLessCompare notLess;
-        NodePtr node = nullptr, prev = nullptr;
-        typename RetType::Type type = RetType::Insert;
+        _NodePtr node = nullptr;
+        _RetVal retVal;
+        retVal.setType(true);
 
         if (GD_UNLIKELY(!_root)) {
-            node = _first = _root = put(_root, data);
-            type = RetType::First;
+            node = _first = _root = put<_U>(_root, std::forward<_U>(data));
         } else {
-            NodePtr workSide, parent = prev = _root = balance(_root);
+            _NodePtr workSide, parent = _root = balance(_root);
+            retVal.setPrev(parent);
             do {
                 const bool isLesser = data < parent->data;
 
                 if (isLesser) {
                     workSide = parent->left;
                 } else if (notLess(data, parent->data)) {
-                    prev = parent;
+                    retVal.setPrev(parent);
                     workSide = parent->right;
                 } else {
+                    retVal.setType(false);
+                    retVal.findPrev(parent);
                     break;
                 }
 
@@ -346,31 +393,34 @@ private:
             GD_ASSERT(parent);
 
             if (data < parent->data) {
-                node = putLeft(parent, prev, data);
-                if (GD_UNLIKELY(node == _first)) {
-                    type = RetType::First;
-                }
+                node = putLeft<_U>(parent, retVal.getPrev(), std::forward<_U>(data));
             } else if (notLess(data, parent->data)) {
-                node = putRight(parent, data);
+                node = putRight<_U>(parent, std::forward<_U>(data));
             } else {
-                return RetType(parent, prev, RetType::Find);
+                node = parent;
             }
 
             fixHeight(parent);
         }
 
         GD_ASSERT(node);
-        return RetType(node, prev, type);
+        return ReturnType(node, retVal.getPrev(), retVal.getType() > 0);
+    }
+
+    template<typename _NotLessCompare, typename _U>
+    void emplace(_U&& data)
+    {
+        insert<_NotLessCompare, _U, _EmptyRetType>(std::forward<_U>(data));
     }
 
     size_t _size = 0;
-    NodePtr _root = nullptr;
-    NodePtr _first = nullptr;
+    _NodePtr _root = nullptr;
+    _NodePtr _first = nullptr;
 
     template<size_t requestedSize, size_t memStorageSize> struct _SelectSize {
         static const int val = memStorageSize * (1 + requestedSize / memStorageSize);
     };
-    Region<_SelectSize<EXPECTED_MIN_NODE * sizeof(_Node), 2048>::val - (int)sizeof(void*)> _region;
+    Region<_SelectSize<EXPECTED_MIN_NODES * sizeof(_Node), 2048>::val - (int)sizeof(void*)> _region;
 };
 
 } // namespace gepard

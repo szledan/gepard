@@ -33,11 +33,11 @@
 #include "gepard-float-point.h"
 #include "gepard-float.h"
 #include <ostream>
+#include <memory>
 
 namespace gepard {
 
-typedef unsigned long int UIntID;
-static UIntID s_uid = 0;
+static uint32_t s_uid = 0;
 
 /*!
  * \brief The Segment struct
@@ -49,12 +49,12 @@ static UIntID s_uid = 0;
  * +y [int] v POS direction    | NEG direction
  *
  *  m = (bottomY - topY) / (bottomX - topX)
- *  m' = 1 / m = (bottomX - topX) / (bottomY - topY)
+ *  dx = 1 / m = (bottomX - topX) / (bottomY - topY)
  *
  *  direction == 0 -> invalid Segment
  */
 struct Segment {
-    Segment(const FloatPoint from, const FloatPoint to)
+    Segment(const FloatPoint from = FloatPoint(), const FloatPoint to = FloatPoint())
         : uid(++s_uid)
         , topY(std::floor(from.y))
         , bottomY(std::floor(to.y))
@@ -85,21 +85,34 @@ struct Segment {
     {
         GD_ASSERT(y > topY);
         Segment s = *this;
-        topX = s.bottomX = x(y);
-        topY = s.bottomY = y;
+        topX = (s.bottomX = x(y));
+        topY = (s.bottomY = y);
         return s;
     }
 
     const Segment cutAndRemoveBottom(int y)
     {
         Segment s = *this;
-        bottomX = s.topX = x(y);
-        bottomY = s.topY = y;
+        bottomX = (s.topX = x(y));
+        bottomY = (s.topY = y);
         return s;
     }
 
-    UIntID uid = 0;
-    int topY, bottomY;
+    const bool intersectionY(Segment& next, int* y)
+    {
+        GD_ASSERT(topX <= next.topX);
+        GD_ASSERT(topY == next.topY);
+        GD_ASSERT(bottomY == next.bottomY);
+        if (topX < next.topX && next.bottomX < bottomX) {
+            GD_ASSERT(next.dx - dx);
+            *y = std::floor((topX - next.topX) / (next.dx - dx) + topY);
+            return true;
+        }
+        return false;
+    }
+
+    uint32_t uid;
+    int topY, bottomY; //! is it needed?
     Float topX, bottomX;
     Float dx;
     int direction = 0;

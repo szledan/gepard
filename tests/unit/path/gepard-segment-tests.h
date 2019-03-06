@@ -26,17 +26,18 @@
 #ifndef GEPARD_SEGMENT_TESTS_H
 #define GEPARD_SEGMENT_TESTS_H
 
-#include "gepard-segment.h"
+#include "gepard-binary-trees.h"
+#include "path/gepard-segment.h"
 #include "gtest/gtest.h"
 #include <cmath>
-#include <limits>
+#include <vector>
 
 namespace {
 
 TEST(SegmentTest, Constructor)
 {
     const double pi = 2.0 * std::asin(1.0);
-    const gepard::UIntID currentUID = gepard::s_uid;
+    const uint32_t currentUID = gepard::s_uid;
 
     {
         const gepard::Segment segment(gepard::FloatPoint(-pi, -pi), gepard::FloatPoint(pi, pi));
@@ -82,7 +83,7 @@ TEST(SegmentTest, Constructor)
 
 TEST(SegmentTest, XFunction)
 {
-    const gepard::Segment segment(gepard::FloatPoint(-1, -2.2), gepard::FloatPoint(1, 3));
+    const gepard::Segment segment(gepard::FloatPoint(-1.0, -2.2), gepard::FloatPoint(1.0, 3));
     EXPECT_EQ(segment.x(0), 0.0) << "";
     EXPECT_FLOAT_EQ(segment.x(1), 1.0 / 3.0) << "";
     EXPECT_FLOAT_EQ(segment.x(-1), -1.0 / 3.0) << "";
@@ -90,8 +91,8 @@ TEST(SegmentTest, XFunction)
 
 TEST(SegmentTest, CutAndRemoveTop)
 {
-    const gepard::UIntID currentUID = gepard::s_uid;
-    gepard::Segment sBase(gepard::FloatPoint(-1, -2.2), gepard::FloatPoint(1, 3.9));
+    const uint32_t currentUID = gepard::s_uid;
+    gepard::Segment sBase(gepard::FloatPoint(-1.0, -2.2), gepard::FloatPoint(1.0, 3.9));
     gepard::Segment sTop = sBase.cutAndRemoveTop(1);
 
     EXPECT_EQ(sBase.uid, currentUID + 1) << "";
@@ -113,8 +114,8 @@ TEST(SegmentTest, CutAndRemoveTop)
 
 TEST(SegmentTest, CutAndRemoveBottom)
 {
-    const gepard::UIntID currentUID = gepard::s_uid;
-    gepard::Segment sBase(gepard::FloatPoint(-1, -2.2), gepard::FloatPoint(1, 3.9));
+    const uint32_t currentUID = gepard::s_uid;
+    gepard::Segment sBase(gepard::FloatPoint(-1.0, -2.2), gepard::FloatPoint(1.0, 3.9));
     gepard::Segment sTop = sBase.cutAndRemoveBottom(1);
 
     EXPECT_EQ(sBase.uid, currentUID + 1) << "";
@@ -132,6 +133,61 @@ TEST(SegmentTest, CutAndRemoveBottom)
     EXPECT_EQ(sTop.bottomY, 3) << "";
     EXPECT_FLOAT_EQ(sTop.dx, 1.0 / 3.0) << "";
     EXPECT_EQ(sTop.direction, 1) << "";
+}
+
+TEST(SegmentTest, IntersectionY)
+{
+    gepard::Segment sBase(gepard::FloatPoint(20.0, 10.1), gepard::FloatPoint(30.0, 30.9));
+    gepard::Segment sNext(gepard::FloatPoint(30.0, 10.9), gepard::FloatPoint(10.0, 30.1));
+    gepard::Segment sParallel(gepard::FloatPoint(25.0, 10.2), gepard::FloatPoint(35.0, 30.8));
+
+    EXPECT_FLOAT_EQ(sBase.dx, sParallel.dx) << "";
+    int y = 0;
+    EXPECT_FLOAT_EQ(sBase.intersectionY(sParallel, &y), false) << "";
+    EXPECT_FLOAT_EQ(sBase.intersectionY(sNext, &y), true) << "";
+    EXPECT_FLOAT_EQ(y, 16) << "";
+    EXPECT_FLOAT_EQ(sParallel.intersectionY(sNext, &y), true) << "";
+    EXPECT_FLOAT_EQ(y, 13) << "";
+}
+
+TEST(SegmentTest, IntersectionPoints)
+{
+//    gepard::Map<int, gepard::MultiSet<gepard::Segment>> segments;
+//    for (int i = 0; i < 6; ++i) {
+//        segments[1].insert(gepard::Segment(gepard::FloatPoint(i, 1.0), gepard::FloatPoint(-2 * i, 10.0)));
+//    }
+
+//    for (gepard::Map<int, gepard::MultiSet<gepard::Segment>>::iterator i : segments) {
+//        gepard::MultiSet<gepard::Segment>& ms = i->data().value;
+//        for (gepard::MultiSet<gepard::Segment>::iterator it : ms) {
+//            gepard::MultiSet<gepard::Segment>::iterator pit = it++;
+//            if (it == ms.end())
+//                break;
+//            int y;
+//            if (pit->data().intersectionY(it->data(), &y)) {
+//                gepard::MultiSet<gepard::Segment>& nextms = segments.insert(y)->data().value;
+//for (auto& j : segments) {
+//    std::cout << j.data().key << ":" << &(j.data().value) << std::endl;
+//}
+//                EXPECT_EQ(nextms.size(), 0u);
+//                EXPECT_EQ(ms.size(), 6u);
+//                for (auto& s : ms) {
+//std::cout << &(s.data()) << std::endl;
+//gepard::Segment seg = s.data().cutAndRemoveBottom(y);
+//std::cout << s.data() << std::endl;
+//auto ss = nextms.insert(seg);
+//std::cout << &(ss->data()) << std::endl;
+//std::cout << &(s.data()) << std::endl;
+//std::cout << s.data() << std::endl;
+//                }
+//                //EXPECT_EQ(ms.size(), nextms.size());
+//for (auto& j : ms) {
+//    std::cout << j.data() << std::endl;
+//}
+//            }
+//        }
+//    }
+////    EXPECT_EQ(segments.size(), 5);
 }
 
 } // anonymous namespace
