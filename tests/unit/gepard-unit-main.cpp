@@ -25,7 +25,7 @@
 
 #include "gtest/gtest.h"
 
-#include "gepard-binary-trees-tests.h"
+#include "gepard-binary-tree-tests.h"
 #include "gepard-bounding-box-tests.h"
 #include "gepard-float-point-tests.h"
 #include "gepard-float-tests.h"

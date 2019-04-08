@@ -26,7 +26,7 @@
 #ifndef GEPARD_SEGMENT_TESTS_H
 #define GEPARD_SEGMENT_TESTS_H
 
-#include "gepard-binary-trees.h"
+#include "gepard-binary-tree.h"
 #include "path/gepard-segment.h"
 #include "gtest/gtest.h"
 #include <cmath>

@@ -32,7 +32,7 @@
 
 #include "gepard-defs.h"
 #include "gepard-segment.h"
-#include "gepard-binary-trees.h"
+#include "gepard-binary-tree.h"
 #include "gepard-job-scheduler.h"
 #include <mutex>
 #include <thread>

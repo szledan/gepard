@@ -23,8 +23,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GEPARD_BINARY_TREES_H
-#define GEPARD_BINARY_TREES_H
+#ifndef GEPARD_BINARY_TREE_H
+#define GEPARD_BINARY_TREE_H
 
 #include "gepard-defs.h"
 #include "gepard-region.h"
@@ -454,4 +454,4 @@ private:
 
 } // namespace gepard
 
-#endif // GEPARD_BINARY_TREES_H
+#endif // GEPARD_BINARY_TREE_H

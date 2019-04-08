@@ -23,10 +23,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef GEPARD_BINARY_TREES_TESTS_H
-#define GEPARD_BINARY_TREES_TESTS_H
+#ifndef GEPARD_BINARY_TREE_TESTS_H
+#define GEPARD_BINARY_TREE_TESTS_H
 
-#include "gepard-binary-trees.h"
+#include "gepard-binary-tree.h"
 #include "gepard-logging.h"
 #include "gtest/gtest.h"
 #include <chrono>
@@ -38,7 +38,7 @@
 #include <thread>
 #include <vector>
 
-namespace binaryTreesTests {
+namespace binaryTreeTests {
 
 template<typename T>
 const std::vector<T> fillVector(const int64_t count, const std::function<T()> constructor)
@@ -214,15 +214,15 @@ TEST(BinaryTree, HeightAndSize)
 
 TEST(BinaryTree, Iterator)
 {
-    gepard::BinaryTree<TestData> uniqueLinkedBinaryTree;
-    gepard::BinaryTree<TestData> multiLinkedBinaryTree;
+    gepard::BinaryTree<TestData> uniqueBinaryTree;
+    gepard::BinaryTree<TestData> multiBinaryTree;
 
-    EXPECT_EQ(uniqueLinkedBinaryTree.begin(), uniqueLinkedBinaryTree.end());
-    EXPECT_EQ(multiLinkedBinaryTree.begin(), multiLinkedBinaryTree.end());
+    EXPECT_EQ(uniqueBinaryTree.begin(), uniqueBinaryTree.end());
+    EXPECT_EQ(multiBinaryTree.begin(), multiBinaryTree.end());
 
     TestData::s_stats.resetCounters();
     for (int i = 0; i < 30; ++i) {
-        uniqueLinkedBinaryTree.uniqueInsert(TestData(i / 3));
+        uniqueBinaryTree.uniqueInsert(TestData(i / 3));
         TEST_STATS(i + 1, 0, 0, i + 1, 0, i / 3 + 1);
     }
     TestData::s_stats.resetCounters();
@@ -234,7 +234,7 @@ TEST(BinaryTree, Iterator)
 
     TestData::s_stats.resetCounters();
     for (int i = 0; i < 30; ++i) {
-        multiLinkedBinaryTree.multiInsert(TestData(i / 3));
+        multiBinaryTree.multiInsert(TestData(i / 3));
         TEST_STATS(i + 1, 0, 0, i + 1, 0, i + 1);
     }
     TestData::s_stats.resetCounters();
@@ -244,20 +244,20 @@ TEST(BinaryTree, Iterator)
         TEST_STATS(i + 1, 0, 0, i + 1, 0, i + 1);
     }
 
-    EXPECT_EQ(uniqueLinkedBinaryTree.size(), 10u);
-    EXPECT_EQ(multiLinkedBinaryTree.size(), 30u);
+    EXPECT_EQ(uniqueBinaryTree.size(), 10u);
+    EXPECT_EQ(multiBinaryTree.size(), 30u);
 
-    gepard::BinaryTree<TestData>::iterator uIt = uniqueLinkedBinaryTree.begin();
+    gepard::BinaryTree<TestData>::iterator uIt = uniqueBinaryTree.begin();
     gepard::BinaryTree<TestData>::iterator uItPrev = uIt++;
-    while (uIt != uniqueLinkedBinaryTree.end()) {
+    while (uIt != uniqueBinaryTree.end()) {
         EXPECT_LT(*uItPrev, *uIt);
         uItPrev = uIt++;
         TEST_STATS(30, 0, 0, 30, 0, 30);
     }
 
-    gepard::BinaryTree<TestData>::iterator mIt = multiLinkedBinaryTree.begin();
+    gepard::BinaryTree<TestData>::iterator mIt = multiBinaryTree.begin();
     gepard::BinaryTree<TestData>::iterator mItPrev = mIt++;
-    while (mIt != uniqueLinkedBinaryTree.end()) {
+    while (mIt != uniqueBinaryTree.end()) {
         EXPECT_LE(*mItPrev, *mIt);
         mItPrev = mIt++;
         TEST_STATS(30, 0, 0, 30, 0, 30);
@@ -647,6 +647,6 @@ TEST(BinaryTree, DISABLED_SpeedTest)
     }
 }
 
-} // namespace binaryTreesTests
+} // namespace binaryTreeTests
 
-#endif // GEPARD_BINARY_TREES_TESTS_H
+#endif // GEPARD_BINARY_TREE_TESTS_H
