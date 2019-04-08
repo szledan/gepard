@@ -40,6 +40,7 @@
 namespace gepard {
 
 class TrapezoidContainer {
+
 public:
     TrapezoidContainer()
     {
@@ -54,6 +55,7 @@ public:
 
     void addSegment(const Segment& segment)
     {
+        ;
 //        _yMutex.lock();
 //        _yJobs.addJob(std::bind(&TrapezoidContainer::addYJob, this, segment));
 //        _yMutex.unlock();
@@ -75,10 +77,10 @@ private:
 //            _xJobs[std::abs(topY % 2)].addJob(std::bind(&TrapezoidContainer::insertSegment, this, &(cit->value), cs));
 //        } while (bit != eit);
     }
-    void splitXSet(const int y, MultiSet<Segment>* xSet1, MultiSet<Segment>* xSet2)
+    void splitXSet(const int y, BinaryTree<Segment>* xSet1, BinaryTree<Segment>* xSet2)
     {
     }
-    void insertSegment(MultiSet<Segment>* xSet, const Segment& segment)
+    void insertSegment(BinaryTree<Segment>* xSet, const Segment& segment)
     {
 //        xSet->insert(segment);
 //        std::cout << segment.topY() << std::endl;
@@ -90,8 +92,10 @@ private:
 
 //    JobRunner _xRunners[2];
 //    JobScheduler _xJobs[2] = { JobScheduler(_xRunners[0]), JobScheduler(_xRunners[1]) };
-//    Map<int, MultiSet<Segment>> _segments;
+
+    //    Set<SegmentList> _segments;
 };
+
 } // namespace gepard
 
 #endif // GEPARD_TRAPEZOID_CONTAINER_H

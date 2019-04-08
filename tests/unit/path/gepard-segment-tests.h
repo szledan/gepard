@@ -150,14 +150,125 @@ TEST(SegmentTest, IntersectionY)
     EXPECT_FLOAT_EQ(y, 13) << "";
 }
 
+struct SegmentList {
+    typedef gepard::BinaryTree<gepard::Segment> List;
+
+    int y;
+    List* list;
+
+    SegmentList(const int y_, List* l = nullptr)
+        : y(y_), list(l)
+    {}
+    ~SegmentList()
+    {
+        if (list) {
+            delete list;
+        }
+    }
+
+    friend const bool operator<(const SegmentList& lhs, const SegmentList& rhs)
+    {
+        return lhs.y < rhs.y;
+    }
+
+    SegmentList& operator=(SegmentList& other) = delete;
+};
+
+std::ostream& operator<<(std::ostream& os, const SegmentList& obj)
+{
+    os << obj.y << ":";
+    if (obj.list) {
+        for (auto& s : (*obj.list)) {
+            os << " " << s;
+        }
+    }
+    return os;
+}
+
+#define __REF 0
+#if __REF
+typedef std::set<SegmentList> SegmentConainer;
+#else
+typedef gepard::BinaryTree<SegmentList> SegmentConainer;
+#endif
+
+void displaySegments(SegmentConainer* segments)
+{
+    for (auto& sl : *segments) {
+        std::cout << sl << std::endl;
+    }
+}
+
 TEST(SegmentTest, IntersectionPoints)
 {
-//    gepard::Map<int, gepard::MultiSet<gepard::Segment>> segments;
-//    for (int i = 0; i < 6; ++i) {
-//        segments[1].insert(gepard::Segment(gepard::FloatPoint(i, 1.0), gepard::FloatPoint(-2 * i, 10.0)));
-//    }
+    SegmentConainer segments;
+    SegmentList segList(1, new SegmentList::List());
+    for (int i = 0, xt = 0; i < 3; xt += ++i) {
+        segList.list->multiInsert(gepard::Segment(gepard::FloatPoint(xt, 1.0), gepard::FloatPoint(-2 * i, 10.0)));
+    }
+    segments.uniqueInsert(segList);
+    for (auto& segment : *(segments.begin()->list)) {
+        std::cout << segment << std::endl;
+    }
+    std::cout << std::endl;
 
-//    for (gepard::Map<int, gepard::MultiSet<gepard::Segment>>::iterator i : segments) {
+    for (auto& sl : segments) {
+        SegmentList::List* list = sl.list;
+        SegmentList::List::iterator it = list->begin();
+        if (it == list->end())
+            continue;
+        SegmentList::List::iterator pit = it++;
+        for (; it != list->end(); pit = it++) {
+            int y;
+            if (pit->intersectionY(*it, &y)) {
+                SegmentList& nsl = *(segments.uniqueInsert(SegmentList(y)).it);
+                std::cout << "y=" << y << " ps x s: " << *pit << " x " << *it << std::endl;
+                if (!nsl.list) {
+                    nsl.list = new SegmentList::List();
+                    SegmentList& nnsl = *(segments.uniqueInsert(SegmentList(y + 1)).it);
+                    if (!nnsl.list) {
+                        nnsl.list = new SegmentList::List();
+                    }
+                    for (SegmentList::List::iterator sit = list->begin(); sit != list->end(); ++sit) {
+                        gepard::Segment ns = (*sit).cutAndRemoveBottom(y);
+                        gepard::Segment nns = ns.cutAndRemoveBottom(y + 1);
+                        std::cout << "ns: " << ns << " nns: " << nns << std::endl;
+                        nsl.list->multiInsert(std::move(ns));
+                        nnsl.list->multiInsert(std::move(nns));
+                    }
+                }
+                std::cout << std::endl;
+                displaySegments(&segments);
+//                segments.displayTree();
+//                std::cout << std::endl;
+//                for (auto& segment : *(segments.begin()->list)) {
+//                    std::cout << segment << std::endl;
+//                }
+//                std::cout << std::endl;
+//                for (auto& segment : *((++(segments.begin()))->list)) {
+//                    std::cout << segment << std::endl;
+//                }
+//                std::cout << std::endl;
+            }
+        }
+        list->displayTree();
+        std::cout << std::endl;
+    }
+    for (auto& it : segments) {
+        std::cout << it.y << std::endl;
+    }
+    std::cout << std::endl;
+    for (auto& segment : *(segments.begin()->list)) {
+        std::cout << segment << std::endl;
+    }
+    std::cout << std::endl;
+    std::cout << std::endl;
+    for (auto& segment : *((++(segments.begin()))->list)) {
+        std::cout << segment << std::endl;
+    }
+    std::cout << std::endl;
+
+
 //        gepard::MultiSet<gepard::Segment>& ms = i->data().value;
 //        for (gepard::MultiSet<gepard::Segment>::iterator it : ms) {
 //            gepard::MultiSet<gepard::Segment>::iterator pit = it++;

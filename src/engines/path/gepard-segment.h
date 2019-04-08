@@ -78,27 +78,33 @@ struct Segment {
         }
         dx = (bottomX - topX) / (bottomY - topY);
     }
+    Segment(const Segment& s)
+        : uid(s.uid)
+        , topY(s.topY), bottomY(s.bottomY)
+        , topX(s.topX), bottomX(s.bottomX)
+        , dx(s.dx), direction(s.direction)
+    {}
 
     const Float x(const int y) const { return dx * (y - topY) + topX; }
 
-    const Segment cutAndRemoveTop(int y)
+    Segment&& cutAndRemoveTop(const int y)
     {
         GD_ASSERT(y > topY);
         Segment s = *this;
         topX = (s.bottomX = x(y));
         topY = (s.bottomY = y);
-        return s;
+        return std::move(s);
     }
 
-    const Segment cutAndRemoveBottom(int y)
+    Segment&& cutAndRemoveBottom(const int y)
     {
         Segment s = *this;
         bottomX = (s.topX = x(y));
         bottomY = (s.topY = y);
-        return s;
+        return std::move(s);
     }
 
-    const bool intersectionY(Segment& next, int* y)
+    const bool intersectionY(const Segment& next, int* y) const
     {
         GD_ASSERT(topX <= next.topX);
         GD_ASSERT(topY == next.topY);
