@@ -54,6 +54,24 @@ namespace gepard {
 template<const uint32_t BLOCK_SIZE = GD_REGION_BLOCK_SIZE>
 class Region {
 public:
+    Region(const Region& rhs) = delete;
+    Region(Region&& r)
+        : _first(r._first), _last(r._last), _fill(r._fill)
+    {
+        r._first = nullptr;
+    }
+    Region& operator=(const Region& rhs) = delete;
+    Region& operator=(Region&& rhs)
+    {
+        if (this == &rhs)
+            return *this;
+
+        _first = rhs._first;
+        _last = rhs._last;
+        _fill = rhs._fill;
+        rhs._first = nullptr;
+        return *this;
+    }
     Region()
     {
         _first = new RegionElement();

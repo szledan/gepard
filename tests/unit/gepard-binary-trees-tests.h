@@ -31,8 +31,11 @@
 #include "gtest/gtest.h"
 #include <chrono>
 #include <functional>
+#include <numeric>
 #include <map>
 #include <set>
+#include <time.h>
+#include <thread>
 #include <vector>
 
 namespace binaryTreesTests {
@@ -142,16 +145,18 @@ struct {
     size_t count;
     std::function<TestData()> func;
 } s_fillStrategys[] = {
-    { 1, [](){ static int64_t counter = 0; return TestData(counter++); } },
-    { 1, [](){ static int64_t counter = 10; return TestData(counter--); } },
-    { 10, [](){ static int64_t counter = 0; return TestData(counter++); } },
-    { 10, [](){ static int64_t counter = 10; return TestData(counter--); } },
-    { 100, [](){ static int64_t counter = 0; return TestData(counter++); } },
-    { 100, [](){ static int64_t counter = 100; return TestData(counter--); } },
-    { 1 << 8, [](){ static int64_t counter = 1 << 8; return TestData(((counter % 2) ? -1 * (--counter) : 1 * (--counter))); } },
+    { 1, [](){ static thread_local int64_t counter = 0; return TestData(counter++); } },
+    { 1, [](){ static thread_local int64_t counter = 10; return TestData(counter--); } },
+    { 5, [](){ static thread_local int64_t counter = 0; return TestData(counter++); } },
+    { 5, [](){ static thread_local int64_t counter = 10; return TestData(counter--); } },
+    { 10, [](){ static thread_local int64_t counter = 0; return TestData(counter++); } },
+    { 10, [](){ static thread_local int64_t counter = 10; return TestData(counter--); } },
+    { 100, [](){ static thread_local int64_t counter = 0; return TestData(counter++); } },
+    { 100, [](){ static thread_local int64_t counter = 100; return TestData(counter--); } },
+    { 1 << 8, [](){ static thread_local int64_t counter = 1 << 8; return TestData(((counter % 2) ? -1 * (--counter) : 1 * (--counter))); } },
     { 100, [](){ return TestData(1); } },
-    { 100, [](){ static int64_t counter = 0; return TestData(++counter % 5); } },
-    { 1 << 16, [](){ static int64_t counter = (1 << 20) / 2; static int pwr = 1, times = 1;
+    { 100, [](){ static thread_local int64_t counter = 0; return TestData(++counter % 5); } },
+    { 1 << 16, [](){ static thread_local int64_t counter = (1ll << 31) / 2; static thread_local int pwr = 1, times = 1;
         if (!times) {
                 counter = counter / 2;
                 times = pwr = pwr << 1;
@@ -160,57 +165,57 @@ struct {
         } },
 };
 
-TEST(_LinkedBinaryTree, HeightAndSize)
+TEST(BinaryTree, HeightAndSize)
 {
-    gepard::_LinkedBinaryTree<int> linkedBinaryTree;
+    gepard::BinaryTree<int> binaryTree;
 
-    EXPECT_EQ(linkedBinaryTree.size(), 0u);
-    EXPECT_EQ(linkedBinaryTree.rootHeight(), -1);
-    linkedBinaryTree.uniqueInsert(9);
-    EXPECT_EQ(linkedBinaryTree.size(), 1u);
-    EXPECT_EQ(linkedBinaryTree.rootHeight(), 0);
-    linkedBinaryTree.uniqueInsert(9);
-    EXPECT_EQ(linkedBinaryTree.size(), 1u);
-    EXPECT_EQ(linkedBinaryTree.rootHeight(), 0);
-    linkedBinaryTree.uniqueInsert(8);
-    EXPECT_EQ(linkedBinaryTree.size(), 2u);
-    EXPECT_EQ(linkedBinaryTree.rootHeight(), 1);
-    linkedBinaryTree.uniqueInsert(8);
-    EXPECT_EQ(linkedBinaryTree.size(), 2u);
-    EXPECT_EQ(linkedBinaryTree.rootHeight(), 1);
-    linkedBinaryTree.uniqueInsert(7);
-    EXPECT_EQ(linkedBinaryTree.size(), 3u);
-    EXPECT_EQ(linkedBinaryTree.rootHeight(), 1);
-    linkedBinaryTree.uniqueInsert(6);
-    EXPECT_EQ(linkedBinaryTree.size(), 4u);
-    EXPECT_EQ(linkedBinaryTree.rootHeight(), 1);
-    linkedBinaryTree.uniqueInsert(5);
-    EXPECT_EQ(linkedBinaryTree.size(), 5u);
-    EXPECT_EQ(linkedBinaryTree.rootHeight(), 2);
-    linkedBinaryTree.uniqueInsert(4);
-    EXPECT_EQ(linkedBinaryTree.size(), 6u);
-    EXPECT_EQ(linkedBinaryTree.rootHeight(), 2);
-    linkedBinaryTree.uniqueInsert(3);
-    EXPECT_EQ(linkedBinaryTree.size(), 7u);
-    EXPECT_EQ(linkedBinaryTree.rootHeight(), 2);
-    linkedBinaryTree.uniqueInsert(2);
-    EXPECT_EQ(linkedBinaryTree.size(), 8u);
-    EXPECT_EQ(linkedBinaryTree.rootHeight(), 2);
-    linkedBinaryTree.uniqueInsert(1);
-    EXPECT_EQ(linkedBinaryTree.size(), 9u);
-    EXPECT_EQ(linkedBinaryTree.rootHeight(), 2);
-    linkedBinaryTree.uniqueInsert(1);
-    EXPECT_EQ(linkedBinaryTree.size(), 9u);
-    EXPECT_EQ(linkedBinaryTree.rootHeight(), 3);
-    linkedBinaryTree.uniqueInsert(0);
-    EXPECT_EQ(linkedBinaryTree.size(), 10u);
-    EXPECT_EQ(linkedBinaryTree.rootHeight(), 3);
+    EXPECT_EQ(binaryTree.size(), 0u);
+    EXPECT_EQ(binaryTree.rootHeight(), -1);
+    binaryTree.uniqueInsert(9);
+    EXPECT_EQ(binaryTree.size(), 1u);
+    EXPECT_EQ(binaryTree.rootHeight(), 0);
+    binaryTree.uniqueInsert(9);
+    EXPECT_EQ(binaryTree.size(), 1u);
+    EXPECT_EQ(binaryTree.rootHeight(), 0);
+    binaryTree.uniqueInsert(8);
+    EXPECT_EQ(binaryTree.size(), 2u);
+    EXPECT_EQ(binaryTree.rootHeight(), 1);
+    binaryTree.uniqueInsert(8);
+    EXPECT_EQ(binaryTree.size(), 2u);
+    EXPECT_EQ(binaryTree.rootHeight(), 1);
+    binaryTree.uniqueInsert(7);
+    EXPECT_EQ(binaryTree.size(), 3u);
+    EXPECT_EQ(binaryTree.rootHeight(), 1);
+    binaryTree.uniqueInsert(6);
+    EXPECT_EQ(binaryTree.size(), 4u);
+    EXPECT_EQ(binaryTree.rootHeight(), 1);
+    binaryTree.uniqueInsert(5);
+    EXPECT_EQ(binaryTree.size(), 5u);
+    EXPECT_EQ(binaryTree.rootHeight(), 2);
+    binaryTree.uniqueInsert(4);
+    EXPECT_EQ(binaryTree.size(), 6u);
+    EXPECT_EQ(binaryTree.rootHeight(), 2);
+    binaryTree.uniqueInsert(3);
+    EXPECT_EQ(binaryTree.size(), 7u);
+    EXPECT_EQ(binaryTree.rootHeight(), 2);
+    binaryTree.uniqueInsert(2);
+    EXPECT_EQ(binaryTree.size(), 8u);
+    EXPECT_EQ(binaryTree.rootHeight(), 2);
+    binaryTree.uniqueInsert(1);
+    EXPECT_EQ(binaryTree.size(), 9u);
+    EXPECT_EQ(binaryTree.rootHeight(), 2);
+    binaryTree.uniqueInsert(1);
+    EXPECT_EQ(binaryTree.size(), 9u);
+    EXPECT_EQ(binaryTree.rootHeight(), 3);
+    binaryTree.uniqueInsert(0);
+    EXPECT_EQ(binaryTree.size(), 10u);
+    EXPECT_EQ(binaryTree.rootHeight(), 3);
 }
 
-TEST(_LinkedBinaryTree, Iterator)
+TEST(BinaryTree, Iterator)
 {
-    gepard::_LinkedBinaryTree<TestData> uniqueLinkedBinaryTree;
-    gepard::_LinkedBinaryTree<TestData> multiLinkedBinaryTree;
+    gepard::BinaryTree<TestData> uniqueLinkedBinaryTree;
+    gepard::BinaryTree<TestData> multiLinkedBinaryTree;
 
     EXPECT_EQ(uniqueLinkedBinaryTree.begin(), uniqueLinkedBinaryTree.end());
     EXPECT_EQ(multiLinkedBinaryTree.begin(), multiLinkedBinaryTree.end());
@@ -242,240 +247,311 @@ TEST(_LinkedBinaryTree, Iterator)
     EXPECT_EQ(uniqueLinkedBinaryTree.size(), 10u);
     EXPECT_EQ(multiLinkedBinaryTree.size(), 30u);
 
-    gepard::_LinkedBinaryTree<TestData>::iterator uIt = uniqueLinkedBinaryTree.begin();
-    gepard::_LinkedBinaryTree<TestData>::iterator uItPrev = uIt++;
+    gepard::BinaryTree<TestData>::iterator uIt = uniqueLinkedBinaryTree.begin();
+    gepard::BinaryTree<TestData>::iterator uItPrev = uIt++;
     while (uIt != uniqueLinkedBinaryTree.end()) {
-        EXPECT_LT(*(uItPrev->data), *(uIt->data));
-        if (uItPrev->prev) {
-            EXPECT_EQ(*(uItPrev->data), *(uIt->prev));
-        }
+        EXPECT_LT(*uItPrev, *uIt);
         uItPrev = uIt++;
         TEST_STATS(30, 0, 0, 30, 0, 30);
     }
 
-    gepard::_LinkedBinaryTree<TestData>::iterator mIt = multiLinkedBinaryTree.begin();
-    gepard::_LinkedBinaryTree<TestData>::iterator mItPrev = mIt++;
+    gepard::BinaryTree<TestData>::iterator mIt = multiLinkedBinaryTree.begin();
+    gepard::BinaryTree<TestData>::iterator mItPrev = mIt++;
     while (mIt != uniqueLinkedBinaryTree.end()) {
-        EXPECT_LE(*(mItPrev->data), *(mIt->data));
-        if (mItPrev->prev) {
-            EXPECT_EQ(*(mItPrev->data), *(mIt->prev));
-        }
+        EXPECT_LE(*mItPrev, *mIt);
         mItPrev = mIt++;
         TEST_STATS(30, 0, 0, 30, 0, 30);
     }
 }
-
-TEST(_LinkedBinaryTree, UniqueInsert)
+TEST(BinaryTree, UniqueInsert)
 {
     TestData::s_stats.resetCounters();
     TestData td(1);
     TEST_STATS(1, 0, 0, 0, 0, 0);
 
-    gepard::_LinkedBinaryTree<TestData> linkedBinaryTree;
+    gepard::BinaryTree<TestData> binaryTree;
 
-    linkedBinaryTree.uniqueInsert(td);
-    EXPECT_EQ(linkedBinaryTree.size(), 1u);
+    binaryTree.uniqueInsert(td);
+    EXPECT_EQ(binaryTree.size(), 1u);
     TEST_STATS(1, 0, 1, 0, 0, 0);
 
-    linkedBinaryTree.uniqueInsert(td);
-    EXPECT_EQ(linkedBinaryTree.size(), 1u);
+    binaryTree.uniqueInsert(td);
+    EXPECT_EQ(binaryTree.size(), 1u);
     TEST_STATS(1, 0, 1, 0, 0, 0);
 
-    linkedBinaryTree.uniqueInsert(TestData(2));
-    EXPECT_EQ(linkedBinaryTree.size(), 2u);
+    binaryTree.uniqueInsert(TestData(2));
+    EXPECT_EQ(binaryTree.size(), 2u);
     TEST_STATS(2, 0, 1, 1, 0, 1);
 
-    linkedBinaryTree.uniqueInsert(TestData(2));
-    EXPECT_EQ(linkedBinaryTree.size(), 2u);
+    binaryTree.uniqueInsert(TestData(2));
+    EXPECT_EQ(binaryTree.size(), 2u);
     TEST_STATS(3, 0, 1, 2, 0, 1);
 
-    linkedBinaryTree.uniqueInsert(TestData(3));
-    EXPECT_EQ(linkedBinaryTree.size(), 3u);
+    binaryTree.uniqueInsert(TestData(3));
+    EXPECT_EQ(binaryTree.size(), 3u);
     TEST_STATS(4, 0, 1, 3, 0, 2);
 }
 
-TEST(_LinkedBinaryTree, UniqueEmplace)
+TEST(BinaryTree, MultiInsert)
 {
     TestData::s_stats.resetCounters();
     TestData td(1);
     TEST_STATS(1, 0, 0, 0, 0, 0);
 
-    gepard::_LinkedBinaryTree<TestData> linkedBinaryTree;
+    gepard::BinaryTree<TestData> binaryTree;
 
-    linkedBinaryTree.uniqueEmplace(td);
-    EXPECT_EQ(linkedBinaryTree.size(), 1u);
+    binaryTree.multiInsert(td);
+    EXPECT_EQ(binaryTree.size(), 1u);
     TEST_STATS(1, 0, 1, 0, 0, 0);
 
-    linkedBinaryTree.uniqueEmplace(td);
-    EXPECT_EQ(linkedBinaryTree.size(), 1u);
-    TEST_STATS(1, 0, 1, 0, 0, 0);
-
-    linkedBinaryTree.uniqueEmplace(TestData(2));
-    EXPECT_EQ(linkedBinaryTree.size(), 2u);
-    TEST_STATS(2, 0, 1, 1, 0, 1);
-
-    linkedBinaryTree.uniqueEmplace(TestData(2));
-    EXPECT_EQ(linkedBinaryTree.size(), 2u);
-    TEST_STATS(3, 0, 1, 2, 0, 1);
-
-    linkedBinaryTree.uniqueEmplace(TestData(3));
-    EXPECT_EQ(linkedBinaryTree.size(), 3u);
-    TEST_STATS(4, 0, 1, 3, 0, 2);
-}
-
-TEST(_LinkedBinaryTree, MultiInsert)
-{
-    TestData::s_stats.resetCounters();
-    TestData td(1);
-    TEST_STATS(1, 0, 0, 0, 0, 0);
-
-    gepard::_LinkedBinaryTree<TestData> linkedBinaryTree;
-
-    linkedBinaryTree.multiInsert(td);
-    EXPECT_EQ(linkedBinaryTree.size(), 1u);
-    TEST_STATS(1, 0, 1, 0, 0, 0);
-
-    linkedBinaryTree.multiInsert(td);
-    EXPECT_EQ(linkedBinaryTree.size(), 2u);
+    binaryTree.multiInsert(td);
+    EXPECT_EQ(binaryTree.size(), 2u);
     TEST_STATS(1, 0, 2, 0, 0, 0);
 
-    linkedBinaryTree.multiInsert(TestData(2));
-    EXPECT_EQ(linkedBinaryTree.size(), 3u);
+    binaryTree.multiInsert(TestData(2));
+    EXPECT_EQ(binaryTree.size(), 3u);
     TEST_STATS(2, 0, 2, 1, 0, 1);
 
-    linkedBinaryTree.multiInsert(TestData(2));
-    EXPECT_EQ(linkedBinaryTree.size(), 4u);
+    binaryTree.multiInsert(TestData(2));
+    EXPECT_EQ(binaryTree.size(), 4u);
     TEST_STATS(3, 0, 2, 2, 0, 2);
 
-    linkedBinaryTree.multiInsert(TestData(3));
-    EXPECT_EQ(linkedBinaryTree.size(), 5u);
+    binaryTree.multiInsert(TestData(3));
+    EXPECT_EQ(binaryTree.size(), 5u);
     TEST_STATS(4, 0, 2, 3, 0, 3);
 }
 
-TEST(_LinkedBinaryTree, MultiEmplace)
+TEST(BinaryTree, Find)
 {
     TestData::s_stats.resetCounters();
     TestData td(1);
     TEST_STATS(1, 0, 0, 0, 0, 0);
 
-    gepard::_LinkedBinaryTree<TestData> linkedBinaryTree;
-
-    linkedBinaryTree.multiEmplace(td);
-    EXPECT_EQ(linkedBinaryTree.size(), 1u);
-    TEST_STATS(1, 0, 1, 0, 0, 0);
-
-    linkedBinaryTree.multiEmplace(td);
-    EXPECT_EQ(linkedBinaryTree.size(), 2u);
-    TEST_STATS(1, 0, 2, 0, 0, 0);
-
-    linkedBinaryTree.multiEmplace(TestData(2));
-    EXPECT_EQ(linkedBinaryTree.size(), 3u);
-    TEST_STATS(2, 0, 2, 1, 0, 1);
-
-    linkedBinaryTree.multiEmplace(TestData(2));
-    EXPECT_EQ(linkedBinaryTree.size(), 4u);
-    TEST_STATS(3, 0, 2, 2, 0, 2);
-
-    linkedBinaryTree.multiEmplace(TestData(3));
-    EXPECT_EQ(linkedBinaryTree.size(), 5u);
-    TEST_STATS(4, 0, 2, 3, 0, 3);
-}
-
-TEST(_LinkedBinaryTree, Find)
-{
-    TestData::s_stats.resetCounters();
-    TestData td(1);
-    TEST_STATS(1, 0, 0, 0, 0, 0);
-
-    gepard::_LinkedBinaryTree<TestData> linkedBinaryTree;
-    EXPECT_EQ(linkedBinaryTree.find(td), linkedBinaryTree.end());
+    gepard::BinaryTree<TestData> binaryTree;
+    EXPECT_EQ(binaryTree.find(td).it, binaryTree.end());
     TEST_STATS(1, 0, 0, 0, 0, 0);
 
     td.value = 2;
-    linkedBinaryTree.multiInsert(td);
+    binaryTree.multiInsert(td);
     td.value = -3;
-    linkedBinaryTree.multiInsert(td);
+    binaryTree.multiInsert(td);
     td.value = 4;
-    linkedBinaryTree.multiInsert(td);
-    EXPECT_EQ(*(linkedBinaryTree.find(td)->data), TestData(4));
+    binaryTree.multiInsert(td);
+    EXPECT_EQ(*(binaryTree.find(td).it), TestData(4));
     TEST_STATS(2, 0, 3, 1, 0, 0);
 
-    EXPECT_EQ(*(linkedBinaryTree.find(TestData(-3))->data), *(linkedBinaryTree.begin()->data));
+    EXPECT_EQ(*(binaryTree.find(TestData(-3)).it), *(binaryTree.begin()));
     TEST_STATS(3, 0, 3, 2, 0, 0);
 }
 
-TEST(_LinkedBinaryTree, RetType)
+TEST(BinaryTree, ReturnType)
 {
     TestData::s_stats.resetCounters();
     TestData td(1);
     TEST_STATS(1, 0, 0, 0, 0, 0);
-    gepard::_LinkedBinaryTree<TestData> linkedBinaryTree;
-    auto a = linkedBinaryTree.multiInsert(td);
-    auto b = linkedBinaryTree.begin();
-    EXPECT_EQ(linkedBinaryTree.size(), 1u);
-    EXPECT_EQ(a->isNew, true);
-    EXPECT_EQ(b->isNew, false);
-    EXPECT_EQ(*(b->data), td);
-    EXPECT_EQ(b->prev, nullptr);
+    gepard::BinaryTree<TestData> binaryTree;
+    auto a = binaryTree.multiInsert(td);
+    auto b = binaryTree.begin();
+    EXPECT_EQ(binaryTree.size(), 1u);
+    EXPECT_EQ(*(a.it), td);
+    EXPECT_EQ(a.prev, nullptr);
+    EXPECT_EQ(a.isNew, true);
+    EXPECT_EQ(*b, td);
     TEST_STATS(1, 0, 1, 0, 0, 0);
 
     td.value = 2;
-    auto it = linkedBinaryTree.multiInsert(td);
-    EXPECT_EQ(linkedBinaryTree.size(), 2u);
-    EXPECT_EQ(it->isNew, true);
-    EXPECT_EQ(*(it->data), td);
-    EXPECT_EQ(*(it->prev), *(b->data));
+    auto c = binaryTree.multiInsert(td);
+    EXPECT_EQ(binaryTree.size(), 2u);
+    EXPECT_EQ(*(c.it), td);
+    EXPECT_EQ(c.prev->value, 1);
+    EXPECT_EQ(c.isNew, true);
+    EXPECT_EQ(*(c.prev), *(a.it));
+    EXPECT_EQ(*(c.prev), *b);
     TEST_STATS(1, 0, 2, 0, 0, 0);
 
-    gepard::_LinkedBinaryTree<TestData> linkedBinaryTree2;
-    auto b2 = linkedBinaryTree2.begin();
+    gepard::BinaryTree<TestData> linkedBinaryTree2;
+    auto d = linkedBinaryTree2.begin();
     EXPECT_EQ(linkedBinaryTree2.size(), 0u);
-    EXPECT_EQ(b2->data, nullptr);
-    EXPECT_EQ(b2->prev, nullptr);
-    EXPECT_EQ(b2->isNew, false);
+    EXPECT_EQ(d, linkedBinaryTree2.end());
 }
 
-TEST(Set, Find)
+#define VERBOSE false
+#define REPEAT 1
+#define THRD_CNT 1
+#define MILLI_SEC 1000
+#define MICRO_SEC 1000 * MILLI_SEC
+#define NANO_SEC 1000 * MICRO_SEC
+#define ACCUMULATE(TS_START, TS_STOP) NANO_SEC * (double(TS_STOP.tv_sec - TS_START.tv_sec) + double(TS_STOP.tv_nsec - TS_START.tv_nsec) / (1000000000.0));
+
+TEST(BinaryTree, CloneUnique)
 {
-    //! \todo: unittest
+    for (size_t f = 0; f < sizeof(s_fillStrategys) / sizeof(s_fillStrategys[0]); ++f) {
+        std::vector<TestData> data = fillVector(s_fillStrategys[f].count, s_fillStrategys[f].func);
+
+        std::stringstream cloneTestLog;
+        cloneTestLog << "fillStrategy: " << f << " count: " << s_fillStrategys[f].count;
+
+        const int num = REPEAT;
+        const int thrdCnt = THRD_CNT;
+        std::vector<std::thread> threads;
+        std::vector<double> cloneDur(num * thrdCnt, 0.0f);
+        std::vector<double> insertDur(num * thrdCnt, 0.0f);
+        for (int t = 0; t < thrdCnt; ++t) {
+            threads.push_back(std::thread([&](int thrd){
+                for (int i = 0; i < num; ++i) {
+                    const clockid_t clk_id = CLOCK_THREAD_CPUTIME_ID;
+                    struct timespec start, stop;
+
+                    clock_gettime(clk_id, &start);
+                    gepard::BinaryTree<TestData> insertBinTree;
+                    for (size_t j = 0; j < data.size(); ++j) {
+                        insertBinTree.uniqueInsert(data[j]);
+                    }
+                    clock_gettime(clk_id, &stop);
+                    insertDur[i * thrdCnt + thrd] = ACCUMULATE(start, stop);
+
+                    clock_gettime(clk_id, &start);
+                    gepard::BinaryTree<TestData> clonedBinTree = insertBinTree.clone();
+                    clock_gettime(clk_id, &stop);
+                    cloneDur[i * thrdCnt + thrd] = ACCUMULATE(start, stop);
+
+                    EXPECT_EQ(insertBinTree.size(), clonedBinTree.size()) << cloneTestLog.str();
+                    if (i == 0) {
+                        gepard::BinaryTree<TestData>::iterator insertLbtIt = insertBinTree.begin(), clonedLbtIt = clonedBinTree.begin();
+                        while (insertLbtIt != insertBinTree.end() && clonedLbtIt != clonedBinTree.end()) {
+                            EXPECT_EQ(*insertLbtIt, *clonedLbtIt) << cloneTestLog.str();
+                            ++insertLbtIt;
+                            ++clonedLbtIt;
+                        }
+                    }
+                }
+            }, t));
+        }
+        for (size_t t = 0; t < threads.size(); ++t) {
+            threads[t].join();
+        }
+
+        std::sort(cloneDur.begin(), cloneDur.end());
+        std::sort(insertDur.begin(), insertDur.end());
+        for (size_t i = 0; i < cloneDur.size(); ++i) {
+            cloneDur[i] = cloneDur[i] / insertDur[i];
+        }
+        std::sort(cloneDur.begin(), cloneDur.end());
+        if (VERBOSE) {
+            std::cout << std::fixed << std::setprecision(5) << " clone/insert:";
+            std::cout << "  avg: " << std::accumulate(cloneDur.begin(), cloneDur.end(), 0.0) / cloneDur.size();
+            std::cout << "  min: " << cloneDur.front();
+            std::cout << "  med: " << cloneDur[cloneDur.size() / 2];
+            std::cout << "  max: " << cloneDur.back();
+            std::cout << std::endl;
+        }
+    }
 }
 
-TEST(Set, Insert)
+TEST(BinaryTree, CloneMulti)
 {
-    //! \todo: unittest
+    for (size_t f = 0; f < sizeof(s_fillStrategys) / sizeof(s_fillStrategys[0]); ++f) {
+        std::vector<TestData> data = fillVector(s_fillStrategys[f].count, s_fillStrategys[f].func);
+
+        std::stringstream cloneTestLog;
+        cloneTestLog << "fillStrategy: " << f << " count: " << s_fillStrategys[f].count;
+
+        const int num = REPEAT;
+        const int thrdCnt = THRD_CNT;
+        std::vector<std::thread> threads;
+        std::vector<double> cloneDur(num * thrdCnt, 0.0f);
+        std::vector<double> insertDur(num * thrdCnt, 0.0f);
+        for (int t = 0; t < thrdCnt; ++t) {
+            threads.push_back(std::thread([&](int thrd){
+                for (int i = 0; i < num; ++i) {
+                    const clockid_t clk_id = CLOCK_THREAD_CPUTIME_ID;
+                    struct timespec start, stop;
+
+                    clock_gettime(clk_id, &start);
+                    gepard::BinaryTree<TestData> insertBinTree;
+                    for (size_t j = 0; j < data.size(); ++j) {
+                        insertBinTree.multiInsert(data[j]);
+                    }
+                    clock_gettime(clk_id, &stop);
+                    insertDur[i * thrdCnt + thrd] = ACCUMULATE(start, stop);
+
+                    clock_gettime(clk_id, &start);
+                    gepard::BinaryTree<TestData> clonedBinTree = insertBinTree.clone();
+                    clock_gettime(clk_id, &stop);
+                    cloneDur[i * thrdCnt + thrd] = ACCUMULATE(start, stop);
+
+                    EXPECT_EQ(insertBinTree.size(), clonedBinTree.size()) << cloneTestLog.str();
+                    if (i == 0) {
+                        gepard::BinaryTree<TestData>::iterator insertLbtIt = insertBinTree.begin(), clonedLbtIt = clonedBinTree.begin();
+                        while (insertLbtIt != insertBinTree.end() && clonedLbtIt != clonedBinTree.end()) {
+                            EXPECT_EQ(*insertLbtIt, *clonedLbtIt) << cloneTestLog.str();
+                            ++insertLbtIt;
+                            ++clonedLbtIt;
+                        }
+                    }
+                }
+            }, t));
+        }
+        for (size_t t = 0; t < threads.size(); ++t) {
+            threads[t].join();
+        }
+
+        std::sort(insertDur.begin(), insertDur.end());
+        for (size_t i = 0; i < cloneDur.size(); ++i) {
+            cloneDur[i] = cloneDur[i] / insertDur[i];
+        }
+        std::sort(cloneDur.begin(), cloneDur.end());
+        if (VERBOSE) {
+            std::cout << std::fixed << std::setprecision(5) << " clone/insert:";
+            std::cout << "  avg: " << std::accumulate(cloneDur.begin(), cloneDur.end(), 0.0) / cloneDur.size();
+            std::cout << "  min: " << cloneDur.front();
+            std::cout << "  med: " << cloneDur[cloneDur.size() / 2];
+            std::cout << "  max: " << cloneDur.back();
+            std::cout << std::endl;
+        }
+    }
 }
 
-TEST(Set, Emplace)
+TEST(BinaryTree, CompareSTDSet)
 {
-    //! \todo: unittest
+    for (size_t f = 0; f < sizeof(s_fillStrategys) / sizeof(s_fillStrategys[0]); ++f) {
+        std::vector<TestData> data = fillVector(s_fillStrategys[f].count, s_fillStrategys[f].func);
+        std::stringstream uniqueSetTestLog;
+        uniqueSetTestLog << "fillStrategy: " << f << " count: " << s_fillStrategys[f].count;
+
+        TestData::s_stats.resetCounters();
+        gepard::BinaryTree<TestData> uniqueSet;
+        int j = 0;
+        for (size_t i = 0; i < data.size(); ++i) {
+            auto ret = uniqueSet.uniqueInsert(data[i]);
+            if (ret.isNew) {
+                TEST_STATS(0, 0, ++j, 0, 0, 0);
+            }
+        }
+        TestData::s_stats.resetCounters();
+        std::set<TestData> refSet;
+        j = 0;
+        for (size_t i = 0; i < data.size(); ++i) {
+            auto ret = refSet.insert(data[i]);
+            if (ret.second) {
+                TEST_STATS(0, 0, ++j, 0, 0, 0);
+            }
+        }
+
+        EXPECT_EQ(uniqueSet.size(), refSet.size()) << uniqueSetTestLog.str();
+
+        std::set<TestData>::iterator refIt = refSet.begin();
+        gepard::BinaryTree<TestData>::iterator usetIt = uniqueSet.begin(), usetPIt = uniqueSet.begin();
+        while (refIt != refSet.end() && usetIt != uniqueSet.end()) {
+            EXPECT_EQ(*usetIt, *refIt) << uniqueSetTestLog.str();
+            EXPECT_LE(*usetPIt, *usetIt) << uniqueSetTestLog.str();
+            ++refIt;
+            usetPIt = usetIt++;
+        }
+    }
 }
 
-TEST(Set, CompareSTDSet)
-{
-    //! \todo: unittest
-}
-
-TEST(Set, DISABLED_SpeedTest)
-{
-    //! \todo: unittest
-}
-
-TEST(MultiSet, Find)
-{
-    //! \todo: unittest
-}
-
-TEST(MultiSet, Insert)
-{
-    //! \todo: unittest
-}
-
-TEST(MultiSet, Emplace)
-{
-    //! \todo: unittest
-}
-
-TEST(MultiSet, CompareSTDMultiset)
+TEST(BinaryTree, CompareSTDMultiset)
 {
     for (size_t f = 0; f < sizeof(s_fillStrategys) / sizeof(s_fillStrategys[0]); ++f) {
         std::vector<TestData> data = fillVector(s_fillStrategys[f].count, s_fillStrategys[f].func);
@@ -483,9 +559,9 @@ TEST(MultiSet, CompareSTDMultiset)
         multiSetTestLog << "fillStrategy: " << f << " count: " << s_fillStrategys[f].count;
 
         TestData::s_stats.resetCounters();
-        gepard::MultiSet<TestData> multiSet;
+        gepard::BinaryTree<TestData> multiSet;
         for (size_t i = 0; i < data.size(); ++i) {
-            multiSet.insert(data[i]);
+            multiSet.multiInsert(data[i]);
             TEST_STATS(0, 0, (int)i + 1, 0, 0, 0);
         }
         TestData::s_stats.resetCounters();
@@ -498,61 +574,76 @@ TEST(MultiSet, CompareSTDMultiset)
         EXPECT_EQ(multiSet.size(), refMultiset.size()) << multiSetTestLog.str();
 
         std::multiset<TestData>::iterator refIt = refMultiset.begin();
-        gepard::MultiSet<TestData>::iterator msetIt = multiSet.begin(), msetPIt = multiSet.begin();
+        gepard::BinaryTree<TestData>::iterator msetIt = multiSet.begin(), msetPIt = multiSet.begin();
         while (refIt != refMultiset.end() && msetIt != multiSet.end()) {
-            EXPECT_EQ(*msetIt->data, *refIt) << multiSetTestLog.str();
-            EXPECT_LE(*msetPIt->data, *msetIt->data) << multiSetTestLog.str();
+            EXPECT_EQ(*msetIt, *refIt) << multiSetTestLog.str();
+            EXPECT_LE(*msetPIt, *msetIt) << multiSetTestLog.str();
             ++refIt;
             msetPIt = msetIt++;
         }
     }
 }
 
-TEST(MultiSet, DISABLED_SpeedTest)
+TEST(BinaryTree, DISABLED_SpeedTest)
 {
     for (size_t f = 0; f < sizeof(s_fillStrategys) / sizeof(s_fillStrategys[0]); ++f) {
-        std::vector<TestData> data = fillVector(s_fillStrategys[f].count, s_fillStrategys[f].func);
-
-        if (s_fillStrategys[f].count < (1 << 8))
+        if (s_fillStrategys[f].count < 1 << 8)
             continue;
 
-        std::stringstream multiSetTestLog;
-        multiSetTestLog << "fillStrategy: " << f << " count: " << s_fillStrategys[f].count;
+        std::vector<TestData> data = fillVector(s_fillStrategys[f].count, s_fillStrategys[f].func);
 
-        std::vector<std::chrono::high_resolution_clock::duration> refDur;
-        std::vector<std::chrono::high_resolution_clock::duration> msetDur;
-        for (int i = 0; i < 5; ++i) {
-            size_t refSize;
-            auto refMultisetStart = std::chrono::high_resolution_clock::now();
-            {
-                std::multiset<TestData> refMultiset;
-                for (size_t i = 0; i < data.size(); ++i) {
-                    refMultiset.insert(data[i]);
+        std::stringstream compareTestLog;
+        compareTestLog << "fillStrategy: " << f << " count: " << s_fillStrategys[f].count;
+
+        const int num = REPEAT;
+        const int thrdCnt = THRD_CNT;
+        std::vector<std::thread> threads;
+        std::vector<double> msetDur(num * thrdCnt, 0.0f);
+        std::vector<double> binTreeDur(num * thrdCnt, 0.0f);
+        for (int t = 0; t < thrdCnt; ++t) {
+            threads.push_back(std::thread([&](int thrd){
+                for (int i = 0; i < num; ++i) {
+                    const clockid_t clk_id = CLOCK_THREAD_CPUTIME_ID;
+                    struct timespec start, stop;
+
+                    clock_gettime(clk_id, &start);
+                    gepard::BinaryTree<TestData> binTree;
+                    for (size_t j = 0; j < data.size(); ++j) {
+                        binTree.multiInsert(data[j]);
+                    }
+                    clock_gettime(clk_id, &stop);
+                    binTreeDur[i * thrdCnt + thrd] = ACCUMULATE(start, stop);
+
+                    clock_gettime(clk_id, &start);
+                    std::multiset<TestData> mset;
+                    for (size_t j = 0; j < data.size(); ++j) {
+                        mset.insert(data[j]);
+                    }
+                    clock_gettime(clk_id, &stop);
+                    msetDur[i * thrdCnt + thrd] = ACCUMULATE(start, stop);
                 }
-                refSize = refMultiset.size();
-            }
-            auto refMultisetDuration = std::chrono::high_resolution_clock::now() - refMultisetStart;
-            refDur.push_back(refMultisetDuration);
-
-            size_t msetSize;
-            auto msetStart = std::chrono::high_resolution_clock::now();
-            {
-                gepard::MultiSet<TestData> mset;
-                for (size_t i = 0; i < data.size(); ++i) {
-                    mset.insert(data[i]);
-                }
-                msetSize = mset.size();
-            }
-            auto msetDuration = std::chrono::high_resolution_clock::now() - msetStart;
-            msetDur.push_back(msetDuration);
-
-            EXPECT_EQ(msetSize, refSize) << multiSetTestLog.str();
+            }, t));
         }
-        std::sort(refDur.begin(), refDur.end());
+        for (size_t t = 0; t < threads.size(); ++t) {
+            threads[t].join();
+        }
+
+        std::sort(binTreeDur.begin(), binTreeDur.end());
         std::sort(msetDur.begin(), msetDur.end());
+        for (size_t i = 0; i < msetDur.size(); ++i) {
+            msetDur[i] = binTreeDur[i] / msetDur[i];
+        }
+        std::sort(msetDur.begin(), msetDur.end());
+        if (VERBOSE) {
+            std::cout << std::fixed << std::setprecision(5) << " binTree/ref:";
+            std::cout << "  avg: " << std::accumulate(msetDur.begin(), msetDur.end(), 0.0) / msetDur.size();
+            std::cout << "  min: " << msetDur.front();
+            std::cout << "  med: " << msetDur[msetDur.size() / 2];
+            std::cout << "  max: " << msetDur.back();
+            std::cout << std::endl;
+        }
         // Compare medians.
-        EXPECT_LT((double)msetDur[2].count() / (double)refDur[2].count(), 0.999);
-        std::cout << "multiset: " << (double)msetDur[2].count() / (double)refDur[2].count() << std::endl;
+        EXPECT_LT(msetDur[msetDur.size() / 2], 0.999);
     }
 }
 

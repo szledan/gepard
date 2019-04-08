@@ -31,82 +31,34 @@
 #include <cmath>
 #include <iostream>
 #include <iterator>
+#include <stack>
 #include <utility>
+#include <vector>
 
 namespace gepard {
 
-template<typename _Tp, const size_t EXPECTED_MIN_NODES = 64>
-class _LinkedBinaryTree;
-
-template<typename T>
-class Set {
-    using LinkedBinaryTree = _LinkedBinaryTree<T>;
-
-public:
-    typedef typename LinkedBinaryTree::iterator iterator;
-
-    iterator begin() { return _lbt.begin(); }
-    iterator end() { return _lbt.end(); }
-
-    const size_t size() const  { return _lbt.size(); }
-
-    iterator find(const T& value) { return _lbt.find(value); }
-
-    iterator insert(const T& value) { return _lbt.uniqueInsert(value); }
-    iterator insert(T&& value) { return _lbt.uniqueInsert(value); }
-    void emplace(const T& value) { _lbt.uniqueEmplace(value); }
-    void emplace(T&& value) { _lbt.uniqueEmplace(value); }
-
-private:
-    LinkedBinaryTree _lbt;
-};
-
-template<typename T>
-class MultiSet {
-    using LinkedBinaryTree = _LinkedBinaryTree<T>;
-
-public:
-    typedef typename LinkedBinaryTree::iterator iterator;
-
-    iterator begin() { return _lbt.begin(); }
-    iterator end() { return _lbt.end(); }
-
-    const size_t size() const  { return _lbt.size(); }
-
-    iterator find(const T& value) { return _lbt.find(value); }
-
-    iterator insert(const T& value) { return _lbt.multiInsert(value); }
-    iterator insert(T&& value) { return _lbt.multiInsert(value); }
-    void emplace(const T& value) { _lbt.multiEmplace(value); }
-    void emplace(T&& value) { _lbt.multiEmplace(value); }
-
-private:
-    LinkedBinaryTree _lbt;
-};
-
-template<typename _T, const size_t EXPECTED_MIN_NODES>
-class _LinkedBinaryTree {
+template<typename T, const size_t EXPECTED_MIN_NODES = 64>
+class BinaryTree {
     struct _Node {
-        _Node(const _T& d) : data(d) {}
-        _Node(_T&& d) : data(std::forward<_T>(d)) {}
+        _Node(const _Node* n) : height(n->height) , data(n->data) {}
+        _Node(const T& d) : data(d) {}
+        _Node(T&& d) : data(std::forward<T>(d)) {}
+        ~_Node() {}
 
         _Node* left = nullptr;
         _Node* right = nullptr;
         _Node* next = nullptr;
         int8_t height = 0;
-        _T data;
+        T data;
     };
     typedef _Node* _NodePtr;
 
-    struct _EmptyRetType {
-        inline void setPrev(const _NodePtr) {}
-        inline void setType(const bool) {}
-        inline void findPrev(const _NodePtr) {}
-        inline const _NodePtr getPrev() const { return nullptr; }
-        inline const bool getType() const { return false; }
+    template<size_t requestedSize, size_t memStorageSize> struct _SelectSize {
+        static const int val = memStorageSize * (1 + requestedSize / memStorageSize);
     };
+    using _Region = Region<_SelectSize<EXPECTED_MIN_NODES * sizeof(_Node), 2048>::val - (int)sizeof(void*)>;
 
-    struct _RetType : public _EmptyRetType {
+    struct _RetType {
         _NodePtr prevNode;
         bool type;
         _RetType(const _NodePtr p = nullptr, const bool t = false)
@@ -120,14 +72,12 @@ class _LinkedBinaryTree {
         inline const bool getType() const { return type; }
     };
 
-    template<typename _RetT>
-    class _Iterator : public std::iterator<std::forward_iterator_tag, _RetT> {
-         _RetT _retVal;
+    template<typename _Node>
+    class _Iterator : public std::iterator<std::forward_iterator_tag, _Node> {
+         _Node* _node;
 
     public:
-        _Iterator(const _RetT& rv) : _retVal(rv) {}
-
-        const _RetT& retVal() const { return _retVal; }
+        _Iterator(const _NodePtr node) : _node(node) {}
 
         _Iterator operator++(int)
         {
@@ -137,13 +87,16 @@ class _LinkedBinaryTree {
         }
         _Iterator& operator++()
         {
-            ++_retVal;
+            if (_node) {
+                _node = _node->next;
+            }
             return *this;
         }
-        _RetT& operator*() { return _retVal; }
-        _RetT* operator->() { return &_retVal; }
-        bool operator==(const _Iterator& rhs) const { return _retVal == rhs._retVal; }
-        bool operator!=(const _Iterator& rhs) const { return !(_retVal == rhs._retVal); }
+        const T& operator*() const { GD_ASSERT(_node); return _node->data; }
+        T& operator*() { GD_ASSERT(_node); return _node->data; }
+        T* operator->() { GD_ASSERT(_node); return &(_node->data); }
+        bool operator==(const _Iterator& rhs) const { return _node == rhs._node; }
+        bool operator!=(const _Iterator& rhs) const { return _node != rhs._node; }
     };
 
     template<typename _U>
@@ -162,52 +115,68 @@ class _LinkedBinaryTree {
         }
     };
 
+    BinaryTree(const size_t size, const _NodePtr root = nullptr, const _NodePtr first = nullptr, _Region&& region = _Region())
+        : _size(size)
+        , _region(std::move(region))
+    {
+        _NodePtr r = root;
+        _root = r;
+        _NodePtr f = first;
+        _first = f;
+    }
+
 public:
-    struct ReturnType {
-        _T* data;
-        _T* prev;
-        bool isNew;
-
-        ReturnType(const _NodePtr n = nullptr, const _NodePtr p = nullptr, const bool t = false)
-            : data(n ? &(n->data) : nullptr)
-            , prev(p ? &(p->data) : nullptr)
-            , isNew(t)
-            , _node(n)
-        {}
-
-        bool operator==(const ReturnType& rhs) const { return _node == rhs._node; }
-        ReturnType& operator++()
-        {
-            isNew = false;
-            _node = _node->next;
-            if (_node) {
-                prev = data;
-                data = &(_node->data);
-            }
+    BinaryTree() = default;
+    BinaryTree(const BinaryTree&) = delete;
+    BinaryTree(BinaryTree&& bt)
+        : _size(bt._size), _root(bt._root), _first(bt._first), _region(std::move(bt._region))
+    {
+        bt._first = nullptr;
+    }
+    BinaryTree& operator=(const BinaryTree&) = delete;
+    BinaryTree& operator=(BinaryTree&& rhs)
+    {
+        if (this == &rhs)
             return *this;
-        }
-    private:
-        _NodePtr _node;
-    };
-    typedef _Iterator<ReturnType> iterator;
 
-    iterator begin() { return iterator(ReturnType(_first)); }
-    iterator end() { return iterator(ReturnType()); }
+        _size = rhs._size;
+        _root = rhs._root;
+        _first = rhs._first;
+        _region = rhs._region;
+        rhs._first = nullptr;
+        return *this;
+    }
+    ~BinaryTree()
+    {
+        while (_first) {
+            _NodePtr node = _first;
+            node->~_Node();
+            _first = _first->next;
+        }
+    }
+
+    typedef _Iterator<_Node> iterator;
+
+    struct ReturnType {
+        ReturnType(iterator&& i, T* p, const bool in) : it(std::move(i)), prev(p), isNew(in) {}
+        iterator it;
+        T* prev;
+        bool isNew;
+    };
+
+    iterator begin() { return iterator(_first); }
+    iterator end() { return iterator(nullptr); }
 
     const size_t size() const { return _size; }
     const int8_t rootHeight() const { return height(_root); }
 
-    iterator uniqueInsert(const _T& data) { return iterator(insert<_Greater<_T>>(data)); }
-    iterator uniqueInsert(_T&& data) { return iterator(insert<_Greater<_T>>(std::move(data))); }
-    void uniqueEmplace(const _T& data) { emplace<_Greater<_T>>(data); }
-    void uniqueEmplace(_T&& data) { emplace<_Greater<_T>>(std::move(data)); }
+    ReturnType uniqueInsert(const T& data) { return insert<_Greater<T>>(data); }
+    ReturnType uniqueInsert(T&& data) { return insert<_Greater<T>>(std::move(data)); }
 
-    iterator multiInsert(const _T& data) { return iterator(insert<_GreaterOrEqual<_T>>(data)); }
-    iterator multiInsert(_T&& data) { return iterator(insert<_GreaterOrEqual<_T>>(std::move(data))); }
-    void multiEmplace(const _T& data) { emplace<_GreaterOrEqual<_T>>(data); }
-    void multiEmplace(_T&& data) { emplace<_GreaterOrEqual<_T>>(std::move(data)); }
+    ReturnType multiInsert(const T& data) { return insert<_GreaterOrEqual<T>>(data); }
+    ReturnType multiInsert(T&& data) { return insert<_GreaterOrEqual<T>>(std::move(data)); }
 
-    iterator find(const _T& data)
+    ReturnType find(const T& data)
     {
         _NodePtr prev, node = prev = _root;
         while (node) {
@@ -221,23 +190,87 @@ public:
                 break;
             }
         }
-        return iterator(ReturnType(node, prev));
+        return ReturnType(iterator(node), prev ? &(prev->data) : nullptr, false);
+    }
+
+    BinaryTree clone()
+    {
+        if (!_root)
+            return BinaryTree();
+
+        GD_ASSERT(_root);
+        if (_size < (1 << 3)) {
+            BinaryTree bt;
+            _NodePtr n = _first;
+            do {
+                bt.multiInsert(n->data);
+            } while ((n = n->next));
+            return bt;
+        }
+
+        int8_t sp = 2 * rootHeight() + 1;
+        _NodePtr root = nullptr;
+        _NodePtr first = nullptr;
+        size_t size = 0;
+        _Region region;
+
+        std::vector<_NodePtr> srcStack(sp);
+        std::vector<_NodePtr> dstStack(sp);
+        std::vector<_NodePtr> prevStack(sp);
+        auto cloneNode = [&](_NodePtr& target, _NodePtr node, _NodePtr prev) -> _NodePtr {
+            size++;
+            dstStack[sp] = target = new (region.alloc(sizeof(_Node))) _Node(node);
+            prevStack[sp] = prev;
+            srcStack[sp++] = node;
+            return target;
+        };
+
+        sp = 0;
+        first = cloneNode(root, _root, nullptr);
+
+        while (sp) {
+            _NodePtr currOld = srcStack[--sp];
+            _NodePtr currNew = dstStack[sp];
+            _NodePtr prevNode = prevStack[sp];
+            GD_ASSERT(currNew);
+            if (currOld->right) {
+                cloneNode(currNew->right, currOld->right, currNew);
+                dstStack[sp - 1]->next = currNew->next;
+                currNew->next = dstStack[sp - 1];
+            }
+            if (currOld->left) {
+                cloneNode(currNew->left, currOld->left, nullptr);
+                dstStack[sp - 1]->next = currNew;
+
+                if (prevNode) {
+                    prevStack[sp - 1] = prevNode;
+                    prevNode->next = dstStack[sp - 1];
+                } else if (currNew->left->data <= first->data) {
+                    first = currNew->left;
+                }
+            }
+        }
+
+        return BinaryTree(size, root, first, std::move(region));
     }
 
     //! \todo: remove:just testing
-    void displayTree()
+    void displayTree() const
     {
+        if (!_root)
+            return;
+        std::cout << "{" << _root << ":" << _root->data << ", " << _first << ":" << _first->data << "}" << std::endl;
         displayTree(_root);
     }
 
 private:
     //! \todo: remove:just testing
-    void displayTree(_NodePtr node)
+    void displayTree(_NodePtr node) const
     {
         if (!node)
             return;
         displayTree(node->left);
-        std::cout << std::string(2 * node->height, ' ') << node->data << " (" << (int)height(node->left) << "," << (int)height(node->right) << ")" << std::endl;
+        std::cout << std::string(2 * node->height, ' ') << node->data << " (" << (int)height(node->left) << "," << (int)height(node->right) << ") " << node << "->[" << node->next << "]" << std::endl;
         displayTree(node->right);
     }
 
@@ -346,30 +379,30 @@ private:
         return node;
     }
 
-    template<typename _NotLessCompare, typename _U, typename _RetVal = _RetType>
+    template<typename _NotLessCompare, typename _U>
     ReturnType insert(_U&& data)
     {
         _NotLessCompare notLess;
         _NodePtr node = nullptr;
-        _RetVal retVal;
-        retVal.setType(true);
+        _NodePtr prev = nullptr;
+        bool isNew = true;
 
         if (GD_UNLIKELY(!_root)) {
             node = _first = _root = put<_U>(_root, std::forward<_U>(data));
         } else {
             _NodePtr workSide, parent = _root = balance(_root);
-            retVal.setPrev(parent);
+            prev = parent;
             do {
                 const bool isLesser = data < parent->data;
 
                 if (isLesser) {
                     workSide = parent->left;
                 } else if (notLess(data, parent->data)) {
-                    retVal.setPrev(parent);
+                    prev = parent;
                     workSide = parent->right;
                 } else {
-                    retVal.setType(false);
-                    retVal.findPrev(parent);
+                    isNew = false;
+                    prev = findPrevNode(parent, prev);
                     break;
                 }
 
@@ -393,7 +426,7 @@ private:
             GD_ASSERT(parent);
 
             if (data < parent->data) {
-                node = putLeft<_U>(parent, retVal.getPrev(), std::forward<_U>(data));
+                node = putLeft<_U>(parent, prev, std::forward<_U>(data));
             } else if (notLess(data, parent->data)) {
                 node = putRight<_U>(parent, std::forward<_U>(data));
             } else {
@@ -404,23 +437,19 @@ private:
         }
 
         GD_ASSERT(node);
-        return ReturnType(node, retVal.getPrev(), retVal.getType() > 0);
+        return ReturnType(iterator(node), prev ? &(prev->data) : nullptr, isNew);
     }
 
     template<typename _NotLessCompare, typename _U>
     void emplace(_U&& data)
     {
-        insert<_NotLessCompare, _U, _EmptyRetType>(std::forward<_U>(data));
+        insert<_NotLessCompare, _U, _RetType>(std::forward<_U>(data));
     }
 
     size_t _size = 0;
     _NodePtr _root = nullptr;
     _NodePtr _first = nullptr;
-
-    template<size_t requestedSize, size_t memStorageSize> struct _SelectSize {
-        static const int val = memStorageSize * (1 + requestedSize / memStorageSize);
-    };
-    Region<_SelectSize<EXPECTED_MIN_NODES * sizeof(_Node), 2048>::val - (int)sizeof(void*)> _region;
+    _Region _region;
 };
 
 } // namespace gepard
