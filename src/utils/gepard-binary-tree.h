@@ -53,8 +53,9 @@ class BinaryTree {
     };
     typedef _Node* _NodePtr;
 
-    template<size_t requestedSize, size_t memStorageSize> struct _SelectSize {
-        static const int val = memStorageSize * (1 + requestedSize / memStorageSize);
+    template<const size_t requestedSize, const size_t regionBlockSize>
+    struct _SelectSize {
+        static const int val = regionBlockSize * (1 + requestedSize / regionBlockSize);
     };
     using _Region = Region<_SelectSize<EXPECTED_MIN_NODES * sizeof(_Node), 2048>::val - (int)sizeof(void*)>;
 
@@ -72,9 +73,8 @@ class BinaryTree {
         inline const bool getType() const { return type; }
     };
 
-    template<typename _Node>
     class _Iterator : public std::iterator<std::forward_iterator_tag, _Node> {
-         _Node* _node;
+         _NodePtr _node;
 
     public:
         _Iterator(const _NodePtr node) : _node(node) {}
@@ -155,7 +155,7 @@ public:
         }
     }
 
-    typedef _Iterator<_Node> iterator;
+    typedef _Iterator iterator;
 
     struct ReturnType {
         ReturnType(iterator&& i, T* p, const bool in) : it(std::move(i)), prev(p), isNew(in) {}
