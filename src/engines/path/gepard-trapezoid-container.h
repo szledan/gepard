@@ -34,14 +34,39 @@
 #include "gepard-segment.h"
 #include "gepard-binary-tree.h"
 #include "gepard-job-scheduler.h"
+#include <forward_list>
 #include <mutex>
 #include <thread>
 
 namespace gepard {
 
-class TrapezoidContainer {
+struct SegmentList {
+    typedef gepard::BinaryTree<gepard::Segment> List;
 
+    int y;
+    List* list;
+
+    SegmentList(const int y_, List* l = nullptr)
+        : y(y_), list(l)
+    {}
+    ~SegmentList()
+    {
+        if (list) {
+            delete list;
+        }
+    }
+
+    friend const bool operator<(const SegmentList& lhs, const SegmentList& rhs)
+    {
+        return lhs.y < rhs.y;
+    }
+
+    SegmentList& operator=(SegmentList& other) = delete;
+};
+
+class TrapezoidContainer {
 public:
+
     TrapezoidContainer()
     {
     }
@@ -55,7 +80,13 @@ public:
 
     void addSegment(const Segment& segment)
     {
-        ;
+//        _yMutex.lock();
+//        _yJobs.addJob(std::bind(&TrapezoidContainer::addYJob, this, segment));
+//        _yMutex.unlock();
+    }
+
+    void addSegments(const std::forward_list<Segment> segments)
+    {
 //        _yMutex.lock();
 //        _yJobs.addJob(std::bind(&TrapezoidContainer::addYJob, this, segment));
 //        _yMutex.unlock();

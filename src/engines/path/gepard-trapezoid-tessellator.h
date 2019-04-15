@@ -39,6 +39,11 @@
 #include "gepard-state.h"
 #include <list>
 
+#include <functional>
+#include <queue>
+#include <thread>
+#include <vector>
+
 namespace gepard {
 
 /* Trapezoid */
@@ -95,6 +100,50 @@ private:
     const int _antiAliasingLevel;
 
     BoundingBox _boundingBox;
+};
+
+template<const uint8_t WORKER_COUNT = 1 + 8>
+class TrapezoidBuilder {
+public:
+    TrapezoidBuilder()
+        : yWorker(yWorks)
+    {
+        workers.reserve(WORKER_COUNT);
+        for (uint8_t t = 0; t < WORKER_COUNT; ++t) {
+            workers[t] = std::thread();
+        }
+    }
+    ~TrapezoidBuilder()
+    {
+        yWorker.join();
+    }
+private:
+    struct Scheduler {
+        struct Job {
+            Job(std::function<void()> func) : boundFunc(func) {}
+            void run()
+            {
+                GD_ASSERT(boundFunc != nullptr);
+                boundFunc();
+            }
+
+            std::function<void()> boundFunc;
+        };
+
+        void addJob(std::function<void()> func)
+        {
+            ;
+        }
+    };
+
+    void yWorks()
+    {
+        while ();
+    }
+
+    std::thread yWorker;
+    std::queue<std::function<void()>> yJobs;
+    std::vector<std::thread> xWorkers;
 };
 
 } // namespace gepard
