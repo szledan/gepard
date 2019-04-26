@@ -138,7 +138,9 @@ private:
 
     void yWorks()
     {
-        while ();
+        while (true) {
+            ;
+        }
     }
 
     std::thread yWorker;
